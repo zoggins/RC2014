@@ -5,15 +5,16 @@
 * Schematic provided in folder
 * Ignore the switches, just
 * build the amplifier/speaker
-* circuit.
+* circuit.  This uses the buttons
+* on the Digital I/O Module instead.
 * 
 * Adapted from the demo in the
 * KIM-1 manual.
 *
 ************************************
 OUTPORT 	EQU 	0X00
-INPORT 		EQU 	0x03
-LEDPORT		EQU		0x03
+INPORT 		EQU 	0x03		; in  port on I/O module
+LEDPORT		EQU		0x03		; out port on I/O module
 
 			ORG 	0x0200
 

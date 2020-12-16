@@ -1,3 +1,4 @@
+05 REM Cylon-looking LED pattern
 10 FOR F=0 TO 7
 20 OUT 0,2^F
 30 GOSUB 100
