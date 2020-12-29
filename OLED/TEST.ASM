@@ -1,0 +1,61 @@
+	org	0x0200 
+
+RESET:		MVI		B,0x06
+			OUT		0x50
+			NOP
+			NOP
+			NOP
+			NOP
+			RES		2,B
+			OUT		0x50
+			JMP LOOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+	
+			LHLD	SEQUENCE
+INITLOOP:	MOV		A,(HL)
+			CP		0xFF
+			JZ		LOOP
+COMMAND:	MVI		B,0x00
+			OUT		0x50
+			NOP
+			NOP
+			NOP
+			NOP
+			SET		1,B
+			OUT		0x50
+			NOP
+			NOP
+			INX	 H
+			JR	INITLOOP
+LOOP:		NOP
+			JMP LOOP
+
+SEQUENCE:	DB		0xAE, 0xD5, 0xA0, 0xA8
+			DB		0x1F, 0xD3, 0x00, 0xAD
+			DB		0x8E, 0xD8, 0x05, 0xA1
+			DB		0xC8, 0xDA, 0x12, 0x91
+			DB		0x3F, 0x3F, 0x3F, 0x3F
+			DB		0x81, 0x80, 0xD9, 0xD2
+			DB		0xDB, 0x34, 0xA6, 0xA4
+			DB		0xAF
+			DB		0xFF	
+

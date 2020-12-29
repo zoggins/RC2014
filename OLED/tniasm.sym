@@ -1,0 +1,6 @@
+RESET: equ 02Eh ; last def. pass 3
+COMMAND: equ 051h ; last def. pass 3
+SEQUENCE: equ 010h ; last def. pass 3
+OLEDDATA: equ 074h ; last def. pass 3
+INIT: equ 00h ; last def. pass 3
+INITLOOP: equ 06h ; last def. pass 3
