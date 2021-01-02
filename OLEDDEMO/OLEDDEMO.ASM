@@ -2,10 +2,14 @@
 ;* Demo of Quazar's OLED Board
 ;* 
 ;* Prints "Zoggins" to the screen
-;*
+;* and uses the buttons/leds on the 
+;* Digital I/O board to do different 
+;* things
 ;************************************
 
-OLEDPORT:	EQU		0x50
+OLEDPORT:	EQU		0x50		; OLED address
+INPORT:		EQU		0x03		; Digital I/O board's input address
+OUTPORT:	EQU		0x03		; Digital I/O board's output address
 
 			ORG		0x0200
 
@@ -19,7 +23,26 @@ INITLOOP:	LD		A, (HL)
 			JP		INITLOOP
 CLEAR:		CALL	CLEAROLED
 			CALL	SETWINDOW	; DRAW SOMETHING
-TERMLOOP:	JR		TERMLOOP	; LOOP FOREVER ON EXIT
+			
+TERMLOOP:	IN		A, (INPORT)
+			OUT		(OUTPORT), A
+			CP		0x01		; Button 1
+			JR		Z, INVERT	; Inverts Display
+			CP		0x02		; Button 2
+			JR		Z, NORMAL	; Un-inverts the Display
+			CP		0x40		; Button 7
+			JR		Z, DIM		; Dims the Display
+			CP		0x80		; Button 8
+			JR		Z, FULL		; Un-Dims the Display
+			JR		TERMLOOP
+INVERT:		CALL	INVERTEDDIS
+			JR		TERMLOOP	
+NORMAL:		CALL	NORMALDIS
+			JR		TERMLOOP
+FULL:		CALL	FULLDISPLAY
+			JR		TERMLOOP
+DIM:		CALL	DIMDISPLAY
+			JR		TERMLOOP
 			RET
 
 ; SETS THE WINDOW FOR THE ENTIRE SCREEN

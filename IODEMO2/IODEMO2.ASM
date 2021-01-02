@@ -11,9 +11,9 @@
 ;* KIM-1 manual.
 ;*
 ;************************************
-OUTPORT: 	EQU 	0x00
+OUTPORT: 	EQU 	0x00		; out port on the output module
 INPORT: 	EQU 	0x00		; in port on input module
-LEDPORT:	EQU		0x03		; out port on I/O module
+LEDPORT:	EQU		0x03		; out port on digital I/O module
 
 			ORG 	0x0200
 
