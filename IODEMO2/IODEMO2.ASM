@@ -4,8 +4,7 @@
 ;* Input module.
 ;*
 ;* Schematic provided in folder
-;* Switchs must go to 5v and GND, 
-;* not GND and float.
+;* Switchs must toggle between 5v and GND.
 ;* 
 ;* PA0 == Digital Output Port 0 Pin 0
 ;* PA1-PA7 == Digital Input Port 0 Pins 0-6
