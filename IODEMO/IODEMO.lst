@@ -1,0 +1,78 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.01.07 - 18:26:44]
+
+IODEMO.ASM
+Errors: 0
+
+       1   00:0200                      ;************************************
+       2   00:0200                      ;* Demo using the Digital I/O module 
+       3   00:0200                      ;* and the Digital Output module.
+       4   00:0200                      ;*
+       5   00:0200                      ;* Schematic provided in folder
+       6   00:0200                      ;* Ignore the switches, just
+       7   00:0200                      ;* build the amplifier/speaker
+       8   00:0200                      ;* circuit.  This uses the buttons
+       9   00:0200                      ;* on the Digital I/O Module instead.
+      10   00:0200                      ;* 
+      11   00:0200                      ;* Adapted from the demo in the
+      12   00:0200                      ;* KIM-1 manual.
+      13   00:0200                      ;*
+      14   00:0200                      ;************************************
+      15   00:0200  (00:0000)           OUTPORT: 	EQU 	0X00
+      16   00:0200  (00:0003)           INPORT: 	EQU 	0x03		; in port on I/O module
+      17   00:0200  (00:0003)           LEDPORT:	EQU		0x03		; out port on I/O module
+      18   00:0200                      
+      19   00:0200                      			ORG 	0x0200
+      20   00:0200                      
+      21   00:0200  06 00               INIT: 		LD	 	B,0			; Set B to initial value of 0
+      22   00:0202  04                  START: 		INC 	B			; Toggle Speaker
+      23   00:0203  78                  			LD	 	A,B			 
+      24   00:0204  D3 00               			OUT 	(OUTPORT), A		 
+      25   00:0206  DB 03               			IN 		A, (INPORT)		; Read buttons
+      26   00:0208  CB 0F               			RRC		A
+      27   00:020A  E6 7F               			AND		0x7F
+      28   00:020C  D3 03               			OUT		(LEDPORT), A	; Echo buttons onto LEDs
+      29   00:020E  00                  DELAY: 		NOP					; At 7 Mhz you need to slow down 
+      30   00:020F  00                  			NOP					; the program to actually hit
+      31   00:0210  00                  			NOP					; audible frequencies.
+      32   00:0211  00                  			NOP					
+      33   00:0212  00                  			NOP
+      34   00:0213  00                  			NOP
+      35   00:0214  00                  			NOP
+      36   00:0215  00                  			NOP
+      37   00:0216  00                  			NOP
+      38   00:0217  00                  			NOP
+      39   00:0218  00                  			NOP
+      40   00:0219  00                  			NOP
+      41   00:021A  00                  			NOP
+      42   00:021B  00                  			NOP
+      43   00:021C  00                  			NOP
+      44   00:021D  00                  			NOP
+      45   00:021E  00                  			NOP
+      46   00:021F  00                  			NOP
+      47   00:0220  00                  			NOP
+      48   00:0221  00                  			NOP
+      49   00:0222  00                  			NOP
+      50   00:0223  00                  			NOP
+      51   00:0224  00                  			NOP
+      52   00:0225  3D                  			DEC		A			; Delay by an amount specified
+      53   00:0226  F2 0E 02            			JP		P, DELAY	; by the count in A
+      54   00:0229  FA 02 02            			JP		M, START	; Go Start
+
+    LABELS
+-------------------------------------------------
+00:00000000   OUTPORT
+00:00000003   INPORT
+00:00000003   LEDPORT
+00:00000200 X INIT
+00:00000202   START
+00:0000020E   DELAY
+
+
+ Output: IODEMO.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000200  Size: *  Used: 0000002C
+
+   Address   Length Align   Label
+   00000200      44         INIT

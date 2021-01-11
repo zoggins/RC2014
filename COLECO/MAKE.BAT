@@ -1,0 +1,1 @@
+..\sjasm.exe LOADER.ASM COLECO.COM

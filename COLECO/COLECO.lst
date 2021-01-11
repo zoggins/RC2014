@@ -1,0 +1,160 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.01.07 - 18:30:18]
+
+LOADER.ASM
+Errors: 0
+
+       1   00:0100                      ; ColecoVision Game Loader for CP/M on RC2014
+       2   00:0100                      ;
+       3   00:0100                      ; Works with RomWBW 512K RAM/ROM Board
+       4   00:0100                      ; Incompatible with 64KB Pageable ROM Board due to port conflicts
+       5   00:0100                      ;
+       6   00:0100                      ; Assemble with sjasm. ColecoVision BIOS ROM must be in "coleco.rom" 
+       7   00:0100                      ; in the same directory where loader.asm is assembled.
+       8   00:0100                      ;
+       9   00:0100                      ; CP/M file loader code from https://github.com/MMaciocia/RC2014-YM2149
+      10   00:0100                      ; Modified to load ColecoVision games by J.B. Langston
+      11   00:0100                      
+      12   00:0100  (00:0000)           boot:		equ	0			; boot location
+      13   00:0100  (00:0005)           bdos:		equ	5			; bdos entry point
+      14   00:0100  (00:005C)           fcb:		equ	$5c			; file control block
+      15   00:0100  (00:007C)           fcbcr:		equ	fcb+$20			; fcb current record
+      16   00:0100  (00:0080)           buff:		equ	$80			; DMA buffer
+      17   00:0100  (00:0009)           printf:		equ	9			; BDOS print string function
+      18   00:0100  (00:000F)           openf:		equ	15			; BDOS open file function
+      19   00:0100  (00:0010)           closef:		equ	16			; BDOS close file function
+      20   00:0100  (00:0014)           readf:		equ	20			; BDOS sequential read function
+      21   00:0100                      
+      22   00:0100  (00:FFFF)           gametop:	equ	$ffff			; top of game cartridge location
+      23   00:0100  (00:8000)           gamelen:	equ	$8000			; length of game cartridge
+      24   00:0100  (00:2000)           bioslen: 	equ	$2000			; length of BIOS
+      25   00:0100                      
+      26   00:0100  (00:000D)           cr:		equ	$0d			; carriage return
+      27   00:0100  (00:000A)           lf:		equ	$0a			; line feed
+      28   00:0100  (00:0024)           eos:		equ	'$'			; end of string marker
+      29   00:0100                      
+      30   00:0100                      		org 	$100
+      31   00:0100  ED 73 84 01         		ld	(oldsp),sp		; save old stack pointer
+      32   00:0104  31 C6 01            		ld	sp,stack		; set new stack pointer
+      33   00:0107  11 5C 00            		ld	de,fcb			; try to open file specified on command line
+      34   00:010A  CD 51 01            		call	open
+      35   00:010D  3C                  		inc	a			; 255 indicates failure
+      36   00:010E  28 36               		jr	z,badfile
+      37   00:0110  3E 00               		ld	a,0			; clear current record
+      38   00:0112  32 7C 00            		ld	(fcbcr),a
+      39   00:0115  11 E0 21            		ld	de,gameaddr		; set destination address
+      40   00:0118  ED 53 82 01         		ld	(dest),de
+      41   00:011C                      
+      42   00:011C                      loop:	
+      43   00:011C  11 5C 00            		ld	de,fcb			; read from file
+      44   00:011F  CD 5B 01            		call	read
+      45   00:0122  B7                  		or	a
+      46   00:0123  20 12               		jr	nz,eof			; non-zero accumulator means EOF
+      47   00:0125                      
+      48   00:0125  21 80 00            		ld	hl,buff			; copy from DMA buffer to destination
+      49   00:0128  ED 5B 82 01         		ld	de,(dest)
+      50   00:012C  01 80 00            		ld	bc,$80
+      51   00:012F  ED B0               		ldir
+      52   00:0131  ED 53 82 01         		ld	(dest),de		; increment next destination address
+      53   00:0135  18 E5               		jr	loop
+      54   00:0137                      
+      55   00:0137                      eof:	
+      56   00:0137  11 5C 00            		ld	de,fcb			; close the file
+      57   00:013A  CD 56 01            		call	close
+      58   00:013D                      
+      59   00:013D  11 76 01            		ld	de,success		; tell user that game was loaded
+      60   00:0140  CD 60 01            		call	print
+      61   00:0143  C3 C6 21            		jp	rungame			; copy the game to the final location and run
+      62   00:0146                      
+      63   00:0146                      badfile:	
+      64   00:0146  11 65 01            		ld	de,nofile		; print error if file is not found
+      65   00:0149  CD 60 01            		call	print
+      66   00:014C  ED 7B 84 01         		ld	sp,(oldsp)		; restore stack pointer
+      67   00:0150  C9                  		ret				; return to CP/M
+      68   00:0151                      
+      69   00:0151                      open:	
+      70   00:0151  0E 0F               		ld	c,openf			; BDOS call to open file
+      71   00:0153  C3 05 00            		jp	bdos
+      72   00:0156                      
+      73   00:0156                      close:	
+      74   00:0156  0E 10               		ld	c,closef		; BDOS call to close file
+      75   00:0158  C3 05 00            		jp	bdos
+      76   00:015B                      
+      77   00:015B                      read:	
+      78   00:015B  0E 14               		ld	c,readf			; BDOS call to read file
+      79   00:015D  C3 05 00            		jp	bdos
+      80   00:0160                      
+      81   00:0160                      print:	
+      82   00:0160  0E 09               		ld	c,printf		; BDOS call to print string
+      83   00:0162  C3 05 00            		jp	bdos
+      84   00:0165                      		
+      85   00:0165                      nofile:		defb 	"file not found",cr,lf,eos
+      85   00:0165  66 69 6C 65 20 6E 6F 74 20 66 6F 75 6E 64 0D 0A 
+      85   00:0175  24 
+      86   00:0176                      success:	defb	"game loaded",eos
+      86   00:0176  67 61 6D 65 20 6C 6F 61 64 65 64 24 
+      87   00:0182                      
+      88   00:0182  E0 21               dest:		defw	gameaddr		; destination pointer
+      89   00:0184  00 00               oldsp:		defw	0			; original stack pointer
+      90   00:0186  00 (64)              		defs	$40			; space for stack
+      91   00:01C6                      stack:						; top of stack
+      92   00:01C6                      
+      93   00:01C6                      bios:	
+      94   00:01C6  (2000)              		incbin "coleco.rom"		; include ColecoVision BIOS in program
+      95   00:21C6                      rungame:	
+      96   00:21C6  F3                  		di				; don't need interrupts anymore
+      97   00:21C7                      
+      98   00:21C7  01 00 80            		ld 	bc,gamelen		; copy game to $8000-$FFFF
+      99   00:21CA  21 DF A1            		ld 	hl,gameaddr+gamelen-1
+     100   00:21CD  11 FF FF            		ld 	de,gametop
+     101   00:21D0  ED B8               		lddr
+     102   00:21D2                      
+     103   00:21D2  01 00 20            		ld 	bc,bioslen		; copy ColecoVision BIOS to $0000-$1FFF
+     104   00:21D5  21 C6 01            		ld 	hl,bios	
+     105   00:21D8  11 00 00            		ld 	de,boot	
+     106   00:21DB  ED B0               		ldir	
+     107   00:21DD                      
+     108   00:21DD  C3 00 00            		jp 	boot			; jump to BIOS entry point
+     109   00:21E0                      gameaddr:					; temporarily load game at end of program
+
+    LABELS
+-------------------------------------------------
+00:00000000   boot
+00:00000005   bdos
+00:0000005C   fcb
+00:0000007C   fcbcr
+00:00000080   buff
+00:00000009   printf
+00:0000000F   openf
+00:00000010   closef
+00:00000014   readf
+00:0000FFFF   gametop
+00:00008000   gamelen
+00:00002000   bioslen
+00:0000000D   cr
+00:0000000A   lf
+00:00000024   eos
+00:0000011C   loop
+00:00000137   eof
+00:00000146   badfile
+00:00000151   open
+00:00000156   close
+00:0000015B   read
+00:00000160   print
+00:00000165   nofile
+00:00000176   success
+00:00000182   dest
+00:00000184   oldsp
+00:000001C6   stack
+00:000001C6   bios
+00:000021C6   rungame
+00:000021E0   gameaddr
+
+
+ Output: COLECO.COM
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000100  Size: *  Used: 000020E0
+
+   Address   Length Align   Label
+   00000100    8416         loop

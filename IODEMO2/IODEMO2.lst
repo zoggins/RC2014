@@ -1,0 +1,83 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.01.07 - 18:26:50]
+
+IODEMO2.ASM
+Errors: 0
+
+       1   00:0200                      ;************************************
+       2   00:0200                      ;* Demo using the Digital I/O module, 
+       3   00:0200                      ;* Digital Output module and the Digital
+       4   00:0200                      ;* Input module.
+       5   00:0200                      ;*
+       6   00:0200                      ;* Schematic provided in folder
+       7   00:0200                      ;* Switchs must go to 5v and GND, 
+       8   00:0200                      ;* not GND and float.
+       9   00:0200                      ;* 
+      10   00:0200                      ;* Adapted from the demo in the
+      11   00:0200                      ;* KIM-1 manual.
+      12   00:0200                      ;*
+      13   00:0200                      ;************************************
+      14   00:0200  (00:0000)           OUTPORT: 	EQU 	0x00		; out port on the output module
+      15   00:0200  (00:0000)           INPORT: 	EQU 	0x00		; in port on input module
+      16   00:0200  (00:0003)           LEDPORT:	EQU		0x03		; out port on digital I/O module
+      17   00:0200  (00:0003)           BTNPORT:	EQU		0x03		; in port on digital I/O module
+      18   00:0200                      
+      19   00:0200                      			ORG 	0x0200
+      20   00:0200                      
+      21   00:0200  06 00               INIT: 		LD	 	B,0			; Set B to initial value of 0
+      22   00:0202  04                  START: 		INC 	B			; Toggle Speaker
+      23   00:0203  78                  			LD	 	A,B
+      24   00:0204  D3 00               			OUT 	(OUTPORT), A
+      25   00:0206  DB 00               			IN 		A, (INPORT)		; Read switches
+      26   00:0208  E6 7F               			AND		0x7F
+      27   00:020A  4F                  			LD		C,A				; Save switches
+      28   00:020B  DB 03               			IN		A, (BTNPORT)	; Read buttons
+      29   00:020D  CB 0F               			RRC		A
+      30   00:020F  E6 7F               			AND		0x7F
+      31   00:0211  B1                  			OR		C				; OR buttons and switches
+      32   00:0212  D3 03               			OUT		(LEDPORT), A	; Echo buttons onto LEDs
+      33   00:0214  00                  DELAY: 		NOP					; At 7 Mhz you need to slow down 
+      34   00:0215  00                  			NOP					; the program to actually hit
+      35   00:0216  00                  			NOP					; audible frequencies.
+      36   00:0217  00                  			NOP					
+      37   00:0218  00                  			NOP
+      38   00:0219  00                  			NOP
+      39   00:021A  00                  			NOP
+      40   00:021B  00                  			NOP
+      41   00:021C  00                  			NOP
+      42   00:021D  00                  			NOP
+      43   00:021E  00                  			NOP
+      44   00:021F  00                  			NOP
+      45   00:0220  00                  			NOP
+      46   00:0221  00                  			NOP
+      47   00:0222  00                  			NOP
+      48   00:0223  00                  			NOP
+      49   00:0224  00                  			NOP
+      50   00:0225  00                  			NOP
+      51   00:0226  00                  			NOP
+      52   00:0227  00                  			NOP
+      53   00:0228  00                  			NOP
+      54   00:0229  00                  			NOP
+      55   00:022A  00                  			NOP
+      56   00:022B  3D                  			DEC		A			; Delay by an amount specified
+      57   00:022C  F2 14 02            			JP		P, DELAY	; by the count in A
+      58   00:022F  FA 02 02            			JP		M, START	; Go Start
+
+    LABELS
+-------------------------------------------------
+00:00000000   OUTPORT
+00:00000000   INPORT
+00:00000003   LEDPORT
+00:00000003   BTNPORT
+00:00000200 X INIT
+00:00000202   START
+00:00000214   DELAY
+
+
+ Output: IODEMO2.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000200  Size: *  Used: 00000032
+
+   Address   Length Align   Label
+   00000200      50         INIT

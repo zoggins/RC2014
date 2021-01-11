@@ -1,7 +1,0 @@
-BTNPORT: equ 03h ; last def. pass 2
-START: equ 0202h ; last def. pass 2
-DELAY: equ 0214h ; last def. pass 2
-OUTPORT: equ 00h ; last def. pass 2
-INPORT: equ 00h ; last def. pass 2
-INIT: equ 0200h ; last def. pass 2
-LEDPORT: equ 03h ; last def. pass 2
