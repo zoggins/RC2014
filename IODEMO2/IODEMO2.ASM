@@ -4,10 +4,9 @@
 ;* Input module.
 ;*
 ;* Schematic provided in folder
-;* Switchs must toggle between 5v and GND.
 ;* 
-;* PA0 == Digital Output Port 0 Pin 0
-;* PA1-PA7 == Digital Input Port 0 Pins 0-6
+;* J1 Pin 1 == Digital Output Port 0 Pin 0
+;* J1 Pins 2-8 == Digital Input Port 0 Pins 0-6
 ;* 
 ;* Adapted from the demo in the
 ;* KIM-1 manual.

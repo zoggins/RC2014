@@ -8,7 +8,7 @@
 ;* circuit.  This uses the buttons
 ;* on the Digital I/O Module instead.
 ;* 
-;* PA0 == Digital Output Port 0 Pin 0
+;* J1 Pin 1 == Digital Output Port 0 Pin 0
 :*
 ;* Adapted from the demo in the
 ;* KIM-1 manual.
