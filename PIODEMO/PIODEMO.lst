@@ -1,0 +1,90 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.01.14 - 15:57:29]
+
+PIODEMO.ASM
+Errors: 0
+
+       1   00:0200                      ;************************************
+       2   00:0200                      ;* Demo using the Digital I/O module, 
+       3   00:0200                      ;* Digital Output module and the Digital
+       4   00:0200                      ;* Input module.
+       5   00:0200                      ;*
+       6   00:0200                      ;* Schematic provided in folder
+       7   00:0200                      ;* Switchs must toggle between 5v and GND.
+       8   00:0200                      ;* 
+       9   00:0200                      ;* PA0 == Digital Output Port 0 Pin 0
+      10   00:0200                      ;* PA1-PA7 == Digital Input Port 0 Pins 0-6
+      11   00:0200                      ;* 
+      12   00:0200                      ;* Adapted from the demo in the
+      13   00:0200                      ;* KIM-1 manual.
+      14   00:0200                      ;*
+      15   00:0200                      ;************************************
+      16   00:0200  (00:0068)           PIODPORT: 	EQU 	0x68			; out port on the output module
+      17   00:0200  (00:006A)           PIOCPORT: 	EQU 	0x6A			; in port on input module
+      18   00:0200  (00:0003)           LEDPORT:	EQU		0x03			; out port on digital I/O module
+      19   00:0200  (00:0003)           BTNPORT:	EQU		0x03			; in port on digital I/O module
+      20   00:0200                      
+      21   00:0200                      			ORG 	0x0200
+      22   00:0200                      
+      23   00:0200  06 00               INIT: 		LD	 	B,0				; Set B to initial value of 0
+      24   00:0202  3E CF               			LD		A, 11001111B	; Set PIO to control mode
+      25   00:0204  D3 6A               			OUT		(PIOCPORT), A
+      26   00:0206  3E FE               			LD		A, 11111110B	; 7-1 input, 0 output
+      27   00:0208  D3 6A               			OUT		(PIOCPORT), A
+      28   00:020A  04                  START: 		INC 	B				; Toggle Speaker
+      29   00:020B  78                  			LD	 	A,B
+      30   00:020C  D3 68               			OUT 	(PIODPORT), A
+      31   00:020E  DB 68               			IN 		A, (PIODPORT)		; Read switches
+      32   00:0210  CB 0F               			RRC		A
+      33   00:0212  E6 7F               			AND		0x7F
+      34   00:0214  4F                  			LD		C,A				; Save switches
+      35   00:0215  DB 03               			IN		A, (BTNPORT)	; Read buttons
+      36   00:0217  CB 0F               			RRC		A
+      37   00:0219  E6 7F               			AND		0x7F
+      38   00:021B  B1                  			OR		C				; OR buttons and switches
+      39   00:021C  D3 03               			OUT		(LEDPORT), A	; Echo buttons onto LEDs
+      40   00:021E  00                  DELAY: 		NOP						; At 7 Mhz you need to slow down 
+      41   00:021F  00                  			NOP						; the program to actually hit
+      42   00:0220  00                  			NOP						; audible frequencies.
+      43   00:0221  00                  			NOP					
+      44   00:0222  00                  			NOP
+      45   00:0223  00                  			NOP
+      46   00:0224  00                  			NOP
+      47   00:0225  00                  			NOP
+      48   00:0226  00                  			NOP
+      49   00:0227  00                  			NOP
+      50   00:0228  00                  			NOP
+      51   00:0229  00                  			NOP
+      52   00:022A  00                  			NOP
+      53   00:022B  00                  			NOP
+      54   00:022C  00                  			NOP
+      55   00:022D  00                  			NOP
+      56   00:022E  00                  			NOP
+      57   00:022F  00                  			NOP
+      58   00:0230  00                  			NOP
+      59   00:0231  00                  			NOP
+      60   00:0232  00                  			NOP
+      61   00:0233  00                  			NOP
+      62   00:0234  00                  			NOP
+      63   00:0235  3D                  			DEC		A			; Delay by an amount specified
+      64   00:0236  F2 1E 02            			JP		P, DELAY	; by the count in A
+      65   00:0239  FA 0A 02            			JP		M, START	; Go Start
+
+    LABELS
+-------------------------------------------------
+00:00000068   PIODPORT
+00:0000006A   PIOCPORT
+00:00000003   LEDPORT
+00:00000003   BTNPORT
+00:00000200 X INIT
+00:0000020A   START
+00:0000021E   DELAY
+
+
+ Output: PIODEMO.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000200  Size: *  Used: 0000003C
+
+   Address   Length Align   Label
+   00000200      60         INIT
