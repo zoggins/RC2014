@@ -44,6 +44,7 @@ CHKCHK      CALL    GBNOCHK         ; CHECK THE CHECKSUM
             LD      E, '!'               
             LD      B, 0x01
             LD      C, SERDEV       ; FAILED CHECK SUM, SO INTERRUPT
+            RST     0x08
             RST     0x00                   
 
 ;*********** PIASUP - PIA SETUP ROUTINE
@@ -102,7 +103,7 @@ GETADDR     CALL    GETBYTE
             LD      (TMPADDR1), A
             CALL    GETBYTE
             LD      (TMPADDR2), A
-            LD      IX, (TMPADDR1)
+            LD      IX, (TMPADDR2)
             RET
 
 ;*********** A2H - READ SINGLE ASCII BYTE AND CONVERT TO HEX
