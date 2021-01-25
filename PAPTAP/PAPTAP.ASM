@@ -88,10 +88,10 @@ GETBYTE     CALL    GBNOCHK
             RET
 
 GBNOCHK     CALL    A2H         ; GET FIRST CHARACTER TO HEX
-            RL      A           ; MOVE IT UP 4 BITS
-            RL      A
-            RL      A
-            RL      A
+            SLA     A           ; MOVE IT UP 4 BITS
+            SLA     A
+            SLA     A
+            SLA     A
             LD      B, A
             CALL    A2H         ; GET SECOND CHARACTER TO HEX
             ADD     A, B        ; ADD THEM TOGETHER

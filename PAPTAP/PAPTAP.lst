@@ -1,4 +1,4 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.01.24 - 16:23:25]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.01.24 - 16:32:17]
 
 PAPTAP.ASM
 Errors: 0
@@ -18,7 +18,7 @@ Errors: 0
       13   00:9000  (00:006A)           PIOACPORT 	EQU 	0x6A			; PIO port A control register
       14   00:9000  (00:006B)           PIOBCPORT 	EQU 	0x6B			; PIO port B control register
       15   00:9000                      
-      16   00:9000  (00:0080)           SERDEV      EQU     0x80            ; OUTPUT CHARACTER ROUTINE
+      16   00:9000  (00:0080)           SERDEV      EQU     0x80            ; SERIAL DEVICE ADDRESS
       17   00:9000                      
       18   00:9000  CD 48 90            ENTER       CALL    PIASUP          ; INIT PIA
       19   00:9003  CD 61 90            START       CALL    PIADAT          ; GET 1ST BYTE
@@ -93,10 +93,10 @@ Errors: 0
       88   00:908C  C9                              RET
       89   00:908D                      
       90   00:908D  CD AF 90            GBNOCHK     CALL    A2H         ; GET FIRST CHARACTER TO HEX
-      91   00:9090  CB 17                           RL      A           ; MOVE IT UP 4 BITS
-      92   00:9092  CB 17                           RL      A
-      93   00:9094  CB 17                           RL      A
-      94   00:9096  CB 17                           RL      A
+      91   00:9090  CB 27                           SLA     A           ; MOVE IT UP 4 BITS
+      92   00:9092  CB 27                           SLA     A
+      93   00:9094  CB 27                           SLA     A
+      94   00:9096  CB 27                           SLA     A
       95   00:9098  47                              LD      B, A
       96   00:9099  CD AF 90                        CALL    A2H         ; GET SECOND CHARACTER TO HEX
       97   00:909C  80                              ADD     A, B        ; ADD THEM TOGETHER
