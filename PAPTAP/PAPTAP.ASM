@@ -108,9 +108,8 @@ GETADDR     CALL    GETBYTE
 ;*********** A2H - READ SINGLE ASCII BYTE AND CONVERT TO HEX
 A2H         CALL    PIADAT      
             SUB     0x30        
-            CP      0x09
+            CP      0x0A
             RET     C
-            RET     Z
             SUB     0x07
             RET
 
