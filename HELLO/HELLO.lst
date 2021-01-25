@@ -1,0 +1,45 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.01.24 - 16:23:20]
+
+HELLO.ASM
+Errors: 0
+
+       1   00:0200                      ; Hello World for RomWBW
+       2   00:0200                      
+       3   00:0200                      		ORG			0x0200
+       4   00:0200                      
+       5   00:0200  (00:0080)           SERDEV  EQU     0x80            ; SERIAL DEVICE ADDRESS
+       6   00:0200                      
+       7   00:0200  DD 21 18 02                 LD      IX, STRING
+       8   00:0204  DD 7E 00            LOOP    LD      A, (IX+0)
+       9   00:0207  FE 00                       CP      0x00
+      10   00:0209  CA 17 02                    JP      Z, EXIT
+      11   00:020C  5F                          LD      E, A           
+      12   00:020D  06 01                       LD      B, 0x01
+      13   00:020F  0E 80                       LD      C, SERDEV
+      14   00:0211  CF                          RST     0x08
+      15   00:0212  DD 23                       INC     IX
+      16   00:0214  C3 04 02                    JP     LOOP     
+      17   00:0217  C7                  EXIT    RST     0x0
+      18   00:0218                      
+      19   00:0218                      STRING:      DB 10, 13, 'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!', 10, 13, 0
+      19   00:0218  0A 0D 48 65 6C 6C 6F 20 57 6F 72 6C 64 21 0A 0D 
+      19   00:0228  00 
+      20   00:0229                      
+      21   00:0229                              END
+
+    LABELS
+-------------------------------------------------
+00:00000080   SERDEV
+00:00000204   LOOP
+00:00000217   EXIT
+00:00000218   STRING
+
+
+ Output: HELLO.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000200  Size: *  Used: 00000029
+
+   Address   Length Align   Label
+   00000200      41         LOOP
