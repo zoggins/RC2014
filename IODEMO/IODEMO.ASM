@@ -2,14 +2,14 @@
 ;* Demo using the Digital I/O module 
 ;* and the Digital Output module.
 ;*
-;* Schematic provided in folder
-;* Ignore the switches, just
-;* build the amplifier/speaker
-;* circuit.  This uses the buttons
-;* on the Digital I/O Module instead.
-;* 
-;* J1 Pin 1 == Digital Output Port 0 Pin 0
-:*
+;* Hardware: v2 speaker board
+;*           Digital I/O module @ port 0x03
+;*           Digital Output module @ port 0x00
+;*
+;* Connections: J1 Pin 1 = Digital Output Port 0 Pin 0
+;*              J1 9 = GND
+;*              J1 10 = 5v
+;*
 ;* Adapted from the demo in the
 ;* KIM-1 manual.
 ;*

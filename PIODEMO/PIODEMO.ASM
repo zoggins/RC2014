@@ -4,8 +4,14 @@
 ;*
 ;* Schematic provided in folder
 ;* 
-;* J1 Pin 1 == PIO Pin PA0
-;* J1 Pins 2-8 == PIO Pin PA1-PA7
+;* Hardware: v2 speaker board
+;*           Stephen Cousins' SC103 Z80 PIO Module @ port 0x68
+;*           Optional: Digital I/O module @ port 0x03 
+;*
+;* Connections: J1 Pin 1 = PIO Pin PA0
+;*              J1 Pin 2 - 8 = PIO Pins PA1-PA7
+;*              J1 9 = GND
+;*              J1 10 = 5v
 ;* 
 ;* Adapted from the demo in the
 ;* KIM-1 manual.

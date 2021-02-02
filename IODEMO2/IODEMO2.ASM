@@ -3,10 +3,15 @@
 ;* Digital Output module and the Digital
 ;* Input module.
 ;*
-;* Schematic provided in folder
-;* 
-;* J1 Pin 1 == Digital Output Port 0 Pin 0
-;* J1 Pins 2-8 == Digital Input Port 0 Pins 0-6
+;* Hardware: v2 speaker board
+;*           Digital I/O module @ port 0x03 
+:*                and/or Digital Input module @ port 0x00
+;*           Digital Output module @ port 0x00
+;*
+;* Connections: J1 Pin 1 = Digital Output Port 0 Pin 0
+;*              J1 Pin 2 - 8 = Digital Input Port 0 Pins 0-6
+;*              J1 9 = GND
+;*              J1 10 = 5v
 ;* 
 ;* Adapted from the demo in the
 ;* KIM-1 manual.
