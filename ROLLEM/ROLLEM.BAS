@@ -9,7 +9,7 @@
 10 OUT 106, 207  : REM set PIO A to control mode
 12 OUT 106, 128  : REM 0-4 output, 7 input
 15 PRINT "LET 'EM ROLL"
-20 IF INP(104) > 128 THEN D=(INT((RND(1)*(6.0 - 1.0 + 1.0))) + 1) : GoTo 20
+20 IF INP(104) > 128 THEN D=(INT((RND(1)*(7.0-1.0))) + 1) : GoTo 20
 30 FOR I = 1 TO 30
 40 D=(INT((RND(1)*(6.0 - 1.0 + 1.0))) + 1) : GOSUB 100
 50 NEXT I
