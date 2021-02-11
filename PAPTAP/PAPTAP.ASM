@@ -6,6 +6,9 @@
 ; * MODIFIED BY CHRISTOPHER MALLERY
 ; * - Ported to RC2014
 ; *
+; * D0 - D7 == PIO PORT A 0-7
+; * ACK     == PIO PORT B 0
+; * RDY     == PIO PORT B 7
  		    ORG		$9000
            
 PIOADPORT 	EQU 	0x68			; PIO port A data register
@@ -26,14 +29,15 @@ START       CALL    PIADAT          ; GET 1ST BYTE
             CALL    GETADDR         ; GET ADDRESS AND LOAD IX
             CALL    GETBYTE         ; GET RECORD TYPE
             CP      0x00            ; IF NOT ZERO START OVER
-            JP      NZ, START       
+            JP      NZ, START  
+
 LOOP        CALL    GETBYTE        ; READ THE BYTES
+            LD      (IX+0), A 
+            INC     IX
             LD      A, (NUMBYT)
             DEC     A
             LD      (NUMBYT), A
             JP      Z, CHKCHK      ; LAST BYTE IS CHECKSUM
-            LD      (IX+0), A 
-            INC     IX
             JP      LOOP
 
 CHKCHK      CALL    GBNOCHK         ; CHECK THE CHECKSUM
@@ -41,13 +45,11 @@ CHKCHK      CALL    GBNOCHK         ; CHECK THE CHECKSUM
             LD      A, (CHKSUM)
             ADD     A, B            
             JP      Z, START        ; GO TO NEXT LINE
-            LD      E, '!'               
-            LD      B, 0x01
-            LD      C, SERDEV       ; FAILED CHECK SUM, SO INTERRUPT
-            RST     0x08
+            LD      A, '!'
+            CALL    COUT
             RST     0x00                   
 
-;*********** PIASUP - PIA SETUP ROUTINE
+;*********** PIASUP - PIA SETUP ROUTINE - SPECIFIC TO STEPHEN COUSIN'S PIO CARD
 PIASUP      LD		A, 11001111B	    ; Set PIO B to control mode
 			OUT		(PIOBCPORT), A
 			LD		A, 11111110B	    ; PB7-PB1 input, PB-0 output
@@ -62,18 +64,16 @@ PIASUP      LD		A, 11001111B	    ; Set PIO B to control mode
             OUT     (PIOBDPORT), A      ; ACK = 1
             RET
 
-;*********** PIADAT - GET DATA FROM PIA
+;*********** PIADAT - GET DATA FROM PIA - SPECIFIC TO STEPHEN COUSIN'S PIO CARD
 PIADAT      LD      A, 0x00             ; ACK = 0
             OUT     (PIOBDPORT), A      
 DATLOP      IN      A, (PIOBDPORT)      ; GET RDY ON PORT B
+            AND     0x80
             JP      M, GETDAT           ; DATA PRESENT? (BIT 7 == 1)
             JP      DATLOP              ; NOT YET. KEEP TRYING.
 GETDAT      IN      A, (PIOADPORT)      ; YES. GET THE DATA,
             LD      (TMPBYTE), A        ; SAVE IT
-            LD      E, A                ; PRINT IT
-            LD      B, 0x01
-            LD      C, SERDEV
-            RST     0x08
+            CALL    COUT
             LD      A, 0x01             ; ACK = 1
             OUT     (PIOBDPORT), A
             LD      A, (TMPBYTE)        ; PUT DATA BACK IN REGISTER
@@ -107,12 +107,33 @@ GETADDR     CALL    GETBYTE
             RET
 
 ;*********** A2H - READ SINGLE ASCII BYTE AND CONVERT TO HEX
-A2H         CALL    PIADAT      
+A2H         CALL    PIADAT
             SUB     0x30        
             CP      0x0A
-            RET     C
+            JP      C, RT
             SUB     0x07
-            RET
+RT:         RET
+
+;*********** COUT - SPECIFIC TO ROMWBW ON RC2014
+COUT:
+	; SAVE ALL INCOMING REGISTERS
+	PUSH	AF
+	PUSH	BC
+	PUSH	DE
+	PUSH	HL
+;
+	; OUTPUT CHARACTER TO CONSOLE VIA UBIOS
+	LD	E, A
+	LD	B, 0x01
+    LD  C, SERDEV
+	RST	08
+;
+	; RESTORE ALL REGISTERS
+	POP	HL
+	POP	DE
+	POP	BC
+	POP	AF
+	RET
 
 NUMBYT      DB     1           ; BYTES LEFT TO READ
 TMPADDR2    DB     1           ; TEMP ADDRESS POINTER
