@@ -1,0 +1,96 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.11 - 19:22:21]
+
+USRTEST.ASM
+Errors: 0
+
+       1   00:0200                      
+       2   00:0200                      
+       3   00:0200                      			ORG		$0200
+       4   00:0200                      
+       5   00:0200  (00:0080)           SERDEV      EQU     0x80            ; SERIAL DEVICE ADDRESS
+       6   00:0200                      
+       7   00:0200  (00:E00B)           DEINT		EQU 	0xE00B			; Read in parameter from BASIC
+       8   00:0200  (00:E00D)           RETVAL		EQU		0xE00D			; Export Return Value back to BASIC
+       9   00:0200                      
+      10   00:0200  CD 0B E0            EXTREG:		CALL	DEINT
+      11   00:0203  7A                  			LD		A, D
+      12   00:0204  E6 0F               			AND		0x0F
+      13   00:0206  06 00               			LD		B, 0
+      14   00:0208  CD 0D E0            			CALL	RETVAL
+      15   00:020B  C9                  			RET
+      16   00:020C                      
+      17   00:020C  CD 0B E0            EXTINT:		CALL	DEINT
+      18   00:020F  7A                  			LD		A, D
+      19   00:0210  E6 30               			AND		0x30
+      20   00:0212  06 00               			LD		B, 0
+      21   00:0214  CD 0D E0            			CALL	RETVAL
+      22   00:0217  C9                  			RET
+      23   00:0218                      
+      24   00:0218  CD 0B E0            EXTDTA:		CALL	DEINT
+      25   00:021B  7B                  			LD		A, E
+      26   00:021C  06 00               			LD		B, 0
+      27   00:021E  CD 0D E0            			CALL	RETVAL
+      28   00:0221  C9                  			RET
+      29   00:0222                      
+      30   00:0222                      ;*********** COUT - SPECIFIC TO ROMWBW ON RC2014
+      31   00:0222                      COUT:
+      32   00:0222                      	; SAVE ALL INCOMING REGISTERS
+      33   00:0222  F5                  	PUSH	AF
+      34   00:0223  C5                  	PUSH	BC
+      35   00:0224  D5                  	PUSH	DE
+      36   00:0225  E5                  	PUSH	HL
+      37   00:0226                      ;
+      38   00:0226                      	; OUTPUT CHARACTER TO CONSOLE VIA UBIOS
+      39   00:0226  5F                  	LD	E, A
+      40   00:0227  06 01               	LD	B, 0x01
+      41   00:0229  0E 80                   LD  C, SERDEV
+      42   00:022B  CF                  	RST	08
+      43   00:022C                      ;
+      44   00:022C                      	; RESTORE ALL REGISTERS
+      45   00:022C  E1                  	POP	HL
+      46   00:022D  D1                  	POP	DE
+      47   00:022E  C1                  	POP	BC
+      48   00:022F  F1                  	POP	AF
+      49   00:0230  C9                  	RET
+      50   00:0231                      
+      51   00:0231  4F                  NumToHex:    ld c, a		; a = number to convert
+      52   00:0232  CD 3F 02                         call Num1
+      53   00:0235  CD 3F 02                         call Num1
+      54   00:0238  57                               ld d, a
+      55   00:0239  79                               ld a, c
+      56   00:023A  CD 43 02                         call Num2
+      57   00:023D  5F                               ld e, a
+      58   00:023E  C9                               ret			; return with hex number in de
+      59   00:023F                      
+      60   00:023F  1F                  Num1:        rra
+      61   00:0240  1F                               rra
+      62   00:0241  1F                               rra
+      63   00:0242  1F                               rra
+      64   00:0243  F6 F0               Num2:        or $F0
+      65   00:0245  27                               daa
+      66   00:0246  C6 A0                            add a, $A0
+      67   00:0248  CE 40                            adc a, $40 ; Ascii hex at this point (0 to F)   
+      68   00:024A  C9                               ret
+
+    LABELS
+-------------------------------------------------
+00:00000080   SERDEV
+00:0000E00B   DEINT
+00:0000E00D   RETVAL
+00:00000200 X EXTREG
+00:0000020C X EXTINT
+00:00000218 X EXTDTA
+00:00000222 X COUT
+00:00000231 X NumToHex
+00:0000023F   Num1
+00:00000243   Num2
+
+
+ Output: USRTEST.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000200  Size: *  Used: 0000004B
+
+   Address   Length Align   Label
+   00000200      75         EXTREG

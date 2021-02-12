@@ -1,0 +1,16 @@
+5  REM Extract Register Function
+10 POKE(4100, 0)
+11 POKE(4101, 2)
+
+REM 12 POKE(4100, 12)
+REM 13 POKE(4101, 2)
+
+REM 14 POKE(4100, 24)
+REM 15 POKE(4101, 2)
+
+30 LET R = 3   : REM SID Register 0x03
+40 LET D = 234 : REM Hex 0xEA
+50 LET I = 64  : REM 60Hz Interrupt 0x40
+
+60 LET A = (D * 116)  + R + I
+70 PRINT USR(A)
