@@ -1,0 +1,73 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.12 - 19:06:50]
+
+SID.ASM
+Errors: 0
+
+       1   00:F800                      
+       2   00:F800                      
+       3   00:F800                      			ORG		$F800
+       4   00:F800                      
+       5   00:F800  (00:0BF1)           DEINT		EQU		$0BF1
+       6   00:F800  (00:1367)           ABPASS		EQU		$1367
+       7   00:F800                      
+       8   00:F800                      
+       9   00:F800                      ; EXTRACT THE PASSED IN DATA AND CALL SID_IO
+      10   00:F800  CD F1 0B            SID_IO_BAS:	CALL	DEINT
+      11   00:F803  7B                  			LD		A, E		; EXTRACT THE INTERRUPT STATUS
+      12   00:F804  E6 60               			AND		0x60
+      13   00:F806  47                  			LD		B, A		; SAVE IT FOR LATER
+      14   00:F807  7B                  			LD		A, E		; EXTRACT THE REGISTER
+      15   00:F808  E6 0F               			AND		0x0F
+      16   00:F80A  58                  			LD		E, B		; RESTORE INTERRUPT STATUS TO E
+      17   00:F80B                      
+      18   00:F80B                      ; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
+      19   00:F80B                      ;				D = DATA BYTE
+      20   00:F80B                      ;				E = INTERRUPT CONTROLLER MODE - BITS 5/6
+      21   00:F80B                      ; (0x00 = OFF,  0x20 = '50Hz',  0x40 = '60Hz'  0x60 = '100Hz')
+      22   00:F80B  0E 54               SID_IO:		LD		C, 0x54		; BASE I/O ADDRESS
+      23   00:F80D  B3                  			OR		E
+      24   00:F80E  47                  			LD		B, A
+      25   00:F80F  ED 51               			OUT		(C), D		; WRITE TO SID.  /CS=0 (B BIT 7)
+      26   00:F811  00                  			NOP
+      27   00:F812  00                  			NOP					; DELAY
+      28   00:F813  00                  			NOP
+      29   00:F814  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+      30   00:F816  ED 51               			OUT		(C), D		; WRITE TO SID
+      31   00:F818  47                  			LD		B, A
+      32   00:F819  3E 00               			LD		A, 0
+      33   00:F81B  C3 67 13            			JP		ABPASS
+      34   00:F81E                      
+      35   00:F81E  0E 54               CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
+      36   00:F820  06 98               			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
+      37   00:F822                      								; INTERRUPT CONTROLLER OFF
+      38   00:F822  AF                  			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
+      39   00:F823  ED 79               			OUT		(C), A		; FIRSTY OUT TO ENSURE /CS HIGH
+      40   00:F825  00                  			NOP
+      41   00:F826  00                  			NOP					; DELAY
+      42   00:F827  00                  			NOP
+      43   00:F828  CB B8               			RES		7, B		; /CS=0 (B BIT 7)
+      44   00:F82A  ED 79               			OUT		(C), A		; WRITE TO SID
+      45   00:F82C  00                  			NOP
+      46   00:F82D  00                  			NOP					; DELAY
+      47   00:F82E  00                  			NOP
+      48   00:F82F  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+      49   00:F831  ED 79               			OUT		(C), A		; WRITE TO SID
+      50   00:F833  C9                  			RET		
+
+    LABELS
+-------------------------------------------------
+00:00000BF1   DEINT
+00:00001367   ABPASS
+00:0000F800 X SID_IO_BAS
+00:0000F80B X SID_IO
+00:0000F81E X CLEAR_SID
+
+
+ Output: SID.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 0000F800  Size: *  Used: 00000034
+
+   Address   Length Align   Label
+   0000F800      52         SID_IO_BAS
