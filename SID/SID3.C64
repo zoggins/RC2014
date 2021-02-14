@@ -1,0 +1,21 @@
+
+315 let s = 54272 : rem this is just for the c64
+
+405 print "playing a note...";
+415 a = 2^(1/12) : rem constant for frequency formula
+420 f0 = 7454: rem a4 used as reference note  (440 hz = sid value 7454)
+425 n=-9 : rem we want to play c4 note, which is -9 halftones away from a4
+430 nf = int(f0 * a^n) : rem frequency of the note to be played
+435 fh=int(nf/256) : fl=nf-256*fh : rem highbyte and low byte of frequency
+440 r = 0 : d = fl : gosub 1000 : rem sets frequency of note for voice 1
+441 r = 1 : d = fh : gosub 1000 : rem sets frequency of note for voice 1
+445 wf=32 : rem sawtooth waveform for voice 1
+450 r = 5 : d = 13*16+5 : gosub 1000 : rem attack = 5: decay = 3
+455 r = 6 : d = 12*16+10 : gosub 1000 : rem sustain = 15: release = 10
+460 r = 24 : d = 15 : gosub 1000 : rem global volume set to full level
+465 dr = 2000 : rem duration of note
+470 r = 4 : d = wf+1 : gosub 1000 : rem sets gate bit = starts note
+475 for t = 1 to dr: next : rem keeps piano key depressed for duration of note
+480 r = 4 : d = wf+0 : gosub 1000 : rem turns off gate bit, piano key released
+490 print "Done!"
+490 end

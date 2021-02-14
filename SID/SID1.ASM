@@ -1,12 +1,12 @@
-
+; RC2014 SID TESTER
+; Ported from the code in SID2.BAS
 
             ORG		$0200
 
-
-ENTRY:      CALL	CLEAR_SID
+	        CALL	CLEAR_SID
 			LD		E, 0
 
-			LD		A, 0x07
+			LD		A, 0x00			; VOICES 1, 2 & 3 == 0x00, 0x07, 0x0E
 			LD		(VOICE), A
 
 SETUP:		LD		D, 0x0F		
@@ -53,7 +53,7 @@ NEXT:		LD		A, (VOICE)
 			LD		E, 0
 			CALL	SID_IO			; 453 R = 4 + V : D = W : GOSUB 1000
 
-INITXLP:	LD		A, 0x0			; 460 FOR X = 0 TO 255 STEP INT((RND(1)*15)+1)
+			LD		A, 0x0			; 460 FOR X = 0 TO 255 STEP INT((RND(1)*15)+1)
 			LD		(VX), A
 
 			CALL	RND
@@ -81,17 +81,15 @@ XLOOP:		LD		A, (VOICE)
 			LD		A, 0x01
 			ADD		H
 			LD		E, 0
-			CALL	SID_IO			; 470 R = 0 + V : D = X : GOSUB 1000
+			CALL	SID_IO			; 471 R = 1 + V : D = 255 - X : GOSUB 1000
 
 			CALL	DELAY
 
-			LD		A, 0
-YLOOP:		DEC		A
+			LD		A, 0			; 480 FOR Y = 0 TO 33...
+YLOOP:		INC		A
 			CP		0x21
 			JP		Z, YLOOPXIT
 			JP		YLOOP
-
-			LD		A, '!'
 
 YLOOPXIT:	LD		A, (STEP)
 			LD		B, A
@@ -99,12 +97,12 @@ YLOOPXIT:	LD		A, (STEP)
 			ADD		B
 			JP		C, XLOOPXIT
 			LD		(VX), A
-			JP		XLOOP
+			JP		XLOOP			;  ...: NEXT Y, X
 
 			LD		A, 0			; 490 FOR X = 0 TO 200: NEXT...
 XLOOPXIT:	INC		A
 			CP		0xC8
-			JP		Z, XLOOP1XIT
+			JP		Z, LSTLPXIT
 			JP		XLOOPXIT
 
 			LD		D, 0x00	
@@ -113,10 +111,10 @@ XLOOPXIT:	INC		A
 			CALL	SID_IO			; ... : R = 24 : D = 0 :  GOSUB 1000
 
 			LD		A, 0			; 500 FOR X = 0 TO 100: NEXT : GOTO 410
-XLOOP1XIT:	INC		A
+LSTLPXIT:	INC		A
 			CP		0x64
 			JP		Z, SETUP
-			JP		XLOOP1XIT
+			JP		LSTLPXIT
 
 VX			DB		0
 VOICE		DB		0
@@ -155,38 +153,38 @@ CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
 			RET		
 
 DELAY:		LD		B, 0x60
-DELAYOUT1:	LD		C, 0xFF
-DELAYIN1:	DEC		C
+DELAYOUT:	LD		C, 0xFF
+DELAYIN:	DEC		C
 			LD		A, C
 			CP		0x00
-			JP		NZ, DELAYIN1
+			JP		NZ, DELAYIN
 			DEC		B
 			LD		A, B
 			CP		0x00
-			JP		NZ, DELAYOUT1
+			JP		NZ, DELAYOUT
 			RET
 
 
 ; 8-bit Xor-Shift random number generator.
 ; Created by Patrik Rak in 2008 and revised in 2011/2012.
 ; See http://www.worldofspectrum.org/forums/showthread.php?t=23070
-RND:    ld  hl,0xA280   ; yw -> zt
-        ld  de,0xC0DE   ; xz -> yw
-        ld  (RND+4),hl  ; x = y, z = w
-        ld  a,l         ; w = w ^ ( w << 3 )
-        add a,a
-        add a,a
-        add a,a
-        xor l
-        ld  l,a
-        ld  a,d         ; t = x ^ (x << 1)
-        add a,a
-        xor d
-        ld  h,a
-        rra             ; t = t ^ (t >> 1) ^ w
-        xor h
-        xor l
-        ld  h,e         ; y = z
-        ld  l,a         ; w = t
-        ld  (RND+1),hl
-        ret 
+RND:		LD		HL,0XA280   ; YW -> ZT
+			LD		DE,0XC0DE   ; XZ -> YW
+			LD		(RND+4),HL  ; X = Y, Z = W
+			LD		A,L         ; W = W ^ ( W << 3 )
+			ADD		A,A
+			ADD		A,A
+			ADD		A,A
+			XOR		L
+			LD		L,A
+			LD		A,D         ; T = X ^ (X << 1)
+			ADD		A,A
+			XOR		D
+			LD		H,A
+			RRA					; T = T ^ (T >> 1) ^ W
+			XOR		H
+			XOR		L
+			LD		H,E         ; Y = Z
+			LD		L,A         ; W = T
+			LD		(RND+1),HL
+			RET 

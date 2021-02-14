@@ -1,4 +1,4 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.13 - 20:04:47]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.13 - 20:47:02]
 
 SID2.ASM
 Errors: 0
@@ -268,15 +268,15 @@ Errors: 0
      263   00:03BC  C9                  			RET		
      264   00:03BD                      
      265   00:03BD  06 15               DELAY:		LD		B, 0x15
-     266   00:03BF  0E FF               DELAYOUT1:	LD		C, 0xFF
-     267   00:03C1  0D                  DELAYIN1:	DEC		C
+     266   00:03BF  0E FF               DELAYOUT:	LD		C, 0xFF
+     267   00:03C1  0D                  DELAYIN:	DEC		C
      268   00:03C2  79                  			LD		A, C
      269   00:03C3  FE 00               			CP		0x00
-     270   00:03C5  C2 C1 03            			JP		NZ, DELAYIN1
+     270   00:03C5  C2 C1 03            			JP		NZ, DELAYIN
      271   00:03C8  05                  			DEC		B
      272   00:03C9  78                  			LD		A, B
      273   00:03CA  FE 00               			CP		0x00
-     274   00:03CC  C2 BF 03            			JP		NZ, DELAYOUT1
+     274   00:03CC  C2 BF 03            			JP		NZ, DELAYOUT
      275   00:03CF  C9                  			RET
      276   00:03D0                      
 
@@ -303,8 +303,8 @@ Errors: 0
 00:00000399   SID_IO
 00:000003A7   CLEAR_SID
 00:000003BD   DELAY
-00:000003BF   DELAYOUT1
-00:000003C1   DELAYIN1
+00:000003BF   DELAYOUT
+00:000003C1   DELAYIN
 
 
  Output: SID2.OUT

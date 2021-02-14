@@ -1,9 +1,9 @@
+
+; This plays a single note on Quazar's SID Interface
+
 			ORG		$0200
 
-DEINT		EQU		$0BF1
-ABPASS		EQU		$1367
-
-ENTRY:		CALL	CLEAR_SID
+			CALL	CLEAR_SID
 			LD		E, 0
 			
 			;WE WANT TO PLAY A C4 NOTE

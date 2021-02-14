@@ -1,14 +1,14 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.13 - 20:04:48]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.13 - 20:47:02]
 
 SID3.ASM
 Errors: 0
 
-       1   00:0200                      			ORG		$0200
-       2   00:0200                      
-       3   00:0200  (00:0BF1)           DEINT		EQU		$0BF1
-       4   00:0200  (00:1367)           ABPASS		EQU		$1367
+       1   00:0200                      
+       2   00:0200                      ; This plays a single note on Quazar's SID Interface
+       3   00:0200                      
+       4   00:0200                      			ORG		$0200
        5   00:0200                      
-       6   00:0200  CD 4C 02            ENTRY:		CALL	CLEAR_SID
+       6   00:0200  CD 4C 02            			CALL	CLEAR_SID
        7   00:0203  1E 00               			LD		E, 0
        8   00:0205                      			
        9   00:0205                      			;WE WANT TO PLAY A C4 NOTE
@@ -89,9 +89,6 @@ Errors: 0
 
     LABELS
 -------------------------------------------------
-00:00000BF1 X DEINT
-00:00001367 X ABPASS
-00:00000200 X ENTRY
 00:00000232   LOOP
 00:0000023E   SID_IO
 00:0000024C   CLEAR_SID
@@ -104,4 +101,4 @@ Errors: 0
   Org: 00000200  Size: *  Used: 00000062
 
    Address   Length Align   Label
-   00000200      98         ENTRY
+   00000200      98         LOOP
