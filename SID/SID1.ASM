@@ -6,6 +6,8 @@
 	        CALL	CLEAR_SID
 			LD		E, 0
 
+			CALL	SEED
+
 			LD		A, 0x00			; VOICES 1, 2 & 3 == 0x00, 0x07, 0x0E
 			LD		(VOICE), A
 
@@ -58,7 +60,11 @@ NEXT:		LD		A, (VOICE)
 
 			CALL	RND
 			LD		A, L
-			AND     0x0F
+			AND     0xF0
+			SRL		A
+			SRL		A
+			SRL		A
+			SRL		A
 			INC		A
 			LD		(STEP), A
 
@@ -119,6 +125,8 @@ LSTLPXIT:	INC		A
 VX			DB		0
 VOICE		DB		0
 STEP		DB		0
+
+TBUF		DB		0, 0, 0, 0, 0, 0
 
 ; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
 ;				D = DATA BYTE
@@ -188,3 +196,33 @@ RND:		LD		HL,0XA280   ; YW -> ZT
 			LD		L,A         ; W = T
 			LD		(RND+1),HL
 			RET 
+
+; THIS ISN'T THE GREATEST SEED GENERATOR, BUT IT WORKS
+SEED:
+	; SAVE ALL INCOMING REGISTERS
+	PUSH	AF
+	PUSH	BC
+	PUSH	DE
+	PUSH	HL
+
+	; GETRTC
+	LD	B, 0x20
+    LD  HL, TBUF
+	RST	08
+
+	; MIX IT ALL INTO THE SEED BYTES
+	LD	A, (TBUF+5)
+	LD	(RND+1), A
+	LD	A, (TBUF+2)
+	LD	(RND+2), A
+	LD	A, (TBUF+4)
+	LD	(RND+4), A
+	LD	A, (TBUF+3)
+	LD	(RND+5), A
+
+	; RESTORE ALL REGISTERS
+	POP	HL
+	POP	DE
+	POP	BC
+	POP	AF
+	RET
