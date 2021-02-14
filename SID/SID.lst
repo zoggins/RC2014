@@ -1,4 +1,4 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.12 - 20:32:05]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.13 - 20:04:47]
 
 SID.ASM
 Errors: 0
@@ -33,7 +33,7 @@ Errors: 0
       28   00:F813  00                  			NOP
       29   00:F814  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
       30   00:F816  ED 51               			OUT		(C), D		; WRITE TO SID
-      31   00:F818  47                  			LD		B, A
+      31   00:F818  42                  			LD		B, D
       32   00:F819  3E 00               			LD		A, 0
       33   00:F81B  C3 67 13            			JP		ABPASS
       34   00:F81E                      

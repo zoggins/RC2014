@@ -1,0 +1,232 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.13 - 20:04:47]
+
+SID1.ASM
+Errors: 0
+
+       1   00:0200                      
+       2   00:0200                      
+       3   00:0200                                  ORG		$0200
+       4   00:0200                      
+       5   00:0200                      
+       6   00:0200  CD E5 02            ENTRY:      CALL	CLEAR_SID
+       7   00:0203  1E 00               			LD		E, 0
+       8   00:0205                      
+       9   00:0205  3E 07               			LD		A, 0x07
+      10   00:0207  32 D5 02            			LD		(VOICE), A
+      11   00:020A                      
+      12   00:020A  16 0F               SETUP:		LD		D, 0x0F		
+      13   00:020C  3E 18               			LD		A, 0x18
+      14   00:020E  1E 00               			LD		E, 0
+      15   00:0210  CD D7 02            			CALL	SID_IO			; 450 R = 24 : D = 15 : GOSUB 1000	
+      16   00:0213                      
+      17   00:0213  3A D5 02            			LD		A, (VOICE)
+      18   00:0216  67                  			LD		H, A
+      19   00:0217  16 61               			LD		D, 0x61		
+      20   00:0219  3E 05               			LD		A, 0x05
+      21   00:021B  84                  			ADD		H
+      22   00:021C  1E 00               			LD		E, 0
+      23   00:021E  CD D7 02            			CALL	SID_IO			; 451 R = 5 + V : D = 97 : GOSUB 1000
+      24   00:0221                      
+      25   00:0221  3A D5 02            			LD		A, (VOICE)
+      26   00:0224  67                  			LD		H, A
+      27   00:0225  16 C8               			LD		D, 0xC8		
+      28   00:0227  3E 06               			LD		A, 0x06
+      29   00:0229  84                  			ADD		H
+      30   00:022A  1E 00               			LD		E, 0
+      31   00:022C  CD D7 02            			CALL	SID_IO			;452 R = 6 + V : D = 200 : GOSUB 1000
+      32   00:022F                      
+      33   00:022F  CD 0E 03            			CALL	RND
+      34   00:0232  7D                  			LD		A, L
+      35   00:0233  E6 03               			AND		0x03
+      36   00:0235  FE 00               OPTION1:	CP		0x00
+      37   00:0237  C2 3F 02            			JP		NZ, OPTION2		
+      38   00:023A  16 21               			LD		D, 0x21
+      39   00:023C  C3 55 02            			JP		NEXT
+      40   00:023F  FE 01               OPTION2:	CP		0x01
+      41   00:0241  C2 49 02            			JP		NZ, OPTION3
+      42   00:0244  16 41               			LD		D, 0x41
+      43   00:0246  C3 55 02            			JP		NEXT
+      44   00:0249  FE 02               OPTION3:	CP		0x02
+      45   00:024B  C2 53 02            			JP		NZ, OPTION4
+      46   00:024E  16 81               			LD		D, 0x81
+      47   00:0250  C3 55 02            			JP		NEXT
+      48   00:0253  16 11               OPTION4:	LD		D, 0x11
+      49   00:0255  3A D5 02            NEXT:		LD		A, (VOICE)
+      50   00:0258  67                  			LD		H, A
+      51   00:0259  3E 04               			LD		A, 0x04
+      52   00:025B  84                  			ADD		H
+      53   00:025C  1E 00               			LD		E, 0
+      54   00:025E  CD D7 02            			CALL	SID_IO			; 453 R = 4 + V : D = W : GOSUB 1000
+      55   00:0261                      
+      56   00:0261  3E 00               INITXLP:	LD		A, 0x0			; 460 FOR X = 0 TO 255 STEP INT((RND(1)*15)+1)
+      57   00:0263  32 D4 02            			LD		(VX), A
+      58   00:0266                      
+      59   00:0266  CD 0E 03            			CALL	RND
+      60   00:0269  7D                  			LD		A, L
+      61   00:026A  E6 0F               			AND     0x0F
+      62   00:026C  3C                  			INC		A
+      63   00:026D  32 D6 02            			LD		(STEP), A
+      64   00:0270                      
+      65   00:0270  3A D5 02            XLOOP:		LD		A, (VOICE)
+      66   00:0273  67                  			LD		H, A
+      67   00:0274  3A D4 02            			LD		A, (VX)
+      68   00:0277  57                  			LD		D, A		
+      69   00:0278  3E 00               			LD		A, 0x00
+      70   00:027A  84                  			ADD		H
+      71   00:027B  1E 00               			LD		E, 0
+      72   00:027D  CD D7 02            			CALL	SID_IO			; 470 R = 0 + V : D = X : GOSUB 1000
+      73   00:0280                      
+      74   00:0280  3A D5 02            			LD		A, (VOICE)
+      75   00:0283  67                  			LD		H, A
+      76   00:0284  3A D4 02            			LD		A, (VX)
+      77   00:0287  57                  			LD		D, A
+      78   00:0288  3E FF               			LD		A, 0xFF
+      79   00:028A  92                  			SUB		D
+      80   00:028B  57                  			LD		D, A
+      81   00:028C  3E 01               			LD		A, 0x01
+      82   00:028E  84                  			ADD		H
+      83   00:028F  1E 00               			LD		E, 0
+      84   00:0291  CD D7 02            			CALL	SID_IO			; 470 R = 0 + V : D = X : GOSUB 1000
+      85   00:0294                      
+      86   00:0294  CD FB 02            			CALL	DELAY
+      87   00:0297                      
+      88   00:0297  3E 00               			LD		A, 0
+      89   00:0299  3D                  YLOOP:		DEC		A
+      90   00:029A  FE 21               			CP		0x21
+      91   00:029C  CA A4 02            			JP		Z, YLOOPXIT
+      92   00:029F  C3 99 02            			JP		YLOOP
+      93   00:02A2                      
+      94   00:02A2  3E 21               			LD		A, '!'
+      95   00:02A4                      
+      96   00:02A4  3A D6 02            YLOOPXIT:	LD		A, (STEP)
+      97   00:02A7  47                  			LD		B, A
+      98   00:02A8  3A D4 02            			LD		A, (VX)
+      99   00:02AB  80                  			ADD		B
+     100   00:02AC  DA B7 02            			JP		C, XLOOPXIT
+     101   00:02AF  32 D4 02            			LD		(VX), A
+     102   00:02B2  C3 70 02            			JP		XLOOP
+     103   00:02B5                      
+     104   00:02B5  3E 00               			LD		A, 0			; 490 FOR X = 0 TO 200: NEXT...
+     105   00:02B7  3C                  XLOOPXIT:	INC		A
+     106   00:02B8  FE C8               			CP		0xC8
+     107   00:02BA  CA CB 02            			JP		Z, XLOOP1XIT
+     108   00:02BD  C3 B7 02            			JP		XLOOPXIT
+     109   00:02C0                      
+     110   00:02C0  16 00               			LD		D, 0x00	
+     111   00:02C2  3E 18               			LD		A, 0x18
+     112   00:02C4  1E 00               			LD		E, 0
+     113   00:02C6  CD D7 02            			CALL	SID_IO			; ... : R = 24 : D = 0 :  GOSUB 1000
+     114   00:02C9                      
+     115   00:02C9  3E 00               			LD		A, 0			; 500 FOR X = 0 TO 100: NEXT : GOTO 410
+     116   00:02CB  3C                  XLOOP1XIT:	INC		A
+     117   00:02CC  FE 64               			CP		0x64
+     118   00:02CE  CA 0A 02            			JP		Z, SETUP
+     119   00:02D1  C3 CB 02            			JP		XLOOP1XIT
+     120   00:02D4                      
+     121   00:02D4  00                  VX			DB		0
+     122   00:02D5  00                  VOICE		DB		0
+     123   00:02D6  00                  STEP		DB		0
+     124   00:02D7                      
+     125   00:02D7                      ; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
+     126   00:02D7                      ;				D = DATA BYTE
+     127   00:02D7                      ;				E = INTERRUPT CONTROLLER MODE - BITS 5/6
+     128   00:02D7                      ; (0x00 = OFF,  0x20 = '50Hz',  0x40 = '60Hz'  0x60 = '100Hz')
+     129   00:02D7  0E 54               SID_IO:		LD		C, 0x54		; BASE I/O ADDRESS
+     130   00:02D9  B3                  			OR		E
+     131   00:02DA  47                  			LD		B, A
+     132   00:02DB  ED 51               			OUT		(C), D		; WRITE TO SID.  /CS=0 (B BIT 7)
+     133   00:02DD  00                  			NOP
+     134   00:02DE  00                  			NOP					; DELAY
+     135   00:02DF  00                  			NOP
+     136   00:02E0  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+     137   00:02E2  ED 51               			OUT		(C), D		; WRITE TO SID
+     138   00:02E4  C9                  			RET
+     139   00:02E5                      
+     140   00:02E5  0E 54               CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
+     141   00:02E7  06 98               			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
+     142   00:02E9                      								; INTERRUPT CONTROLLER OFF
+     143   00:02E9  AF                  			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
+     144   00:02EA  ED 79               			OUT		(C), A		; FIRSTY OUT TO ENSURE /CS HIGH
+     145   00:02EC  00                  			NOP
+     146   00:02ED  00                  			NOP					; DELAY
+     147   00:02EE  00                  			NOP
+     148   00:02EF  CB B8               			RES		7, B		; /CS=0 (B BIT 7)
+     149   00:02F1  ED 79               			OUT		(C), A		; WRITE TO SID
+     150   00:02F3  00                  			NOP
+     151   00:02F4  00                  			NOP					; DELAY
+     152   00:02F5  00                  			NOP
+     153   00:02F6  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+     154   00:02F8  ED 79               			OUT		(C), A		; WRITE TO SID
+     155   00:02FA  C9                  			RET		
+     156   00:02FB                      
+     157   00:02FB  06 60               DELAY:		LD		B, 0x60
+     158   00:02FD  0E FF               DELAYOUT1:	LD		C, 0xFF
+     159   00:02FF  0D                  DELAYIN1:	DEC		C
+     160   00:0300  79                  			LD		A, C
+     161   00:0301  FE 00               			CP		0x00
+     162   00:0303  C2 FF 02            			JP		NZ, DELAYIN1
+     163   00:0306  05                  			DEC		B
+     164   00:0307  78                  			LD		A, B
+     165   00:0308  FE 00               			CP		0x00
+     166   00:030A  C2 FD 02            			JP		NZ, DELAYOUT1
+     167   00:030D  C9                  			RET
+     168   00:030E                      
+     169   00:030E                      
+     170   00:030E                      ; 8-bit Xor-Shift random number generator.
+     171   00:030E                      ; Created by Patrik Rak in 2008 and revised in 2011/2012.
+     172   00:030E                      ; See http://www.worldofspectrum.org/forums/showthread.php?t=23070
+     173   00:030E  21 80 A2            RND:    ld  hl,0xA280   ; yw -> zt
+     174   00:0311  11 DE C0                    ld  de,0xC0DE   ; xz -> yw
+     175   00:0314  22 12 03                    ld  (RND+4),hl  ; x = y, z = w
+     176   00:0317  7D                          ld  a,l         ; w = w ^ ( w << 3 )
+     177   00:0318  87                          add a,a
+     178   00:0319  87                          add a,a
+     179   00:031A  87                          add a,a
+     180   00:031B  AD                          xor l
+     181   00:031C  6F                          ld  l,a
+     182   00:031D  7A                          ld  a,d         ; t = x ^ (x << 1)
+     183   00:031E  87                          add a,a
+     184   00:031F  AA                          xor d
+     185   00:0320  67                          ld  h,a
+     186   00:0321  1F                          rra             ; t = t ^ (t >> 1) ^ w
+     187   00:0322  AC                          xor h
+     188   00:0323  AD                          xor l
+     189   00:0324  63                          ld  h,e         ; y = z
+     190   00:0325  6F                          ld  l,a         ; w = t
+     191   00:0326  22 0F 03                    ld  (RND+1),hl
+     192   00:0329  C9                          ret 
+
+    LABELS
+-------------------------------------------------
+00:00000200 X ENTRY
+00:0000020A   SETUP
+00:00000235 X OPTION1
+00:0000023F   OPTION2
+00:00000249   OPTION3
+00:00000253   OPTION4
+00:00000255   NEXT
+00:00000261 X INITXLP
+00:00000270   XLOOP
+00:00000299   YLOOP
+00:000002A4   YLOOPXIT
+00:000002B7   XLOOPXIT
+00:000002CB   XLOOP1XIT
+00:000002D4   VX
+00:000002D5   VOICE
+00:000002D6   STEP
+00:000002D7   SID_IO
+00:000002E5   CLEAR_SID
+00:000002FB   DELAY
+00:000002FD   DELAYOUT1
+00:000002FF   DELAYIN1
+00:0000030E   RND
+
+
+ Output: SID1.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000200  Size: *  Used: 0000012A
+
+   Address   Length Align   Label
+   00000200     298         ENTRY

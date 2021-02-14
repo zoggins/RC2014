@@ -1,0 +1,107 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.13 - 20:04:48]
+
+SID3.ASM
+Errors: 0
+
+       1   00:0200                      			ORG		$0200
+       2   00:0200                      
+       3   00:0200  (00:0BF1)           DEINT		EQU		$0BF1
+       4   00:0200  (00:1367)           ABPASS		EQU		$1367
+       5   00:0200                      
+       6   00:0200  CD 4C 02            ENTRY:		CALL	CLEAR_SID
+       7   00:0203  1E 00               			LD		E, 0
+       8   00:0205                      			
+       9   00:0205                      			;WE WANT TO PLAY A C4 NOTE
+      10   00:0205                      
+      11   00:0205                      			;SETS FREQUENCY OF NOTE FOR VOICE 1
+      12   00:0205  3E 00               			LD		A, 0x00
+      13   00:0207  16 50               			LD		D, 0x50
+      14   00:0209  CD 3E 02            			CALL	SID_IO
+      15   00:020C  3E 01               			LD		A, 0x01
+      16   00:020E  16 11               			LD		D, 0x11
+      17   00:0210  CD 3E 02            			CALL	SID_IO
+      18   00:0213                      
+      19   00:0213                      			; ATTACK = 5: DECAY = 3
+      20   00:0213  3E 05               			LD		A, 0x05
+      21   00:0215  16 D5               			LD		D, 0xD5
+      22   00:0217  CD 3E 02            			CALL	SID_IO
+      23   00:021A                      
+      24   00:021A                      			; SUSTAIN = 15: RELEASE = 10
+      25   00:021A  3E 06               			LD		A, 0x06
+      26   00:021C  16 CA               			LD		D, 0xCA
+      27   00:021E  CD 3E 02            			CALL	SID_IO
+      28   00:0221                      
+      29   00:0221                      			; GLOBAL VOLUME SET TO FULL LEVEL
+      30   00:0221  3E 18               			LD		A, 0x18
+      31   00:0223  16 0F               			LD		D, 0x0F
+      32   00:0225  CD 3E 02            			CALL	SID_IO
+      33   00:0228                      
+      34   00:0228                      			; SETS GATE BIT = STARTS NOTE
+      35   00:0228  3E 04               			LD		A, 0x04
+      36   00:022A  16 21               			LD		D, 0x21
+      37   00:022C  CD 3E 02            			CALL	SID_IO
+      38   00:022F                      
+      39   00:022F                      			; DURATION
+      40   00:022F                      			; KEEPS PIANO KEY DEPRESSED FOR DURATION OF NOTE
+      41   00:022F  01 D0 07            			LD		BC, 0x7D0
+      42   00:0232                      
+      43   00:0232  0B                  LOOP:		DEC		BC		
+      44   00:0233  CA 32 02            			JP		Z, LOOP
+      45   00:0236                      
+      46   00:0236                      			; TURNS OFF GATE BIT, PIANO KEY RELEASED
+      47   00:0236  3E 04               			LD		A, 0x04
+      48   00:0238  16 20               			LD		D, 0x20
+      49   00:023A  CD 3E 02            			CALL	SID_IO
+      50   00:023D                      
+      51   00:023D  C7                  			RST		0
+      52   00:023E                      
+      53   00:023E                      ; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
+      54   00:023E                      ;				D = DATA BYTE
+      55   00:023E                      ;				E = INTERRUPT CONTROLLER MODE - BITS 5/6
+      56   00:023E                      ; (0x00 = OFF,  0x20 = '50Hz',  0x40 = '60Hz'  0x60 = '100Hz')
+      57   00:023E  0E 54               SID_IO:		LD		C, 0x54		; BASE I/O ADDRESS
+      58   00:0240  B3                  			OR		E
+      59   00:0241  47                  			LD		B, A
+      60   00:0242  ED 51               			OUT		(C), D		; WRITE TO SID.  /CS=0 (B BIT 7)
+      61   00:0244  00                  			NOP
+      62   00:0245  00                  			NOP					; DELAY
+      63   00:0246  00                  			NOP
+      64   00:0247  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+      65   00:0249  ED 51               			OUT		(C), D		; WRITE TO SID
+      66   00:024B  C9                  			RET
+      67   00:024C                      
+      68   00:024C  0E 54               CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
+      69   00:024E  06 98               			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
+      70   00:0250                      								; INTERRUPT CONTROLLER OFF
+      71   00:0250  AF                  			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
+      72   00:0251  ED 79               			OUT		(C), A		; FIRSTY OUT TO ENSURE /CS HIGH
+      73   00:0253  00                  			NOP
+      74   00:0254  00                  			NOP					; DELAY
+      75   00:0255  00                  			NOP
+      76   00:0256  CB B8               			RES		7, B		; /CS=0 (B BIT 7)
+      77   00:0258  ED 79               			OUT		(C), A		; WRITE TO SID
+      78   00:025A  00                  			NOP
+      79   00:025B  00                  			NOP					; DELAY
+      80   00:025C  00                  			NOP
+      81   00:025D  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+      82   00:025F  ED 79               			OUT		(C), A		; WRITE TO SID
+      83   00:0261  C9                  			RET		
+
+    LABELS
+-------------------------------------------------
+00:00000BF1 X DEINT
+00:00001367 X ABPASS
+00:00000200 X ENTRY
+00:00000232   LOOP
+00:0000023E   SID_IO
+00:0000024C   CLEAR_SID
+
+
+ Output: SID3.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000200  Size: *  Used: 00000062
+
+   Address   Length Align   Label
+   00000200      98         ENTRY

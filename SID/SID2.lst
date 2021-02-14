@@ -1,0 +1,317 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.13 - 20:04:47]
+
+SID2.ASM
+Errors: 0
+
+       1   00:0200                      ; RC2014 SID TESTER
+       2   00:0200                      ; Ported from the code in SID2.BAS
+       3   00:0200                      
+       4   00:0200                      			ORG		$0200
+       5   00:0200                      
+       6   00:0200  CD A7 03            ENTRY:		CALL	CLEAR_SID
+       7   00:0203  1E 00               			LD		E, 0
+       8   00:0205                      
+       9   00:0205  3E 00               			LD		A, 0x00
+      10   00:0207  32 98 03            			LD		(VI), A
+      11   00:020A                      
+      12   00:020A  3E 18               			LD		A, 0x18
+      13   00:020C  16 0F               			LD		D, 0x0F
+      14   00:020E  1E 00               			LD		E, 0
+      15   00:0210  CD 99 03            			CALL	SID_IO		; 430 R = 24 : D = 15 : GOSUB 1000
+      16   00:0213                      
+      17   00:0213  26 00               			LD		H, 0
+      18   00:0215                      
+      19   00:0215  3E 03               SETUP:		LD		A, 0x03		; 431 FOR I = 0 TO 2
+      20   00:0217  84                  			ADD		H
+      21   00:0218  16 08               			LD		D, 0x08		
+      22   00:021A  1E 00               			LD		E, 0
+      23   00:021C  CD 99 03            			CALL	SID_IO		; 440 R = V(I)+3 : D = 8 : GOSUB 1000
+      24   00:021F  3E 01               			LD		A, 0x01
+      25   00:0221  84                  			ADD		H
+      26   00:0222  16 00               			LD		D, 0x00
+      27   00:0224  1E 00               			LD		E, 0
+      28   00:0226  CD 99 03            			CALL	SID_IO		; 441 R = V(I)+1 : D = 0 : GOSUB 1000
+      29   00:0229  3E 05               			LD		A, 0x05
+      30   00:022B  84                  			ADD		H
+      31   00:022C  16 08               			LD		D, 0x08
+      32   00:022E  1E 00               			LD		E, 0
+      33   00:0230  CD 99 03            			CALL	SID_IO
+      34   00:0233  3E 06               			LD		A, 0x06		; 450 R = V(I)+5 : D = 8 : GOSUB 1000
+      35   00:0235  84                  			ADD		H
+      36   00:0236  16 C6               			LD		D, 0xC6
+      37   00:0238  1E 00               			LD		E, 0
+      38   00:023A  CD 99 03            			CALL	SID_IO		; 451 R = V(I)+6 : D = 198 : GOSUB 1000
+      39   00:023D                      
+      40   00:023D  7C                  			LD		A, H
+      41   00:023E  C6 07               			ADD		0x07
+      42   00:0240  FE 15               			CP		0x15
+      43   00:0242  CA 49 02            			JP		Z, INITAI
+      44   00:0245  67                  			LD		H, A
+      45   00:0246  C3 15 02            			JP		SETUP		; 452 NEXT
+      46   00:0249                      
+      47   00:0249  3E 10               INITAI:		LD		A, 0x10		; 460 FOR A = 16 TO 128 STEP 16
+      48   00:024B  32 97 03            			LD		(VA), A
+      49   00:024E                      
+      50   00:024E  3E 00               			LD		A, 0x00		; 461 FOR I = 0 TO 2
+      51   00:0250  32 98 03            			LD		(VI), A
+      52   00:0253                      
+      53   00:0253  3A 97 03            AILOOP:		LD      A, (VA)		; 470 IF A > 64 THEN R = V(I)+3 : D = 0 : GOSUB 1000
+      54   00:0256  FE 40               			CP		0x40		
+      55   00:0258  DA 6C 02            			JP		C, CONT
+      56   00:025B  CA 6C 02            			JP		Z, CONT
+      57   00:025E                      
+      58   00:025E  3A 98 03            			LD		A, (VI)
+      59   00:0261  67                  			LD		H, A
+      60   00:0262  3E 03               			LD		A, 0x03
+      61   00:0264  84                  			ADD		H
+      62   00:0265  16 00               			LD		D, 0x00
+      63   00:0267  1E 00               			LD		E, 0
+      64   00:0269  CD 99 03            			CALL	SID_IO
+      65   00:026C                      
+      66   00:026C  3A 98 03            CONT:		LD		A, (VI)		
+      67   00:026F  67                  			LD		H, A
+      68   00:0270  3A 97 03            			LD		A, (VA)		
+      69   00:0273  57                  			LD		D, A
+      70   00:0274  14                  			INC		D
+      71   00:0275  3E 04               			LD		A, 0x04
+      72   00:0277  84                  			ADD		H
+      73   00:0278  1E 00               			LD		E, 0
+      74   00:027A  CD 99 03            			CALL	SID_IO		; 480 R = V(I)+4 : D = A+1 : GOSUB 1000
+      75   00:027D                      
+      76   00:027D  3E 00               			LD		A, 0x00
+      77   00:027F  57                  			LD		D, A		
+      78   00:0280  3A 98 03            FLOOP1:		LD		A, (VI)		; 490 FOR F = 0 TO 254 STEP 2
+      79   00:0283  67                  			LD		H, A
+      80   00:0284  3E 01               			LD		A, 0x01
+      81   00:0286  84                  			ADD		H
+      82   00:0287  1E 00               			LD		E, 0
+      83   00:0289  CD 99 03            			CALL	SID_IO		;491 R = V(I)+1 : D = F : GOSUB 1000...
+      84   00:028C                      
+      85   00:028C  CD BD 03            			CALL	DELAY
+      86   00:028F                      
+      87   00:028F  14                  			INC		D
+      88   00:0290  14                  			INC		D
+      89   00:0291  7A                  			LD		A, D
+      90   00:0292  FE 00               			CP		0x00
+      91   00:0294  C2 80 02            			JP		NZ, FLOOP1		; ...: NEXT F
+      92   00:0297                      
+      93   00:0297  3A 97 03            			LD		A, (VA)		
+      94   00:029A  57                  			LD		D, A
+      95   00:029B  3A 98 03            			LD		A, (VI)		
+      96   00:029E  67                  			LD		H, A
+      97   00:029F  3E 04               			LD		A, 0x04
+      98   00:02A1  84                  			ADD		H
+      99   00:02A2  1E 00               			LD		E, 0
+     100   00:02A4  CD 99 03            			CALL	SID_IO			; 500 R = V(I)+4 : D = A : GOSUB 1000
+     101   00:02A7                      		
+     102   00:02A7  3E C8               			LD		A, 0xC8			; 501 FOR W = 0 TO 200...
+     103   00:02A9  3D                  WLOOP:		DEC		A
+     104   00:02AA  FE FF               			CP		0xFF
+     105   00:02AC  C2 A9 02            			JP		NZ, WLOOP		; ... : NEXT W
+     106   00:02AF                      
+     107   00:02AF  3E 08               			LD		A, 0x08			
+     108   00:02B1  57                  			LD		D, A
+     109   00:02B2  3A 98 03            			LD		A, (VI)		
+     110   00:02B5  67                  			LD		H, A
+     111   00:02B6  3E 04               			LD		A, 0x04
+     112   00:02B8  84                  			ADD		H
+     113   00:02B9  1E 00               			LD		E, 0
+     114   00:02BB  CD 99 03            			CALL	SID_IO			; 510 R = V(I)+4 : D = 8 : GOSUB 1000
+     115   00:02BE                      
+     116   00:02BE  3E 00               			LD		A, 0x00		
+     117   00:02C0  57                  			LD		D, A
+     118   00:02C1  3A 98 03            			LD		A, (VI)		
+     119   00:02C4  67                  			LD		H, A
+     120   00:02C5  3E 01               			LD		A, 0x01
+     121   00:02C7  84                  			ADD		H
+     122   00:02C8  1E 00               			LD		E, 0
+     123   00:02CA  CD 99 03            			CALL	SID_IO			; 511 R = V(I)+1 : D = 0 : GOSUB 1000
+     124   00:02CD                      
+     125   00:02CD  3A 98 03            			LD		A, (VI)
+     126   00:02D0  C6 07               			ADD		0x07
+     127   00:02D2  FE 15               			CP		0x15
+     128   00:02D4  CA DD 02            			JP		Z, EXITILOOP1
+     129   00:02D7  32 98 03            			LD		(VI), A
+     130   00:02DA  C3 53 02            			JP		AILOOP
+     131   00:02DD                      
+     132   00:02DD  3E 00               EXITILOOP1:	LD		A, 0
+     133   00:02DF  32 98 03            			LD		(VI), A
+     134   00:02E2  3A 97 03            			LD		A, (VA)
+     135   00:02E5  C6 10               			ADD		0x10
+     136   00:02E7  FE 90               			CP		0x90
+     137   00:02E9  CA F2 02            			JP		Z, EXITALOOP
+     138   00:02EC  32 97 03            			LD		(VA), A
+     139   00:02EF  C3 53 02            			JP		AILOOP			; 520 NEXT I,A...
+     140   00:02F2                      
+     141   00:02F2  3E 01               EXITALOOP:	LD		A, 0x01			; ... : A = 1
+     142   00:02F4  32 97 03            			LD		(VA), A
+     143   00:02F7  3E 00               INITLOOPI:	LD		A, 0x00
+     144   00:02F9  32 98 03            			LD		(VI), A
+     145   00:02FC                      
+     146   00:02FC  16 FF               ILOOP:		LD		D, 0xFF			; 530 FOR I = 0 TO 2
+     147   00:02FE  3A 98 03            			LD		A, (VI)		
+     148   00:0301  67                  			LD		H, A
+     149   00:0302  3E 01               			LD		A, 0x01
+     150   00:0304  84                  			ADD		H
+     151   00:0305  1E 00               			LD		E, 0
+     152   00:0307  CD 99 03            			CALL	SID_IO			; 531 R = V(I)+1 : D = 255 : GOSUB 1000
+     153   00:030A                      
+     154   00:030A  3A 97 03            			LD		A, (VA)			
+     155   00:030D  CB 27               			SLA		A
+     156   00:030F  CB 27               			SLA		A
+     157   00:0311  CB 27               			SLA		A
+     158   00:0313  CB 27               			SLA		A
+     159   00:0315  C6 0F               			ADD		0x0F
+     160   00:0317  57                  			LD		D, A
+     161   00:0318  3E 18               			LD		A, 0x18
+     162   00:031A  1E 00               			LD		E, 0
+     163   00:031C  CD 99 03            			CALL	SID_IO			; 540 R = 24 : D = (A*16)+15: GOSUB 1000
+     164   00:031F                      
+     165   00:031F  3A 98 03            			LD		A, (VI)
+     166   00:0322  0E 01               			LD		C, 0x01
+     167   00:0324  FE 00               PWR:		CP		0x00
+     168   00:0326  CA 30 03            			JP		Z, PWRDONE
+     169   00:0329  CB 21               			SLA		C
+     170   00:032B  D6 07               			SUB		0x07
+     171   00:032D  C3 24 03            			JP		PWR
+     172   00:0330  51                  PWRDONE:	LD		D, C
+     173   00:0331  3E 17               			LD		A, 0x17
+     174   00:0333  1E 00               			LD		E, 0
+     175   00:0335  CD 99 03            			CALL	SID_IO			; 541 R = 23 : D = 2^I : GOSUB 1000
+     176   00:0338                      
+     177   00:0338  16 81               			LD		D, 0x81
+     178   00:033A  3A 98 03            			LD		A, (VI)		
+     179   00:033D  67                  			LD		H, A
+     180   00:033E  3E 04               			LD		A, 0x04
+     181   00:0340  84                  			ADD		H
+     182   00:0341  1E 00               			LD		E, 0
+     183   00:0343  CD 99 03            			CALL	SID_IO			; 550 R = V(I)+4 : D = 129 : GOSUB 1000
+     184   00:0346                      
+     185   00:0346  16 00               			LD		D, 0x00			; 560 FOR F = 0 TO 255
+     186   00:0348  3A 98 03            FLOOP2:		LD		A, (VI)		
+     187   00:034B  67                  			LD		H, A
+     188   00:034C  3E 16               			LD		A, 0x16
+     189   00:034E  1E 00               			LD		E, 0
+     190   00:0350  CD 99 03            			CALL	SID_IO			; 561 R = 22 : D = F : GOSUB 1000...
+     191   00:0353                      
+     192   00:0353  CD BD 03            			CALL	DELAY
+     193   00:0356                      
+     194   00:0356  14                  			INC		D
+     195   00:0357  7A                  			LD		A, D
+     196   00:0358  FE 00               			CP		0x00
+     197   00:035A  C2 48 03            			JP		NZ, FLOOP2		;  ...: NEXT F
+     198   00:035D                      
+     199   00:035D  3E 88               			LD		A, 0x88
+     200   00:035F  57                  			LD		D, A
+     201   00:0360  3A 98 03            			LD		A, (VI)		
+     202   00:0363  67                  			LD		H, A
+     203   00:0364  3E 04               			LD		A, 0x04
+     204   00:0366  84                  			ADD		H
+     205   00:0367  1E 00               			LD		E, 0
+     206   00:0369  CD 99 03            			CALL	SID_IO			; 570 R = V(I)+4 : D = 136: GOSUB 1000...
+     207   00:036C                      
+     208   00:036C  3A 98 03            			LD		A, (VI)
+     209   00:036F  C6 07               			ADD		0x07
+     210   00:0371  FE 15               			CP		0x15
+     211   00:0373  CA 7C 03            			JP		Z, EXITILOOP2
+     212   00:0376  32 98 03            			LD		(VI), A
+     213   00:0379  C3 FC 02            			JP		ILOOP			;  ...: NEXT I
+     214   00:037C                      
+     215   00:037C  3A 97 03            EXITILOOP2:	LD		A, (VA)
+     216   00:037F  CB 27               			SLA		A
+     217   00:0381  FE 08               			CP		0x08
+     218   00:0383  D2 8C 03            			JP		NC, EXIT		
+     219   00:0386  32 97 03            			LD		(VA), A
+     220   00:0389  C3 F7 02            			JP		INITLOOPI		; 580 A = A * 2 : IF A < 8 THEN GOTO 530
+     221   00:038C                      			
+     222   00:038C  3E 00               EXIT:		LD		A, 0x0
+     223   00:038E  57                  			LD		D, A
+     224   00:038F  3E 17               			LD		A, 0x17
+     225   00:0391  1E 00               			LD		E, 0
+     226   00:0393  CD 99 03            			CALL	SID_IO			; 590 R = 23 : D = 0 : GOSUB 1000
+     227   00:0396                      
+     228   00:0396  C7                  			RST		0
+     229   00:0397                      
+     230   00:0397  00                  VA			DB		0
+     231   00:0398  00                  VI			DB		0
+     232   00:0399                      
+     233   00:0399                      ; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
+     234   00:0399                      ;				D = DATA BYTE
+     235   00:0399                      ;				E = INTERRUPT CONTROLLER MODE - BITS 5/6
+     236   00:0399                      ; (0x00 = OFF,  0x20 = '50Hz',  0x40 = '60Hz'  0x60 = '100Hz')
+     237   00:0399  0E 54               SID_IO:		LD		C, 0x54		; BASE I/O ADDRESS
+     238   00:039B  B3                  			OR		E
+     239   00:039C  47                  			LD		B, A
+     240   00:039D  ED 51               			OUT		(C), D		; WRITE TO SID.  /CS=0 (B BIT 7)
+     241   00:039F  00                  			NOP
+     242   00:03A0  00                  			NOP					; DELAY
+     243   00:03A1  00                  			NOP
+     244   00:03A2  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+     245   00:03A4  ED 51               			OUT		(C), D		; WRITE TO SID
+     246   00:03A6  C9                  			RET
+     247   00:03A7                      
+     248   00:03A7  0E 54               CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
+     249   00:03A9  06 98               			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
+     250   00:03AB                      								; INTERRUPT CONTROLLER OFF
+     251   00:03AB  AF                  			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
+     252   00:03AC  ED 79               			OUT		(C), A		; FIRSTY OUT TO ENSURE /CS HIGH
+     253   00:03AE  00                  			NOP
+     254   00:03AF  00                  			NOP					; DELAY
+     255   00:03B0  00                  			NOP
+     256   00:03B1  CB B8               			RES		7, B		; /CS=0 (B BIT 7)
+     257   00:03B3  ED 79               			OUT		(C), A		; WRITE TO SID
+     258   00:03B5  00                  			NOP
+     259   00:03B6  00                  			NOP					; DELAY
+     260   00:03B7  00                  			NOP
+     261   00:03B8  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+     262   00:03BA  ED 79               			OUT		(C), A		; WRITE TO SID
+     263   00:03BC  C9                  			RET		
+     264   00:03BD                      
+     265   00:03BD  06 15               DELAY:		LD		B, 0x15
+     266   00:03BF  0E FF               DELAYOUT1:	LD		C, 0xFF
+     267   00:03C1  0D                  DELAYIN1:	DEC		C
+     268   00:03C2  79                  			LD		A, C
+     269   00:03C3  FE 00               			CP		0x00
+     270   00:03C5  C2 C1 03            			JP		NZ, DELAYIN1
+     271   00:03C8  05                  			DEC		B
+     272   00:03C9  78                  			LD		A, B
+     273   00:03CA  FE 00               			CP		0x00
+     274   00:03CC  C2 BF 03            			JP		NZ, DELAYOUT1
+     275   00:03CF  C9                  			RET
+     276   00:03D0                      
+
+    LABELS
+-------------------------------------------------
+00:00000200 X ENTRY
+00:00000215   SETUP
+00:00000249   INITAI
+00:00000253   AILOOP
+00:0000026C   CONT
+00:00000280   FLOOP1
+00:000002A9   WLOOP
+00:000002DD   EXITILOOP1
+00:000002F2   EXITALOOP
+00:000002F7   INITLOOPI
+00:000002FC   ILOOP
+00:00000324   PWR
+00:00000330   PWRDONE
+00:00000348   FLOOP2
+00:0000037C   EXITILOOP2
+00:0000038C   EXIT
+00:00000397   VA
+00:00000398   VI
+00:00000399   SID_IO
+00:000003A7   CLEAR_SID
+00:000003BD   DELAY
+00:000003BF   DELAYOUT1
+00:000003C1   DELAYIN1
+
+
+ Output: SID2.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000200  Size: *  Used: 000001D0
+
+   Address   Length Align   Label
+   00000200     464         ENTRY
