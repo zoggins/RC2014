@@ -1,4 +1,4 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.14 - 18:49:48]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.14 - 19:31:41]
 
 SID.ASM
 Errors: 0
@@ -48,6 +48,19 @@ Errors: 0
       43   00:F827  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
       44   00:F829  ED 79               			OUT		(C), A		; WRITE TO SID
       45   00:F82B  C9                  			RET		
+      46   00:F82C                      
+      47   00:F82C  00 00 00 00 00 00   TBUF:		DB		0, 0, 0, 0, 0, 0
+      48   00:F832                      
+      49   00:F832                      SEED:
+      50   00:F832                      			; GETRTC
+      51   00:F832  06 20               			LD	B, 0x20
+      52   00:F834  21 2C F8            			LD  HL, TBUF
+      53   00:F837  CF                  			RST	08			
+      54   00:F838                      
+      55   00:F838  3A 30 F8            			LD		A, (TBUF+4)
+      56   00:F83B  47                  			LD		B, A
+      57   00:F83C  3A 31 F8            			LD		A, (TBUF+5)
+      58   00:F83F  C3 67 13            			JP		ABPASS
 
     LABELS
 -------------------------------------------------
@@ -56,13 +69,15 @@ Errors: 0
 00:0000F800 X SID_IO_BAS
 00:0000F804 X SID_IO
 00:0000F816 X CLEAR_SID
+00:0000F82C   TBUF
+00:0000F832 X SEED
 
 
  Output: SID.OUT
 -------------------------------------------------
 
  Page: 00
-  Org: 0000F800  Size: *  Used: 0000002C
+  Org: 0000F800  Size: *  Used: 00000042
 
    Address   Length Align   Label
-   0000F800      44         SID_IO_BAS
+   0000F800      66         SID_IO_BAS

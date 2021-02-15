@@ -43,3 +43,16 @@ CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
 			SET		7, B		; /CS=1 (B BIT 7)
 			OUT		(C), A		; WRITE TO SID
 			RET		
+
+TBUF:		DB		0, 0, 0, 0, 0, 0
+
+SEED:
+			; GETRTC
+			LD	B, 0x20
+			LD  HL, TBUF
+			RST	08			
+
+			LD		A, (TBUF+4)
+			LD		B, A
+			LD		A, (TBUF+5)
+			JP		ABPASS
