@@ -1,5 +1,7 @@
 ; RC2014 SID TESTER
 ; Ported from the code in SID2.BAS
+; Should sound similiar to the mp3s in this folder
+; Might be faster or slower depending on your setup
 
 			ORG		$0200
 
@@ -262,7 +264,7 @@ CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
 			OUT		(C), A		; WRITE TO SID
 			RET		
 
-DELAY:		LD		B, 0x15
+DELAY:		LD		B, 0x10
 DELAYOUT:	LD		C, 0xFF
 DELAYIN:	DEC		C
 			LD		A, C

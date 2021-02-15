@@ -1,5 +1,5 @@
 ; RC2014 SID TESTER
-; Ported from the code in SID2.BAS
+; Ported from the code in SID1.BAS
 
             ORG		$0200
 

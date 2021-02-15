@@ -1,10 +1,10 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.14 - 12:41:05]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.14 - 18:49:48]
 
 SID1.ASM
 Errors: 0
 
        1   00:0200                      ; RC2014 SID TESTER
-       2   00:0200                      ; Ported from the code in SID2.BAS
+       2   00:0200                      ; Ported from the code in SID1.BAS
        3   00:0200                      
        4   00:0200                                  ORG		$0200
        5   00:0200                      
