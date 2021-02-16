@@ -1,4 +1,4 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.14 - 19:31:41]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.15 - 17:05:52]
 
 SID1.ASM
 Errors: 0
@@ -8,36 +8,36 @@ Errors: 0
        3   00:0200                      
        4   00:0200                                  ORG		$0200
        5   00:0200                      
-       6   00:0200  CD F4 02            	        CALL	CLEAR_SID
+       6   00:0200  CD FD 02            	        CALL	CLEAR_SID
        7   00:0203  1E 00               			LD		E, 0
        8   00:0205                      
-       9   00:0205  CD 39 03            			CALL	SEED
+       9   00:0205  CD 40 03            			CALL	SEED
       10   00:0208                      
       11   00:0208  3E 00               			LD		A, 0x00			; VOICES 1, 2 & 3 == 0x00, 0x07, 0x0E
-      12   00:020A  32 DE 02            			LD		(VOICE), A
+      12   00:020A  32 E7 02            			LD		(VOICE), A
       13   00:020D                      
       14   00:020D  16 0F               SETUP:		LD		D, 0x0F		
       15   00:020F  3E 18               			LD		A, 0x18
       16   00:0211  1E 00               			LD		E, 0
-      17   00:0213  CD E6 02            			CALL	SID_IO			; 450 R = 24 : D = 15 : GOSUB 1000	
+      17   00:0213  CD EF 02            			CALL	SID_IO			; 450 R = 24 : D = 15 : GOSUB 1000	
       18   00:0216                      
-      19   00:0216  3A DE 02            			LD		A, (VOICE)
+      19   00:0216  3A E7 02            			LD		A, (VOICE)
       20   00:0219  67                  			LD		H, A
       21   00:021A  16 61               			LD		D, 0x61		
       22   00:021C  3E 05               			LD		A, 0x05
       23   00:021E  84                  			ADD		H
       24   00:021F  1E 00               			LD		E, 0
-      25   00:0221  CD E6 02            			CALL	SID_IO			; 451 R = 5 + V : D = 97 : GOSUB 1000
+      25   00:0221  CD EF 02            			CALL	SID_IO			; 451 R = 5 + V : D = 97 : GOSUB 1000
       26   00:0224                      
-      27   00:0224  3A DE 02            			LD		A, (VOICE)
+      27   00:0224  3A E7 02            			LD		A, (VOICE)
       28   00:0227  67                  			LD		H, A
       29   00:0228  16 C8               			LD		D, 0xC8		
       30   00:022A  3E 06               			LD		A, 0x06
       31   00:022C  84                  			ADD		H
       32   00:022D  1E 00               			LD		E, 0
-      33   00:022F  CD E6 02            			CALL	SID_IO			;452 R = 6 + V : D = 200 : GOSUB 1000
+      33   00:022F  CD EF 02            			CALL	SID_IO			;452 R = 6 + V : D = 200 : GOSUB 1000
       34   00:0232                      
-      35   00:0232  CD 1D 03            			CALL	RND
+      35   00:0232  CD 24 03            			CALL	RND
       36   00:0235  7D                  			LD		A, L
       37   00:0236  E6 03               			AND		0x03
       38   00:0238  FE 00               OPTION1:	CP		0x00
@@ -53,17 +53,17 @@ Errors: 0
       48   00:0251  16 81               			LD		D, 0x81
       49   00:0253  C3 58 02            			JP		NEXT
       50   00:0256  16 11               OPTION4:	LD		D, 0x11
-      51   00:0258  3A DE 02            NEXT:		LD		A, (VOICE)
+      51   00:0258  3A E7 02            NEXT:		LD		A, (VOICE)
       52   00:025B  67                  			LD		H, A
       53   00:025C  3E 04               			LD		A, 0x04
       54   00:025E  84                  			ADD		H
       55   00:025F  1E 00               			LD		E, 0
-      56   00:0261  CD E6 02            			CALL	SID_IO			; 453 R = 4 + V : D = W : GOSUB 1000
+      56   00:0261  CD EF 02            			CALL	SID_IO			; 453 R = 4 + V : D = W : GOSUB 1000
       57   00:0264                      
       58   00:0264  3E 00               			LD		A, 0x0			; 460 FOR X = 0 TO 255 STEP INT((RND(1)*15)+1)
-      59   00:0266  32 DD 02            			LD		(VX), A
+      59   00:0266  32 E6 02            			LD		(VX), A
       60   00:0269                      
-      61   00:0269  CD 1D 03            			CALL	RND
+      61   00:0269  CD 24 03            			CALL	RND
       62   00:026C  7D                  			LD		A, L
       63   00:026D  E6 F0               			AND     0xF0
       64   00:026F  CB 3F               			SRL		A
@@ -71,20 +71,20 @@ Errors: 0
       66   00:0273  CB 3F               			SRL		A
       67   00:0275  CB 3F               			SRL		A
       68   00:0277  3C                  			INC		A
-      69   00:0278  32 DF 02            			LD		(STEP), A
+      69   00:0278  32 E8 02            			LD		(STEP), A
       70   00:027B                      
-      71   00:027B  3A DE 02            XLOOP:		LD		A, (VOICE)
+      71   00:027B  3A E7 02            XLOOP:		LD		A, (VOICE)
       72   00:027E  67                  			LD		H, A
-      73   00:027F  3A DD 02            			LD		A, (VX)
+      73   00:027F  3A E6 02            			LD		A, (VX)
       74   00:0282  57                  			LD		D, A		
       75   00:0283  3E 00               			LD		A, 0x00
       76   00:0285  84                  			ADD		H
       77   00:0286  1E 00               			LD		E, 0
-      78   00:0288  CD E6 02            			CALL	SID_IO			; 470 R = 0 + V : D = X : GOSUB 1000
+      78   00:0288  CD EF 02            			CALL	SID_IO			; 470 R = 0 + V : D = X : GOSUB 1000
       79   00:028B                      
-      80   00:028B  3A DE 02            			LD		A, (VOICE)
+      80   00:028B  3A E7 02            			LD		A, (VOICE)
       81   00:028E  67                  			LD		H, A
-      82   00:028F  3A DD 02            			LD		A, (VX)
+      82   00:028F  3A E6 02            			LD		A, (VX)
       83   00:0292  57                  			LD		D, A
       84   00:0293  3E FF               			LD		A, 0xFF
       85   00:0295  92                  			SUB		D
@@ -92,145 +92,149 @@ Errors: 0
       87   00:0297  3E 01               			LD		A, 0x01
       88   00:0299  84                  			ADD		H
       89   00:029A  1E 00               			LD		E, 0
-      90   00:029C  CD E6 02            			CALL	SID_IO			; 471 R = 1 + V : D = 255 - X : GOSUB 1000
+      90   00:029C  CD EF 02            			CALL	SID_IO			; 471 R = 1 + V : D = 255 - X : GOSUB 1000
       91   00:029F                      
-      92   00:029F  CD 0A 03            			CALL	DELAY
-      93   00:02A2                      
-      94   00:02A2  3E 00               			LD		A, 0			; 480 FOR Y = 0 TO 33...
-      95   00:02A4  3C                  YLOOP:		INC		A
-      96   00:02A5  FE 21               			CP		0x21
-      97   00:02A7  CA AD 02            			JP		Z, YLOOPXIT
-      98   00:02AA  C3 A4 02            			JP		YLOOP
-      99   00:02AD                      
-     100   00:02AD  3A DF 02            YLOOPXIT:	LD		A, (STEP)
-     101   00:02B0  47                  			LD		B, A
-     102   00:02B1  3A DD 02            			LD		A, (VX)
-     103   00:02B4  80                  			ADD		B
-     104   00:02B5  DA C0 02            			JP		C, XLOOPXIT
-     105   00:02B8  32 DD 02            			LD		(VX), A
-     106   00:02BB  C3 7B 02            			JP		XLOOP			;  ...: NEXT Y, X
-     107   00:02BE                      
-     108   00:02BE  3E 00               			LD		A, 0			; 490 FOR X = 0 TO 200: NEXT...
-     109   00:02C0  3C                  XLOOPXIT:	INC		A
-     110   00:02C1  FE C8               			CP		0xC8
-     111   00:02C3  CA D4 02            			JP		Z, LSTLPXIT
-     112   00:02C6  C3 C0 02            			JP		XLOOPXIT
-     113   00:02C9                      
-     114   00:02C9  16 00               			LD		D, 0x00	
-     115   00:02CB  3E 18               			LD		A, 0x18
-     116   00:02CD  1E 00               			LD		E, 0
-     117   00:02CF  CD E6 02            			CALL	SID_IO			; ... : R = 24 : D = 0 :  GOSUB 1000
-     118   00:02D2                      
-     119   00:02D2  3E 00               			LD		A, 0			; 500 FOR X = 0 TO 100: NEXT : GOTO 410
-     120   00:02D4  3C                  LSTLPXIT:	INC		A
-     121   00:02D5  FE 64               			CP		0x64
-     122   00:02D7  CA 0D 02            			JP		Z, SETUP
-     123   00:02DA  C3 D4 02            			JP		LSTLPXIT
-     124   00:02DD                      
-     125   00:02DD  00                  VX			DB		0
-     126   00:02DE  00                  VOICE		DB		0
-     127   00:02DF  00                  STEP		DB		0
-     128   00:02E0                      
-     129   00:02E0  00 00 00 00 00 00   TBUF		DB		0, 0, 0, 0, 0, 0
-     130   00:02E6                      
-     131   00:02E6                      ; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
-     132   00:02E6                      ;				D = DATA BYTE
-     133   00:02E6                      ;				E = INTERRUPT CONTROLLER MODE - BITS 5/6
-     134   00:02E6                      ; (0x00 = OFF,  0x20 = '50Hz',  0x40 = '60Hz'  0x60 = '100Hz')
-     135   00:02E6  0E 54               SID_IO:		LD		C, 0x54		; BASE I/O ADDRESS
-     136   00:02E8  B3                  			OR		E
-     137   00:02E9  47                  			LD		B, A
-     138   00:02EA  ED 51               			OUT		(C), D		; WRITE TO SID.  /CS=0 (B BIT 7)
-     139   00:02EC  00                  			NOP
-     140   00:02ED  00                  			NOP					; DELAY
-     141   00:02EE  00                  			NOP
-     142   00:02EF  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
-     143   00:02F1  ED 51               			OUT		(C), D		; WRITE TO SID
-     144   00:02F3  C9                  			RET
-     145   00:02F4                      
-     146   00:02F4  0E 54               CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
-     147   00:02F6  06 98               			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
-     148   00:02F8                      								; INTERRUPT CONTROLLER OFF
-     149   00:02F8  AF                  			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
-     150   00:02F9  ED 79               			OUT		(C), A		; FIRSTY OUT TO ENSURE /CS HIGH
-     151   00:02FB  00                  			NOP
-     152   00:02FC  00                  			NOP					; DELAY
-     153   00:02FD  00                  			NOP
-     154   00:02FE  CB B8               			RES		7, B		; /CS=0 (B BIT 7)
-     155   00:0300  ED 79               			OUT		(C), A		; WRITE TO SID
-     156   00:0302  00                  			NOP
-     157   00:0303  00                  			NOP					; DELAY
-     158   00:0304  00                  			NOP
-     159   00:0305  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
-     160   00:0307  ED 79               			OUT		(C), A		; WRITE TO SID
-     161   00:0309  C9                  			RET		
-     162   00:030A                      
-     163   00:030A  06 60               DELAY:		LD		B, 0x60
-     164   00:030C  0E FF               DELAYOUT:	LD		C, 0xFF
-     165   00:030E  0D                  DELAYIN:	DEC		C
-     166   00:030F  79                  			LD		A, C
-     167   00:0310  FE 00               			CP		0x00
-     168   00:0312  C2 0E 03            			JP		NZ, DELAYIN
-     169   00:0315  05                  			DEC		B
-     170   00:0316  78                  			LD		A, B
-     171   00:0317  FE 00               			CP		0x00
-     172   00:0319  C2 0C 03            			JP		NZ, DELAYOUT
-     173   00:031C  C9                  			RET
-     174   00:031D                      
-     175   00:031D                      
-     176   00:031D                      ; 8-bit Xor-Shift random number generator.
-     177   00:031D                      ; Created by Patrik Rak in 2008 and revised in 2011/2012.
-     178   00:031D                      ; See http://www.worldofspectrum.org/forums/showthread.php?t=23070
-     179   00:031D  21 80 A2            RND:		LD		HL,0XA280   ; YW -> ZT
-     180   00:0320  11 DE C0            			LD		DE,0XC0DE   ; XZ -> YW
-     181   00:0323  22 21 03            			LD		(RND+4),HL  ; X = Y, Z = W
-     182   00:0326  7D                  			LD		A,L         ; W = W ^ ( W << 3 )
-     183   00:0327  87                  			ADD		A,A
-     184   00:0328  87                  			ADD		A,A
-     185   00:0329  87                  			ADD		A,A
-     186   00:032A  AD                  			XOR		L
-     187   00:032B  6F                  			LD		L,A
-     188   00:032C  7A                  			LD		A,D         ; T = X ^ (X << 1)
-     189   00:032D  87                  			ADD		A,A
-     190   00:032E  AA                  			XOR		D
-     191   00:032F  67                  			LD		H,A
-     192   00:0330  1F                  			RRA					; T = T ^ (T >> 1) ^ W
-     193   00:0331  AC                  			XOR		H
-     194   00:0332  AD                  			XOR		L
-     195   00:0333  63                  			LD		H,E         ; Y = Z
-     196   00:0334  6F                  			LD		L,A         ; W = T
-     197   00:0335  22 1E 03            			LD		(RND+1),HL
-     198   00:0338  C9                  			RET 
-     199   00:0339                      
-     200   00:0339                      ; THIS ISN'T THE GREATEST SEED GENERATOR, BUT IT WORKS
-     201   00:0339                      SEED:
-     202   00:0339                      	; SAVE ALL INCOMING REGISTERS
-     203   00:0339  F5                  	PUSH	AF
-     204   00:033A  C5                  	PUSH	BC
-     205   00:033B  D5                  	PUSH	DE
-     206   00:033C  E5                  	PUSH	HL
-     207   00:033D                      
-     208   00:033D                      	; GETRTC
-     209   00:033D  06 20               	LD	B, 0x20
-     210   00:033F  21 E0 02                LD  HL, TBUF
-     211   00:0342  CF                  	RST	08
-     212   00:0343                      
-     213   00:0343                      	; MIX IT ALL INTO THE SEED BYTES
-     214   00:0343  3A E5 02            	LD	A, (TBUF+5)
-     215   00:0346  32 1E 03            	LD	(RND+1), A
-     216   00:0349  3A E2 02            	LD	A, (TBUF+2)
-     217   00:034C  32 1F 03            	LD	(RND+2), A
-     218   00:034F  3A E4 02            	LD	A, (TBUF+4)
-     219   00:0352  32 21 03            	LD	(RND+4), A
-     220   00:0355  3A E3 02            	LD	A, (TBUF+3)
-     221   00:0358  32 22 03            	LD	(RND+5), A
-     222   00:035B                      
-     223   00:035B                      	; RESTORE ALL REGISTERS
-     224   00:035B  E1                  	POP	HL
-     225   00:035C  D1                  	POP	DE
-     226   00:035D  C1                  	POP	BC
-     227   00:035E  F1                  	POP	AF
-     228   00:035F  C9                  	RET
+      92   00:029F  06 60               			LD		B, 0x60
+      93   00:02A1  CD 13 03            			CALL	DELAY
+      94   00:02A4                      
+      95   00:02A4  3E 00               			LD		A, 0			; 480 FOR Y = 0 TO 33...
+      96   00:02A6  3C                  YLOOP:		INC		A
+      97   00:02A7  FE 21               			CP		0x21
+      98   00:02A9  CA AF 02            			JP		Z, YLOOPXIT
+      99   00:02AC  C3 A6 02            			JP		YLOOP
+     100   00:02AF                      
+     101   00:02AF  3A E8 02            YLOOPXIT:	LD		A, (STEP)
+     102   00:02B2  47                  			LD		B, A
+     103   00:02B3  3A E6 02            			LD		A, (VX)
+     104   00:02B6  80                  			ADD		B
+     105   00:02B7  DA C2 02            			JP		C, XLOOPXIT
+     106   00:02BA  32 E6 02            			LD		(VX), A
+     107   00:02BD  C3 7B 02            			JP		XLOOP			;  ...: NEXT Y, X
+     108   00:02C0                      
+     109   00:02C0  3E 00               			LD		A, 0			; 490 FOR X = 0 TO 200: NEXT...
+     110   00:02C2  3C                  XLOOPXIT:	INC		A
+     111   00:02C3  FE C8               			CP		0xC8
+     112   00:02C5  CA CB 02            			JP		Z, VOLOFF
+     113   00:02C8  C3 C2 02            			JP		XLOOPXIT
+     114   00:02CB                      
+     115   00:02CB  16 00               VOLOFF:		LD		D, 0x00	
+     116   00:02CD  3E 18               			LD		A, 0x18
+     117   00:02CF  1E 00               			LD		E, 0
+     118   00:02D1  CD EF 02            			CALL	SID_IO			; ... : R = 24 : D = 0 :  GOSUB 1000
+     119   00:02D4                      
+     120   00:02D4  3E 00               			LD		A, 0			; 500 FOR X = 0 TO 100: NEXT : GOTO 410
+     121   00:02D6  F5                  LSTLPXIT:	PUSH	AF
+     122   00:02D7  06 01               			LD		B, 0x01
+     123   00:02D9  CD 13 03            			CALL	DELAY
+     124   00:02DC  F1                  			POP		AF
+     125   00:02DD  3C                  			INC		A
+     126   00:02DE  FE 64               			CP		0x64			
+     127   00:02E0  CA 0D 02            			JP		Z, SETUP
+     128   00:02E3  C3 D6 02            			JP		LSTLPXIT
+     129   00:02E6                      
+     130   00:02E6  00                  VX			DB		0
+     131   00:02E7  00                  VOICE		DB		0
+     132   00:02E8  00                  STEP		DB		0
+     133   00:02E9                      
+     134   00:02E9  00 00 00 00 00 00   TBUF		DB		0, 0, 0, 0, 0, 0
+     135   00:02EF                      
+     136   00:02EF                      ; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
+     137   00:02EF                      ;				D = DATA BYTE
+     138   00:02EF                      ;				E = INTERRUPT CONTROLLER MODE - BITS 5/6
+     139   00:02EF                      ; (0x00 = OFF,  0x20 = '50Hz',  0x40 = '60Hz'  0x60 = '100Hz')
+     140   00:02EF  0E 54               SID_IO:		LD		C, 0x54		; BASE I/O ADDRESS
+     141   00:02F1  B3                  			OR		E
+     142   00:02F2  47                  			LD		B, A
+     143   00:02F3  ED 51               			OUT		(C), D		; WRITE TO SID.  /CS=0 (B BIT 7)
+     144   00:02F5  00                  			NOP
+     145   00:02F6  00                  			NOP					; DELAY
+     146   00:02F7  00                  			NOP
+     147   00:02F8  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+     148   00:02FA  ED 51               			OUT		(C), D		; WRITE TO SID
+     149   00:02FC  C9                  			RET
+     150   00:02FD                      
+     151   00:02FD  0E 54               CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
+     152   00:02FF  06 98               			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
+     153   00:0301                      								; INTERRUPT CONTROLLER OFF
+     154   00:0301  AF                  			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
+     155   00:0302  ED 79               			OUT		(C), A		; FIRSTY OUT TO ENSURE /CS HIGH
+     156   00:0304  00                  			NOP
+     157   00:0305  00                  			NOP					; DELAY
+     158   00:0306  00                  			NOP
+     159   00:0307  CB B8               			RES		7, B		; /CS=0 (B BIT 7)
+     160   00:0309  ED 79               			OUT		(C), A		; WRITE TO SID
+     161   00:030B  00                  			NOP
+     162   00:030C  00                  			NOP					; DELAY
+     163   00:030D  00                  			NOP
+     164   00:030E  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+     165   00:0310  ED 79               			OUT		(C), A		; WRITE TO SID
+     166   00:0312  C9                  			RET		
+     167   00:0313                      
+     168   00:0313                      DELAY:		
+     169   00:0313  0E FF               DELAYOUT:	LD		C, 0xFF
+     170   00:0315  0D                  DELAYIN:	DEC		C
+     171   00:0316  79                  			LD		A, C
+     172   00:0317  FE 00               			CP		0x00
+     173   00:0319  C2 15 03            			JP		NZ, DELAYIN
+     174   00:031C  05                  			DEC		B
+     175   00:031D  78                  			LD		A, B
+     176   00:031E  FE 00               			CP		0x00
+     177   00:0320  C2 13 03            			JP		NZ, DELAYOUT
+     178   00:0323  C9                  			RET
+     179   00:0324                      
+     180   00:0324                      ; 8-bit Xor-Shift random number generator.
+     181   00:0324                      ; Created by Patrik Rak in 2008 and revised in 2011/2012.
+     182   00:0324                      ; See http://www.worldofspectrum.org/forums/showthread.php?t=23070
+     183   00:0324  21 80 A2            RND:		LD		HL,0XA280   ; YW -> ZT
+     184   00:0327  11 DE C0            			LD		DE,0XC0DE   ; XZ -> YW
+     185   00:032A  22 28 03            			LD		(RND+4),HL  ; X = Y, Z = W
+     186   00:032D  7D                  			LD		A,L         ; W = W ^ ( W << 3 )
+     187   00:032E  87                  			ADD		A,A
+     188   00:032F  87                  			ADD		A,A
+     189   00:0330  87                  			ADD		A,A
+     190   00:0331  AD                  			XOR		L
+     191   00:0332  6F                  			LD		L,A
+     192   00:0333  7A                  			LD		A,D         ; T = X ^ (X << 1)
+     193   00:0334  87                  			ADD		A,A
+     194   00:0335  AA                  			XOR		D
+     195   00:0336  67                  			LD		H,A
+     196   00:0337  1F                  			RRA					; T = T ^ (T >> 1) ^ W
+     197   00:0338  AC                  			XOR		H
+     198   00:0339  AD                  			XOR		L
+     199   00:033A  63                  			LD		H,E         ; Y = Z
+     200   00:033B  6F                  			LD		L,A         ; W = T
+     201   00:033C  22 25 03            			LD		(RND+1),HL
+     202   00:033F  C9                  			RET 
+     203   00:0340                      
+     204   00:0340                      ; THIS ISN'T THE GREATEST SEED GENERATOR, BUT IT WORKS
+     205   00:0340                      SEED:
+     206   00:0340                      	; SAVE ALL INCOMING REGISTERS
+     207   00:0340  F5                  	PUSH	AF
+     208   00:0341  C5                  	PUSH	BC
+     209   00:0342  D5                  	PUSH	DE
+     210   00:0343  E5                  	PUSH	HL
+     211   00:0344                      
+     212   00:0344                      	; GETRTC
+     213   00:0344  06 20               	LD	B, 0x20
+     214   00:0346  21 E9 02                LD  HL, TBUF
+     215   00:0349  CF                  	RST	08
+     216   00:034A                      
+     217   00:034A                      	; MIX IT ALL INTO THE SEED BYTES
+     218   00:034A  3A EE 02            	LD	A, (TBUF+5)
+     219   00:034D  32 25 03            	LD	(RND+1), A
+     220   00:0350  3A EB 02            	LD	A, (TBUF+2)
+     221   00:0353  32 26 03            	LD	(RND+2), A
+     222   00:0356  3A ED 02            	LD	A, (TBUF+4)
+     223   00:0359  32 28 03            	LD	(RND+4), A
+     224   00:035C  3A EC 02            	LD	A, (TBUF+3)
+     225   00:035F  32 29 03            	LD	(RND+5), A
+     226   00:0362                      
+     227   00:0362                      	; RESTORE ALL REGISTERS
+     228   00:0362  E1                  	POP	HL
+     229   00:0363  D1                  	POP	DE
+     230   00:0364  C1                  	POP	BC
+     231   00:0365  F1                  	POP	AF
+     232   00:0366  C9                  	RET
 
     LABELS
 -------------------------------------------------
@@ -241,28 +245,29 @@ Errors: 0
 00:00000256   OPTION4
 00:00000258   NEXT
 00:0000027B   XLOOP
-00:000002A4   YLOOP
-00:000002AD   YLOOPXIT
-00:000002C0   XLOOPXIT
-00:000002D4   LSTLPXIT
-00:000002DD   VX
-00:000002DE   VOICE
-00:000002DF   STEP
-00:000002E0   TBUF
-00:000002E6   SID_IO
-00:000002F4   CLEAR_SID
-00:0000030A   DELAY
-00:0000030C   DELAYOUT
-00:0000030E   DELAYIN
-00:0000031D   RND
-00:00000339   SEED
+00:000002A6   YLOOP
+00:000002AF   YLOOPXIT
+00:000002C2   XLOOPXIT
+00:000002CB   VOLOFF
+00:000002D6   LSTLPXIT
+00:000002E6   VX
+00:000002E7   VOICE
+00:000002E8   STEP
+00:000002E9   TBUF
+00:000002EF   SID_IO
+00:000002FD   CLEAR_SID
+00:00000313   DELAY
+00:00000313   DELAYOUT
+00:00000315   DELAYIN
+00:00000324   RND
+00:00000340   SEED
 
 
  Output: SID1.OUT
 -------------------------------------------------
 
  Page: 00
-  Org: 00000200  Size: *  Used: 00000160
+  Org: 00000200  Size: *  Used: 00000167
 
    Address   Length Align   Label
-   00000200     352         SETUP
+   00000200     359         SETUP

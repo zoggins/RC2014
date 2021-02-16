@@ -89,6 +89,7 @@ XLOOP:		LD		A, (VOICE)
 			LD		E, 0
 			CALL	SID_IO			; 471 R = 1 + V : D = 255 - X : GOSUB 1000
 
+			LD		B, 0x60
 			CALL	DELAY
 
 			LD		A, 0			; 480 FOR Y = 0 TO 33...
@@ -108,17 +109,21 @@ YLOOPXIT:	LD		A, (STEP)
 			LD		A, 0			; 490 FOR X = 0 TO 200: NEXT...
 XLOOPXIT:	INC		A
 			CP		0xC8
-			JP		Z, LSTLPXIT
+			JP		Z, VOLOFF
 			JP		XLOOPXIT
 
-			LD		D, 0x00	
+VOLOFF:		LD		D, 0x00	
 			LD		A, 0x18
 			LD		E, 0
 			CALL	SID_IO			; ... : R = 24 : D = 0 :  GOSUB 1000
 
 			LD		A, 0			; 500 FOR X = 0 TO 100: NEXT : GOTO 410
-LSTLPXIT:	INC		A
-			CP		0x64
+LSTLPXIT:	PUSH	AF
+			LD		B, 0x01
+			CALL	DELAY
+			POP		AF
+			INC		A
+			CP		0x64			
 			JP		Z, SETUP
 			JP		LSTLPXIT
 
@@ -160,7 +165,7 @@ CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
 			OUT		(C), A		; WRITE TO SID
 			RET		
 
-DELAY:		LD		B, 0x60
+DELAY:		
 DELAYOUT:	LD		C, 0xFF
 DELAYIN:	DEC		C
 			LD		A, C
@@ -171,7 +176,6 @@ DELAYIN:	DEC		C
 			CP		0x00
 			JP		NZ, DELAYOUT
 			RET
-
 
 ; 8-bit Xor-Shift random number generator.
 ; Created by Patrik Rak in 2008 and revised in 2011/2012.

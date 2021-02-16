@@ -1,4 +1,4 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.14 - 19:31:41]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.15 - 17:05:52]
 
 SID.ASM
 Errors: 0
@@ -36,7 +36,7 @@ Errors: 0
       31   00:F818  06 98               			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
       32   00:F81A                      								; INTERRUPT CONTROLLER OFF
       33   00:F81A  AF                  			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
-      34   00:F81B  ED 79               			OUT		(C), A		; FIRSTY OUT TO ENSURE /CS HIGH
+      34   00:F81B  ED 79               			OUT		(C), A		; FIRST OUT TO ENSURE /CS HIGH
       35   00:F81D  00                  			NOP
       36   00:F81E  00                  			NOP					; DELAY
       37   00:F81F  00                  			NOP

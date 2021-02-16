@@ -83,8 +83,11 @@ FLOOP1:		LD		A, (VI)		; 490 FOR F = 0 TO 254 STEP 2
 			ADD		H
 			LD		E, 0
 			CALL	SID_IO		;491 R = V(I)+1 : D = F : GOSUB 1000...
-
+	
+			PUSH	AF
+			LD		B, 0x14
 			CALL	DELAY
+			POP		AF
 
 			INC		D
 			INC		D
@@ -191,7 +194,10 @@ FLOOP2:		LD		A, (VI)
 			LD		E, 0
 			CALL	SID_IO			; 561 R = 22 : D = F : GOSUB 1000...
 
+			LD		B, 0x10
+			PUSH	AF
 			CALL	DELAY
+			POP		AF
 
 			INC		D
 			LD		A, D
@@ -264,7 +270,7 @@ CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
 			OUT		(C), A		; WRITE TO SID
 			RET		
 
-DELAY:		LD		B, 0x10
+DELAY:		
 DELAYOUT:	LD		C, 0xFF
 DELAYIN:	DEC		C
 			LD		A, C
