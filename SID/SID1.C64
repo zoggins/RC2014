@@ -1,0 +1,25 @@
+10 rem sid test program for c64
+
+315 let s = 54272 : rem this is just for the c64
+330 let v = 0 : rem set voice 1 (1,2,3 == 0,7,14)
+
+400 rem *** c64 sid sound demo ***
+405 print "running sid demo on voice";v/7+1;
+406 print "..."
+410 let w = 17: on int(rnd(ti)*4)+1 goto 420,430,440,450
+420 let w = 33: goto 450
+430 let w = 65: goto 450
+440 let w = 129
+450 r = 24 : d = 15 : gosub 1000
+451 r = 5 + v : d = 97 : gosub 1000
+452 r = 6 + v : d = 200 : gosub 1000
+453 r = 4 + v : d = w : gosub 1000
+460 for x = 0 to 255 step int((rnd(ti)*15)+1)
+470 r = 0 + v : d = x : gosub 1000
+471 r = 1 + v : d = 255 - x : gosub 1000
+480 for y = 0 to 33: next y, x
+490 for x = 0 to 200: next : r = 24 : d = 0 :  gosub 1000
+500 for x = 0 to 100: next : goto 410
+
+1000 poke s+r,d
+1020 return

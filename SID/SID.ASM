@@ -1,0 +1,58 @@
+
+
+			ORG		$F800
+
+DEINT		EQU		$0BF1
+ABPASS		EQU		$1367
+
+
+; EXTRACT THE PASSED IN DATA AND CALL SID_IO
+SID_IO_BAS:	CALL	DEINT
+			LD		A, E		; EXTRACT THE INTERRUPT STATUS
+
+; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
+;				D = DATA BYTE
+;				E = INTERRUPT CONTROLLER MODE - BITS 5/6
+; (0x00 = OFF,  0x20 = '50Hz',  0x40 = '60Hz'  0x60 = '100Hz')
+SID_IO:		LD		C, 0x54		; BASE I/O ADDRESS
+			;OR		E			; BASIC DOES THIS TO PASS IN THE PARAMS
+			LD		B, A
+			OUT		(C), D		; WRITE TO SID.  /CS=0 (B BIT 7)
+			NOP
+			NOP					; DELAY
+			NOP
+			SET		7, B		; /CS=1 (B BIT 7)
+			OUT		(C), D		; WRITE TO SID
+			LD		B, D
+			LD		A, 0
+			JP		ABPASS
+
+CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
+			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
+								; INTERRUPT CONTROLLER OFF
+			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
+			OUT		(C), A		; FIRST OUT TO ENSURE /CS HIGH
+			NOP
+			NOP					; DELAY
+			NOP
+			RES		7, B		; /CS=0 (B BIT 7)
+			OUT		(C), A		; WRITE TO SID
+			NOP
+			NOP					; DELAY
+			NOP
+			SET		7, B		; /CS=1 (B BIT 7)
+			OUT		(C), A		; WRITE TO SID
+			RET		
+
+TBUF:		DB		0, 0, 0, 0, 0, 0
+
+SEED:
+			; GETRTC
+			LD	B, 0x20
+			LD  HL, TBUF
+			RST	08			
+
+			LD		A, (TBUF+4)
+			LD		B, A
+			LD		A, (TBUF+5)
+			JP		ABPASS

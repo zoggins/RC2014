@@ -1,0 +1,49 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.12 - 11:09:59]
+
+USRTEST.ASM
+Errors: 0
+
+       1   00:F800                      
+       2   00:F800                      
+       3   00:F800                      			ORG		$F800
+       4   00:F800                      
+       5   00:F800  (00:0BF1)           DEINT		EQU		$0BF1
+       6   00:F800  (00:1367)           ABPASS		EQU		$1367
+       7   00:F800                      
+       8   00:F800  CD F1 0B            EXTREG:		CALL	DEINT
+       9   00:F803  7B                  			LD		A, E
+      10   00:F804  E6 0F               			AND		0x0F
+      11   00:F806  47                  			LD		B, A
+      12   00:F807  3E 00               			LD		A, 0
+      13   00:F809  C3 67 13            			JP		ABPASS
+      14   00:F80C                      
+      15   00:F80C  CD F1 0B            EXTINT:		CALL	DEINT
+      16   00:F80F  7B                  			LD		A, E
+      17   00:F810  E6 60               			AND		0x60
+      18   00:F812  47                  			LD		B, A
+      19   00:F813  3E 00               			LD		A, 0
+      20   00:F815  C3 67 13            			JP		ABPASS
+      21   00:F818                      
+      22   00:F818  CD F1 0B            EXTDTA:		CALL	D60
+      23   00:F81B  42                  			LD		B, D
+      24   00:F81C  3E 00               			LD		A, 0
+      25   00:F81E  C3 67 13            			JP		ABPASS
+      26   00:F821                      
+
+    LABELS
+-------------------------------------------------
+00:00000BF1   DEINT
+00:00001367   ABPASS
+00:0000F800 X EXTREG
+00:0000F80C X EXTINT
+00:0000F818 X EXTDTA
+
+
+ Output: USRTEST.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 0000F800  Size: *  Used: 00000021
+
+   Address   Length Align   Label
+   0000F800      33         EXTREG

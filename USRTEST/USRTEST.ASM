@@ -1,0 +1,26 @@
+
+
+			ORG		$F800
+
+DEINT		EQU		$0BF1
+ABPASS		EQU		$1367
+
+EXTREG:		CALL	DEINT
+			LD		A, E
+			AND		0x0F
+			LD		B, A
+			LD		A, 0
+			JP		ABPASS
+
+EXTINT:		CALL	DEINT
+			LD		A, E
+			AND		0x60
+			LD		B, A
+			LD		A, 0
+			JP		ABPASS
+
+EXTDTA:		CALL	DEINT
+			LD		B, D
+			LD		A, 0
+			JP		ABPASS
+

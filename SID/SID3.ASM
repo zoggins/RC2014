@@ -1,0 +1,83 @@
+
+; This plays a single note on Quazar's SID Interface
+
+			ORG		$0200
+
+			CALL	CLEAR_SID
+			LD		E, 0
+			
+			;WE WANT TO PLAY A C4 NOTE
+
+			;SETS FREQUENCY OF NOTE FOR VOICE 1
+			LD		A, 0x00
+			LD		D, 0x50
+			CALL	SID_IO
+			LD		A, 0x01
+			LD		D, 0x11
+			CALL	SID_IO
+
+			; ATTACK = 5: DECAY = 3
+			LD		A, 0x05
+			LD		D, 0xD5
+			CALL	SID_IO
+
+			; SUSTAIN = 15: RELEASE = 10
+			LD		A, 0x06
+			LD		D, 0xCA
+			CALL	SID_IO
+
+			; GLOBAL VOLUME SET TO FULL LEVEL
+			LD		A, 0x18
+			LD		D, 0x0F
+			CALL	SID_IO
+
+			; SETS GATE BIT = STARTS NOTE
+			LD		A, 0x04
+			LD		D, 0x21
+			CALL	SID_IO
+
+			; DURATION
+			; KEEPS PIANO KEY DEPRESSED FOR DURATION OF NOTE
+			LD		BC, 0x7D0
+
+LOOP:		DEC		BC		
+			JP		Z, LOOP
+
+			; TURNS OFF GATE BIT, PIANO KEY RELEASED
+			LD		A, 0x04
+			LD		D, 0x20
+			CALL	SID_IO
+
+			RST		0
+
+; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
+;				D = DATA BYTE
+;				E = INTERRUPT CONTROLLER MODE - BITS 5/6
+; (0x00 = OFF,  0x20 = '50Hz',  0x40 = '60Hz'  0x60 = '100Hz')
+SID_IO:		LD		C, 0x54		; BASE I/O ADDRESS
+			OR		E
+			LD		B, A
+			OUT		(C), D		; WRITE TO SID.  /CS=0 (B BIT 7)
+			NOP
+			NOP					; DELAY
+			NOP
+			SET		7, B		; /CS=1 (B BIT 7)
+			OUT		(C), D		; WRITE TO SID
+			RET
+
+CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
+			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
+								; INTERRUPT CONTROLLER OFF
+			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
+			OUT		(C), A		; FIRSTY OUT TO ENSURE /CS HIGH
+			NOP
+			NOP					; DELAY
+			NOP
+			RES		7, B		; /CS=0 (B BIT 7)
+			OUT		(C), A		; WRITE TO SID
+			NOP
+			NOP					; DELAY
+			NOP
+			SET		7, B		; /CS=1 (B BIT 7)
+			OUT		(C), A		; WRITE TO SID
+			RET		

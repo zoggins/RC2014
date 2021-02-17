@@ -1,0 +1,83 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.15 - 17:05:52]
+
+SID.ASM
+Errors: 0
+
+       1   00:F800                      
+       2   00:F800                      
+       3   00:F800                      			ORG		$F800
+       4   00:F800                      
+       5   00:F800  (00:0BF1)           DEINT		EQU		$0BF1
+       6   00:F800  (00:1367)           ABPASS		EQU		$1367
+       7   00:F800                      
+       8   00:F800                      
+       9   00:F800                      ; EXTRACT THE PASSED IN DATA AND CALL SID_IO
+      10   00:F800  CD F1 0B            SID_IO_BAS:	CALL	DEINT
+      11   00:F803  7B                  			LD		A, E		; EXTRACT THE INTERRUPT STATUS
+      12   00:F804                      
+      13   00:F804                      ; ENTER WITH:	A = SID REGISTER (0x00 - 0x18)
+      14   00:F804                      ;				D = DATA BYTE
+      15   00:F804                      ;				E = INTERRUPT CONTROLLER MODE - BITS 5/6
+      16   00:F804                      ; (0x00 = OFF,  0x20 = '50Hz',  0x40 = '60Hz'  0x60 = '100Hz')
+      17   00:F804  0E 54               SID_IO:		LD		C, 0x54		; BASE I/O ADDRESS
+      18   00:F806                      			;OR		E			; BASIC DOES THIS TO PASS IN THE PARAMS
+      19   00:F806  47                  			LD		B, A
+      20   00:F807  ED 51               			OUT		(C), D		; WRITE TO SID.  /CS=0 (B BIT 7)
+      21   00:F809  00                  			NOP
+      22   00:F80A  00                  			NOP					; DELAY
+      23   00:F80B  00                  			NOP
+      24   00:F80C  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+      25   00:F80E  ED 51               			OUT		(C), D		; WRITE TO SID
+      26   00:F810  42                  			LD		B, D
+      27   00:F811  3E 00               			LD		A, 0
+      28   00:F813  C3 67 13            			JP		ABPASS
+      29   00:F816                      
+      30   00:F816  0E 54               CLEAR_SID:	LD		C, 0x54		; BASE I/O ADDRESS
+      31   00:F818  06 98               			LD		B, 0x98		; SID REGISTER 0x18, /CS =1 (BIT 7)
+      32   00:F81A                      								; INTERRUPT CONTROLLER OFF
+      33   00:F81A  AF                  			XOR		A			; OPTIMIZED "LD A, 0" (VOLUME 0)
+      34   00:F81B  ED 79               			OUT		(C), A		; FIRST OUT TO ENSURE /CS HIGH
+      35   00:F81D  00                  			NOP
+      36   00:F81E  00                  			NOP					; DELAY
+      37   00:F81F  00                  			NOP
+      38   00:F820  CB B8               			RES		7, B		; /CS=0 (B BIT 7)
+      39   00:F822  ED 79               			OUT		(C), A		; WRITE TO SID
+      40   00:F824  00                  			NOP
+      41   00:F825  00                  			NOP					; DELAY
+      42   00:F826  00                  			NOP
+      43   00:F827  CB F8               			SET		7, B		; /CS=1 (B BIT 7)
+      44   00:F829  ED 79               			OUT		(C), A		; WRITE TO SID
+      45   00:F82B  C9                  			RET		
+      46   00:F82C                      
+      47   00:F82C  00 00 00 00 00 00   TBUF:		DB		0, 0, 0, 0, 0, 0
+      48   00:F832                      
+      49   00:F832                      SEED:
+      50   00:F832                      			; GETRTC
+      51   00:F832  06 20               			LD	B, 0x20
+      52   00:F834  21 2C F8            			LD  HL, TBUF
+      53   00:F837  CF                  			RST	08			
+      54   00:F838                      
+      55   00:F838  3A 30 F8            			LD		A, (TBUF+4)
+      56   00:F83B  47                  			LD		B, A
+      57   00:F83C  3A 31 F8            			LD		A, (TBUF+5)
+      58   00:F83F  C3 67 13            			JP		ABPASS
+
+    LABELS
+-------------------------------------------------
+00:00000BF1   DEINT
+00:00001367   ABPASS
+00:0000F800 X SID_IO_BAS
+00:0000F804 X SID_IO
+00:0000F816 X CLEAR_SID
+00:0000F82C   TBUF
+00:0000F832 X SEED
+
+
+ Output: SID.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 0000F800  Size: *  Used: 00000042
+
+   Address   Length Align   Label
+   0000F800      66         SID_IO_BAS

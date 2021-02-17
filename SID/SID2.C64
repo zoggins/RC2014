@@ -1,0 +1,40 @@
+10 rem sid test program for c64
+
+315 let s = 54272 : rem this is just for the c64
+
+400 rem *** c64 sid sound test ***
+405 print "running sid sound test...";
+420 v(0)=0 : v(1)=7 : v(2)=14
+430 r = 24 : d = 15 : gosub 1000
+431 for i = 0 to 2
+440 r = v(i)+3 : d = 8 : gosub 1000
+441 r = v(i)+1 : d = 0 : gosub 1000
+450 r = v(i)+5 : d = 8 : gosub 1000
+451 r = v(i)+6 : d = 198 : gosub 1000
+452 next
+460 for a = 16 to 128 step 16
+461 for i = 0 to 2
+470 if a > 64 then r = v(i)+3 : d = 0 : gosub 1000
+480 r = v(i)+4 : d = a+1 : gosub 1000
+490 for f = 0 to 254 step 2
+491 r = v(i)+1 : d = f : gosub 1000 : next f
+500 r = v(i)+4 : d = a : gosub 1000
+501 for w = 0 to 200 : next w
+510 r = v(i)+4 : d = 8 : gosub 1000
+511 r = v(i)+1 : d = 0 : gosub 1000
+520 next i,a : a = 1
+530 for i = 0 to 2
+531 r = v(i)+1 : d = 255 : gosub 1000
+540 r = 24 : d = (a*16)+15: gosub 1000
+541 r = 23 : d = 2^i : gosub 1000
+550 r = v(i)+4 : d = 129 : gosub 1000
+560 for f = 0 to 255
+561 r = 22 : d = f : gosub 1000 : next f
+570 r = v(i)+4 : d = 136: gosub 1000 : next i
+580 a = a * 2 : if a < 8 then goto 530
+590 r = 23 : d = 0 : gosub 1000
+600 print "done!"
+610 end
+
+1000 poke s+r,d
+1020 return
