@@ -9,11 +9,15 @@
 100 print "1 - 'Scott was here'"
 110 print "2 - 'RC2014'"
 120 print "3 - Daisy Bell"
+130 print "4 - 'Aria was here'"
+140 print "5 - 'Zoggins was here'"
 200 print "selection ";
 210 input A$
 220 if A$="1" THEN GOSUB 1000
 230 if A$="2" THEN GOSUB 2000
 240 if A$="3" THEN GOSUB 3000 
+250 if A$="4" THEN GOSUB 4000 
+260 if A$="5" THEN GOSUB 5000 
 300 GOTO 100
 
 1000 REM "Scott Was Here"
@@ -66,6 +70,22 @@
 3310 GOSUB 31005
 3320 GOSUB 32000
 3330 RETURN
+
+4000 REM "Aria Was Here"
+4010 T$="AO AR IY AE" : REM Aria
+4030 T$=T$+" PA1 WW UH ZZ" : REM Was
+4050 T$=T$+" PA1 HH1 YR" : REM Here
+4060 GOSUB 31000
+4070 GOSUB 32000 : REM speak
+4080 return
+
+5000 REM "Zoggins Was Here"
+5010 T$="ZZ AO GG1 PA3 IH NN1 SS" : REM Zoggins
+5030 T$=T$+" PA1 WW UH ZZ" : REM Was
+5050 T$=T$+" PA1 HH1 YR" : REM Here
+5060 GOSUB 31000
+5070 GOSUB 32000 : REM speak
+5080 return
 
 30000 DIM P$(65)
 30001 P$(0)="PA1"
