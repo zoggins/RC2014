@@ -5,7 +5,7 @@
 ;*
 ;* Hardware: v2 speaker board
 ;*           Digital I/O module @ port 0x03 
-:*                and/or Digital Input module @ port 0x00
+;*                and/or Digital Input module @ port 0x00
 ;*           Digital Output module @ port 0x00
 ;*
 ;* Connections: J1 Pin 1 = Digital Output Port 0 Pin 0

@@ -1,0 +1,63 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.02.22 - 12:53:10]
+
+Z80MCIO.ASM
+Errors: 0
+
+       1   00:8000                      ;************************************
+       2   00:8000                      ;* Demo of I/O on Z80 Membership Card
+       3   00:8000                      ;*
+       4   00:8000                      ;* Hardware: v2 speaker board
+       5   00:8000                      ;*
+       6   00:8000                      ;* Connections: J1 Pin 1 = Z80MC J2 Pin 1
+       7   00:8000                      ;*              J1 Pin 2 - 8 = Z80MC J2 Pins 11 - 17
+       8   00:8000                      ;*              J1 9 = Z80MC J2 Pin 10
+       9   00:8000                      ;*              J1 10 = Z80MC J2 Pin 20
+      10   00:8000                      ;*
+      11   00:8000                      ;* Adapted from the demo in the
+      12   00:8000                      ;* KIM-1 manual.
+      13   00:8000                      ;*
+      14   00:8000                      ;************************************
+      15   00:8000                      
+      16   00:8000  (00:0040)           OUTPORT: 	EQU 	0x40			; out port
+      17   00:8000  (00:0040)           INPORT: 	EQU 	0x40			; in port
+      18   00:8000                      
+      19   00:8000                      			ORG 	0x8000
+      20   00:8000                      
+      21   00:8000  06 00               INIT: 		LD	 	B,0				; Set B to initial value of 0
+      22   00:8002  04                  START: 		INC 	B				; Toggle Speaker
+      23   00:8003  78                  			LD	 	A,B
+      24   00:8004  D3 40               			OUT 	(OUTPORT), A
+      25   00:8006  DB 40               			IN 		A, (INPORT)		; Read switches
+      26   00:8008  E6 7F               			AND		0x7F
+      27   00:800A  00                  DELAY: 		NOP						; At 4 Mhz you need to slow down 
+      28   00:800B  00                  			NOP						; the program to actually hit
+      29   00:800C  00                  			NOP						; audible frequencies.
+      30   00:800D  00                  			NOP					
+      31   00:800E  00                  			NOP
+      32   00:800F  00                  			NOP
+      33   00:8010  00                  			NOP
+      34   00:8011  00                  			NOP
+      35   00:8012  00                  			NOP
+      36   00:8013  00                  			NOP
+      37   00:8014  00                  			NOP
+      38   00:8015  3D                  			DEC		A			; Delay by an amount specified
+      39   00:8016  F2 0A 80            			JP		P, DELAY	; by the count in A
+      40   00:8019  FA 02 80            			JP		M, START	; Go Start
+
+    LABELS
+-------------------------------------------------
+00:00000040   OUTPORT
+00:00000040   INPORT
+00:00008000 X INIT
+00:00008002   START
+00:0000800A   DELAY
+
+
+ Output: Z80MCIO.OUT
+-------------------------------------------------
+
+ Page: 00
+  Org: 00008000  Size: *  Used: 0000001C
+
+   Address   Length Align   Label
+   00008000      28         INIT
