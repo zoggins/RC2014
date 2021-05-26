@@ -1,0 +1,1 @@
+..\..\..\sjasm.exe PLAY6B.ASM PLAY6B.BIN

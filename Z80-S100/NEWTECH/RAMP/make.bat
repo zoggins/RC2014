@@ -1,0 +1,1 @@
+..\..\..\sjasm.exe RAMP.ASM RAMP.BIN

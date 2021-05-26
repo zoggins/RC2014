@@ -1,0 +1,37 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.05.26 - 16:44:32]
+
+SQUARE.ASM
+Errors: 0
+
+       1   00:0000                      ; MODEL 6 MUSIC BOARD TEST ROUTINE.
+       2   00:0000                      ;
+       3   00:0000                      ; THIS ROUTINE OUTPUTS A MAXIMUM
+       4   00:0000                      ; AMPLITUDE SQUAREWAVE FOR USE AS
+       5   00:0000                      ; A REFERENCE IN SETTING UP VOLUME
+       6   00:0000                      ; CONTROL LEVELS.  FOR AN 8080 WITH
+       7   00:0000                      ; NO WAIT STATES, THE FREQUENCY WILL
+       8   00:0000                      ; BE 1005 HERTZ.
+       9   00:0000                      ;
+      10   00:0000  97                  START	SUB A			;ZERO ACCUMULATOR
+      11   00:0001  06 40               LOOP1	LD B,64			;INITIALIZE LOOP COUNTER
+      12   00:0003  05                  		DEC B			;WASTE TIME
+      13   00:0004  C2 03 00            		JP	NZ, $-1
+      14   00:0007  2F                  		CPL				;COMPLEMENT & OUTPUT A
+      15   00:0008  D3 24               		OUT	(24H), A	;**CHANGE IF OTHER PORT*
+      16   00:000A  C3 01 00            		JP	LOOP1		;DO NEXT HALF WAVE
+      17   00:000D                      		END
+
+    LABELS
+-------------------------------------------------
+00:00000000 X START
+00:00000001   LOOP1
+
+
+ Output: SQUARE.BIN
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000000  Size: *  Used: 0000000D
+
+   Address   Length Align   Label
+   00000000      13         START
