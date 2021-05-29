@@ -1,0 +1,53 @@
+;PALASM Design Description
+;Correction of wait state suggested by Damian Wilde added
+
+;---------------------------------- Declaration Segment ------------
+TITLE    Ports selection for S100 Bus IDE board (16 bits).
+PATTERN  Non Latched
+REVISION 4
+AUTHORS   John Monahan & David Mehaffy
+COMPANY
+DATE     5/16/2015
+
+CHIP IDE_GAL1  PALCE22V10                       ; Device not selected
+
+;---------------------------------- PIN Declarations ---------------
+
+PIN 1   bpSYNC                                  ;S100 bus address valid after pSYNC goes LOW
+PIN 2   A15                                     ;S100 Bus Address line 15
+PIN 3   A14                                     ;S100 Bus Address line 14
+PIN 4   A13                                     ;S100 Bus Address line 13
+PIN 5   A12                                     ;S100 Bus Address line 12
+PIN 6   A11                                     ;S100 Bus Address line 11
+PIN 7   A10                                     ;S100 Bus Address line 10
+PIN 8   A9                                      ;S100 Bus Address line 9
+PIN 9   A8                                      ;S100 Bus Address line 8
+PIN 10  A7                                      ;S100 Bus Address line 7
+pin 11  A6                                      ;S100 Bus Address line 6
+
+PIN 13  A5                                      ;S100 Bus Address line 5
+Pin 14  A4                                      ;S100 Bus Address line 4
+Pin 15  A3                                      ;S100 Bus Address line 3
+Pin 16  A2                                      ;S100 Bus Address line 2
+Pin 17  NC
+Pin 18  NC
+Pin 19  NC
+Pin 20  NC
+Pin 21  WAIT_SEL                                ;To active wait state requests
+Pin 22  /ADDR_DR                                ;Drive Switch port (OUT only, low to high clock to 74LS74)
+Pin 23  /ADDR_8255                              ;8255 Select, (I/O Input or output) (low)
+
+
+;----------------------------------- Boolean Equation Segment ------
+
+EQUATIONS
+
+ADDR_8255    =     /A15 * /A14 * /A13 * /A12 * /A11 * /A10 * /A9 * /A8          ;Ports 30H - 33H  (OUT/IN to ports)
+                 * /A7 * /A6 * A5 * A4 * /A3  * /A2 * /bpSYNC                   ;001100xx
+
+
+ADDR_DR      =    /A15 * /A14 * /A13 * /A12 * /A11 * /A10 * /A9 * /A8           ;Ports 34H - 37H  (Pulse OUT only)
+                * /A7 * /A6 * A5 * A4 * /A3  * A2  * /bpSYNC                    ;001101xx
+
+
+WAIT_SEL     =    /A15 * /A14 * /A13 * /A12 * /A11 * /A10 * /A9 * /A8 * /A7 * /A6 * A5 * A4 * /A3      ;Let's enable I/O wait states for all board ports
