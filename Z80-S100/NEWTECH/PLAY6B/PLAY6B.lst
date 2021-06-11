@@ -1,0 +1,162 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.05.26 - 16:35:26]
+
+PLAY6B.ASM
+Errors: 0
+
+       1   00:0000                      ; MICROPLAY REV.B DECEMBER 1977
+       2   00:0000                      ; NEWTECH COMPUTER SYSTEMS INC.
+       3   00:0000                      ; 230 Clinton Street
+       4   00:0000                      ; Brooklyn, N.Y. 11201
+       5   00:0000                      ;
+       6   00:0000                      ; MICROPLAY STARTS AT THE BEGINHING OF THE
+       7   00:0000                      ; MEMORY AREA DESIGNATED *SCORE* AND
+       8   00:0000                      ; TRANSFERS INTO THE PLAY ROUTING A 1-BYTE
+       9   00:0000                      ; PITCH PARAMETER AND A 2-BUTE DURATION
+      10   00:0000                      ; PARAMETER.  (BITS A5,A4 AND A3 OF THE
+      11   00:0000                      ; DURATION PARAMETER MOST SIGNIFICANT BYTE
+      12   00:0000                      ; IS USED AS A FIELD TO SPECIFY WHICH
+      13   00:0000                      ; AMPLITUDE ENVELOPE IS TO BE USED.)
+      14   00:0000                      ; MICROPLAY CONTINUES TRANSFERRING NOTE
+      15   00:0000                      ; PARAMETERS AND CALLING THE PLAY ROUTINE
+      16   00:0000                      ; UNTIL A PITCH CONSTANT OF ZERO IS
+      17   00:0000                      ; ENCOUNTERED WHICH INDICATES THE END OF
+      18   00:0000                      ; THE MUSICAL SCORE.
+      19   00:0000                      ;    THIS VERSION OF MICROPLAY WAS WRITTEN
+      20   00:0000                      ; FOR A 8080 HAVING 0 WAIT STATES BUT CAN
+      21   00:0000                      ; BE MODIFIED FOR 8080'S WITH WAIT STATES
+      22   00:0000                      ; OR FOR Z80 PROCESSORS.
+      23   00:0000                      ;
+      24   00:0000  31 C1 00            BEGIN		LD		SP,STACK		;INIT. STACK POINTER.
+      25   00:0003  21 00 01            INIT		LD		HL,SCORE		;INIT. SCORE POINTER.
+      26   00:0006  22 AF 00            			LD		(PLACE),HL
+      27   00:0009  2A AF 00            NEXT		LD		HL,(PLACE)		;IF END OF SCORE THEN
+      28   00:000C  3E 00               			LD		A,0				;LOOP HERE.
+      29   00:000E  BE                  			CP		(HL)
+      30   00:000F  CA 0F 00            HERE		JP		Z, HERE			;YOUR ENDING?
+      31   00:0012                      ;									;ELSE TRANSFER
+      32   00:0012                      ;									;PARAMETERS FOR NEXT
+      33   00:0012                      ;									;NOTE OF SCORE INTO
+      34   00:0012                      ;									;PLAY ROUTINE.
+      35   00:0012  7E                  			LD		A,(HL)			;LOAD PITCH.
+      36   00:0013  32 4B 00            			LD		(XFER2+1), A		
+      37   00:0016  32 6A 00            			LD		(XFER4+1), A
+      38   00:0019  23                  			INC		HL
+      39   00:001A  7E                  			LD		A,(HL)			;LOAD NOTE DURATION
+      40   00:001B  32 44 00            			LD		(XFER1+1), A	;LSD.
+      41   00:001E  32 67 00            			LD		(XFER3+1), A
+      42   00:0021  23                  			INC		HL
+      43   00:0022  7E                  			LD		A,(HL)			;LOAD NOTE DURATION
+      44   00:0023  E6 07               			AND		07H				;MASK 3 LSB'S.
+      45   00:0025  32 45 00            			LD		(XFER1+2),A		;MSD.
+      46   00:0028  32 68 00            			LD		(XFER3+2),A
+      47   00:002B  7E                  			LD		A,(HL)			;GET MSD AGAIN
+      48   00:002C  E6 38               			AND		38H				;MASK 3 BITS
+      49   00:002E  C6 6F               			ADD		A, 6FH			;ENVELOPE SPEC ADDRESS
+      50   00:0030  32 3E 00            			LD		(PLAY+1), A
+      51   00:0033  23                  			INC		HL
+      52   00:0034  22 AF 00            			LD		(PLACE), HL		;SAVE PLACE IN SCORE
+      53   00:0037                      ;
+      54   00:0037  CD 3D 00            			CALL	PLAY			;PLAY ONE NOTE.
+      55   00:003A  C3 09 00            			JP		NEXT			;GO DO NEXT NOTE.
+      56   00:003D                      ;
+      57   00:003D                      ;
+      58   00:003D                      ;
+      59   00:003D  21 6F 00            PLAY		LD		HL,TBL1			;INIT EVELOPE POINTER
+      60   00:0040  1E 08               			LD		E,8				;INIT. SEGMENT COUNT
+      61   00:0042  7E                  			LD		A,(HL)			;GET STARTING
+      62   00:0043                      ;									;AMPLITUDE.
+      63   00:0043  01 00 00            XFER1		LD		BC,LNGTH		;INIT. DURATION COUNT.
+      64   00:0046  40                  LOOP2		LD		B,B				;WASTE TIME (WT2)
+      65   00:0047  C3 4A 00            			JP		XFER2			;(WT)
+      66   00:004A  16 00               XFER2		LD		D,PITCH			;INIT. PITCH CONSTANT.
+      67   00:004C  D3 24               			OUT		(MODL6), A		;OUTPUT HALF WAVE TO
+      68   00:004E                      ;									;MUSIC BOARD.
+      69   00:004E  34                  			INC		(HL)			;WASTE MUCH TIME (WMT)
+      70   00:004F  35                  			DEC		(HL)
+      71   00:0050  34                  			INC		(HL)			
+      72   00:0051  35                  			DEC		(HL)
+      73   00:0052  34                  			INC		(HL)			
+      74   00:0053  35                  			DEC		(HL)
+      75   00:0054  15                  LOOP3		DEC		D				;DELAY ACCORDING TO
+      76   00:0055  C2 54 00            			JP		NZ, LOOP3		;PITCH CONSTANT.
+      77   00:0058  AE                  			XOR		(HL)			;COMPLEMENT A.
+      78   00:0059  0D                  			DEC		C				;COUNT DOWN DURATION #.
+      79   00:005A  C2 46 00            			JP		NZ, LOOP2
+      80   00:005D  05                  			DEC		B
+      81   00:005E  C2 4A 00            			JP		NZ, XFER2
+      82   00:0061  D3 24               			OUT		(MODL6), A
+      83   00:0063  23                  			INC		HL				;SET UP NEXT SEGMENT.
+      84   00:0064  1D                  			DEC		E				;DCR SEGMENT COUNT.
+      85   00:0065  C8                  			RET		Z				;RETURN IF ALL
+      86   00:0066                      ;									;SEGMENTS DONE.
+      87   00:0066  01 00 00            XFER3		LD		BC,LNGTH
+      88   00:0069  16 00               XFER4		LD		D,PITCH
+      89   00:006B  7E                  			LD		A,(HL)			;SET NEW AMPLITUDE.
+      90   00:006C  C3 54 00            			JP		LOOP3
+      91   00:006F                      ; ENVELOPE SPECIFICATION:
+      92   00:006F                      ; TBL1 THRU TBL8 ARE 8 DIFFERENT NOTE
+      93   00:006F                      ; EVELOPE SPECIFICATIONS, EACH ONE
+      94   00:006F                      ; CONSISTING OF 8 AMPLITUDE SEGMENTS.
+      95   00:006F                      ;
+      96   00:006F  FF FF E0 C0         TBL1		DB		0FFH,0FFH,0E0H,0C0H	;ATTACH:#5
+      97   00:0073  A0 90 70 50         			DB		0A0H,90H,70H,50H
+      98   00:0077  00 00 00 00         TBL2		DB		0,0,0,0				;REST:#R
+      99   00:007B  00 00 00 00         			DB		0,0,0,0
+     100   00:007F  C0 FF 90 60         TBL3		DB		0C0H,0FFH,90H,60H	;STACCATO:#S
+     101   00:0083  35 00 00 00         			DB		35H,0,0,0
+     102   00:0087  C0 FF FF FF         TBL4		DB		0C0H,0FFH,0FFH,0FFH	;LEGATO:#L
+     103   00:008B  FF FF A0 90         			DB		0FFH,0FFH,0A0H,90H	
+     104   00:008F  70 80 60 20         TBL5		DB		70H,80H,60H,20H		;SOFT STACCATO:#1
+     105   00:0093  00 00 00 00         			DB		0,0,0,0				
+     106   00:0097  70 80 80 80         TBL6		DB		70H,80H,80H,80H		;SOFT LEGATO:#2
+     107   00:009B  80 80 60 40         			DB		80H,80H,60H,40H
+     108   00:009F  A0 B7 D0 FF         TBL7		DB		0A0H,0B7H,0D0H,0FFH	;"SHAPED":#3
+     109   00:00A3  FF FF C7 A0         			DB		0FFH,0FFH,0C7H,0A0H	
+     110   00:00A7  70 85 A0 B5         TBL8		DB		70H,85H,0A0H,0B5H	;CRESCENDO:#4
+     111   00:00AB  D0 FF FF A0         			DB		0D0H,0FFH,0FFH,0A0H
+     112   00:00AF                      ;
+     113   00:00AF  00 00               PLACE		DW		0					;SCORE POINTER.
+     114   00:00B1  (00:0100)           SCORE		EQU		0100H				;YOUR SCORE LOCATION?
+     115   00:00B1  (00:0024)           MODL6		EQU		24H					;YOUR OUTPUT PORT?
+     116   00:00B1  (00:0000)           PITCH		EQU		0					;DUMMY EQUATE
+     117   00:00B1  (00:0000)           LNGTH		EQU		0					;DUMMY EQUATE
+     118   00:00B1  (00:00C1)           STACK		EQU		$+10H
+     119   00:00B1                      			END
+
+    LABELS
+-------------------------------------------------
+00:00000000 X BEGIN
+00:00000003 X INIT
+00:00000009   NEXT
+00:0000000F   HERE
+00:0000003D   PLAY
+00:00000043   XFER1
+00:00000046   LOOP2
+00:0000004A   XFER2
+00:00000054   LOOP3
+00:00000066   XFER3
+00:00000069   XFER4
+00:0000006F   TBL1
+00:00000077 X TBL2
+00:0000007F X TBL3
+00:00000087 X TBL4
+00:0000008F X TBL5
+00:00000097 X TBL6
+00:0000009F X TBL7
+00:000000A7 X TBL8
+00:000000AF   PLACE
+00:00000100   SCORE
+00:00000024   MODL6
+00:00000000   PITCH
+00:00000000   LNGTH
+00:000000C1   STACK
+
+
+ Output: PLAY6B.BIN
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000000  Size: *  Used: 000000B1
+
+   Address   Length Align   Label
+   00000000     177         BEGIN

@@ -1,0 +1,1 @@
+..\..\..\sjasm.exe SQUARE.ASM SQUARE.BIN

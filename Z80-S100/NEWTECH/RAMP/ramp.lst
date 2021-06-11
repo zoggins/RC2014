@@ -1,0 +1,30 @@
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.05.26 - 16:42:25]
+
+RAMP.ASM
+Errors: 0
+
+       1   00:0000                      ; MODEL 6 MUSIC BOARD TEST ROUTINE.
+       2   00:0000                      ;
+       3   00:0000                      ; THIS ROUTINE PRODUCES A TRIANGULAR 
+       4   00:0000                      ; RAMP WAVEFORM OF 312.5 HZ FOR A
+       5   00:0000                      ; 2MHZ CLOCK 8080 SYSTEM WITH NO WAIT
+       6   00:0000                      ; STATES.
+       7   00:0000                      
+       8   00:0000  3C                  START	INC	A		 ; CALCULATE NEXT STEP.
+       9   00:0001  D3 24               		OUT (24H), A ; OUTPUT TO MODEL 6
+      10   00:0003  C3 00 00            		JP START	 ; LOOP
+      11   00:0006                      		END
+
+    LABELS
+-------------------------------------------------
+00:00000000   START
+
+
+ Output: RAMP.BIN
+-------------------------------------------------
+
+ Page: 00
+  Org: 00000000  Size: *  Used: 00000006
+
+   Address   Length Align   Label
+   00000000       6         START

@@ -1,0 +1,65 @@
+;PALASM Design Description
+
+;---------------------------------- Declaration Segment ------------
+TITLE    Chip signals for S100 IDE board (16 bits).
+PATTERN  Non Latched
+REVISION 2
+AUTHOR   John Monahan & David Mehaffy
+COMPANY
+DATE     2/25/2015
+
+
+CHIP IDE_GAL2  PALCE22V10                       ; Device not selected
+
+;---------------------------------- PIN Declarations ---------------
+
+PIN 1   bpSYNC                                  ;S100 bus address valid when high (Not used)
+PIN 2   /bsVAL                                  ;S100 bus address valid when low (Not uswe)
+PIN 3   /ADDR_8255                              ;Select 8255 address range (from GAL1)
+PIN 4   /ADDR_DR                                ;Drive Switch port address range (from GAL1)
+pin 5   sOUT                                    ;S100 bus signal
+PIN 6   sINP                                    ;S100 bus signal
+PIN 7   /pWR                                    ;S100 bus signal
+PIN 8   pDBIN                                   ;S100 bus signal
+PIN 9   sINTA                                   ;S100 bus signal
+PIN 10  DO0                                     ;S100 bus data line 0 output
+PIN 11  NC
+
+PIN 13  NC
+Pin 14  PORT_AB                                 ;To select Drive A: or B:
+Pin 15  /WR_8255                                ;Write signal to 8255 (low)
+Pin 16  /RD_8255                                ;Read signal to 8255 (low)
+Pin 17  bDO0                                    ;Buffered bus data line 0 output
+Pin 18  /BRD_SEL                                ;Board Select LED (low)
+Pin 19  /IN_LE                                  ;LE for 74LS373, U117
+Pin 20  /IN_OE                                  ;OE for 74LS373, U117
+Pin 21  /OUT_LE                                 ;LE for 74LS373, U108
+Pin 22  /OUT_OE                                 ;OE for 74LS373, U108
+Pin 23  /CS_8255                                ;CS for 8255
+
+;----------------------------------- Boolean Equation Segment ------
+
+EQUATIONS
+
+IN_LE        =         ADDR_8255  * sINP  * /pDBIN           ;Latch data on Low to High
+
+IN_OE        =         ADDR_8255  * sINP  * /sINTA           ;Enable input buffer
+
+OUT_LE       =         ADDR_8255  * sOUT  *  pWR             ;Latch data on Low to High
+
+OUT_OE       =         ADDR_8255  * sOUT  * /sINTA           ;Enable input buffer
+
+CS_8255      =         ADDR_8255  * sINP  * /sINTA           ;8255 CS
+                    +  ADDR_8255  * sOUT  * /sINTA
+
+BRD_SEL      =         CS_8255
+                     + ADDR_DR * sOUT * pWR
+
+PORT_AB      =         ADDR_DR * sOUT * pWR                  ;Output to Drive select
+                                                             ;Low to high clock
+bDO0          =         DO0
+RD_8255      =          sINP  *  pDBIN
+WR_8255       =         sOUT  *  pWR
+
+
+
