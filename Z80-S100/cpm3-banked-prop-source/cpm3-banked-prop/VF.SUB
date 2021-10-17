@@ -1,0 +1,3 @@
+r VF.Z80
+ZASM VF.Z80
+w VF.COM
