@@ -1,0 +1,47 @@
+;r RMAC.COM
+;r LINK.COM
+;r GENCPM.COM
+;
+;
+r GENCPM.DAT
+;
+r Z80.LIB
+r CPM3.LIB
+r MODEBAUD.LIB
+;
+r BIOSKRNL.ASM
+r BNKBDOS3.SPR
+r RESBDOS3.SPR
+;
+r SCB3.ASM
+r CHARIO3.ASM
+r MOVE3.ASM
+;
+r 8boot3.asm
+r 8drvtbl3.asm
+r 8FL3.ASM
+r 8IDE3.ASM
+;
+RMAC BIOSKRNL.ASM
+RMAC SCB3.ASM
+RMAC CHARIO3.ASM
+RMAC MOVE3.ASM
+;
+RMAC 8BOOT3.ASM
+RMAC 8DRVTBL3.ASM
+RMAC 8FL3.ASM
+RMAC 8IDE3.ASM
+;
+;A: & B: are 8" Floppy disks.  
+;
+LINK BNKBIOS3[B]=BIOSKRNL,SCB3,8BOOT3,CHARIO3,MOVE3,8DRVTBL3,8FL3,8IDE3
+;
+;Note GENCPM.DAT holds previous values
+;This will be a Banked version. 
+;
+gencpm auto
+;
+w cpm3.sys B
+;
+; Note this version is BANKED and for a ZFDC FDC Board
+
