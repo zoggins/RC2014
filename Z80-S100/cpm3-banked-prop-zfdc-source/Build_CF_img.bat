@@ -24,10 +24,10 @@ cpmchattr -f ibm-3740 cpm3-banked-prop-zdfc.img s ccp.com 0:
 Rem *** Copy user files ***
 
 REM cpmcp -f s100ide cpm3-banked-prop.img ./CPM3-BASE/*.* 0:
-REM cpmcp -f s100ide cpm3-banked-prop.img ./S100-TOOLS/*.* 1:
+cpmcp -f ibm-3740 cpm3-banked-prop-zdfc.img ./S100-TOOLS/*.* 1:
 REM cpmcp -f s100ide cpm3-banked-prop.img ./WS4-FILES/*.* 2:
 REM cpmcp -f s100ide cpm3-banked-prop.img ./BASIC-FILES/*.* 3:
-REM cpmcp -f s100ide cpm3-banked-prop.img ./GAMES/*.* 4:
+cpmcp -f ibm-3740 cpm3-banked-prop-zdfc.img ./GAMES/*.* 4:
 
 pause
 
