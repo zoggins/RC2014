@@ -1,0 +1,6 @@
+r myide.asm
+r z80.lib
+MAC MYIDE.ASM
+w MYIDE.PRN
+HEXCOM MYIDE
+w MYIDE.COM
