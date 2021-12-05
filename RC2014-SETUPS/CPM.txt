@@ -1,0 +1,36 @@
+Backplane:
+Backplane Pro v1.0 or Yellow MSX Series for RC2014 Backplane v1.5
+
+Standard Modules/Cards:
+Dual Serial v1.0
+Compact Flash Storage v1.1
+Z80 CPU v2.1
+Real Time Clock
+512k ROM 512k RAM Module v1.1
+Dual Clock & Reset v2.1
+
+CF Card: RC2014 Compact Flash 128MB
+
+Clock 1: 7.XXXX
+
+== RC2014 YM/AY Sound Card ==
+F:TUNE C:ATTACK.PT3
+
+== Yellow MSX Series for RC2014 - GAME ==
+To Test Audio:
+C:HBIOS.COM
+Option Z
+C:TUNE ATTACK.PT3 (It will not sound right cause it plays too fast)
+
+To Test Controller:
+C:CONTROL.COM
+
+== Yellow MSX Series for RC2014 - Video Advanced ==
+C:MBROT.COM or C:DOTS.COM or C:LINES.COM
+
+== Yellow MSX Series for RC2014 - PPI ==
+To Test Keyboard:
+C:MSCKEYB.COM
+
+== Bubble Display Module ==
+C:HELLO.COM or C:ANIM.COM or C:HEART.COM or C:SCROLL.COM

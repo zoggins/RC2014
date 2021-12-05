@@ -1,0 +1,13 @@
+Backplane:
+Backplane Pro v1.0 or Yellow MSX Series for RC2014 Backplane v1.5
+
+Cards:
+Standard CP/M Modules & CF Card
+TMS9918A Video Card for RC2014 REV4
+Game Controller Interface REV4 + ColecoVision Controller(s)
+SN76489 Sound Board REV4
+
+Clock 1: 3.6864
+
+To play a ROM:
+C:COLECO.COM GAME.ROM
