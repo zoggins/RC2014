@@ -11,6 +11,7 @@ Yellow MSX Series for RC2014 Memory v1.3
 Yellow MSX Series for RC2014 PPI v1.4
 Yellow MSX Series for RC2014 Game v1.1
 Yellow MSX Series for RC2014 Video-Advanced v1.9 or Yellow MSX Series for RC2014 Video-RGB v2.2.4
+Yellow MSX Series for RC2014 MSX Slots v1.1
 
 CF Card: MSX
 
