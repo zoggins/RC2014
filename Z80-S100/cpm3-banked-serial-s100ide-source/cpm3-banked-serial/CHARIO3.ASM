@@ -301,7 +301,7 @@ SCCINIT:
         DB      0BH
         DB      056H
         DB      0CH
-        DB      06H
+        DB      02H
         DB      0DH
         DB      00H
         DB      0EH
