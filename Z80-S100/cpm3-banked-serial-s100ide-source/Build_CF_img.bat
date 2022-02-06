@@ -12,8 +12,10 @@ copy cpm3-banked-serial\CPM3.SYS CPM3.SYS
 Rem *** Copy PCGET and PCPUT from build folder ***
 del S100-TOOLS\PCGET.COM
 del S100-TOOLS\PCPUT.COM
+del S100-TOOLS\MYIO.COM
 copy serial-tools\PCPUT.COM S100-TOOLS\
 copy serial-tools\PCGET.COM S100-TOOLS\
+copy serial-tools\MYIO.COM S100-TOOLS\
 
 Rem *** Make new file system image ***
 

@@ -1,0 +1,439 @@
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   1
+MYIO    Z80
+
+    1                   ;
+    2                   ;Configuration program for the S-100 I/O board
+    3                   ;This program initilizes the Z8030 SCC's,the V-Stamp Chip & DLP-USB Controller chip
+    4                   ;
+    5                   ;	Author	John	Monahan	(S100Computers.com)	6/20/2011
+    6                   ;
+    7                   ;	V1.1	2/19/2011		;Strip parity bit from raw consol input port
+    8                   ;	V1.2	4/24/2010		;Removed unused routines, default baud rate set to 16.2K
+    9                   ;
+   10                   ; PORT ASSIGNEMENT FOR DLP-USB Controller chip
+   11                   ;			
+   12         00AC      USB_DATA	EQU	0ACH		;<--- Adjust as necessary, also update Signon MSG below
+   13         00AA      USB_STATUS	EQU	0AAH		; Status port for USB port (Port C of 8255, bits 6,7)
+   14                   ;
+   15         0080      USB_RXE		EQU	80H		; If Bit 7 = 0, data available to recieve by S-100 Computer	
+   16         0040      USB_TXE		EQU	40H		; If Bit 6 = 0 data CAN be written for transmission to PC
+   17                   ;
+   18                   ; PORT ASSIGNMENTS OF THE ZILOG SCC CHIP 
+   19                   ;
+   20         00A0      BCTL		EQU	0A0H		; CHANNEL B CONTROL	;<--- Adjust as necessary, 
+   21         00A1      ACTL		EQU	0A1H		; CHANNEL A CONTROL	; also update Signon MSG below
+   22         00A2      BDTA		EQU	0A2H		; CHANNEL B DATA
+   23         00A3      ADTA		EQU	0A3H		; CHANNEL A DATA
+   24                   
+   25         00A8      PortA_8255	EQU	0A8H		;A port of 8255		;<--- Adjust as necessary
+   26         00A9      PortB_8255	EQU	0A9H		;B port of 8255
+   27         00AA      PortC_8255	EQU	0AAH		;C Port of 8255
+   28         00AB      PortCtrl_8255	EQU	0ABH		;8255 configuration port
+   29                   
+   30         0098      AinBout8255cfg	EQU	10011000b	;Set 8255 ports:- A input, B output, 
+   31                   					;C(bits 0-3) output, (bits 4-7)input
+   32                   ;AoutBin8255cfg	EQU	10001010b	;Set 8255 ports:- A output, B input, 
+   33                   ;					;C(bits 0-3) output, (bits 4-7)input)
+   34                   
+   35                   ;<<<< SD Systems Video board will be used for Consol I/O	<---- Adjust if different
+   36                   ;
+   37         0001      CONSOL_IN	EQU	01H		;Note need to strip 8th (parity) bit
+   38         0001      CONSOL_OUT	EQU	01H
+   39         0000      CONSOL_STAT	EQU	00H
+   40                   
+   41         0002      CHAR_IN_OK	EQU	02H		;02H if there is a character at consol keyboard
+   42         0004      CHAR_OUT_OK	EQU	04H		;Mask for CRT output
+   43                   
+   44                   
+   45                   ; BDOS EQUATES (VERSION 2)
+   46                   ;
+   47         0001      RDCON	EQU	1			;CP/M Read character
+   48         0002      WRCON	EQU	2			;CP/M Write character
+   49         000B      CONSTAT	EQU	11			;CP/M Get consol status
+   50         0009      PRINT	EQU	9			;CP/M Print string
+   51         0005      BDOS	EQU	5
+   52                   
+   53         001B      ESC	EQU	1BH
+   54         000D      CR	EQU	0DH
+   55         000A      LF	EQU	0AH
+   56                   
+   57         0100      	ORG	100H
+   58                   	
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   2
+MYIO    Z80
+
+   59 0100  31 0886     START:	LD	SP,STACK
+   60 0103  11 0307     	LD	DE,SIGNON		;Signon/main menu
+   61 0106  0E 09       	LD	C,PRINT
+   62 0108  CD 0005     	CALL	BDOS
+   63                   	
+   64 010B              IDEinit:				;Initilze the 8255. 
+   65 010B  3E 98       	LD	A,AinBout8255cfg	;A input, B output, C(bits 0-3) output, (bits 4-7)input
+   66 010D  D3 AB       	OUT	(PortCtrl_8255),A	;Config 8255 chip, Mode 0
+   67                   	
+   68                   					
+   69 010F              BEGINSCC:
+   70 010F  0E 01       	LD	C,RDCON			;Get a "menu" char
+   71 0111  CD 0005     	CALL	BDOS
+   72 0114  F5          	PUSH	AF	
+   73 0115  11 04CF     	LD	DE,CRLFMSG		;Finish Line
+   74 0118  0E 09       	LD	C,PRINT
+   75 011A  CD 0005     	CALL	BDOS
+   76 011D  F1          	POP	AF
+   77                   ;
+   78 011E  FE 30       	CP	30H		
+   79 0120  CA 02D3     	JP	Z,INITSCC		;"0" Configure the Zilog SCC 
+   80 0123  FE 31       	CP	31H
+   81 0125  CA 0144     	JP	Z,SET_BAUD		;"1" Set its baude rate (default is 4800)
+   82 0128  FE 32       	CP	32H
+   83 012A  CA 01F7     	JP	Z,SCC_LOOP_TEST
+   84 012D  FE 33       	CP	33H
+   85 012F  CA 0227     	JP	Z,SCC_LOOP_TESTB
+   86 0132  FE 34       	CP	34H
+   87 0134  CA 0257     	JP	Z,USB_LOOP_TEST
+   88 0137  FE 35       	CP	35H
+   89 0139  CA 028A     	JP	Z,SPEECH_TEST
+   90 013C  FE 1B       	CP	ESC
+   91 013E  CA 01E7     	JP	Z,DONE
+   92 0141  C3 01EC     	JP	BADCHAR
+   93                   ;
+   94 0144              SET_BAUD:
+   95 0144  11 0572     	LD	DE,SELBAUDMSG		;Which BAUD Rate
+   96 0147  0E 09       	LD	C,PRINT
+   97 0149  CD 0005     	CALL	BDOS
+   98                   ;
+   99 014C  0E 01       	LD	C,RDCON			;Get a char
+  100 014E  CD 0005     	CALL	BDOS
+  101 0151  F5          	PUSH	AF
+  102 0152  11 04CF     	LD	DE,CRLFMSG		;Finish Line
+  103 0155  0E 09       	LD	C,PRINT
+  104 0157  CD 0005     	CALL	BDOS
+  105 015A  F1          	POP	AF
+  106                   ;	
+  107 015B  FE 30       	CP	30H			;600 baud
+  108 015D  C2 0168     	JP	NZ,NEXTB
+  109 0160  06 FE       	LD	B,0FEH
+  110 0162  11 0645     	LD	DE,DONEB0MSG		;Done BAUD Rate
+  111 0165  C3 01C3     	JP	SETBAUD
+  112 0168  FE 31       NEXTB:	CP	31H			;1200 baud
+  113 016A  C2 0175     	JP	NZ,NEXTC
+  114 016D  06 7F       	LD	B,07FH
+  115 016F  11 0679     	LD	DE,DONEB1MSG		;Done BAUD Rate
+  116 0172  C3 01C3     	JP	SETBAUD
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   3
+MYIO    Z80
+
+  117 0175  FE 32       NEXTC:	CP	32H			;2400 baud
+  118 0177  C2 0182     	JP	NZ,NEXTD
+  119 017A  06 40       	LD	B,040H
+  120 017C  11 06AE     	LD	DE,DONEB2MSG		;Done BAUD Rate
+  121 017F  C3 01C3     	JP	SETBAUD
+  122 0182  FE 33       NEXTD:	CP	33H			;4800 baud
+  123 0184  C2 018F     	JP	NZ,NEXTE
+  124 0187  06 1E       	LD	B,01EH
+  125 0189  11 06E3     	LD	DE,DONEB3MSG		;Done BAUD Rate
+  126 018C  C3 01C3     	JP	SETBAUD
+  127 018F  FE 34       NEXTE:	CP	34H			;9600 baud
+  128 0191  C2 019C     	JP	NZ,NEXTF
+  129 0194  06 0E       	LD	B,0EH
+  130 0196  11 0718     	LD	DE,DONEB4MSG		;Done BAUD Rate
+  131 0199  C3 01C3     	JP	SETBAUD
+  132 019C  FE 35       NEXTF:	CP	35H			;19200 baud
+  133 019E  C2 01A9     	JP	NZ,NEXTG
+  134 01A1  06 06       	LD	B,6
+  135 01A3  11 074D     	LD	DE,DONEB5MSG		;Done BAUD Rate
+  136 01A6  C3 01C3     	JP	SETBAUD
+  137 01A9  FE 36       NEXTG:	CP	36H			;38400 baud
+  138 01AB  C2 01B6     	JP	NZ,NEXTH
+  139 01AE  06 02       	LD	B,2
+  140 01B0  11 0783     	LD	DE,DONEB6MSG		;Done BAUD Rate
+  141 01B3  C3 01C3     	JP	SETBAUD
+  142 01B6  FE 37       NEXTH:	CP	37H			;76800 baud
+  143 01B8  C2 01DC     	JP	NZ,SKIP1
+  144 01BB  06 00       	LD	B,0			;<<<<<< 0H
+  145 01BD  11 07B9     	LD	DE,DONEB7MSG		;Done BAUD Rate
+  146 01C0  C3 01C3     	JP	SETBAUD
+  147                   ;
+  148 01C3              SETBAUD:				;Note, later we could distinguish between Channels A/B here.
+  149 01C3  3E 0C       	LD	A,0CH			;Point to WR12 (Low Byte)
+  150 01C5  D3 A1       	OUT	(ACTL),A
+  151 01C7  78          	LD	A,B			;get selected new baud rate
+  152 01C8  D3 A1       	OUT	(ACTL),A
+  153                   ;
+  154 01CA  3E 0C       	LD	A,0CH			;Point to WR12 (Low Byte)
+  155 01CC  D3 A0       	OUT	(BCTL),A
+  156 01CE  78          	LD	A,B			;get selected new baud rate
+  157 01CF  D3 A0       	OUT	(BCTL),A
+  158                   ;
+  159 01D1  32 0887     	LD	(SSC_Init_Flag),A	;save flag as well
+  160                   
+  161 01D4  0E 09       	LD	C,PRINT			;Print new Baud rate (DE)
+  162 01D6  CD 0005     	CALL	BDOS
+  163 01D9  C3 0100     	JP	START
+  164                   ;
+  165 01DC  11 07EF     SKIP1:	LD	DE,SKIP1MSG		;Skip BAUD Rate
+  166 01DF  0E 09       	LD	C,PRINT
+  167 01E1  CD 0005     	CALL	BDOS
+  168 01E4  C3 0100     	JP	START
+  169                   ;
+  170 01E7  0E 00       DONE:	LD	C,0			;Back to CP/M
+  171 01E9  CD 0005     	CALL	BDOS
+  172                   ;
+  173 01EC  11 0830     BADCHAR:LD	DE,ABORTMSG	
+  174 01EF  0E 09       	LD	C,PRINT
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   4
+MYIO    Z80
+
+  175 01F1  CD 0005     	CALL	BDOS
+  176 01F4  C3 0100     	JP	START
+  177                   ;
+  178                   ;
+  179                   ;
+  180 01F7              SCC_LOOP_TEST:				;Test if we can send & recieve characters from SCC serial Port A
+  181 01F7  DB A1       next:	IN	A,ACTL			;Are we ready to recieve a character from Zilog SCC chip
+  182 01F9  E6 01       	AND	01H
+  183 01FB  CA 0202     	JP	Z,CONT			;Zero if nothing
+  184 01FE  DB A3       	IN	A,ADTA
+  185 0200  D3 01       	OUT	CONSOL_OUT,A		;Send to consol port (Skip status check, consol can keep up!)
+  186                   	
+  187 0202  DB 00       CONT:	IN	A,CONSOL_STAT		;Anything at consol keyboard
+  188 0204  E6 02       	AND	A,CHAR_IN_OK
+  189 0206  CA 01F7     	JP	Z,next
+  190 0209  DB 01       	IN	A,CONSOL_IN		;Get keyboard character
+  191 020B  E6 7F       	AND	7FH			;Strip 8 th bit
+  192 020D  FE 1B       	CP	A,ESC			;If ESC abort loop
+  193 020F  CA 0100     	JP	Z,START
+  194 0212  4F          	LD	C,A
+  195                   	
+  196 0213  DB A1       next1:	IN	A,ACTL			;Are we ready to send a character to SCC
+  197 0215  E6 04       	AND	04H
+  198 0217  C2 0221     	JP	NZ,SENDC
+  199 021A  3E 2E       	LD	A,'.'
+  200 021C  D3 01       	OUT	CONSOL_OUT,A		;Send a "." to CRT if SCC is busy/not working
+  201 021E  C3 0213     	JP	next1
+  202 0221  79          SENDC:	LD	A,C
+  203 0222  D3 A3       	OUT	(ADTA),A		;Send it to SCC port
+  204 0224  C3 01F7     	JP	next
+  205                   ;	
+  206                   ;
+  207 0227              SCC_LOOP_TESTB:				;Test if we can send & recieve characters from SCC serial Port A
+  208 0227  DB A0       next0b:	IN	A,BCTL			;Are we ready to recieve a character from Zilog SCC chip
+  209 0229  E6 01       	AND	01H
+  210 022B  CA 0232     	JP	Z,CONTB			;Zero if nothing
+  211 022E  DB A2       	IN	A,BDTA
+  212 0230  D3 01       	OUT	CONSOL_OUT,A		;Send to consol port (Skip status check, consol can keep up!)
+  213                   	
+  214 0232  DB 00       CONTB:	IN	A,CONSOL_STAT		;Anything at consol keyboard
+  215 0234  E6 02       	AND	A,CHAR_IN_OK
+  216 0236  CA 0227     	JP	Z,next0b
+  217 0239  DB 01       	IN	A,CONSOL_IN		;Get keyboard character
+  218 023B  E6 7F       	AND	7FH			;Strip 8 th bit
+  219 023D  FE 1B       	CP	A,ESC			;If ESC abort loop
+  220 023F  CA 0100     	JP	Z,START
+  221 0242  4F          	LD	C,A
+  222                   	
+  223 0243  DB A0       next1b:	IN	A,BCTL			;Are we ready to send a character to SCC
+  224 0245  E6 04       	AND	04H
+  225 0247  C2 0251     	JP	NZ,SENDCB
+  226 024A  3E 2E       	LD	A,'.'
+  227 024C  D3 01       	OUT	CONSOL_OUT,A		;Send a "." to CRT if SCC is busy/not working
+  228 024E  C3 0243     	JP	next1b
+  229 0251  79          SENDCB:	LD	A,C
+  230 0252  D3 A2       	OUT	(BDTA),A		;Send it to SCC port
+  231 0254  C3 0227     	JP	next0b
+  232                   ;	
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   5
+MYIO    Z80
+
+  233                   ;
+  234 0257              USB_LOOP_TEST:				;Test if we can send & recieve characters from USB Port
+  235 0257              USB_next:
+  236 0257  DB AA       	IN	A,(USB_STATUS)		;Is there a character to recieve from the PC via the USB Port
+  237 0259  E6 80       	AND	USB_RXE
+  238 025B  C2 0265     	JP	NZ,USB_CONT		;Zero if nothing there
+  239 025E  DB AC       	IN	A,(USB_DATA)
+  240 0260  D3 01       	OUT	CONSOL_OUT,A		;Send to consol port (Skip status check, consol can keep up!)
+  241 0262  C3 0257     	JP	USB_next
+  242                   	
+  243 0265              USB_CONT:			
+  244 0265  DB 00       	IN	A,CONSOL_STAT		;Anything to send from S-100 consol, check consol status
+  245 0267  E6 02       	AND	A,CHAR_IN_OK		
+  246 0269  CA 0257     	JP	Z,USB_next		;Nothing at consol, back to start of loop
+  247 026C  DB 01       	IN	A,CONSOL_IN		;Get keyboard character
+  248 026E  E6 7F       	AND	7FH			;Strip 8 th bit
+  249 0270  FE 1B       	CP	A,ESC
+  250 0272  CA 0100     	JP	Z,START			;Abort if ESC key
+  251 0275  4F          	LD	C,A			;Store it in [C]
+  252 0276              USB_next1:
+  253 0276  DB AA       	IN	A,(USB_STATUS)		;Are we ready to send a character to PC via USB port
+  254 0278  E6 40       	AND	USB_TXE			;Is chip ready
+  255 027A  CA 0284     	JP	Z,USB_SENDC
+  256 027D  3E 2E       	LD	A,'.'
+  257 027F  D3 01       	OUT	CONSOL_OUT,A		;Send a "." to CRT while we wait
+  258 0281  C3 0276     	JP	USB_next1
+  259 0284              USB_SENDC:
+  260 0284  79          	LD	A,C
+  261 0285  D3 AC       	OUT	(USB_DATA),A		;Send it to tp PC via USB port
+  262 0287  C3 0257     	JP	USB_next
+  263                   ;
+  264                   ;
+  265 028A              SPEECH_TEST:
+  266 028A  3A 0887     	LD	A,(SSC_Init_Flag)
+  267 028D  FE 06       	CP	A,06			;Was the SSC initilzation done and set to 19.2K baud 
+  268 028F  CA 029D     	JP	Z,SP_TEST1
+  269 0292  11 051F     	LD	DE,INITNOTDONE		;Say SCC initilization NOT done
+  270 0295  0E 09       	LD	C,PRINT
+  271 0297  CD 0005     	CALL	BDOS
+  272 029A  C3 0100     	JP	START
+  273                   
+  274 029D              SP_TEST1:	
+  275 029D  DB 00       	IN	A,CONSOL_STAT		;Anything at consol keyboard
+  276 029F  E6 02       	AND	A,CHAR_IN_OK
+  277 02A1  CA 029D     	JP	Z,SP_TEST1
+  278 02A4  DB 01       	IN	A,CONSOL_IN		;Get keyboard character
+  279 02A6  E6 7F       	AND	7FH			;Strip 8 th bit
+  280 02A8  FE 1B       	CP	A,ESC			;If ESC abort loop
+  281                   
+  282 02AA  CA 0100     	JP	Z,START
+  283 02AD  4F          	LD	C,A
+  284                   
+  285 02AE  DB A0       nextS:	IN	A,BCTL			;Are we ready to send a character to SCC
+  286 02B0  E6 04       	AND	04H
+  287 02B2  C2 02BC     	JP	NZ,SENDS
+  288 02B5  3E 2E       	LD	A,'.'
+  289 02B7  D3 01       	OUT	CONSOL_OUT,A		;Send a "." to CRT if SCC is busy/not working
+  290 02B9  C3 02AE     	JP	nextS
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   6
+MYIO    Z80
+
+  291 02BC  79          SENDS:	LD	A,C
+  292 02BD  D3 A2       	OUT	BDTA,A			;Send it to SCC port
+  293 02BF  D3 01       	OUT	CONSOL_OUT,A		;Send to CRT also
+  294 02C1  FE 0D       	CP	A,CR
+  295 02C3  C2 029D     	JP	NZ,SP_TEST1
+  296 02C6              OUT_WAIT:
+  297 02C6  DB 00       	IN	A,CONSOL_STAT
+  298 02C8  E6 04       	AND	A,CHAR_OUT_OK
+  299 02CA  28 FA       	JR	Z,OUT_WAIT
+  300 02CC  3E 0A       	LD	A,LF
+  301 02CE  D3 01       	OUT	CONSOL_OUT,A		;Send LF to CRT also if CR
+  302 02D0  C3 029D     	JP	SP_TEST1
+  303                   	
+  304                   
+  305                   ;Zilog Serial SCC board initilization. Will initilize the chip to 19.2K baud.
+  306                   ;
+  307 02D3              INITSCC:
+  308 02D3  3E A1       	LD	A,ACTL			;Program Channel A
+  309 02D5  4F          	LD	C,A
+  310 02D6  06 0E       	LD	B,0EH			;Byte count for OTIR below
+  311 02D8  21 02F7     	LD	HL,SCCINIT
+  312 02DB  ED B3       	OTIR
+  313                   ;
+  314 02DD  3E A0       	LD	A,BCTL			;Program Channel B
+  315 02DF  4F          	LD	C,A
+  316 02E0  06 0E       	LD	B,0EH			;Byte count for OTIR below
+  317 02E2  21 02F7     	LD	HL,SCCINIT
+  318 02E5  ED B3       	OTIR
+  319                   ;
+  320 02E7  11 04D3     	LD	DE,INITDONE		;Say SCC initilization done
+  321 02EA  0E 09       	LD	C,PRINT
+  322 02EC  CD 0005     	CALL	BDOS
+  323 02EF  3E 06       	LD	A,06			;Set initilization flag for 19.2K
+  324 02F1  32 0887     	LD	(SSC_Init_Flag),A
+  325 02F4  C3 0100     	JP	START
+  326                   ;
+  327                   ;
+  328                   ;-------------------- Support Routines ------------------------
+  329                   ;
+  330                   ;
+  331                   ;Table of values to initilize the SCC. Note the SCC is set here for 19200 BAUD
+  332 02F7              SCCINIT:
+  333 02F7  04          	DB	04H			;Point to WR4
+  334 02F8  44          	DB	44H			;X16 clock,1 Stop,NP
+  335                   ;
+  336 02F9  03          	DB	03H			;Point to WR3
+  337 02FA  C1          	DB	0C1H			;Enable reciever, Auto Enable, Recieve 8 bits	
+  338                   ;	DB	0E1H			;Enable reciever, No Auto Enable, Recieve 8 bits (for CTS bit)	
+  339                   ;
+  340 02FB  05          	DB	05H			;Point to WR5
+  341 02FC  EA          	DB	0EAH			;Enable, Transmit 8 bits
+  342                   ;					;Set RTS,DTR, Enable
+  343                   ;
+  344 02FD  0B          	DB	0BH			;Point to WR11
+  345 02FE  56          	DB	56H			;Recieve/transmit clock = BRG
+  346                   ;
+  347 02FF  0C          	DB	0CH			;Point to WR12
+  348                   ;	DB	40H			;Low Byte 2400 Baud 
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   7
+MYIO    Z80
+
+  349                   ;	DB	1EH			;Low Byte 4800 Baud	
+  350                   ;	DB	0EH			;Low Byte 9600 Baud 
+  351 0300  06          	DB	06H			;Low byte 19,200 Baud	<<<<<<<<<<< Note V-Stamp is default setup is for 19.2K
+  352                   ;	DB	02H			;Low byte 38,400 Baud 
+  353                   ;	DB	00H			;Low byte 76,800 Baud 
+  354                   ;
+  355 0301  0D          	DB	0DH			;Point to WR13
+  356 0302  00          	DB	00H			;High byte for Baud
+  357                   ;
+  358 0303  0E          	DB	0EH			;Point to WR14
+  359 0304  01          	DB	01H			;Use 4.9152 MHz Clock. Note SD Systems board uses a 2.4576 MHz clock, enable BRG
+  360                   ;
+  361 0305  0F          	DB	0FH			;Point to WR15
+  362 0306  00          	DB	00H			;Generate Int with CTS going high
+  363                   ;
+  364                   ;
+  365 0307  0D 0A 0A    SIGNON:		DB	13,10,10
+  366 030A  4D 59 49 4F 		DB	'MYIO A program to configure the S-100 I/O board (V1.2  04/24/2011).',13,10
+  367 034F  4D 41 49 4E 		DB	'MAIN MENU',13,10
+  368 035A  30 20 3D 20 		DB	'0 = Initilize the Zilog 8530 SCC chip(Ports = A0H-A3H)',13,10
+  369 0392  31 20 3D 20 		DB	'1 = Set SCC Baud Rate',13,10
+  370 03A9  32 20 3D 20 		DB	'2 = SCC Loop test.  SCC chip(Ports = A1H & A3H)',13,10
+  371 03DA  33 20 3D 20 		DB	'3 = SCC Loop test.  SCC chip(Ports = A0H & A2H)',13,10
+  372 040B  34 20 3D 20 		DB	'4 = DLP-USB Controller/Port Loop test (Data Port = ACH, 8255 Status = AAH))',13,10
+  373 0458  35 20 3D 20 		DB	'5 = Send test speech string to V_Stamp chip via SCC chip (Ports = A0H & A2H)',13,10
+  374 04A6  45 53 43 20 		DB	'ESC = Return to CP/M',13,10,10
+  375 04BD  4D 65 6E 75 		DB	'Menu choice ---->$'
+  376                   		
+  377 04CF  0D 0A 0A 24 CRLFMSG:	DB	13,10,10,'$'
+  378 04D3  54 68 65 20 INITDONE:	DB	'The SCC is now initilized to 8 Bits, 1 Stop bit, NP, RTS on, 19200 Baud.',13,10,10,'$'
+  379 051F  54 68 65 20 INITNOTDONE:	DB	'The SCC must first be initilized to 8 Bits, 1 Stop bit, NP, RTS on, 19200 Baud.',13,10,10,'$'
+  380                   
+  381 0572  53 65 6C 65 SELBAUDMSG:	DB	'Select a Baud rate for this SCC (Both A & B Channels)',13,10
+  382 05A9  30 20 3D 20 		DB	'0 = 600 baud',13,10
+  383 05B7  31 20 3D 20 		DB	'1 = 1200 baud',13,10
+  384 05C6  32 20 3D 20 		DB	'2 = 2400 baud',13,10
+  385 05D5  33 20 3D 20 		DB	'3 = 4800 baud',13,10
+  386 05E4  34 20 3D 20 		DB	'4 = 9600 baud',13,10
+  387 05F3  35 20 3D 20 		DB	'5 = 19200 baud',13,10,10
+  388 0604  36 20 3D 20 		DB	'6 = 38400 baud',13,10,10
+  389 0615  37 20 3D 20 		DB	'7 = 76800 baud',13,10,10
+  390 0626  42 61 75 64 		DB	'Baud Rate number selected --->$'
+  391 0645  42 61 75 64 DONEB0MSG:	DB	'Baud rate RESET to 600 baud (Both A & B Channels)',13,10,'$'
+  392 0679  42 61 75 64 DONEB1MSG:	DB	'Baud rate RESET to 1200 baud (Both A & B Channels)',13,10,'$'
+  393 06AE  42 61 75 64 DONEB2MSG:	DB	'Baud rate RESET to 2400 baud (Both A & B Channels)',13,10,'$'
+  394 06E3  42 61 75 64 DONEB3MSG:	DB	'Baud rate RESET to 4800 baud (Both A & B Channels)',13,10,'$'
+  395 0718  42 61 75 64 DONEB4MSG:	DB	'Baud rate RESET to 9600 baud (Both A & B Channels)',13,10,'$'
+  396 074D  42 61 75 64 DONEB5MSG:	DB	'Baud rate RESET to 19200 baud (Both A & B Channels)',13,10,'$'
+  397 0783  42 61 75 64 DONEB6MSG:	DB	'Baud rate RESET to 38400 baud (Both A & B Channels)',13,10,'$'
+  398 07B9  42 61 75 64 DONEB7MSG:	DB	'Baud rate RESET to 76800 baud (Both A & B Channels)',13,10,'$'
+  399 07EF  0D 0A       SKIP1MSG:	DB	13,10
+  400 07F1  53 6B 69 70 		DB	'Skipped selecting a new BAUD rate for the board current SCC.',13,10,'$';
+  401 0830  0D 0A       ABORTMSG:	DB	13,10
+  402 0832  49 6E 76 61 		DB	'Invalid menu item',13,10,'$'
+  403                   ;	
+  404                   ;
+  405 0846    0040      		DS	40H
+  406 0886  00          STACK:		DB	0H
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   8
+MYIO    Z80
+
+  407 0887  FF          SSC_Init_Flag:	DB	0FFH
+  408                   ;
+  409                   ; END
+  410                   	
+  411                   
+  412                   
+ 0 Error(s) Detected.
+ 1928 Absolute Bytes. 80 Symbols Detected.
+

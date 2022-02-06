@@ -82,8 +82,10 @@ BEGINSCC:
 	CP	32H
 	JP	Z,SCC_LOOP_TEST
 	CP	33H
-	JP	Z,USB_LOOP_TEST
+	JP	Z,SCC_LOOP_TESTB
 	CP	34H
+	JP	Z,USB_LOOP_TEST
+	CP	35H
 	JP	Z,SPEECH_TEST
 	CP	ESC
 	JP	Z,DONE
@@ -200,6 +202,33 @@ next1:	IN	A,ACTL			;Are we ready to send a character to SCC
 SENDC:	LD	A,C
 	OUT	(ADTA),A		;Send it to SCC port
 	JP	next
+;	
+;
+SCC_LOOP_TESTB:				;Test if we can send & recieve characters from SCC serial Port A
+next0b:	IN	A,BCTL			;Are we ready to recieve a character from Zilog SCC chip
+	AND	01H
+	JP	Z,CONTB			;Zero if nothing
+	IN	A,BDTA
+	OUT	CONSOL_OUT,A		;Send to consol port (Skip status check, consol can keep up!)
+	
+CONTB:	IN	A,CONSOL_STAT		;Anything at consol keyboard
+	AND	A,CHAR_IN_OK
+	JP	Z,next0b
+	IN	A,CONSOL_IN		;Get keyboard character
+	AND	7FH			;Strip 8 th bit
+	CP	A,ESC			;If ESC abort loop
+	JP	Z,START
+	LD	C,A
+	
+next1b:	IN	A,BCTL			;Are we ready to send a character to SCC
+	AND	04H
+	JP	NZ,SENDCB
+	LD	A,'.'
+	OUT	CONSOL_OUT,A		;Send a "." to CRT if SCC is busy/not working
+	JP	next1b
+SENDCB:	LD	A,C
+	OUT	(BDTA),A		;Send it to SCC port
+	JP	next0b
 ;	
 ;
 USB_LOOP_TEST:				;Test if we can send & recieve characters from USB Port
@@ -339,8 +368,9 @@ SIGNON:		DB	13,10,10
 		DB	'0 = Initilize the Zilog 8530 SCC chip(Ports = A0H-A3H)',13,10
 		DB	'1 = Set SCC Baud Rate',13,10
 		DB	'2 = SCC Loop test.  SCC chip(Ports = A1H & A3H)',13,10
-		DB	'3 = DLP-USB Controller/Port Loop test (Data Port = ACH, 8255 Status = AAH))',13,10
-		DB	'4 = Send test speech string to V_Stamp chip via SCC chip (Ports = A0H & A2H)',13,10
+		DB	'3 = SCC Loop test.  SCC chip(Ports = A0H & A2H)',13,10
+		DB	'4 = DLP-USB Controller/Port Loop test (Data Port = ACH, 8255 Status = AAH))',13,10
+		DB	'5 = Send test speech string to V_Stamp chip via SCC chip (Ports = A0H & A2H)',13,10
 		DB	'ESC = Return to CP/M',13,10,10
 		DB	'Menu choice ---->$'
 		
