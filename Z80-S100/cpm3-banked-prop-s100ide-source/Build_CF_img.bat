@@ -9,7 +9,9 @@ Rem *** Copy system files from build folder ***
 copy cpm3-banked-prop\CPMLDR.COM CPMLDR.COM
 copy cpm3-banked-prop\CPM3.SYS CPM3.SYS
 
-
+Rem *** Copy VF from build folder ***
+del S100-TOOLS\VF.COM
+copy tools-src\VF.COM S100-TOOLS\
 
 Rem *** Make new file system image ***
 
