@@ -154,6 +154,7 @@ TRACK	EQU	65H		;TRACK PORT
 SECTOR	EQU	66H		;SECTOR PORT
 DATA	EQU	67H		;DATA PORT
 CMD	EQU	64H		;COMMAND PORT
+DEBUG	EQU 05H
 ;
 ;Note: the 1791/5 chip for most commands used bits 0&1 to set the head
 ;motor stepping rate. 00 being 3ms (@2MH clock),11 being 15 ms. My
@@ -2016,9 +2017,13 @@ HOME2:	IN	A,(STATUS)
 	AND	A,1
 	JR	NZ,HOME2		;Wait until 1791/5 is ready
 	CALL	WAIT_OFF		;Disable Wait State Hardware (just in case it is on)
+	LD A, 088H
+	OUT (DEBUG),A
 	LD	A,RSCMD
 	LD	(CHIP_CMDSV),A		;Store it in case error flags are to be shown
 	OUT	(CMD),A
+	LD A, 099H
+	OUT (DEBUG),A
 	CALL	END_ROUTINE		;Wait, check status and return
 	RET
 ;
