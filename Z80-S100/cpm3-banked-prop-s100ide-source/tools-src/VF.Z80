@@ -2127,6 +2127,8 @@ MM2:	JR	MM3
 MM3:	INIR				;Block input 6 bytes
 	EI
 	CALL	END_ROUTINE		;Wait, turn off wait hware, check status 
+	OUT	(CMD),A
+	LD A, 0DDH	
 	RET				;and return
 ;	
 ;
@@ -2575,6 +2577,8 @@ END_ROUTINE:
 	PUSH	HL
 	LD	BC,0
 	LD	E,STATUS_DELAY	;time out about 5 seconds
+	LD A, 0EEH	
+	OUT (DEBUG), A
 ENDR2:	IN	A,(STATUS)	;Wait until chip is not busy
 	AND	A,1
 	JR	Z,ENDR2_OK
