@@ -2106,9 +2106,13 @@ BAD_SEEK:
 ;
 READ_ID:LD	A,ID_ERR_MASK
 	LD	(ERMASK),A		;Store for error display
-RDSC_1:	IN	A,(STATUS)
+RDSC_1: LD A, 0AAH	
+	OUT (DEBUG), A
+	IN	A,(STATUS)
 	AND	A,1
 	JR	NZ,RDSC_1		;wait until 1791/5 is ready
+	LD A, 0BBH	
+	OUT (DEBUG), A
 	LD	HL,IDSV			;Will store the 6 bytes here
 	LD	BC,600H+DATA		;6 bytes in B, Data port in C below
 	CALL	WAIT_ON			;Enable hardware wait states
@@ -2116,6 +2120,8 @@ RDSC_1:	IN	A,(STATUS)
 	LD	(CHIP_CMDSV),A		;Store it in case error flags are to be shown
 	DI				;Just in case
 	OUT	(CMD),A
+	LD A, 0CCH	
+	OUT (DEBUG), A
 	JR	MM2			;Slight delay
 MM2:	JR	MM3
 MM3:	INIR				;Block input 6 bytes
