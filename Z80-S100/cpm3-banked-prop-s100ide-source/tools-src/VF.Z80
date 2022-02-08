@@ -2111,8 +2111,7 @@ RDSC_1: LD A, 0AAH
 	IN	A,(STATUS)
 	AND	A,1
 	JR	NZ,RDSC_1		;wait until 1791/5 is ready
-	LD A, 0BBH	
-	OUT (DEBUG), A
+
 	LD	HL,IDSV			;Will store the 6 bytes here
 	LD	BC,600H+DATA		;6 bytes in B, Data port in C below
 	CALL	WAIT_ON			;Enable hardware wait states
@@ -2120,15 +2119,17 @@ RDSC_1: LD A, 0AAH
 	LD	(CHIP_CMDSV),A		;Store it in case error flags are to be shown
 	DI				;Just in case
 	OUT	(CMD),A
-	LD A, 0CCH	
+	LD A, 0BBH	
 	OUT (DEBUG), A
 	JR	MM2			;Slight delay
 MM2:	JR	MM3
 MM3:	INIR				;Block input 6 bytes
+	LD A, 0CCH	
+	OUT (DEBUG), A
 	EI
 	CALL	END_ROUTINE		;Wait, turn off wait hware, check status 
-	OUT	(CMD),A
 	LD A, 0DDH	
+	OUT (DEBUG), A
 	RET				;and return
 ;	
 ;
