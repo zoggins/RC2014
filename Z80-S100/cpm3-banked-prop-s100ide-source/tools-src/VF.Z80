@@ -2646,6 +2646,8 @@ RDYCK:	IN	A,(STATUS)	;Drive select delay
 ; Delay for drive select hardware. Different for 8" and 5" drives
 ;
 DELAY:	BIT	5,(IX+HW_BYTE)	;8" or 5"
+	LD A, 011H
+	OUT (DEBUG),A
 	LD	A,39
 	JR	Z,DELAY1  
 	LD	A,60
@@ -2653,6 +2655,8 @@ DELAY1:	LD	B,0
 M0:	DJNZ	M0
 	DEC	A
 	JR	NZ,DELAY1  
+	LD A, 022H
+	OUT (DEBUG),A
 	RET
 ;	
 ; This routine switches the active side of the current disk.
