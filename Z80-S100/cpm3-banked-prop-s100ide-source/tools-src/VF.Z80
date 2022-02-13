@@ -108,8 +108,8 @@
 FALSE	EQU	0
 TRUE	EQU	1
 ;
-CHIP_1795 EQU	TRUE		;<---- RD & WR sector cmd's bit patterns are different for these chips!
-CHIP_1791 EQU	FALSE
+CHIP_1795 EQU	FALSE		;<---- RD & WR sector cmd's bit patterns are different for these chips!
+CHIP_1791 EQU	TRUE
 
 NBYTES	EQU	128		;BYTES PER SECTOR UNIT (eg, *2 FOR 256 BYTE SECTORS)
 LF	EQU	0AH
@@ -147,14 +147,13 @@ IOBYTE	EQU	48H		;Combined drive selection, density, side and size bits for hardw
 ;
 ;	PORTS & COMMANDS FOR FOR 1791 or 1795
 ;
-RSET	EQU	60H		;<----- VERSAFLOPPY BASE PORT ADDRESS (I use Port 50H, SD-Systems uses 60H)
-SELECT	EQU	63H		;DRIVE SELECT PORT
-STATUS	EQU	64H		;STATUS PORT
-TRACK	EQU	65H		;TRACK PORT
-SECTOR	EQU	66H		;SECTOR PORT
-DATA	EQU	67H		;DATA PORT
-CMD	EQU	64H		;COMMAND PORT
-DEBUG	EQU 05H
+RSET	EQU	50H		;<----- VERSAFLOPPY BASE PORT ADDRESS (I use Port 50H, SD-Systems uses 60H)
+SELECT	EQU	53H		;DRIVE SELECT PORT
+STATUS	EQU	54H		;STATUS PORT
+TRACK	EQU	55H		;TRACK PORT
+SECTOR	EQU	56H		;SECTOR PORT
+DATA	EQU	57H		;DATA PORT
+CMD	EQU	54H		;COMMAND PORT
 ;
 ;Note: the 1791/5 chip for most commands used bits 0&1 to set the head
 ;motor stepping rate. 00 being 3ms (@2MH clock),11 being 15 ms. My
@@ -2017,13 +2016,9 @@ HOME2:	IN	A,(STATUS)
 	AND	A,1
 	JR	NZ,HOME2		;Wait until 1791/5 is ready
 	CALL	WAIT_OFF		;Disable Wait State Hardware (just in case it is on)
-	LD A, 088H
-	OUT (DEBUG),A
 	LD	A,RSCMD
 	LD	(CHIP_CMDSV),A		;Store it in case error flags are to be shown
 	OUT	(CMD),A
-	LD A, 099H
-	OUT (DEBUG),A
 	CALL	END_ROUTINE		;Wait, check status and return
 	RET
 ;
@@ -2106,13 +2101,9 @@ BAD_SEEK:
 ;
 READ_ID:LD	A,ID_ERR_MASK
 	LD	(ERMASK),A		;Store for error display
-RDSC_1: LD A, 0AAH	
-	OUT (DEBUG), A
-	IN	A,(STATUS)
+RDSC_1:	IN	A,(STATUS)
 	AND	A,1
 	JR	NZ,RDSC_1		;wait until 1791/5 is ready
-	LD A, 0BBH	
-	OUT (DEBUG), A
 	LD	HL,IDSV			;Will store the 6 bytes here
 	LD	BC,600H+DATA		;6 bytes in B, Data port in C below
 	CALL	WAIT_ON			;Enable hardware wait states
@@ -2120,15 +2111,11 @@ RDSC_1: LD A, 0AAH
 	LD	(CHIP_CMDSV),A		;Store it in case error flags are to be shown
 	DI				;Just in case
 	OUT	(CMD),A
-	LD A, 0CCH	
-	OUT (DEBUG), A
 	JR	MM2			;Slight delay
 MM2:	JR	MM3
 MM3:	INIR				;Block input 6 bytes
 	EI
 	CALL	END_ROUTINE		;Wait, turn off wait hware, check status 
-	OUT	(CMD),A
-	LD A, 0DDH	
 	RET				;and return
 ;	
 ;
@@ -2577,8 +2564,6 @@ END_ROUTINE:
 	PUSH	HL
 	LD	BC,0
 	LD	E,STATUS_DELAY	;time out about 5 seconds
-	LD A, 0EEH	
-	OUT (DEBUG), A
 ENDR2:	IN	A,(STATUS)	;Wait until chip is not busy
 	AND	A,1
 	JR	Z,ENDR2_OK
@@ -2646,8 +2631,6 @@ RDYCK:	IN	A,(STATUS)	;Drive select delay
 ; Delay for drive select hardware. Different for 8" and 5" drives
 ;
 DELAY:	BIT	5,(IX+HW_BYTE)	;8" or 5"
-	LD A, 011H
-	OUT (DEBUG),A
 	LD	A,39
 	JR	Z,DELAY1  
 	LD	A,60
@@ -2655,8 +2638,6 @@ DELAY1:	LD	B,0
 M0:	DJNZ	M0
 	DEC	A
 	JR	NZ,DELAY1  
-	LD A, 022H
-	OUT (DEBUG),A
 	RET
 ;	
 ; This routine switches the active side of the current disk.
