@@ -2230,11 +2230,11 @@ VF      Z80
  2119 0ED2  32 3939     	LD	(CHIP_CMDSV),A		;Store it in case error flags are to be shown
  2120 0ED5  F3          	DI				;Just in case
  2121 0ED6  D3 64       	OUT	(CMD),A
- 2122 0ED8  3E BB       	LD A, 0BBH	
- 2123 0EDA  D3 05       	OUT (DEBUG), A
- 2124 0EDC  18 00       	JR	MM2			;Slight delay
- 2125 0EDE  18 00       MM2:	JR	MM3
- 2126 0EE0  ED B2       MM3:	INIR				;Block input 6 bytes
+ 2122 0ED8  18 00       	JR	MM2			;Slight delay
+ 2123 0EDA  18 00       MM2:	JR	MM3
+ 2124 0EDC  3E BB       MM3:	LD A, 0BBH	
+ 2125 0EDE  D3 05       	OUT (DEBUG), A
+ 2126 0EE0  ED B2       	INIR				;Block input 6 bytes
  2127 0EE2  3E CC       	LD A, 0CCH	
  2128 0EE4  D3 05       	OUT (DEBUG), A
  2129 0EE6  FB          	EI

@@ -2119,11 +2119,11 @@ RDSC_1: LD A, 0AAH
 	LD	(CHIP_CMDSV),A		;Store it in case error flags are to be shown
 	DI				;Just in case
 	OUT	(CMD),A
-	LD A, 0BBH	
-	OUT (DEBUG), A
 	JR	MM2			;Slight delay
 MM2:	JR	MM3
-MM3:	INIR				;Block input 6 bytes
+MM3:	LD A, 0BBH	
+	OUT (DEBUG), A
+	INIR				;Block input 6 bytes
 	LD A, 0CCH	
 	OUT (DEBUG), A
 	EI
