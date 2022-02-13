@@ -15,6 +15,8 @@ Clock 1: 7.XXXX
 
 == RC2014 YM/AY Sound Card ==
 F:TUNE C:ATTACK.PT3
+JP5 is 1-2 for TrueTone
+JP5 is 2-3 for Stock
 
 == Yellow MSX Series for RC2014 - GAME ==
 To Test Audio:
@@ -34,3 +36,9 @@ C:MSCKEYB.COM
 
 == Bubble Display Module ==
 C:HELLO.COM or C:ANIM.COM or C:HEART.COM or C:SCROLL.COM
+
+== ESP 2866 ==
+Conn LED = gpio 4
+Serial LED = gpio 5
+Must have RX Pull-up off
+Putty Config: https://groups.google.com/g/rc2014-z80/c/EZHskvJvUZA/m/UEiPqc0NAwAJ
