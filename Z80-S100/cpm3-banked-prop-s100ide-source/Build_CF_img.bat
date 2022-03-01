@@ -34,6 +34,7 @@ cpmcp -f s100ide cpm3-banked-prop.img ./S100-TOOLS/*.* 1:
 cpmcp -f s100ide cpm3-banked-prop.img ./WS4-FILES/*.* 2:
 cpmcp -f s100ide cpm3-banked-prop.img ./BASIC-FILES/*.* 3:
 cpmcp -f s100ide cpm3-banked-prop.img ./GAMES/*.* 4:
+cpmcp -f s100ide cpm3-banked-prop.img ./vf2-cpm-bios/*.* 5:
 
 pause
 

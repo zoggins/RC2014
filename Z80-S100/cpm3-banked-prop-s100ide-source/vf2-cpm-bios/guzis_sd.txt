@@ -1,0 +1,173 @@
+Optimizing 8080 FDC code for double density, Submitted by Chuck Guzis
+----------------------------------------------------------------------
+
+During June 2006 I had some discussion with Chuck Guzis of Sydex, about 
+optimizing some 8080 code to access a floppy controller chip. The code was
+provided to me by Bruce Jones, base on his original work with the SD Systems
+Versafloppy II S-100 card for that company many years ago. Links to Bruce's work
+and discussion of the Versafloppy II are on the SD Systems page of my 
+S-100 Web site:
+
+http://www.retrotechnology.com/herbs_stuff/s_sd.html
+
+These notes and other similar notes are linked on that page.
+
+Herb Johnson
+
+
+From Chuck Guzis, June 1 2006:
+------------------------------
+
+Hi Herb,
+
+I was reading your page on PIO floppy transfers on the Versafloppy at
+
+http://www.retrotechnology.com/herbs_stuff/sdfdc.html
+
+and I noted this item for 8080 data transfers, with a note that DD data transfers
+ with a 2MHz 8080 using programmed I/O wasn't possible.
+
+floppy$byte:                  clocks    2mhz
+IN   fdcport    ;FDC port      10        5 uS
+MOV  M,A        ;buffer         7        3.5 uS
+INX  H          ;next loc.      7        3.5 uS
+JMP  floppy$byte               10        5 uS
+
+Total                          34        17 uS
+
+I'm surprised that you didn't carry this forward with a bit of loop
+unrolling for this result:
+
+floppy$byte:                  clocks    2mhz
+IN   fdcport    ;FDC port      10        5 uS
+MOV  M,A        ;buffer         7        3.5 uS
+INX  H          ;next loc.      7        3.5 uS
+IN   fdcport    ;FDC port      10        5 uS
+MOV  M,A        ;buffer         7        3.5 uS
+INX  H          ;next loc.      7        3.5 uS
+IN   fdcport    ;FDC port      10        5 uS
+MOV  M,A        ;buffer         7        3.5 uS
+INX  H          ;next loc.      7        3.5 uS
+IN   fdcport    ;FDC port      10        5 uS
+MOV  M,A        ;buffer         7        3.5 uS
+INX  H          ;next loc.      7        3.5 uS
+JMP  floppy$byte               10        5 uS
+
+Total                          106       53 uS
+
+...or about 13 uS per byte--and just under the window for DD data transfers.
+Unrolling the transfer loop more produces rapidly decreasing returns.
+The cost is a modest 12 additional bytes.
+
+Yes, I know that I'm beating a dead horse 30 years after the fact, but some
+basic optimization tricks never change.
+
+From Herb Johnson:
+------------------
+
+But customers still download this code, and they still buy Versafloppy II controllers,
+and some comp.os.cpm members still want to build systems from old chips! Bruce 
+wrote only that his particular code would not work. I'll edit his description
+so that it is specific to his code; and I'll include your code and comments above.
+
+Note, however, that every four reads a 10us delay due to the jump occurs,
+as described by Bruce. That delay can be avoided by unrolling the entire
+sector read, if you have the code space to do so.
+
+Loop unrolling is a useful strategy, but sometimes you have to unroll the WHOLE
+loop, seems to me. In other code and documents provided by Bruce, he also unrolls
+loops. And, he goes on to say there are other solutions like using DMA. I suppose
+you could also change the crystal from 4MHz to say 5MHz, run at 2.5MHz clock,
+and gain back enough time to make the 17us window?
+
+
+Reply from Chuck:
+------------------
+
+Hi Herb,
+
+Let's try another variation of the 8080 code by getting rid of that ugly 10-cycle
+JMP:
+
+        LXI     D,sector$buffer
+        LXI     H,floppy$byte
+floppy$byte:                            clocks    2mhz
+        IN      fdcport    ;FDC port      10        5 uS
+        STAX    D          ;buffer         7      3.5 uS
+        INX     D          ;next loc.      7      3.5 uS
+        PCHL                               5      2.5 uS
+                                          29     14.5 uS
+
+Can we do any better?  Well, believe it or not, the cat's still not bald yet.
+ But we have to resort to a little subterfuge.  Still, when one's desperate,
+anything goes.  Let's get rid of the INX instruction and save 6 cycles:
+
+
+        LXI     H,floppy$byte
+floppy$byte:                            clocks    2mhz
+        IN      fdcport    ;FDC port      10        5 uS
+        PUSH    PSW        ;store 2 bytes 11      5.5 uS
+        PCHL               ;loop           5      2.5 uS
+                                          26       13 uS
+
+So what does this do?  Well, it stores the sector data on the stack in reverse
+order in every other byte.  The price of this is twofold.  We need enough stack
+space to store twice the number of bytes in a sector and we need to follow this
+up with a loop to clean things up, but that's not timing critical.  Something
+like this would do:
+
+	LXI		H,Buffer+Sector$Length
+	LXI		B,Sector$Length
+Clean$up:
+	DCX		H		; Begin at the end of buffer
+	POP		PSW		; Get a sector byte
+	MOV		M,A		; store it 
+	DCX		B		; keep count
+	MOV		A,B
+	ORA		C
+	JNZ		Clean$Up	; loop
+
+But why waste half the bytes in memory?
+
+        LXI     H,floppy$byte
+floppy$byte:                            clocks    2mhz
+        IN      fdcport    ;FDC port      10        5 uS
+        MOV     B,A                        5      2.5 uS
+        IN      fdcport    ;FDC port      10        5 uS
+        MOV     C,A                        5      2.5 uS
+        PUSH    B          ;store 2 bytes 11      5.5 uS
+        PCHL               ;loop           5      2.5 uS
+                                          46     23.0 uS
+
+Or, 11.5 uS per byte.  If we unroll the loop to transfer a complete 256 byte
+DD sector, the time per byte drops to 10.25 uS per byte.  I don't think that
+it's possible to do better than that with programmed I/O, but I'm open to a
+challenge!
+
+This being said, the floppy controller on my S-100 box is the one from Don
+Tarbell, which, while it uses PIO to do data transfer, does not support
+double density.
+
+DMA is definitely the way to go, if you have that capability. 
+
+Take whatever you want from this little exercise.
+
+Enjoy!
+Chuck
+
+Herb replies:
+-------------
+
+Some of these considerations were also discussed by Fred Scipione, and I've
+posted his notes at:
+
+http://www.retrotechnology.com/herbs_stuff/scipione.txt
+
+Also, Bruce reviews similar considerations in text files associated with his 
+Versafloppy II code. Some of that code is on my site in a Zip file at:
+
+http://www.retrotechnology.com/herbs_stuff/sdbios.zip
+
+So with your permission, I'll post your methods as another note! OK?
+
+Herb Johnson

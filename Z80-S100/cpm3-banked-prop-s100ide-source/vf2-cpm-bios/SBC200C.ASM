@@ -1,0 +1,618 @@
+;********************************************
+;*           SBC200C   MONITOR              *
+;*          BRUCE JONES 12/10/03            *
+;********************************************
+
+;LOCATED AT E000H
+;USES SBC-200 USART FOR CONSOLE I/O
+
+;***************** BOOT CODES ARE *****************
+
+	
+
+;**************** MONITOR COMMANDS *****************
+
+; A BOOT FV II DRIVE 0
+; B BOOT FV II DRIVE 1
+; 1 BOOT FV II DRIVE 0 FROM ROM
+; 2 BOOT FV II DRIVE 1 FROM ROM
+; D XXXXH YYYYH  DUMP MEMORY FROM XXXX TO YYYY
+; E XXXXH EXAMINE MEMORY LOC XXXX
+; I INPUT FROM PORT AND SHOW HEX DATA
+; K ECHO KEYBOARD INPUT
+; O OUTPUT TO PORT HEX DATA
+; P PROGRAM RAM STARTING FROM CURRENT LOCATION
+; R RUN A PROGRAM FROM CURRENT LOCATION
+; 'ESCAPE' STOP CURRENT MODE AND WAIT FOR NEW COMMAND
+
+
+	.Z80
+	.PHEX
+	.PABS
+	.XLINK
+	.XSYM
+	.LOC	0E000H
+
+
+; BASIC OPERATIONAL VALUES
+
+	STAK	==	0FFFFH	;MONITOR STACK
+	BSLOC	==	4000H	;WHERE THE BOOTSTRAP ROUTINE GOES
+
+
+; PI/O DISK CONTROLLER DATA
+
+	DCMD	==	63H	;FDC CONTROL PORT
+	WDC	==	64H	;FDC BASE ADDRESS
+	WCMD	==	WDC+0	;FDC COMMAND REG
+	WSTAT	==	WDC+0	;FDC STATUS REG
+	WTRACK	==	WDC+1
+	WSECT	==	WDC+2	;FDC SECTOR REG
+	WDATA	==	WDC+3	;FDC DATA REG
+
+;179X COMMAND VALUES
+
+	RES	==	0BH	;RESTORE
+	SEEK	==	1BH	;SEEK NO VERIFY
+	READ	==	8CH	;READ NO SIDE COMPARE
+	WRITE	==	0ACH	;WRITE NO SIDE COMPARE
+	INT	==	0D0H	;FORCE INTERRUPT
+
+	DENS	==	01111110B ;INITIAL BOOT BYTE
+	HOME	==	0	;HOME TRACK VALUE
+	TRAK	==	0	;DESTINATION TRACK
+	BOOT	==	0	;LOCATION TO JUMP AFTER BOOTSTRAP
+	BCOUNT	==	512	;NUMBER OF BYTES TO READ IN
+
+
+;PIO DISK CONTROLLER CONTROL PORT ( 63H ) INFORMATION
+
+;	7 6 5 4  3 2 1 0
+;	^ ^ ^ ^  ^ ^ ^ ^
+;	: : : :  : : : :--0 = DISK 0 SELECTED
+;	: : : :  : : :----0 = DISK 1 SELECTED
+;	: : : :  : :------0 = DISK 2 SELECTED
+;	: : : :  :--------0 = DISK 3 SELECTED
+;	: : : :-----------1 = LOWER HEAD
+;	: : :-------------0 = 
+;	: :---------------0 = 
+;	:-----------------0 = WAIT STATE
+
+
+	CR	==	0DH
+	LF	==	0AH
+	ESC	==	1BH
+
+
+BEGIN:
+CJMP:   JMP  	MON0	;GO TO MONITOR
+MON0:	
+MON:	IN	7FH	;RESET ROM F.F. ON CPU
+        LXI  	SP,STAK	;STACK HERE IN SCRATCH RAM
+	MVI	A,7EH	;SET FLOPPY DRIVE 0 SELECT
+	OUT	63H
+	MVI	A,0D0H	;RESET F.D. CONTROLLER
+	OUT	64H
+
+
+;	SET UP BAUD CLOCK IN CTC FOR SERIAL PORT
+
+	MVI	A,45H
+	OUT	78H
+	MVI	A,0DH
+	OUT	78H
+
+
+; SET UP FOR CONSOLE I/O NEXT
+; SET THE USART FOR ASYNC OPERATION, 16X CLOCK
+; HAVE TO SET IT TWICE FOR SOME REASON
+; INTEL 8251 MANUAL MENTIONS GARBAGE IN COMMAND
+; REGISTER AT POWER-ON
+
+	MVI	B,2
+ULOP:
+	MVI	A,4EH
+	OUT	7DH
+	MVI	A,37H
+	OUT	7DH
+	DCR	B
+	JNZ	ULOP
+
+	IN	7CH	;INTEL SAYS DO ONE UNCONDITIONAL READ
+			;AFTER SETUP
+
+
+;	SET DEFAULT I/O TO SYSTEM SCREEN & KEYBOARD
+;	SHOWN HERE FOR USART
+
+	EXX
+	LXI	D,7D7CH			;D HAS STATUS PORT, E HAS DATA PORT
+	LXI	H,0201H			;H HAS K.B. MASK, L HAS XMIT MASK
+	EXX
+
+
+READY4:
+	XRA	A
+	CALL	MSG	;SHOW WE'RE HERE
+	.BYTE	CR,LF
+	.ASCIS	\SBC200 V 2.2 Ready\
+
+
+;*******************************************************
+;*              COMMAND CHECK ROUTINE
+;*     READ THE KEYBOARD & EXECUTE VALID COMMANDS
+;*******************************************************
+
+CHEK:
+   	LXI	SP,STAK	;RESET ON ESCAPE
+	CALL 	CRLFA	;CR,LF,>
+        CALL 	KIN	;GET KEYBOARD DATA
+        CPI  	'E'	;IS IT "E" (y/n)
+        JRZ   	EXAM	;IF YES GO EXAMINE ROUTINE
+        CPI  	'A'	;IS IT "A" (y/n)
+        JZ   	BOOTA	;IF YES THEN BOOT A
+	CPI	'B'	;IS IT A "B" (y/n)
+	JZ	BOOTB	;BOOT ALTERNATE DISK
+	CPI	'O'	;IS IT AN "O" (y/n)
+	JZ	POUT	;PORT OUTPUT
+	CPI	'1'
+	JZ	BOOTR1
+	CPI	'2'
+	JZ	BOOTR2
+	CPI	'I'	;IS IT AN "I" (y/n)
+	JZ	PIN	;PORT INPUT
+	CPI	'D'	;IS IT A "D" (y/n)
+	JZ	DUMP	;DUMP MEMORY
+	CPI	'K'
+	JRZ	KLOP	;LOOP ON KEYBOARD
+	JMPR	CHEK
+
+KLOP:
+	CALL	KIN
+	JMPR	KLOP
+
+;********************************************************
+;*    READ THE KEYBOARD, & MAKE UPPER-CASE
+;********************************************************
+
+KIN:
+	EXX
+
+	MOV	C,D	;POINT TO STATUS PORT
+KIN1:
+	INP	A	;GET VALUE
+	ANA	H
+	JRZ	KIN1
+	MOV	C,E	;POINT TO DATA PORT
+
+GETCHR:
+	INP	A
+	EXX
+        ANI  	7FH	;STRIP HI BIT
+        CPI  	ESC	;IS IT "ESCAPE" (y/n)
+        JRZ   	CHEK	;IF SO GO BACK
+
+;NOW PRINT K.B. DATA ON SCREEN
+
+	CALL	COUT
+
+UPCASE:
+	CPI	'a'	;KEEP NUMBERS, CONTROLS
+	RC		;AND UPPER CASE
+	CPI	7BH	;SEE IF NOT LOWER CASE
+	RNC
+	ANI	5FH	;MAKE UPPER CASE
+	RET
+
+COUT:   PUSH	PSW	;SAVE CHARACTER
+
+	EXX
+	MOV	C,D	;POINT TO STATUS PORT
+COUT1:
+	INP	A
+	ANA	L
+        JRZ   	COUT1	;RETRY
+	MOV	C,E	;POINT TO DATA PORT
+	POP	PSW
+	PUSH	PSW
+	ANI	7FH
+	OUTP	A
+	POP	PSW
+	EXX
+        RET  		;DONE
+
+
+;*********************************************************
+;*       PRINT CARRIAGE RETURN & LINE FEED
+;*********************************************************
+
+CRLF:
+	CALL	MSG
+	.BYTE	0AH,8DH
+	RET
+
+
+;********************************************************
+;*     ROUTINE TO DISPLAY MEMORY IN EXAMAINE MODE
+;********************************************************
+
+EXAM:   CALL 	CRLF	;SHOW EXAMINE READY
+        CALL 	LDHL	;LOAD IN HL REGS.
+EXAM1:  CALL 	CRLF	;SHOW READY
+DHLD:   CALL 	PHLD	;PRINT HL & DATA
+ECK:    CALL 	KIN	;CHECK THE K.B.
+	INX	H	;READY FOR NEXT LOCATION
+	CPI	' '	;A SPACE (y/n)
+	JRZ	EXAM1
+	DCX	H	;RESET IF NOT NEXT
+	CPI	'R'
+	JRNZ	SEEP
+	PCHL
+SEEP:	CPI  	'P'	;IS IT A "P" (y/n)
+        JRNZ   	ECK	;IF YES GO PROGRAM
+
+
+;****************************************************
+;*        'PROGRAM' THE MEMORY LOCATION
+;*         & INCREMENT TO THE NEXT ONE
+;****************************************************
+
+PROG:
+   	CALL 	CRLF	;SHOW READY
+        CALL 	PHL	;GO PRINT ADDRESS
+	CALL	SPACE
+        CALL 	HEXIN	;GET K.B. DATA
+        MOV  	M,A	;STORE IT
+        CALL 	PDAT	;GET DATA FROM RAM & PRINT IT
+        INX  	H	;POINT NEXT
+        JMPR  	PROG	;AND REPEAT IT
+
+
+;*****************************************************
+;*      GET TWO BYTES OF HEX DATA FROM K.B.
+;*        & RETURN WITH THEM IN HL REGS
+;*****************************************************
+
+LDHL:
+   	CALL 	HEXIN	;GET K.B. AND MAKE HEX
+        MOV  	H,A	;THATS THE HI BYTE
+	CALL 	HEXIN	;DO HEX AGAIN
+        MOV  	L,A	;THATS THE LOW BYTE
+        RET		;GO BACK WITH ADDRESS  
+
+
+;*****************************************************
+;*        GET K.B. DATA & MAKE IT 'HEX'
+;*****************************************************
+
+HEXIN:
+  	PUSH 	B	;SAVE BC REGS.
+        CALL 	NIBL	;DO A NIBBLE
+        RLC		;MOVE FIRST BYTE UPPER NIBBLE  
+        RLC  
+        RLC  
+        RLC  
+        MOV  	B,A	;SAVE ROTATED BYTE
+        CALL 	NIBL	;DO NEXT NIBBLE
+        ADD  	B	;COMBINE NIBBLES IN ACC.
+        POP  	B	;RESTORE BC
+        RET		;DONE  
+NIBL:   CALL 	KIN	;GET K.B. DATA
+        CPI   	40H	;TEST FOR ALPHA
+	JRNC	ALPH
+	ANI	0FH	;GET THE BITS
+	RET
+ALPH:
+	ANI	0FH
+	ADI	09H	;MAKE IT HEX A-F
+	RET
+
+
+;**************************************************
+;*      PRINT THE HL REGS & THE DATA AT
+;*      THE LOCATION POINTED TO BY SAME
+;**************************************************
+
+PHLD:   CALL 	PHL	;GO PRINT HL
+PDAT:  	CALL 	SPACE	;PRINT A SPACE
+	MOV  	A,M	;GET THE DATA
+
+
+;**************************************************
+;*      PRINT THE ACCUMULATOR CONTENTS AS
+;*           HEX DATA ON THE SCREEN
+;**************************************************
+
+HXOUT:  PUSH 	B	;SAVE BC
+	MOV	B,A
+        RLC		;DO HIGH NIBBLE FIRST  
+        RLC  
+        RLC  
+        RLC  
+        ANI  	0FH	;ONLY THIS NOW
+        ADI  	30H	;TRY A NUMBER
+        CPI  	3AH	;TEST IT
+        JRC   	OUT1	;IF CY SET PRINT 'NUMBER'
+        ADI  	07H	;MAKE IT AN ALPHA
+
+OUT1:   CALL 	COUT	;SCREEN IT
+        MOV  	A,B	;NEXT NIBBLE
+        ANI  	0FH	;JUST THIS
+        ADI  	30H	;TRY A NUMBER
+        CPI  	3AH	;TEST IT
+        JRC   	OUT2	;PRINT 'NUMBER'
+        ADI  	07H	;MAKE IT ALPHA
+
+OUT2:   CALL 	COUT	;SCREEN IT
+        POP  	B	;RESTORE BC
+	RET
+
+;***************************************************
+;*      PRINT A SPACE CHARACTER ON THE SCREEN
+;***************************************************
+
+SPACE:
+	PUSH	PSW
+ 	MVI  	A,20H	;LOAD A "SPACE"
+        CALL 	COUT	;SCREEN IT
+	POP	PSW
+        RET		;DONE  
+
+
+;**************************************************
+;*      PRINT THE HL REGS ON THE SCREEN
+;**************************************************
+
+PHL:    MOV  	A,H	;GET HI BYTE
+        CALL 	HXOUT	;DO HEX OUT ROUTINE
+        MOV  	A,L	;GET LOW BYTE
+        CALL 	HXOUT	;HEX IT
+	CALL	SPACE
+        RET		;DONE  
+
+
+;**************************************************
+;*      WRITE A BYTE TO SPECIFIED PORT
+;**************************************************
+
+POUT:
+POUT1:
+	CALL	CRLF
+	CALL	HEXIN	;GET PORT
+	MOV	C,A	;SAVE PORT POINTER
+	CALL	SPACE
+	CALL	HEXIN	;GET DATA
+OUTIT:
+	OUTP	A
+	JMP	CHEK
+
+;**************************************************
+;*       GET DATA FROM SPECIFIED PORT AND
+;*          DISPLAY IT ON THE SCREEN
+;**************************************************
+
+PIN:	CALL	CRLF
+	CALL	HEXIN	;GET PORT
+	MOV	C,A	;SAVE PORT POINTER
+	CALL	SPACE
+	INP	A	;GET DATA
+	CALL	HXOUT	;SHOW IT
+	JMP	CHEK		
+
+
+;******************************************************
+;*      PRINT CARRIAGE RETURN, LINE FEED & >
+;******************************************************
+
+CRLFA:
+	CALL	MSG
+	.BYTE	CR,LF,'>'+80H
+        RET		;DONE		  
+
+
+;*******************************************************
+;*             MESSAGE PRINT ROUTINE
+;*******************************************************
+
+
+MSG:	XTHL		;GET MESSAGE LOCATION FROM STACK
+..LOOP:	MOV	A,M	;GET THE BYTE
+	INX	H	;POINT TO NEXT
+	CALL	COUT	;SCREEN IT
+	ORA	A	;LAST CHAR TEST
+	JP	..LOOP	;NO DO NEXT
+	XTHL		;RESTORE STACK
+	RET		;ELSE DONE
+
+RAWINP:
+	EXX
+	MOV	C,E
+	INP	A
+	ANI	01011111B
+	EXX
+	RET
+
+
+;****************************************************
+;              DUMP MEMORY ROUTINE
+;****************************************************
+
+
+DUMP:
+	LXI	SP,STAK
+	CALL	CRLF	;SHOW READY
+	CALL	LDHL	;GET START ADDRESS
+	PUSH	H	;SAVE START
+	CALL	SPACE
+	CALL	LDHL	;GET END ADDRESS
+	INX	H	;ADD ONE MORE FOR LATER COMPARE
+	XCHG		;PUT END ADDRESS IN DE	
+	POP	H	;GET BACK START
+
+GDATA:	CALL	CRLF	
+
+BLKRD:
+	CALL	PHL	;PRINT START LOCATION
+	MVI	C,16	;SET FOR 16 LOCS
+	PUSH	H	;SAVE STARTING HL
+NXTONE:
+
+	EXX
+	MOV	C,E
+	INP	A
+	EXX
+	ANI	7FH
+	CPI	ESC
+	JZ	CHEK
+	CPI	19
+	JRZ	NXTONE
+	
+	MOV	A,M	;GET BYTE
+	CALL	HXOUT	;PRINT IT
+	CALL	SPACE
+
+UPDH:	INX	H	;POINT NEXT
+	DCR	C	;DEC. LOC COUNT
+	JRNZ	NXTONE	;IF LINE NOT DONE
+
+;NOW PRINT 'DECODED' DATA TO RIGHT OF DUMP
+
+
+PCRLF:	CALL	SPACE	;SPACE IT
+	
+	MVI	C,16	;SET FOR 16 CHARS
+	POP	H	;GET BACK START
+
+PCRLF0:	MOV	A,M	;GET BYTE
+	ANI	060H	;SEE IF A 'DOT'
+	MOV	A,M	;O.K. TO GET
+	JRNZ	PDOT
+DOT:	MVI	A,2EH	;LOAD A DOT	
+PDOT:	CALL	COUT	;PRINT IT
+	INX	H
+
+	MOV	A,D
+	CMP	H
+	JRNZ	UPDH1
+	MOV	A,E
+	CMP	L
+	JZ	CHEK
+
+;IF BLOCK NOT DUMPED, DO NEXT CHARACTER OR LINE
+	
+UPDH1:
+	DCR	C	;DEC. CHAR COUNT
+	JRNZ	PCRLF0	;DO NEXT
+CONTD:
+	CALL	CRLF
+	JMP	BLKRD
+				
+
+;*******************************************************
+;*              FLOPPY DISK BOOT FOLLOWS
+;*******************************************************
+;*         BOOTA BOOTS FROM DRIVE A, 8"
+;*******************************************************
+;*         BOOTB IS USED TO BOOT FROM DRIVE B
+;*******************************************************
+
+BOOTB:
+	MVI	A,7DH
+	JMP	BOOTE
+BOOTA:
+	MVI	A,7EH
+BOOTE:
+        OUT  	DCMD	;WRITE TO DRIVE CONTROL PORT
+
+;RELOCATE BOOTSTRAP TO MAIN RAM
+;AND JUMP TO IT
+
+	LXI	H,BOOTS
+	LXI	D,BSLOC
+	LXI	B,BSLEN
+	LDIR
+	JMP	BSLOC
+	
+BOOTS:
+;SHUT OFF SBC-200 RAM/ROM
+	
+	MVI	A,2
+	OUT	7FH
+
+RETRY:
+..HOME:
+	MVI	A,0BH	;RESTORE THE DISC DRIVE
+	OUT	WCMD	;SEND TO CONTROLLER
+
+	MVI	B,200	;DELAY TILL VALID STATUS
+..WAIT:	DJNZ	..WAIT
+
+..NB:	IN	WSTAT	;GET STATUS
+	BIT	0,A	;BUSY (y/n)
+	JRNZ	..NB	;YES,KEEP WAITING
+
+; NOW READ BOOT SECTOR
+
+	MVI	A,1	;START WITH SECTOR 1
+	OUT	WSECT	;SET SECTOR REG
+SECTOR:
+	LXI	H,BOOT	;WHERE SECTOR STARTS
+	MVI	A,88H	;ISSUE READ SECTOR COMMAND 
+	OUT	WCMD
+	LXI	B,0067H	;SET UP BC FOR PIO READ NEXT
+	INIR		;DO PIO SECTOR READ
+	INIR
+
+	MVI	B,200	;DELAY TILL VALID STATUS
+..WAIT:	DJNZ	..WAIT
+
+..NB:	IN	WSTAT	;GET STATUS
+	BIT	0,A	;BUSY (y/n)
+	JRNZ	..NB	;YES,KEEP WAITING
+	ANI	9DH	;WAS READ SUCCESSFUL(y/n)
+	JZ	BOOT	;GET SYSTEM
+	JMPR	RETRY
+
+	BSLEN	==	.-BOOTS
+
+
+
+; BOOT FROM WITHIN ROM
+; CPM MUST FIT BELOW ONBOARD RAM/ROM
+
+BOOTR2:
+	MVI	A,7DH
+	JMP	BOOTRE
+BOOTR1:
+	MVI	A,7EH
+BOOTRE:
+        OUT  	DCMD	;WRITE TO DRIVE CONTROL PORT
+	JMP	RETRY
+
+
+NEND:	.LOC	.
+
+
+
+
+
+	.RADIX	10
+
+
+	.IF1,[
+	.DEFINE LEFMEM[XX]=[
+
+
+	.PRNTX	/XX BYTES OF ROM LEFT/
+
+	]
+
+	LEFMEM	\(BEGIN+1024)-NEND
+
+	]
+
+
+
+	.END
+
+

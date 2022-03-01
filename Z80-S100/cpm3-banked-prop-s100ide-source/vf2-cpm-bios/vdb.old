@@ -1,0 +1,1089 @@
+;Date: Tue, 30 Dec 2003 03:21:20 -0500
+;From: Bruce Jones
+;Subject: VDB-8024 with Line Insert, Line Delete, EOL & EOS
+;040401 HRJ minor text error repaired,
+;
+;*****************************************************
+;*       VIDEO DISPLAY BOARD CONTROL PROGRAM
+;*
+;*             VERS. 11	11/11/82
+;*****************************************************
+
+
+;   USE TDL ZASM ASSEMBLER
+
+
+	.LOC	0
+	.PABS
+	.PHEX
+	.Z80
+	.XLINK
+	.XSYM
+
+
+
+BLTYP	==	0
+
+;0 IF S-100, 1 IF INSIDE A CONSOLE WITH SERIEAL CONVERTER
+
+    \
+
+
+;********************* AUXILIARY PORTS **********************
+
+CPORT	==	10H	;CONTROL PORT LATCH
+DATIN	==	20H	;KEYBOARD PORT
+RDYPRT	==	30H	;KEYBOARD READY F.F.
+
+
+
+;************** 5027 CONTROL PORTS & REGISTERS **************
+
+CB	==	80H	;BASE PORT ADDRESS
+
+HORLC	==	CB+0	;HORIZONTAL LINE COUNT
+HORDT	==	CB+1	;HOR. SYNC WIDTH, SYNC DELAY, INTERLACE
+ROWDT	==	CB+2	;SCANS/DATA ROW, CHARS./DATA ROW
+ROWFRM	==	CB+3	;SKEW BITS, DATA ROWS/FRAME
+SCNFRM	==	CB+4	;SCAN LINES/FRAME
+VERST	==	CB+5	;VERTICAL DATA START LINE
+LASTRW	==	CB+6	;LAST DISPLAYED DATA ROW
+CURCOL	==	CB+0CH	;CURSOR COLUMN ADDRESS
+CURROW	==	CB+0DH	;CURSOR ROW ADDRESS
+
+RSTREG	==	CB+0AH	;5027 RESET REG.
+TCHAIN	==	CB+0EH	;TIMMING CHAIN START REG.
+
+
+
+;*********** 5027 PARAMETERS USED FOR THIS VERSION ***********
+
+HLVAL	==	01100101B ;VALUE HORIZONTAL LINE COUNT
+HLDAT	==	01011011B ;VALUE INTERLACE, HOR. SYNC WIDTH & HOR. DELAY
+SCNDAT	==	01001101B ;VALUE SCANS/DATA ROW & CHARS./DATA ROW
+FRMDT1	==	11010111B ;VALUE SKEW BITS & DATA ROWS/FRAME
+FRMDT2	==	00000011B ;VALUE SCAN LINES/FRAME
+VDAT	==	00010110B ;VALUE VERTICAL DATA START LINE
+LASTDT	==	00010111B ;VALUE LAST DISPLAYED ROW
+CURNIT	==	00000000B ;INITIAL CURSOR X-Y VALUE
+	
+
+
+;************ PARAMETERS FOR THIS 24 X 80 SCREEN **************
+
+BOS	==	24	;BOTTOM LINE ON SCREEN (24)
+EOCL	==	80	;END OF CHARACTER LINE (80)
+
+
+;**************** MASK VALUES FOR CONTROL PORT *****************
+
+
+
+
+
+;************************** MODE FLAGS **************************
+
+;	REGISTER L IN ALTERNATE REG. SET HAS MODE FLAGS SET
+
+;	BIT 0		;PROTECT FIELD - OPTION
+;	BIT 1		;1 = SCROLL DOWN, 0 = SCROLL UP
+;	BIT 2		;1 = SLOW SCROLL, 0 = FAST SCROLL
+
+;	BIT 7		;ATTRIBUTE FIELD SET
+
+
+;**********************************************************
+;*      	  POWER UP INITIALIZATION
+;**********************************************************
+
+BEGIN:
+	LXI   SP,2000H
+        IN   DATIN	;CLEAR INT. FLOP & BUSREQ
+        IN   RDYPRT	;CLEAR K.B. RDY FLOP
+        EXX  
+        MVI   L,0
+        EXX  
+        CALL INIT
+        CALL CLEAR1
+
+	LXI   H,1000H
+        IM1    		;TO GET TO LOC. 38
+        STC  		;TO SHOW LAST ROUTINE COMPLETED
+        EI   		;WHEN BUSREQ NOT ACTIVE
+        HLT 
+	.BYTE		0FFH,0FFH,0FFH,0FFH,0FFH,0FFH
+	.BYTE		0FFH,0FFH,0FFH,0FFH,0FFH,0FFH
+	.BYTE		0FFH,0FFH,0FFH,0FFH,0FFH,0FFH
+	.BYTE		0FFH,0FFH,0FFH,0FFH,0FFH,0FFH
+	.BYTE		0FFH,0FFH,0FFH,0FFH
+	
+
+;***********************************************************
+;*	      START OF INTERRUPT SERVICEING
+;***********************************************************
+
+	.LOC	38H
+
+	RNC		;LAST ROUTINE NOT COMPLETED
+        POP  	Y	;FIX STACK
+        IN   	DATIN	;GET K.B. CHAR
+        RES  	7,A	;CLEAR BIT 7
+	CPI	20H	;SEE IF A CONTROL CHARACTER
+	JRNC	NORM	;IF NOT PUT ON SCREEN
+	JMPR	CTR	;ELSE DO CONTROLS
+
+NORM:
+	EXX
+	BIT	7,L	;SEE IF ENHANCEMENT SET
+	EXX
+	JRZ	TDIS
+	ORI	80H	;SET ENHANCEMENT BIT
+
+TDIS:       		;WE KILLED THE DELAY
+	MOV	M,A	;PUT CHARACTER ON THE SCREEN
+NODIS:  INR	D
+CHECK:  MVI	A,EOCL
+        CMP	D	;TEST IF END OF LINE
+        JRZ	LFCR	;IF END THEN MOVE TO NEXT
+        INX	H	;POINT NEXT CHR LOC
+        MOV	A,D
+        OUT  	CURCOL	;UPDATE CURSOR REG
+        STC  		;SHOW COMPLETE
+        EI   		;GET READY FOR NEXT INT.
+        HLT 
+	
+
+;*****************************************************
+;*           CONTROL CHARACTER INDEX
+;*****************************************************
+
+CTR:
+	LXI	Y,HLTA 	;RETURN POINT FROM CONTROLS
+        PUSH Y		;PUSH RETURN ADDRESS IN OTHERWISE UNUSED REG.
+
+	PUSH	H
+	PUSH	D
+
+
+;	INDEX ON CONTROL CHARACTER & JUMP TO ROUTINE
+
+	MVI	D,0		;ZERO MSH
+	LXI	H,CTLTAB	;ENTRY TABLE ADDRESS
+	ADD	A		;MAKE INDEX VALUE
+	MOV	E,A		;MAKE IT 16 BITS
+	DAD	D		;GET ADDRESS
+	MOV	A,M
+	INX	H
+	MOV	H,M
+	MOV	L,A
+	PCHL			;DISPATCH
+
+
+CTLTAB:
+	.WORD	IGNORE		;00, NUL
+	.WORD	EOL		;01, ERASE TO END OF LINE
+	.WORD	EOS		;02, ERASE TO END OF SCREEN
+	.WORD	IGNORE		;03, SKIP
+	.WORD	SC2		;04, CURSOR OFF
+	.WORD	IGNORE		;05, SKIP
+	.WORD	RC2		;06, CURSOR ON
+	.WORD	BELL		;07, RING BELL
+	.WORD	CTRH		;08, BACK SPACE
+	.WORD	TAB		;09, TAB 8 SPACES RIGHT
+	.WORD	LF		;0A, LINE FEED
+	.WORD	HOME		;0B, HOME CURSOR
+	.WORD	IGNORE		;0C, SKIP
+	.WORD	CR		;0D, CARRIAGE RETURN
+	.WORD	RIGHT		;0E, FORESPACE
+	.WORD	UPLINE		;0F, UP ONE LINE
+	.WORD	IGNORE		;10, SKIP
+	.WORD	QUIT		;11, STOP ATTRIBUTE
+	.WORD	RVS		;12, REVERSE VIDEO
+	.WORD	RVB		;13, REVERSE AT HALF INTENSITY
+	.WORD	HALF		;14, HALF INTENSITY
+	.WORD	UND		;15, UNDERLINE
+	.WORD	UNB		;16, UNDELINE AT HALF INTENSITY
+	.WORD	NFD		;17, NO ENHANCEMENT
+	.WORD	INSERT		;18, INSERT LINE
+	.WORD	DELETE		;19, DELETE LINE
+	.WORD	CLEAR		;1A, CLEAR SCREEN
+	.WORD	ESC		;1B, ESCAPE DECODES
+	.WORD	IGNORE		;1C, SET SCROLL UP
+	.WORD	IGNORE		;1D, SET SCROLL DOWN
+	.WORD	IGNORE		;1E, SET FAST SCROLL
+	.WORD	IGNORE		;1F, SET SLOW SCROLL
+
+IGNORE:
+	POP	D
+	POP	H
+	RET
+
+
+
+;****************************************************
+;*           CARRIAGE RETURN/LINE FEED
+;****************************************************
+
+LFCR:
+	CALL 	CR1
+        CALL	LF1
+
+
+
+HLTA:
+	EXAF
+	OUT	CPORT
+	EXAF
+	STC  
+        EI   
+        HLT 
+
+
+;	LINE FEED
+
+LF:
+	POP	D
+	POP	H
+LF1:
+LFDN:
+	MOV   	A,E
+        CMP   	B	;COMPARE WITH LAST ROW DISPLAYED
+        CZ    	SCRUP	;IF SAME GO SCROLL
+        INR  	A
+        CPI   	BOS	;BOTTOM OF SCREEN ?
+        JNZ   	LFRT	;IF SO DO AUTO RETURN
+        MVI  	A,0
+
+LFRT:
+     	MOV   	E,A
+        OUT  	CURROW
+        MOV   	L,D
+        MOV   	H,E
+        RALR  	L
+        RARR   	H
+        RARR  	L
+        SET  	4,H
+	RET
+
+
+
+;	CARRIAGE RETURN
+
+CR:
+	POP	D
+	POP	H
+CR1:
+        MVI  	D,0
+        MOV   	A,D
+        OUT  	CURCOL
+        MVI  	A,80H
+        ANA  	L
+        MOV   	L,A
+        RET  
+
+
+;	BACK SPACE
+
+CTRH:
+	POP	D
+	POP	H
+
+	XRA	A
+        CMP   	D
+        RZ
+        DCR  	D
+        DCX  	H
+        MOV   	A,D
+        OUT  	CURCOL
+        RET  
+
+
+;	SCROLL SCREEN UP
+
+SCRL:
+SCRUP:
+	EXAF
+	BIT	7,A
+	EXAF
+	MVI	A,8
+	JRZ	NOLST
+	MVI	A,08H+80H
+NOLST:
+	OUT	CPORT
+
+        INR  	B
+        MOV   	A,B
+        CPI   	BOS
+        JNZ   	SCR2
+        MVI  	B,0
+ SCR2:  MVI   	L,0
+        MOV   	H,B
+        RARR   	H
+        RARR  	L
+        SET  	4,H
+        MVI  	C,20H
+        MVI  	A,EOCL
+        ADD  	L
+
+SCRLP:
+    	MOV   	M,C
+        INX  	H
+        CMP   	L
+        JNZ   	SCRLP
+        MOV   	A,B
+        OUT  	LASTRW
+	MOV	H,E
+	MOV	L,D
+	RALR	L
+	RARR	H
+	RARR	L
+	SET 	4,H
+	MOV	A,D
+	OUT	CURCOL
+	MOV	A,E
+	OUT	CURROW
+	RET
+
+
+;	CLEAR THE SCREEN
+
+CLEAR:
+	POP	D
+	POP	H
+CLEAR1:
+	EXX
+	RES	7,L		;NO ENHANCEMENT BIT
+	EXX
+
+    	MVI  	A,08H
+	OUT  	CPORT
+        LXI   	H,1000H
+        MVI  	C,20H
+CLR1:   MVI  	A,EOCL
+CLR:    MOV   	M,C
+        INX  	H
+        CMP   	L
+        JNZ   	CLR
+        MVI  	A,0D0H
+CLR2:   MOV   	M,C
+        INX  	H
+        CMP   	L
+        JNZ   	CLR2
+        MVI  	A,1BH
+        CMP   	H
+        JNZ   	CLR1
+        CALL 	HOME1
+        MVI  	A,20H
+        EXAF
+        RET  
+
+
+;	MOVE CURSOR UP ONE LINE
+
+
+UPLINE:
+	POP	D
+	POP	H
+
+	MOV   	A,E
+	CPI   	0
+        JNZ   	UPLP
+        MVI  	A,BOS
+UPLP:   DCR  	A
+        CMP   	B
+        RZ
+        MOV   	E,A
+
+
+
+;	PLACES CURSOR AT POSITION OF DE REG.
+
+
+PLACE:
+    	MOV   	H,E
+        MOV   	L,D
+        RALR  	L
+        RARR   	H
+        RARR  	L
+        SET  	4,H
+        MOV   	A,D
+        OUT  	CURCOL
+        MOV   	A,E
+        OUT  	CURROW
+    	RET  
+
+
+RIGHT:
+	POP	D
+	POP	H
+    	INR  	D
+	POP  	X
+        JMP   	CHECK
+
+HOME:
+	POP	D
+	POP	H
+HOME1:
+        MVI  	D,0
+        MOV   	A,B
+        INR  	A
+        CPI   	BOS
+        JNZ   	HOLP
+        MVI  	A,0
+HOLP:   MOV   	E,A
+        CALL 	PLACE
+        RET  
+
+
+;************************************************
+;*         ESCAPE SEQUENCES CHECKED NEXT
+;*              ESC=YX POSITIONING
+;*         ESC 1 FOR SPECIAL PRINTER I/O 
+;************************************************
+
+
+ESC:
+
+	POP	D
+	POP	H
+  	STC  
+        CMC  		;CLEAR CARRY FOR 
+        EI   		;RETURN AFTER INT.
+        HLT 
+        IN   	DATIN	;GET CHR.
+        RES  	7,A
+        CPI   	'='	;IS IT "=" ?
+	JRZ	ESCUR	;CONTINUE CURSOR
+	JMPR	SEQ123
+
+ESCUR:
+        STC  
+        CMC  
+        EI   
+        HLT 
+        IN   	DATIN	;GET Y VALUE
+        RES  	7,A
+        SBI  	20H
+        RM		
+        CPI   	BOS	;> 24 ?
+        RP		;IF OVER 24 FORGET IT
+        ADD  	B
+        INR  	A
+        CPI   	BOS
+        JM	ESLP
+        SBI  	BOS
+ESLP:   MOV   	C,A
+        STC  
+        CMC  
+        EI   
+        HLT 
+        IN   	DATIN	;GET X VALUE
+        RES  	7,A
+        SBI  	20H
+        RM	
+        CPI   	EOCL	;> 80 ?
+        RP		;IF OVER 80 FORGET IT	
+        MOV   	E,C
+        MOV   	D,A
+        CALL 	PLACE	;PUT AT NEW LOC.
+	RET
+
+
+
+;THIS PRINTER SUPPORT IS ONLY FOR A VDB-8024
+;INSTALLED IN A CONSOLE WITH SERIAL CONVERTER
+;AND HARDWARE TO SUPPORT A PRINTER
+;
+;***************************************************
+;*          CONTROL THE PRINTER I/O
+;*
+;*   A CHR 1 = USE PRINTER ONLY FOR OUTPUT
+;*   A CHR 2 = TURN OFF PRINTER PORT
+;*   A CHR 3 = PRINT ON SCREEN AND PRINTER
+;*
+;***************************************************
+
+
+SEQ123:
+
+
+	CPI	1		;SEE IF LIST ONLY
+	JRZ	PRNTON
+	CPI	3		;SEE IF CON. & LIST
+	JRZ	LSTCON
+	CPI	2		;SEE IF LIST OFF
+	RNZ			;FORGET IT
+
+
+;***************************************************
+;*       TURN OFF THE PRINTER PORT
+;***************************************************
+
+	EXAF			;GET CONTROL BYTE
+	RES	7,A		;TURN OFF PRINTER
+	OUT	CPORT		;PUT IN LATCH
+	EXAF
+	RET
+
+
+;**************************************************
+;*     THE PRINTER PORT IS TURNED ON NEXT
+;*     IF THE NEXT SEQUENCE SENT IS 'ESC 2'
+;*     THE THE PRINTER IS TURNED OFF AND
+;*     NORMAL VIDEO RESUMES
+;************************************************** 
+
+
+PRNTON:
+	EXAF
+	SET	7,A		;TURN ON LIST PORT	
+	OUT	CPORT		;PUT IN LATCH
+	EXAF
+PLOP1:	STC
+	CMC
+	EI
+	HLT
+	IN	DATIN
+	RES	7,A
+	CPI	1BH		;AN ESCAPE ?
+	JRNZ	PLOP1
+	STC
+	CMC
+	EI
+	HLT
+	IN	DATIN
+	RES	7,A
+	CPI	2
+	JRNZ	PLOP1
+	EXAF
+	RES	7,A
+	OUT	CPORT
+	EXAF
+	RET
+
+
+;*************************************************
+;*     TURN ON PRINTER PORT FOR LISTING ON
+;*     SCREEN AND PRINTER
+;*************************************************
+
+LSTCON:
+	EXAF
+	SET	7,A
+	OUT	CPORT
+	EXAF
+	RET
+
+
+
+
+;	TAB OVER 8 SPACES
+
+
+TAB:
+	POP	D
+	POP	H
+	MVI  	A,0F8H
+        ANA  	D
+        ADI  	08H
+        CPI   	EOCL
+        JRZ    	TED
+        MOV   	D,A
+        CALL 	PLACE
+TED:    RET  
+
+;	AF' REG. CONTAINS CONTROL STATUS
+;	ENHANCEMENT FUNCTION CONTROLLED VIA 
+;	PORT 10H
+
+;	BIT 7 FOR PRINTER CONTROL
+;	BIT 6 FOR CONTROL BIT # 1 -- RING BELL
+;	BIT 5 FOR RUNNING TIME
+;	BIT 4 FOR UNDERLINE
+;	BIT 3 FOR BLANKING
+;	BIT 2 FOR REVERSE
+;	BIT 1 FOR BLINK
+;	BIT 0 FOR CONTROL BIT # 2 -- CURSOR ON/OFF
+
+HALF:
+	POP	D
+	POP	H
+     	EXAF
+        ANI  	69H
+        ORI   	22H
+        OUT  	CPORT
+        EXAF
+        JMPR   	ENHAN
+
+RVS:
+	POP	D
+	POP	H
+      	EXAF
+        ANI  	69H
+        ORI   	24H
+        OUT  	CPORT
+        EXAF
+        JMPR   	ENHAN
+RVB:
+	POP	D
+	POP	H
+	EXAF
+        ANI  	69H
+        ORI   	26H
+        OUT  	CPORT
+        EXAF
+        JMPR   	ENHAN
+UND:
+	POP	D
+	POP	H
+	EXAF
+        ANI  	69H
+        ORI   	34H
+        OUT  	CPORT
+        EXAF
+        JMPR   	ENHAN
+QUIT:
+	POP	D
+	POP	H
+QUIT0:
+	EXAF
+        RES  	7,A
+        OUT  	CPORT
+        EXAF
+
+QUIT1:
+    	EXX  
+        RES  	7,L
+        EXX  
+        RET  
+UNB:
+	POP	D
+	POP	H
+      	EXAF
+        ANI  	69H
+        ORI   	36H
+        OUT  	CPORT
+        EXAF
+
+ENHAN:
+    	EXX  
+        SET  	7,L
+        EXX  
+	RET
+
+
+
+;	SET AND RESET CONTROL BITS
+
+
+SC1:
+      	EXAF		;USED FOR BELL ON/OFF
+	SET  	6,A
+        OUT  	CPORT
+        EXAF
+        RET  
+RC1:
+	EXAF
+        RES  	6,A
+        OUT  	CPORT
+        EXAF
+        RET  
+
+SC2:
+	POP	D
+	POP	H
+	EXAF		;USED FOR 1/2 INTENSITY ON/OFF
+        SET  	0,A
+        OUT  	CPORT
+        EXAF
+        RET  
+
+RC2:
+	POP	D
+	POP	H
+	EXAF
+        RES  	0,A
+        OUT  	CPORT
+        EXAF
+        RET  
+
+DELAY:
+	EXX
+	PUSH	D
+	MVI	D,0
+	MVI	E,8
+
+DLP:	DCR	D
+	JRNZ	DLP
+	DCR	E
+	JRNZ	DLP
+	POP	D
+	EXX
+	RET
+
+
+NFD:
+	POP	D
+	POP	H
+	EXAF
+        ANI  	69H
+        SET  	7,A
+        OUT  	CPORT
+        EXAF
+        JMPR      QUIT0
+
+BELL:
+	POP	D
+	POP	H
+
+	CALL	SC1	;TURN ON BELL LATCH
+
+
+	.IFE	BLTYP,[
+
+	CALL	DELAY
+		]
+
+	CALL	RC1	;TURN OFF BELL LATCH
+	RET		;DONE BELL
+
+
+;**********************************************************
+;********************* DELETE A LINE **********************
+;**********************************************************
+
+
+DELETE:
+	MVI	A,8
+	OUT	CPORT
+
+	POP	D
+	POP	H
+	CALL	CR1	;GET TO START OF LINE
+
+	MOV	A,E	;GET CURRENT ROW ( 0 TO 23 )
+	SUB	B	;SEE IF LAST ROW
+	JRZ	EOL1	;IF SO JUST ERASE IT
+
+	PUSH	B	;SAVE ALL POINTERS
+	PUSH	D
+	PUSH	H
+
+	JRNC	SPLITD	;MUST HAVE SCROLLED
+	MOV	A,B	;GET LAST LINE
+	SUB	E	;GET LINES TO MOVE
+	MOV	C,A
+	CALL	DELLOP
+	JMPR	DELDON
+
+
+SPLITD:
+	MVI	A,23	;MAX LINES ON SCREEN
+	SUB	E	;GET # TO MOVE IN UPPER PART
+	JRZ	SPL0	
+	MOV	C,A	;MAKE C COUNTER
+	CALL	DELLOP	;MOVE THAT BLOCK
+
+SPL0:	LXI	H,1000H	;NOW MOVE SPLIT LINES
+	LXI	D,1B80H
+	PUSH	B
+	LXI	B,80
+	LDIR
+	POP	B	;RECOVER LAST LINE REG.
+
+	LXI	H,1000H	;NEXT ADDRESS TO MOVE DATA TO
+	MOV	A,B	;GET LAST LINE #
+	CPI	0	;SEE IF THIS IS IT
+	JRZ	DELDON	;IF SO SKIP LOOP
+
+	MOV	C,A	;ELSE SET LINE COUNTER
+	CALL	DELLOP	;MOVE BLOCK
+
+
+DELDON:
+	MVI	D,0	;SET CURSOR TO START
+	CALL	EOL1	;HL HAS LAST LINE TO JUST ERASE
+		
+	POP	H
+	POP	D
+	POP	B
+	RET
+	
+
+;------------------------------------------------------
+;              DELETE LINE LOOP
+; HL = START OF BLOCK   C = NUMBER OF LINES TO MOVE
+;------------------------------------------------------
+
+DELLOP:
+	PUSH	H	;SAVE START OF BLOCK
+	LXI	D,80H
+	DAD	D	;CREATE ADDRESS OF NEXT LINE (SOURCE)
+	POP	D	;GET BACK DESTINATION
+	PUSH	H	;SAVE NEXT DESTINATION
+	PUSH	B	;SAVE COUNTER
+	LXI	B,80	;BYTES TO MOVE
+	LDIR
+	POP	B
+	POP	H	;RECOVER LAST SOURCE ADDRESS
+	DCR	C
+	JRNZ	DELLOP
+	RET
+
+
+
+;ERASE TO END OF LINE
+
+EOL:
+	MVI	A,8
+	OUT	CPORT
+
+	POP	D
+	POP	H
+EOL1:
+	PUSH	D
+	PUSH	H
+	MVI	C,20H
+ERAS:
+	MOV	M,C	;PUT ON SCREEN
+	INR	D
+	MVI	A,EOCL
+	CMP	D
+	JRZ	EOLE	
+	INX	H	;POINT NEXT CHAR
+	JMPR	ERAS
+EOLE:	POP	H
+	POP	D
+	RET
+
+
+;******************************************************
+;****************** INSERT A LINE *********************
+;******************************************************
+
+INSERT:
+	MVI	A,8
+	OUT	CPORT
+
+	POP	D
+	POP	H
+
+	CALL	CR1	;PUT TO START OF LINE
+	MOV	A,E	;GET CURRENT LINE
+	SUB	B	;TEST WITH LAST
+	JRZ	EOL1	;IF SAME JUST EOL
+
+	PUSH	B
+	PUSH	H
+	PUSH	D	;WE WANT LINE # HANDY
+
+	JRNC	SPLITI	;MUST HAVE A BOUNDARY TO MOVE ACROSS
+
+	MOV	A,B	;GET LAST LINE #
+	SUB	E	;GET LINES TO MOVE
+	MOV	C,A	;MAKE IT COUNTER
+	CALL	GETLST	;GET ADDRESS OF LAST LINE FROM B
+	CALL	INSLOP
+	JMPR	INSEND
+
+
+SPLITI:
+
+;	WE WILL MOVE DOWN LOWER BLOCK FIRST
+
+	MOV	A,B	;GET LAST LINE #
+	CPI	0	;SEE IF 0
+	JRZ	SPLT1	;IF SO WE WILL WRITE OVER IT LATER
+	MOV	C,A	;ELSE SAVE LINES TO MOVE
+	CALL	GETLST	;GET LOWER ADDRESS
+	CALL	INSLOP	;MOVE THIS BLOCK
+
+SPLT1:
+
+;	NOW COPY ACROSS BOUNDARY
+
+	LXI	D,1000H	;DESTINATION ON SPLIT
+	LXI	H,1B80H	;SOURCE ON SPLIT
+	PUSH	B
+	LXI	B,80
+	LDIR
+	POP	B
+	
+
+;	NOW COPY TOP OF SCREEN DOWN
+
+	POP	D	;GET BACK LINE #
+	PUSH	D	;RESAVE IT
+
+	MVI	A,23	;MAX LINES
+	SUB	E	;GET LINES TO MOVE THIS BLOCK
+	JRZ	INSEND	;DON'T HAVE TO MOVE ANY MORE
+	MOV	C,A	;PUT IN C
+
+	LXI	H,1B80H
+	CALL	INSLOP
+
+INSEND:		
+
+	POP	D
+	POP	H
+	POP	B
+	JMPR	EOL1
+	
+GETLST:
+	MVI	L,0
+	MOV	H,B	;GET CURRENT LAST LINE
+	RALR	L
+	RARR	H
+	RARR	L
+	SET	4,H
+	RET
+
+
+;--------------------------------------------------------
+;               INSERT LINE LOOP
+;   HL = START ADDRESS OF LAST LINE  C = LINES TO MOVE
+;-------------------------------------------------------- 
+
+INSLOP:
+	PUSH	H	;SAVE START OF BLOCK
+
+	LXI	D,80H
+	STC		;SET CY
+	CMC		;MAKE SURE ITS ZERO
+	DSBC	D	;HL NOW HAS ADDRESS OF LINE ABOVE
+	POP	D	;DE HAS ADDRESS OF DESTINATION
+	PUSH	H	;SAVE FOR LATER COMPUTE
+
+	PUSH	B
+	LXI	B,80	;CHARS TO MOVE
+	LDIR
+	POP	B
+	POP	H	;HL HAS LAST SOURCE ADDRESS
+	DCR	C
+	JRNZ	INSLOP
+	RET
+
+
+;ERASE TO END OF SCREEN
+
+	
+EOS:
+	MVI	A,8
+	OUT	CPORT
+
+	POP	D
+	POP	H
+	PUSH	B
+	PUSH	D
+	PUSH	H
+	MVI	C,20H
+
+EOS1:
+	MOV	M,C
+	INR	D
+	MVI	A,EOCL
+	CMP	D
+	JRZ	EOS2
+	INX	H
+	JMPR	EOS1
+EOS2:	CALL	EOS7
+	CALL	EOS14
+	JMPR	EOS1
+
+
+EOS7:	MOV	A,E
+	CMP	B
+	JRZ	EOS3
+	INR	A
+	CPI	BOS
+	JRNZ	EOS4
+	MVI	A,0
+EOS4:	MOV	E,A
+	MOV	L,D
+	MOV	H,E
+	RALR	L
+	RARR	H
+	RARR	L
+	SET	4,H
+	RET
+	
+	
+EOS14:	MVI	D,0
+	MVI	A,80H
+	ANA	L
+	MOV	L,A
+	RET
+
+EOS3:
+
+	POP	H	;FIX STACK
+	POP	H
+	POP	D
+	POP	B
+	RET
+
+
+
+
+
+;****************************************************
+;*              INITIALIZE CRT 5027
+;****************************************************
+
+INIT:
+	OUT  	TCHAIN	;START TIMING CHAIN
+        OUT  	RSTREG	;RESET THE 5027
+        MVI  	A,HLVAL	;SET UP HOR. LINE PARMS.
+        OUT  	HORLC	;AND PUT IN HOR. REG. 0
+
+;	DON'T INCREASE HORIZONTAL SYNC WIDTH, THIS VERSION
+
+	MVI  	A,HLDAT	;SET INTERLACE, SYNC WIDTH & DLY
+        OUT  	HORDT	;AND PUT IN REG. 1
+
+	MVI  	A,SCNDAT;SET SCANS & CHRS. / DATA ROW
+        OUT  	ROWDT	;AND PUT IN REG. 2
+        MVI  	A,FRMDT1;SET SKEW BITS & DATA ROWS/FRAME
+        OUT  	ROWFRM	;AND PUT IN REG. 3
+        MVI  	A,FRMDT2;SET SCAN LINES/FRAME
+        OUT  	SCNFRM	;AND PUT IN REG. 4
+        MVI  	A,VDAT	;SET VERT. DATA START
+        OUT  	VERST	;AND PUT IN REG. 5
+        MVI  	A,LASTDT;SET LAST DISPLAYED DATA ROW
+        MOV   	B,A	;SAVE IN B REG.
+        OUT  	LASTRW	;PUT IN REG. 6
+        MVI  	A,CURNIT;SET CURSOR CHAR. ADDRESS
+  	OUT  	CURCOL	;PUT IN REG. 7
+        OUT  	CURROW	;AND CURSOR LINE ADDRESS REG. 8
+        OUT  	TCHAIN	;START TIMING CHAIN THIS CONFIG.
+        LXI   	D,0	;SET START OF LINE POINTER
+        RET  
+
+
+
+
+NEND:
+
+	.DEFINE LOCMEM[XX]=[
+
+	.PRNTX	/XX IS LAST LOCATION BEFORE END /
+	]
+
+	.RADIX	16
+
+	LOCMEM	\.
+
+	.RADIX	10
+
+	.LOC	BEGIN+1024
+
+	.DEFINE	LEFMEM[XX]=[
+	.PRNTX	/XX BYTES OF ROM LEFT/
+	]
+	LEFMEM	\((BEGIN+1024)-NEND)
+
+
+
+	.END
+

@@ -1,0 +1,114 @@
+
+                               DUF04.COM
+
+
+DUF04 is written to assist in testing drives & directories under CP/M. When 
+executed the following menu appears on the screen:
+
+CP/M Disk Utility Functions
+Enter Drive To Run Tests On A: to P: B<CR> <-- you select a drive here
+
+Program Options
+
+1...Dump Directory on Screen
+2...Display All Invalid Directory Entries 
+3...Rename All Invalid Directory Entries  
+4...Remove All Invalid Directory Entries  
+5...Test Entire Disk Surface              
+6...Remove Bad Blocks On Drive            
+7...Select Another Drive
+8...Test System tracks                  
+9...Unerase All Erased Files
+10..Disk to Disk Copy
+11..Dump Disk on Screen
+Enter <Control C> to Quit
+
+Enter Your Choice...
+
+Options 1 to 6 and 8  will be followed by a printer output option so that a 
+hard copy of the session may be generated if needed.
+
+Option 1 displays the entire directory on the screen with information on 
+the directory entry number, the extent number and the number of records 
+written for that extent.
+
+Option 2 will display only improper directory entries which include files 
+with 'illegal' names that have embeded control characters or spaces, or 
+files that have pointers larger than the disk storage capacity.
+
+Option 3 allows you to create a seed name for all bad files so that the 
+program will rename all such files and give you valid file names to work 
+with. NOTE, files with bad pointers are not renamed as they have no real 
+disk locations.
+
+Option 4 erases all bad files detected by option 2 UNLESS they have good 
+pointers AND have been renamed by Option 3.
+
+Option 5 WRITES DATA ONTO THE  ENTIRE disk drive starting with the 
+directory. It then starts from the directory again and reads all the data 
+written. Each CP/M sector is given a unique 3 byte code when written. If 
+any code is missing on the read a list of the expected code and actual code 
+will be printed. Also any damaged sectors will generate disk error 
+messages. ALL INFORMATION PREVIOUSLY ON THE DISK IS DESTROYED FOREVER, SO 
+COPY OFF ALL YOUR DATA IF NEEDED.
+
+Option 6 scans the entire disk from the directory and flags all bad 
+sectors. It then creates a file in User Area 15 which points to all the bad 
+disk sectors. In this way application programs will not encounter bad spots 
+on the disk.
+
+Option 7 allows you to select another drive for testing.
+
+Option 8 will simply read the system tracks so that no loss of the 
+operating system can result. If it finds an error you will have to reformat 
+the disk, re-install the operating system & test again. If the tracks 
+remain bad you cannot trust your operating system.
+
+Option 9 will recover ALL files from the selected disk that were erased. 
+This may lead to duplicate file names from previous updates and other disk 
+activity. Use this only as a last resort when you have failed to backup and 
+have erased a lot of the directory.
+
+Option 10 simply lets you make a full disk copy from any drive to any 
+drive. It checks to see if the drives have the same CP/M directory and disk 
+mapping before allowing the copy.
+
+Option 11 lets you select any track on the disk for viewing on the screen.
+
+A Practical Application of DUF04
+---------------------------------
+
+If you have a disk with suspected problems you should use DUF04 as follows:
+
+1)  Run DUF04 and select the drive to test when DUF04 prompts for it.
+
+2)  Run Option 2 to determine if the directory has garbage entries.
+
+3)  If there are no invalid entries go on to 7
+
+4)  Run Option 2 again and turn the printer output on so you can get a hard 
+copy of the invalid entries. If none of the invalid entries look 'useable' 
+go to 6
+
+5)  Some  of the entries look good so run Option 3 to give them usable 
+names. Now go to 6
+
+6)  Run option 4 now to get rid of all remaining invalid entries. Now go to 
+7.
+
+7)   The directory is O.K. run Option 6 to see if the disk has any bad 
+sectors.If there are no bad spots then go to 8. If bad sectors show up you 
+may have to plan for a complete disk backup and reformatting in some cases. 
+In most cases option 6 will hold all the bad sectors in a special file so 
+that your application programs do not access these bad spots. Go to 8.
+
+8)  Run Option 8 to ensure the system tracks are O.K. If a system track 
+shows up as bad you should backup the disk, reformat it and sysgen the 
+system tracks again. Note that a bad system track means that the operating 
+system you boot with cannot be trusted. If it is a system track on the 
+second logical drive of a winchester you need not reformat and sysgen it.
+
+9)  You should use Option 5 only on a new disk or on a backed up disk as it 
+destroys all data on any disk it tests. It is a very useful test in 
+checking the operation of the disk drive, disk controller and disk 
+interface software.
