@@ -337,8 +337,6 @@ CO:	PUSH	B
 	RET
 
 PRF:		PUSH	PSW
-			MOV		A, B
-			PUSH	B  
 			CALL	PRB
 			MVI		A, CR
 			OUT		1
@@ -380,6 +378,10 @@ PRW:		PUSH	PSW
 PRB:		PUSH	B
 			MOV		B, A
 			ANI		0F0H
+			RRC
+			RRC
+			RRC
+			RRC
 			ADI		030H
 			CPI		':'        ; Compare with '9'+1 = ':'
 			JC		PRH
@@ -392,6 +394,7 @@ PRH:		OUT		1
 			JC		PRL
 			ADD		6
 PRL:		OUT		1
+			MOV		A, B
 			POP		B
 			RET
 
