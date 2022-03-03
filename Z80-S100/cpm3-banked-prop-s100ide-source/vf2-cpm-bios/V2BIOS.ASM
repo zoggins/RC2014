@@ -349,7 +349,7 @@ CFGOPT:
 ;********************************************************
 
 CBOOT:
-	
+
 	LXI	SP,80H		;VALIDATE THE STACK POINTER
 	LHLD	INITIO		;SET INITIAL I/O BYTE, DISK
 	SHLD	IOBYTE
@@ -447,7 +447,7 @@ GOCPM:
 	STA	0
 	LXI	H,WBOOTE
 	SHLD	1
-
+	
 	STA	5		;PATCH JUMP TO BDOS
 	LXI	H,BDOS
 	SHLD	6

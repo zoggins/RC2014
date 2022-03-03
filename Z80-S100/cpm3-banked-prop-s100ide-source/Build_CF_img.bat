@@ -13,6 +13,13 @@ Rem *** Copy VF from build folder ***
 del S100-TOOLS\VF.COM
 copy tools-src\VF.COM S100-TOOLS\
 
+del S100-TOOLS\V2FORMAT.COM
+del S100-TOOLS\V2BOOT1.COM
+del S100-TOOLS\CPMSYS60.COM
+copy vf2-cpm-bios\V2FORMAT.COM S100-TOOLS\
+copy vf2-cpm-bios\V2BOOT1.COM S100-TOOLS\
+copy vf2-cpm-bios\CPMSYS60.COM S100-TOOLS\
+
 Rem *** Make new file system image ***
 
 mkfs.cpm -f s100ide -b LBA0.COM -b CPMLDR.COM -t cpm3-banked-prop.img
@@ -34,7 +41,6 @@ cpmcp -f s100ide cpm3-banked-prop.img ./S100-TOOLS/*.* 1:
 cpmcp -f s100ide cpm3-banked-prop.img ./WS4-FILES/*.* 2:
 cpmcp -f s100ide cpm3-banked-prop.img ./BASIC-FILES/*.* 3:
 cpmcp -f s100ide cpm3-banked-prop.img ./GAMES/*.* 4:
-cpmcp -f s100ide cpm3-banked-prop.img ./vf2-cpm-bios/*.* 5:
 
 pause
 
