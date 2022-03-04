@@ -15,10 +15,10 @@ copy tools-src\VF.COM S100-TOOLS\
 
 del S100-TOOLS\V2FORMAT.COM
 del S100-TOOLS\V2BOOT1.COM
-del S100-TOOLS\CPMSYS60.COM
+del S100-TOOLS\CPMSYS64.COM
 copy vf2-cpm-bios\V2FORMAT.COM S100-TOOLS\
 copy vf2-cpm-bios\V2BOOT1.COM S100-TOOLS\
-copy vf2-cpm-bios\CPMSYS60.COM S100-TOOLS\
+copy vf2-cpm-bios\CPMSYS64.COM S100-TOOLS\
 
 Rem *** Make new file system image ***
 
