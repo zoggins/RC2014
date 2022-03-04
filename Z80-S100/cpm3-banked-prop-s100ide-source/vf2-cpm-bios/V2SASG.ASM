@@ -129,7 +129,11 @@ TRACK:
 SECTOR:
 	IN	WSECT	;UPDATE SECTOR REG IN 179X
 	INR	A
-	OUT	WSECT
+	OUT	WSECT	; THIS IS SUPER TACKY, BUT IT
+	OUT WSECT   ; APPEARS THAT THAT THERE NEEDS TO BE
+	OUT WSECT	; A DELAY BETWEEN OUT WSECT & IN WSECT.
+				; SO USING DUPLICATE OUT CALLS TO ACT
+				; AS DELAY
 	CPI	8		;SEE IF DDB SECTOR
 	JNZ	TSTSEC
 	IN	WTRACK
@@ -152,7 +156,7 @@ TRACK1:
 TSTSEC:
 GOON:
 	IN	WSECT		;CHECK SECTOR # AGAIN
-	CPI	9+1		;ENTIRE TRACK READ?
+	CPI	9+1	;ENTIRE TRACK READ?
 	JNZ	NXTSEC	;NO
 	IN	WTRACK	;ALREADY READ TRACK 1?
 	ORA	A
@@ -186,7 +190,7 @@ READ0:
 	
 		CALL	WAITNB
 		ANI		WSREAD+1	;WAS READ SUCCESSFUL?
-		JZ		RERR
+		JNZ		RERR
 		CALL	PRF
 		RET
 RERR:	
@@ -212,7 +216,7 @@ WRITE0:
 	
 		CALL	WAITNB
 		ANI		WSWRIT+1	;WAS WRITE SUCCESSFUL?
-		JZ		WERR
+		JNZ		WERR
 		CALL	PRF
 		RET
 WERR:	
@@ -336,43 +340,47 @@ CO:	PUSH	B
 	MOV	A,C	;FIX UP ACC
 	RET
 
-PRF:		PUSH	PSW
-			CALL	PRB
-			MVI		A, CR
-			OUT		1
-			MVI		A, LF
-			OUT		1
-			MVI		A, LF
-			OUT		1			 
+PRF:		PUSH	B
+			PUSH	PSW
+			MVI		C, 'F'
+			CALL	CO
 			POP		PSW
+			CALL	PRB
+;			MVI		C, CR
+;			CALL	CO
+;			MVI		C, LF
+;			CALL	CO
+;			MVI		C, LF
+;			CALL	CO		 
+			POP		B
 			RET
 
-PRR:		PUSH	PSW
-			MVI		A, 'R'
-			OUT		1
-			IN		WTRACK
-			CALL	PRB
-			MVI		A, '.'
-			OUT		1
-			IN		WSECT
-			CALL	PRB
-			MVI		A, '.'
-			OUT		1
-			POP		PSW
+PRR:		PUSH	B
+			MVI		C, 'R'
+			CALL	CO
+;			IN		WTRACK
+;			CALL	PRB
+;			MVI		C, '&'
+;			CALL	CO
+;			IN		WSECT
+;			CALL	PRB
+;			MVI		C, '!'
+;			CALL	CO
+			POP		B
 			RET
 
-PRW:		PUSH	PSW
-			MVI		A, 'W'
-			OUT		1
+PRW:		PUSH	B
+			MVI		C, 'W'
+			CALL	CO
 			IN		WTRACK
 			CALL	PRB
-			MVI		A, '.'
-			OUT		1
+;			MVI		C, '+'
+;			CALL	CO
 			IN		WSECT
 			CALL	PRB
-			MVI		A, '.'
-			OUT		1
-			POP		PSW
+;			MVI		C, '-'
+;			CALL	CO
+			POP		B
 			RET
 
 PRB:		PUSH	B
@@ -384,16 +392,18 @@ PRB:		PUSH	B
 			RRC
 			ADI		030H
 			CPI		':'        ; Compare with '9'+1 = ':'
-			JC		PRH
-			ADI		6
-PRH:		OUT		1
+			JNZ		PRH
+			ADI		7
+PRH:		MOV		C, A
+			CALL	CO
 			MOV		A, B
 			ANI		00FH
 			ADI		030H
 			CPI		':'        ; Compare with '9'+1 = ':'
-			JC		PRL
-			ADD		6
-PRL:		OUT		1
+			JNZ		PRL
+			ADI		7
+PRL:		MOV		C, A
+			CALL	CO
 			MOV		A, B
 			POP		B
 			RET
