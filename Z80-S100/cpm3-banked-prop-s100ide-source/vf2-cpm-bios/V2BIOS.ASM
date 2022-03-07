@@ -2035,6 +2035,24 @@ SERPST:
 	NOP
 	NOP
 	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP		
 
 ;********************************************************
 ; FLOPPY DISK DPH TABLE. FOR THE CONVENIENCE OF THE
