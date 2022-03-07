@@ -2545,9 +2545,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F633                 STDDDB:
    F633    01                   .BYTE   00000001B       ;FLAG
    F634    0002                 .WORD   2               ;OFF
-Q  F636    00                   .BYTE   512             ?;SSLEN
+   F636    00                   .BYTE   0               ;SSLEN
    F637    1A                   .BYTE   26              ;SLRPS
-   F638    80                   .BYTE   128             ;USLEN
+   F638    00                   .BYTE   0               ;USLEN
    F639    1A                   .BYTE   26              ;ULRPS
                         
    F63A    001A                 .WORD   26              ;STANDARD DPB
@@ -2582,9 +2582,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
    F663    05           ALTDDB: .BYTE   00000101B       ;FLAG
    F664    0003                 .WORD   3               ;OFF
-Q  F666    00                   .BYTE   512             ?;SSLEN
+   F666    00                   .BYTE   0               ;SSLEN
    F667    12                   .BYTE   18              ;SLRPS
-Q  F668    00                   .BYTE   512             ?;USLEN
+   F668    00                   .BYTE   0               ;USLEN
    F669    12                   .BYTE   18              ;ULRPS
                         
    F66A    0012                 .WORD   18              ;STANDARD DPB
@@ -3074,7 +3074,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-3 ERRORS WERE DETECTED *****
 
 
 
@@ -3101,4 +3100,4 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-                                                                                
+                                                                                                                 
