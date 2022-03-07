@@ -2035,24 +2035,6 @@ SERPST:
 	NOP
 	NOP
 	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
 
 ;********************************************************
 ; FLOPPY DISK DPH TABLE. FOR THE CONVENIENCE OF THE
@@ -2122,7 +2104,7 @@ STDDDB:
 	.WORD	2		;OFF
 	.BYTE	0		;SSLEN
 	.BYTE	26		;SLRPS
-	.BYTE	128		;USLEN
+	.BYTE	0		;USLEN
 	.BYTE	26		;ULRPS
 
 	.WORD	26		;STANDARD DPB
