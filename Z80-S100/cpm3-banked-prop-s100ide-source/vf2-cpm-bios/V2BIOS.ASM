@@ -784,6 +784,15 @@ READ:
 	MVI A,'R'
 	OUT	1
 
+	LDA	SEKTRK
+	CALL PRB
+
+	LDA	SEKSEC
+	CALL PRB
+
+	LDA	DMAADD
+	CALL PRB
+	
 	XRA	A
 	STA	UNACNT		;UNACNT=0, WE WON'T WRITE WITHOUT
 				;PRE-READS FOR NOW
@@ -811,6 +820,15 @@ WRITE:
 
 	MVI		A,'W'
 	OUT		1
+
+	LDA	SEKTRK
+	CALL PRB
+
+	LDA	SEKSEC
+	CALL PRB
+
+	LDA	DMAADD
+	CALL PRB
 
 	XRA	A
 	STA	READOP		;SET TO WRITE
@@ -2042,42 +2060,8 @@ PRL:		MOV		C, A
 			NOP
 			NOP
 			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
+
+
 
 ;********************************************************
 ; FLOPPY DISK DPH TABLE. FOR THE CONVENIENCE OF THE
