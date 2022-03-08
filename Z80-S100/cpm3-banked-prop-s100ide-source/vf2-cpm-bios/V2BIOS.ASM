@@ -1947,16 +1947,6 @@ CONOUT:
 ;********************************************************   
 	.ASCII	\LSTSTAT\
 LISTST:
-	MVI	A,0FFH
-	RET	
-	LDA	IOBYTE
-	ANI	LMSK
-	JZ	CRTOS		;CHECK MODEM OUT STAT
-	CPI	40H
-	JZ	CENST		;CHECK L.P. STAT
-	CPI	80H
-	JZ	SPINST		;CHECK SPIN STAT
-	JMP	SERPST		;CHECK SERIAL STAT
 
 
 ;********************************************************
@@ -1967,14 +1957,6 @@ LISTST:
 
 LIST:
 	RET
-	LDA	IOBYTE
-	ANI	LMSK
-	JZ	CRTOT1		;IS IT MODEM (y/n)
-	CPI	40H		;IS IT CENT (y/n)
-	JZ	LISTC
-	CPI	80H		;IS IT CENTRONICS (y/n)
-	JZ	SPIN0
-	JMP	SERP		;IS IT SERIAL (y/n)
 
 
 ;********************************************************
@@ -1983,11 +1965,6 @@ LIST:
 
 LISTC:
 LIST1:
-	IN      LSTST    	;GET PRINTER STATUS
-	RAR              	;PUT IT IN CARRY
-        JC     LIST1    	;BUSY ON C SO RETRY
-        MOV     A,C      	;GET OUTBYTE
-        OUT     LSTDAT   	;SEND TO PRINTER
         RET
 
 
@@ -1995,11 +1972,7 @@ LIST1:
 ;        SERIAL PRINTER I/O HANDLED HERE
 ;********************************************************
 
-SERP:	IN	SERST		;GET SERIAL STATUS
-	RAL			;PUT IN CARRY
-	JNC	SERP		;BUSY SO RETRY
-	MOV	A,C		;GET OUTBYTE
-	OUT	SERDT		;SEND TO SERIAL PRINTER
+SERP:	
 	RET
 
 
@@ -2008,11 +1981,7 @@ SERP:	IN	SERST		;GET SERIAL STATUS
 ;********************************************************
 
 SPIN0:
-	IN	LSTST		;GET STATUS
-	RAL			;PUT BIT 7 IN CARRY
-	JC	SPIN0		;BUSY IF CARRY SET
-	MOV	A,C		;GET LIST BYTE
-SPIN2:	OUT	LSTST		;PORT 6 FOR CPU 'C'
+SPIN2:	
 	RET
 
 
@@ -2038,19 +2007,77 @@ CENST:
 SERPST:
 	RET
 
-	NOP		;FOR SOME REASON THE BIOS BREAKS IF IT DOESN'T END AT FFF1
-	NOP		;SO WE PAD.
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP	
+
+PRB:		PUSH	B
+			MOV		B, A
+			ANI		0F0H
+			RRC
+			RRC
+			RRC
+			RRC
+			ADI		030H
+			CPI		':'        ; Compare with '9'+1 = ':'
+			JNZ		PRH
+			ADI		7
+PRH:		MOV		C, A
+			CALL	CO
+			MOV		A, B
+			ANI		00FH
+			ADI		030H
+			CPI		':'        ; Compare with '9'+1 = ':'
+			JNZ		PRL
+			ADI		7
+PRL:		MOV		C, A
+			CALL	CO
+			MOV		A, B
+			POP		B
+			RET
+
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
 
 ;********************************************************
 ; FLOPPY DISK DPH TABLE. FOR THE CONVENIENCE OF THE
