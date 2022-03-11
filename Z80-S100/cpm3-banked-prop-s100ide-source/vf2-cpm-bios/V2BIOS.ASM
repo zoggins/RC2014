@@ -86,12 +86,6 @@ BIOSIZ	==	3	;THIS BIOS FITS WITHIN 3K
 
 MSIZ	=\	\ENTER TOTAL MEMORY SIZE IN KILOBYTES EG: 48 OR 64 \
 
-; TO USE THE SBC-200 ONBOARD USART, SET THE FOLLOWING TO 0.
-
- SBC200	==	1
-
-
-
 ;MSIZ	==	64		;ACTUAL AVAILABLE MEMORY SIZE
 MSIZE	==	MSIZ-BIOSIZ	;SUBTRACT BIOS SIZE
 BIAS	==	(MSIZE-20)*1024 ;THE DRI BIAS FACTOR
@@ -1761,19 +1755,6 @@ MSGHL:	MOV	C,M		;GET NEXT CHAR OF MESSAGE
 	JP	MSGHL		;NOT SET, KEEP GOING
 	RET
 
-MSGN:	XTHL			;GET MESSAGE ADDRESS
-	CALL	MSGHLN		;PRINT THE MESSAGE
-	XTHL			;RESTORE NEW RETURN ADDRESS
-	RET
-
-MSGHLN:	MOV	C,M		;GET CURRENT CHAR OF MESSAGE
-	MOV	A,C
-	ANA	A
-	RZ			;NULL TERMINATOR, RETURN
-	CALL	BIOOUT		;OUTPUT THE CHAR
-	INX	H		;POINT TO NEXT CHAR
-	JMPR	MSGHL		;KEEP GOING
-
 
 ;********************************************************
 ; I/O VECTORING ROUTINES. THESE ROUTINES USE THE IOBYTE
@@ -1791,26 +1772,12 @@ MSGHLN:	MOV	C,M		;GET CURRENT CHAR OF MESSAGE
 
 	.ASCII	\CIOTB\
 
-	.IFE	SBC200,[
-
-; USART FOR SBC-200 CPU CARD
-
-CSTAT:	.BYTE	7DH
-KBSTAT:	.BYTE	7DH
-CIO:	.BYTE	7CH
-KBIO:	.BYTE	7CH
-COUT:	.BYTE	1
-KIN:	.BYTE	2
-		][
-; OTHERWISE, VDB-8024
-
 CSTAT:	.BYTE	0
 KBSTAT:	.BYTE	0
 CIO:	.BYTE	1
 KBIO:	.BYTE	1
 COUT:	.BYTE	4
 KIN:	.BYTE	2
-		]
 
 	.ASCII	\KIS\
 TTYIS:
@@ -1879,14 +1846,7 @@ TTYOUT:
 
 
 ;********************************************************
-; I/O ROUTINES FOR THE CRT PHYSICAL DEVICE.
-; THIS IS OUR MODEM PORT .SETTING THE CON: TO CTR: 
-; (MODEM) PUTS THE I/O IN A LOOP TO ENABLE CONTROL
-; OF THE SYSTEM FROM THE DEVICE CALLING ON THE MODEM
-; ALL CHARACTERS RECEIVED ARE ECHOD BACK TO THE CALLING
-; DEVICE AND ONTO THE SCREEN OF THE CAPTIVE SYSTEM
-; A NULL CHARACTER PUT ON THE LOCAL KEYBOARD WILL RESET
-; THE IOBYTE TO TTY AND CAUSE A WARM BOOT
+; Unimplemented I/O Routines
 ;********************************************************
 
 CRTIS: 
@@ -1896,6 +1856,17 @@ CRTOS:
 PUNCH:
 CRTOUT:	
 TUBE:
+LISTST:
+LIST:
+LISTC:
+LIST1:
+SERP:
+SPIN0:
+SPIN2:	
+CRTOT1:
+SPINST:	
+CENST:
+SERPST:
 	RET
 
 
@@ -1903,156 +1874,17 @@ TUBE:
 ; IO ROUTINES FOR THE OTHER IOBYTE VECTORED DEVICES
 ;********************************************************
 
-CONST:	LDA	IOBYTE		;GET THE CURRENT I/O BYTE
-	ANI	CMSK		;DROP IRRELEVANT BITS
-	JZ	TTYIS		;TTY SELECTED
-	CPI	1		;TEST CRT (MODEM)
-	JZ	CRTIS		;CRT SELECTED(MODEM)
-	CPI	2		;TEST CONTROL REMOTE
-	JZ	CRTIS		;THIS WILL DO
-	JMP	TTYIS		;DO UC1:
+CONST:	
+	JMP	TTYIS	
 
-CONIN:	LDA	IOBYTE
-	ANI	CMSK
-	JZ	TTYIN
-	CPI	1		;TEST CRT(MODEM)
-	JZ	CRTIN
-	CPI	2		;TEST REMOTE
-	JZ	CRTIN   	;THIS WILL DO
-	JMP	TTYIN		;DO UC1:
+CONIN:	
+	JMP	TTYIN
 
 CONOUT:
-	LDA	IOBYTE
-	ANI	CMSK
-	JZ	TTYOUT
-	CPI	1		;TEST CRT(MODEM)
-	JZ	CRTOUT
-	CPI	2		;TEST REMOTE
-	JZ	CRTOUT  	;THIS WILL DO
-	JMP	CRTOUT		;DO UC1:
+	JMP	TTYOUT
 
 
-;********************************************************
-;       USUAL PRINTER I/O HANDLED NEXT
-;********************************************************   
-	.ASCII	\LSTSTAT\
-LISTST:
-	MVI	A,0FFH
-	RET	
-	LDA	IOBYTE
-	ANI	LMSK
-	JZ	CRTOS		;CHECK MODEM OUT STAT
-	CPI	40H
-	JZ	CENST		;CHECK L.P. STAT
-	CPI	80H
-	JZ	SPINST		;CHECK SPIN STAT
-	JMP	SERPST		;CHECK SERIAL STAT
 
-
-;********************************************************
-; FIND OUT WHICH PRINTER IS SET IN IOBYTE AND OUTPUT
-; TO IT
-;********************************************************
-	.ASCII	\LSTOUT\
-
-LIST:
-	RET
-	LDA	IOBYTE
-	ANI	LMSK
-	JZ	CRTOT1		;IS IT MODEM (y/n)
-	CPI	40H		;IS IT CENT (y/n)
-	JZ	LISTC
-	CPI	80H		;IS IT CENTRONICS (y/n)
-	JZ	SPIN0
-	JMP	SERP		;IS IT SERIAL (y/n)
-
-
-;********************************************************
-;            OUTPUT TO CENTRONICS
-;********************************************************
-
-LISTC:
-LIST1:
-	IN      LSTST    	;GET PRINTER STATUS
-	RAR              	;PUT IT IN CARRY
-        JC     LIST1    	;BUSY ON C SO RETRY
-        MOV     A,C      	;GET OUTBYTE
-        OUT     LSTDAT   	;SEND TO PRINTER
-        RET
-
-
-;********************************************************
-;        SERIAL PRINTER I/O HANDLED HERE
-;********************************************************
-
-SERP:	IN	SERST		;GET SERIAL STATUS
-	RAL			;PUT IN CARRY
-	JNC	SERP		;BUSY SO RETRY
-	MOV	A,C		;GET OUTBYTE
-	OUT	SERDT		;SEND TO SERIAL PRINTER
-	RET
-
-
-;********************************************************
-;      LETTER QUALITY PRINTER I/O HANDLED HERE
-;********************************************************
-
-SPIN0:
-	IN	LSTST		;GET STATUS
-	RAL			;PUT BIT 7 IN CARRY
-	JC	SPIN0		;BUSY IF CARRY SET
-	MOV	A,C		;GET LIST BYTE
-SPIN2:	OUT	LSTST		;PORT 6 FOR CPU 'C'
-	RET
-
-
-;********************************************************
-;       MODEM AS LIST DEVICE FROM HERE
-;********************************************************
-
-CRTOT1:
-	CALL	CRTOS		;OUTPUT TO MODEM
-	JZ	CRTOT1
-	MOV	A,C
-	OUT	CRTO
-	RET
-
-;********************************************************
-;      GET STATUS FOR VARIOUS LIST DEVICES
-;********************************************************
-
-;SPIN WRITER STATUS
-
-SPINST:	
-CENST:
-SERPST:
-	RET
-
-	NOP		;FOR SOME REASON THE BIOS BREAKS IF IT DOESN'T END AT FFF1
-	NOP		;SO WE PAD.
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP		
 
 ;********************************************************
 ; FLOPPY DISK DPH TABLE. FOR THE CONVENIENCE OF THE
@@ -2184,7 +2016,7 @@ SYSNIT:
 
 ; SYSNIT CODE IS DISCARDED AFTER USE.
 
-SIGNON:	CALL	MSGN
+SIGNON:	CALL	MSG
 	.BYTE	CR,LF,LF
 	.ASCII	'Digital Research CP/M 2.2 '
 
@@ -2196,7 +2028,7 @@ SIGNON:	CALL	MSGN
 	.BYTE	CR,LF
 
 	.ASCII	'VersaFloppy II BIOS'
-	.BYTE	CR,LF,00H	
+	.BYTE	CR,LF,80H	
 
 	RET
 
