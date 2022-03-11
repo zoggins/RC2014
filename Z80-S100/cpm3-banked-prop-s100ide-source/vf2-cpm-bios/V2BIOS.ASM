@@ -1812,68 +1812,70 @@ COUT:	.BYTE	4
 KIN:	.BYTE	2
 		]
 
+CINIT0:	; DEVICE 0 INITIALIZATION 
+
+        LXI     H,SCCINIT
+        MVI     C,0A1H
+        MVI     B,0EH
+        OUTIR
+	RET
+
+SCCINIT:
+        .BYTE      04H
+        .BYTE      044H
+        .BYTE      03H
+        .BYTE      0C1H
+        .BYTE      05H
+        .BYTE      0EAH
+        .BYTE      0BH
+        .BYTE      056H
+        .BYTE      0CH
+        .BYTE      02H
+        .BYTE      0DH
+        .BYTE      00H
+        .BYTE      0EH
+        .BYTE      01H
+        .BYTE      0FH
+        .BYTE      00H
+        .BYTE      00H
+        .BYTE      00H
+
 	.ASCII	\KIS\
 TTYIS:
-	LDA	KBSTAT
-	MOV	C,A
-	LDA	KIN
-	MOV	E,A
-	INP	A
-	NOP
-;	CMA FOR NEGATIVE LOGIC
-	NOP
-	ANA	E
-	NOP
-	NOP
-	RZ			;RETURN FALSE IF UNAVAILABLE
-	NOP
-	NOP
+	IN	0A1H
+	ANI	01H
+	RZ			;RETURN WITH 0 IN [A] IF NOTHING THERE
 	MVI	A,0FFH
-	RET			;RETURN TRUE
+	RET			;RETURN WITH 0FFH IN [A] IF SOMETHING
 
 	.ASCII	\KI\
 
 TTYIN:	CALL	TTYIS		;GET STATUS
-	JZ	TTYIN		;WAIT UNTIL DATA AVAILABLE
-	LDA	KBIO
-	MOV	C,A
-	INP	A
-	NOP
-	NOP
-	ANI	07FH		;DROP PARITY
+	IN	0A1H
+	ANI	01H
+	JZ	TTYIN
+	IN	0A3H
+	ANI	7FH
 	RET
 
 	.ASCII	\COS\
 
 TTYOS:
-	PUSH	B
-	LDA	CSTAT
-	MOV	C,A
-	LDA	COUT
-	MOV	E,A
-	INP	A
-;	CMA FOR NEGATIVE LOGIC
-	NOP
-	NOP
-	ANA	E
-	POP	B
-	RZ			;RETURN FALSE IF NOT EMPTY
-	NOP
-	NOP
-	MVI	A,0FFH
-	RET			;RETURN TRUE
+	IN	0A1H
+	ANI	4H
+	RZ
+	XRA	A
+	DCR	A
+	RET
 
 	.ASCII	\CO\
 TTYOUT:
-	CALL	TTYOS		;GET STATUS
-	JZ	TTYOUT		;WAIT UNTIL BUFFER EMPTY
-	MOV	E,C
-	LDA	CIO
-	MOV	C,A
-	MOV	A,E
-	NOP
-	NOP
-	OUTP	A		;OUTPUT THE DATA
+	IN	0A1H
+	ANI	04H
+	JZ	TTYOUT
+	MOV	A,C
+	OUT	0A3H
+	RET
 	RET
 
 
@@ -1973,37 +1975,9 @@ LIST:
 
 LISTC:
 LIST1:
-	IN      LSTST    	;GET PRINTER STATUS
-	RAR              	;PUT IT IN CARRY
-        JC     LIST1    	;BUSY ON C SO RETRY
-        MOV     A,C      	;GET OUTBYTE
-        OUT     LSTDAT   	;SEND TO PRINTER
-        RET
-
-
-;********************************************************
-;        SERIAL PRINTER I/O HANDLED HERE
-;********************************************************
-
-SERP:	IN	SERST		;GET SERIAL STATUS
-	RAL			;PUT IN CARRY
-	JNC	SERP		;BUSY SO RETRY
-	MOV	A,C		;GET OUTBYTE
-	OUT	SERDT		;SEND TO SERIAL PRINTER
-	RET
-
-
-;********************************************************
-;      LETTER QUALITY PRINTER I/O HANDLED HERE
-;********************************************************
-
+SERP:
 SPIN0:
-	IN	LSTST		;GET STATUS
-	RAL			;PUT BIT 7 IN CARRY
-	JC	SPIN0		;BUSY IF CARRY SET
-	MOV	A,C		;GET LIST BYTE
-SPIN2:	OUT	LSTST		;PORT 6 FOR CPU 'C'
-	RET
+SPIN2:	RET
 
 
 ;********************************************************
@@ -2032,27 +2006,9 @@ SERPST:
 	NOP		;SO WE PAD.
 	NOP
 	NOP
+
+
 	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP		
 
 ;********************************************************
 ; FLOPPY DISK DPH TABLE. FOR THE CONVENIENCE OF THE
@@ -2184,7 +2140,9 @@ SYSNIT:
 
 ; SYSNIT CODE IS DISCARDED AFTER USE.
 
-SIGNON:	CALL	MSGN
+SIGNON:	
+	CALL	CINIT0
+	CALL	MSGN
 	.BYTE	CR,LF,LF
 	.ASCII	'Digital Research CP/M 2.2 '
 
