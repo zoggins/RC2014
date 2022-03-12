@@ -1,0 +1,2004 @@
+;
+;	MASTER.Z80  This is the Z80 CPU main monitor program for my system. 
+;	Assemble and SLR's Z80ASM Assembler (Can also use the Cromemco Assembler)
+;	Use:- Z80ASM MASTER FH
+;
+;	Since V5.4, this monitor is now split into two sections.
+;	IF you have the V2 Z80 CPU S100 Board, the 4K monitor can reside in two 4K "Pages" in an 
+;	8K 28C64 EEPROM (or 27C64 UV-ROM).  There is the "normal" lower 4K monitor where the A12 
+;	address line is low. This is the "normal" state upon reset (pin 16 of U17 is low which 
+;	via P39, 7-8 will pull A12 of the EEPROM low, thereby selecting the lower 4K half
+;	of the 8K ROM. If you are using the original S100Computers Z80 CPU board this
+;	this is the setup.
+
+;	If you have the newer V2 board, outputting to port D3H with bit 1 high, will raise the A12 line 
+;	thereby selecting the top 4K of the EEPROM. Outputting to port D3H with bit 1 low, will bring back 
+;	the lower 4K section again.  
+;
+;	Code for the two "versions" of the monitor are: MASTER0 & MASTER1. The LOW version (MASTER0)will
+;	reside from 0-FFFH in a 28C64 EEPROM. The HIGH (MASTER1)version will reside from 1000H-1FFFFH
+;	in the same 28C64 EEPROM.  Clearly there must be code common to both sections. 
+;	The page switching code is near the start of the monitor.  It is 
+;	at the location "ACTIVATE_HIGH_PAGE:" and "ACTIVATE_LOW_PAGE". (See below)
+;
+;	Currently almost all menu options are in the LOW PAGE of the ROM.  However because of its 
+;	size, the XModem routine (Menu "C") to download files directly into RAM from another computer 
+;	(over a serial port) resides in the HIGH PAGE. Almost half of the HIGH PAGE is now free for
+;	further routines. 
+;
+;	BTW, within the LOW PAGE code (which normally starts at F000H), there is a small jump table fixed at
+;	F800H for old CPM V1.4 floppy disk BIOS boot routines. My old CPM V1.4 software counts on
+;	these locations and (for me) they should not be changed. You can ignore them if you like. To do so
+;	set the equate "RUN_CPM14" below to FALSE.
+;	
+;	To assemble under windows...
+;	Load Altair.EXE in the Windows CMD box
+;	do cpm3
+;	I:
+;	I:>Submit master0
+;	I:>Submit master1
+;
+;	Master.HEX  is written back to the same windows folder that the PC file "altair.exe" is in.
+;       If this is not clear see here:- (http://s100computers.com/Software%20Index%20Page.htm)
+;
+;	Programming an EEPROM for the V2-Z80 Board with a PROM burner is a little tricky. 
+;	Using a 28C64 EEPROM and a Wellon VP-290 or VP299 Programmer
+;	For a monitor at F000H-FFFFH:-
+;	Load the MASTER0.HEX file, (Make sure the ORG is F000H).
+;
+;	Clear Buffer Options:- 00
+;	Load Buffer Address :– 0000
+;	From File address use:- F000H
+;	File Size use:- 1000H
+
+;	This will put the code (4K) in the lower “half” of the 8K EEPROM, (usually a 28C64). It can be seen/edited 
+;	at 0000H in the ROM with the Wellon software. You can run this ROM on the S100Computers V2 Z80 CPU board 
+;	just make sure P39 is jumpered just 3-4 (PROM address line A12 always low).  You can also run it on our earlier 
+;	Z80 CPU Boards.  You can use all your Z80 monitor commands except (currently) the X Command.
+;
+;	To burn an EEPROM that adds code to the upper half of the PROM (and has the XModem command):
+;	Load the MASTER1.HEX file, Make sure the ORG is F000H. Carefully set the following burner settings
+;
+;	Clear Buffer Options:- Disable <-------- Note
+;	Load Buffer Address :– 1000
+;	From File address use:- F000H
+;	File Size use:- 1000H
+;
+;	Examine the code to be burnt to the EEPROM, It should start at 0H and Run to 1FFFH with the
+;	early code at 0h the same as at 1000H.
+;
+;
+;	Recent History...
+
+;		26/2/09		Added ability to switch CO/CI to ACIA serial from PC.
+;		5/3/09 		Adjust RTS/CTS levels for Modem
+;	V3.5	6/3/09		Set talker messages for new V-Stamp chip.
+;		12/09/09	Add SD Systems IO-8 board Serial ports.
+;	V3.52	16/9/09		Add SD Systems IO-8 Board clock display on signon
+;	v3.6	21/9/09		Add display command for greater than 64K RAM, removed
+;	V4.0	10/26/09	Switched in 8255 driven IDE HD Controller (Removed XComp)
+;				some old commands to make more room.
+;	V4.1	11/7/09		Added input ports scan/diagnostic
+;	V4.2	11/14/09	Remove Date (keep time) from Clock (Chip is messed up by CPM3 routine)
+;				also modified to switch from the SD System assembler to the SLR one.
+;	V4.21	11/17/09	Removed 8086 jump far setting code
+;	V4.3	11/18/09	Implement movement of 8086 Monitor code (EPROM) to correct location in RAM space
+;	V4.31	11/19/09	Check 8086 Monitor ROM->ROM went OK. Added W command.
+;	V4.32	12/7/09		Turn off any SD Systems 8024 video screen enhancements (flashing, underline etc).
+;	V4.33	12/25/09	Correct High/Low byte Sector read for IDE board
+;	V4.34	2/23/10		"O" command, 8086 Far jump to 500H (IF RAM @ FFFF0H), W command boots 8086 from reset at FFFF0H.
+;	V4.35	3/25/10		"O" command just puts 8086 Far JMP to 500H (IF RAM @ FFFF0H). Done also at each reset.
+;	V4.4	7/29/10		Removed all SD Systems IO-8. Added S-100Computers I/O board drivers.
+;	V4.41	7/29/10		Initilization of V-Stamp chip done. Cleaned up Serial port names etc
+;	V4.42	7/31/10		Switched RTC over to S-100Computers board (Ports A4,A5)
+;	V4.50	2/7/11		Added Floppy Boot loader for ZFDC board. Still have the Versafloppy loader but no BIOS functions
+;	V4.51	2/13/11		Check IDE if Boot sector is valid
+;	V4.52	2/15/11		Pulse CF/IDE cards twice to reset (some) cards properly
+;	V4.53	2/16/11		Initilize IDE board with IDE RD/WR lines inactive on power-up.
+;	V4.54	2/28/11		Incoporated new fast multi-sector boot for CPM floppy loading with ZFDC board
+;	V4.55	2/28/11		"O" command now jumps to SWITCH_8086 (activates 8086) when done
+;	V4.55a	3/1/11		"O" cmd will just put 33 on Console (temporary 8086 board test)
+;	V4.56   3/15/11		Re-did IDE drive hardware reset pulse to one (delayed) pulse, then wait for drive ready status.
+;	V4.57	6/3/11		Set up an equate for IDE drive reset pulse, Fixed Z command (Last version using MM58167 RTC chip)
+;	V4.6	11/27/11	Switched to Dallas Semiconductor/IBM-PC CMOS-RTC chip & MSDOS Support board for time & dates
+;	V4.7	3/26/12		Cleaned up IOBYTE options. Added 68000 CPU, I/O to serial port. 
+;	V4.8	10/27/12	Corrected SERIAL_STAT: error. Further cleaned up info on IOBYTE
+;	V4.9	11/3/12		Added ability (XH, XL) Command to switch to low/high pages in 28C64 EEPROMS (for V2 Z80 Board)
+;	V5.0	12/18/13	Add "C" menu option to download a ZModem file from a PC/Serial/USB port directly to RAM
+;	V5.01	12/30/13	Add PC-Printer routines for new parallel Port Board with ST8C34 chip (ST8C4 = TRUE)
+;	V5.02	1/31/14		Allow output to port EEH 01h activate TMA0* (8086,80286,80386 Boards) and 02h TMA1* (68000 Board)
+;	V5.03	7/25/2014	Removed error in Z memu command
+;	V5.04	7/29/2014	Patched date to show correct century
+;	V5.1	3/18/2015	Added to test module to output "3" on console with 8986 reset (UP8086:) in High RAM section
+;	V5.2	12/17/2016	Change master/slave signon message  ("O" commamd) for more general use (multiple slave CPU boards)
+;       V5.3    11/27/2017      Fix bug for console I/O to serial port if no Propeller Console I/O board is present
+;	V5.4    12/20/2017	Completely re-did HIGH/LOW ROM page approach. Page menus are now completely transparent to user
+;	V5.5    7/26/2019	Corrected Monitor Print Signon with printer active. (Was sending continous 0's, Printer LO: inbalance)
+;	V5.6    2/23/2021	Added IDE Menu for FPGA_DC Board
+
+;
+;
+;
+FALSE		EQU	0
+TRUE		EQU	NOT FALSE
+
+BASE		EQU	0F000H		;Start or EPROM Location (Assume a 2732 or half of a 28C64)
+					;Note can test running in CPM (set ORG to 100H), BUT disable setting the stack
+					;by commenting out the 4 lines below SETUP_STACK:
+					
+		ORG	BASE		;<--------<<<<<< LOCATION OF START OF MONITOR (HIGH PAGE) 
+					
+ST8C4		EQU	TRUE		;TRUE if S100_Parallel_IO Board.  False if IMSAI PIO Board	
+
+SCROLL		EQU	01H			;Set scrool direction UP.
+BELL		EQU	07H
+SPACE		EQU	20H
+TAB		EQU	09H			;TAB ACROSS (8 SPACES FOR SD-BOARD)
+CR		EQU	0DH
+LF		EQU	0AH
+FF		EQU	0CH
+QUIT		EQU	11H			;Turns off any screen enhancements (flashing, underline etc).
+NO_ENHANCEMENT	EQU 17H			;Turns off whatever is on
+FAST		EQU	10H			;High speed scrool
+ESC		EQU	1BH
+DELETE		EQU	7FH
+BACKS		EQU	08H
+CLEAR		EQU	1AH			;TO CLEAR SCREEN
+RST7		EQU	38H			;RST 7 (LOCATION FOR TRAP)
+NN		EQU	0H			;[I] INITIAL VALUE
+SOH		EQU	1			; For XModem etc.
+EOT		EQU	4
+ACK		EQU	6
+NAK		EQU	15H
+
+
+STARTCPM	EQU	100H			;LOCATION WHERE CPM WILL BE PLACED FOR COLD BOOT
+STARTDOS	EQU	100H			;LOCATION WHERE MSDOS WILL BE PLACED FOR COLD BOOT
+FFILE_SIZE	EQU	9000h/512		;SIZE OF 5MSDOS20.COM IN 512 BYTE SECTORS
+;
+;
+;IOBYTE = SENSE SWITCHES AT PORT 0EFH
+;
+; BIT MAP OF PORT 0EFH:- X X X X  X X X X      (11111111=NORMAL CONFIG)
+;			 | | | |  | | | |..For Z80 Monitor,	0=CONSOLE DATA TO PRINTER ALSO
+;			 | | | |  | | |....For 8086 Monitor,	0=Force MSDOS Consol output to CGA/VGA Board instead of Propeller board
+;			 | | | |  | |......For 8086 Monitor,	0=Do not initilize MSDOS extra ROMS
+;			 | | | |  |........Unused
+;			 | | | |...........Unused			
+;			 | | |.............For Z80 Monitor,	0=ALL Consol I/O via ACIA Serial port on S100Computers Serial-IO Board
+;			 | | 					Remember the serial port is currently set for 38.4K, 1 Stop,NP
+;			 | |...............For CPM3,		0=Force reformat of Memory disk upon any CPM3 cold re-boot
+;			 |.................For CPM3,		0=Write protect Memory disk for CPM3
+;					   For 8086 Monitor,	0=Prevent doing a JMPF to 500H after 8086 reset (to CPM86 boot)
+;								Normally a test is made to see if the CPM86 Boot is already in RAM at 500H
+;								If it is, a 8086 reset will bypass the monitor and go directly there. 
+;								(see Init: in 8086 Monitor)
+;					Note if 00xxxxxx,	This will force hardware diagnostic test. (See code at FFFF0H in the 8086 monitor)
+;
+;
+;-------------- PROPELLER CONSOLE_IO (OR SD SYSTEMS VIDIO BOARD) FOR CONSOLE INPUT & OUTPUT
+CONSOL_STATUS	EQU	0H	
+CONSOL_IN	EQU	01H
+CONSOL_OUT	EQU	01H
+
+
+
+;-------------- THIS IS MY PORT TO OUTPUT DATA TO HP 4050T LASAR PRINTER  (IMSAI 8PIO Board)
+
+IF	ST8C4				;If S100_Parallel_IO Board for Printer output
+PRINTER_CTRL	EQU	0C2H		;ST8C4 Control Port
+PRINTER_STATUS	EQU	0C1H		;ST8C4 Status port
+PRINTER_OUT	EQU	0C0H		;ST8C4 Data port
+PRINTER_ST_LOW	EQU	0DH		;OUT STROBE LOW
+PRINTER_ST_HIGH	EQU	0CH		;OUT STROBE HIGH
+ELSE
+PRINTER_STATUS	EQU	5		;IN, IMSAI PIO Board PARRELL PORT
+PRINTER_OUT	EQU	5		;OUT
+PRINTER_STROBE	EQU	4		;OUT
+ENDIF
+
+DIAG_LEDS	EQU	5		;OUT, Will use this port (either board) initially for diagnostic LED display.
+
+
+;-------------- S100Computers I/O BOARD PORT ASSIGNMENTS  (A0-AC)
+
+BCTL		EQU	0A0H		;CHANNEL B CONTROL PORT ASSIGNMENTS OF THE ZILOG SCC CHIP ;<--- Adjust as necessary, 
+BDTA		EQU	0A2H		;CHANNEL B DATA
+ACTL		EQU	0A1H		;CHANNEL A CONTROL (MODEM_CTL_PORT)		
+ADTA		EQU	0A3H		;CHANNEL A DATA (MODEM_DATA_PORT)
+
+PortA_8255	EQU	0A8H		;A port of 8255 ;<--- Adjust as necessary
+PortB_8255	EQU	0A9H		;B port of 8255
+PortC_8255	EQU	0AAH		;C Port of 8255
+PortCtrl_8255	EQU	0ABH		;8255 configuration port
+AinBout8255cfg	EQU	10011000b	;Set 8255 ports:- A input, B output, 
+
+USB_DATA	EQU	0ACH		;PORT ASSIGNEMENT FOR DLP-USB Controller chip
+USB_STATUS	EQU	0AAH		;Status port for USB port (Port C of 8255, bits 6,7)
+USB_RXE		EQU	80H		;If Bit 7 = 0, data available to recieve by S-100 Computer	
+USB_TXE		EQU	40H		;If Bit 6 = 0 data CAN be written for transmission to PC
+
+BASE_PORT	EQU	0A1H		;For XModem communication routines
+MODEM_CTL_PORT	EQU	BASE_PORT 	;A1H (Note modem I/O will be on CHANNEL A. Speaker on CHANNEL B
+MODEM_DATA_PORT	EQU	BASE_PORT+2	;A3H 
+
+MODEM_SEND_MASK	EQU	4
+SEND_READY	EQU	4		;VALUE WHEN READY
+MODEM_RECV_MASK	EQU	1
+RECV_READY	EQU	1		;BIT ON WHEN READY
+MODEM_ERR_LIMIT	EQU	8		;Max number of Modem serial port re-reads aborting
+MODEM_RTS_DELAY	EQU	1		;Time to check Modem RTS line (See XMODEM_LOAD & P_XMODEM_LOAD). Not critical.
+
+RECVD_SECT_NO	EQU	0H		;IX Offset for XModem Recieved Sector Number
+SECTNO		EQU	1H		;IX Offset for XModem CURRENT SECTOR NUMBER 
+ERRCT		EQU	2H		;IX Offset for XModem ERROR COUNT
+
+
+;-------------- S100Computers MSDOS Support Board PORT ASSIGNMENTS 
+ 
+CMOS_PORT	EQU	70H		;Base Port for CMOS Clock/Date Chip on MSDOS Support Board
+MASTER_PIC_PORT	EQU	20h		;Hardware port the 8259A (two ports 20H & 21H)
+
+MasterICW1	equ	00010111B	;EDGE triggered, 4 bytes, single Master,ICW4 needed
+MasterICW2	equ	8H		;Base address for 8259A Int Table (IBM-PC uses 8X4 = 20H)
+MasterICW3	equ	0H		;No slave
+MasterICW4	equ	00000011B	;No special mode, non buffer, Auto EOI, 8086.  ;<<<<,
+
+
+;--------------- PORTS FOR FOR Z80/WD2793 FDC Board
+
+S100_DATA_A	EQU	10H		;IN,  S100 Data port to GET data to from FDC Board
+S100_DATA_B	EQU	10H		;OUT, S100 Data port to SEND data to FDC Board
+S100_STATUS_A	EQU	11H		;Status port for A
+S100_STATUS_B	EQU	11H		;Status port for B
+RESET_ZFDC_PORT EQU	13H		;Port to reset ZFDC Z80 CPU.
+
+STATUS_DELAY	EQU	5		;Time-out for waiting for ZFDC Board handshake signal (~0.5 seconds @ 10MHz)
+DIRECTION_BIT	EQU	7		;Bits for the ZFDC flags 0 = IN, 1 = OUT
+DATA_IN_RDY	EQU	0		;Bit for data available from ZFDC board
+DATA_OUT_RDY	EQU	1		;Bit for data can be sent to ZFDC board
+STD8IBM		EQU	1		;IBM 8" SDSS Diak
+NO_ERRORS_FLAG	EQU	0		;No Errors flag for previous cmd, sent back to S-100 BIOS
+
+
+;	Commands to the FPGA_DC Board:-
+;	Note these commands are a sub-set of the old ZFDC and ZFDC_II Board commands
+
+CMD$SEL$DRIVE		EQU	5H		;**** (Re)select an already initilized drive
+CMD$SET$SIDE		EQU	8H		;**** This will set the active side for a floppy disk
+CMD$SET$TRK$SEC		EQU	35H		;Set new current TRACK+SECTOR on current drive (new)
+CMD$READ$SECTOR		EQU	10H		;**** Read data from the CURRENT sector (on current track,drive).
+CMD$WRITE$SECTOR	EQU	11H		;**** Write data to the CURRENT sector (on current track,drive).
+CMD$HANDSHAKE		EQU	21H		;**** Handshake command only sent during board initilization/testing 
+CMD$SET$IDE$MODE	EQU	38H		;Set IDE drive hardware mode on FPG_DC Board (Internal or External)
+						;Second Byte 0 = External IDE mode + Interrupt driven info (Default Mode). 
+						;Second Byte 1 = External IDE mode + CMD driven info
+						;Second Byte 2 = Local FPGA Board IDE mode + CMD driven info
+
+CMD$FAST$COPY$AB	EQU	39H		;Special CMD to fast copy CF Card A:->B: (All within FPGA_DC Board software)
+
+CMD$SET$HOME		EQU	0AH		;This will set floppy disk head request to Track 0 of CURRENT drive
+CMD$GET$TRACK$ID	EQU	0FH		;Read the CURRENT TRACK ID
+CMD$STEP$IN		EQU	0BH		;Step head in one track of CURRENT drive
+CMD$STEP$OUT		EQU	0CH		;Step head out one track of CURRENT drive
+CMD$SEEK$NV		EQU	0DH		;Seek to track with NO verify of CURRENT drive
+CMD$SEEK$TRACK		EQU	0EH		;Seek to track to (IY+DRIVE_TRACK) with the track verify bit set on CURRENT drive/format
+CMD$TRACK$DUMP		EQU	15H		;Dump complete CURRENT track to S-100 system
+						
+INFO$READ$SECTOR	EQU	42H		;Send info, read sector (Actual Sec Read done externally)
+INFO$WRITE$SECTOR	EQU	43H		;Send info, write sector
+CMD$FORMAT$DISK		EQU	44H		;Format the disk in the of the CURRENT drive
+CMD$FDC$COPY		EQU	45H		;Fast Copy Disk C:->D:
+
+;INFO$SEL$DRIVE		EQU	40H		;Send info, drive select
+;INFO$SET$TRK$SEC	EQU	41H		;Send info, set track,sector
+INFO$POST$MSG		EQU	41H		;Post a message on the USB Port Terminal
+
+CMD$GET$TIME		EQU	80H		;Get Time and Data from FPGA DC Board RTC
+CMD$SET$TIME		EQU	81H		;Set Time and Data on FPGA DC Board RTC
+
+CMD$BOARD$CONFIG	EQU	82H		;Get FPGA_DC Board hardware configuration
+						;Bits 7&6 contain IDE & FDC circuit flags 
+						;Bits 1&0 contain IDE Mode (0,1,2) 
+
+CMD$FAILED		EQU	0FFH		;CMD failed to exicute completely
+CMD$COMPLETE		EQU	0F0H		;Flag returned by DC board to signal the previous CMD was completed OK
+CMD$ABORT		EQU	0E0H		;CMD to abort the current process
+
+
+
+;-------------- PORT(S) TO SWITCH MASTER/SLAVE(S)
+
+Z80PORT	EQU	0D0H			;4 PORTS ON Z80 BOARD FOR MEMORY MANAGEMENT (& INT Controller on IA Z80 CPU Board)
+
+IOBYTE	EQU	0EFH			;IOBYTE (SEE ABOVE)
+SW_TMAX	EQU	0EEH			;OUTPUT BIT 0 HIGH FROM THIS PORT LOWERS DMA0* ON THE SMB_V2 (SWITCH IN THE 8086 FAMILY of boards)
+					;OUTPUT BIT 1 HIGH FROM THIS PORT LOWERS DMA1* ON THE SMB_V2 (SWITCH IN THE 68000 CPU Board)
+					;OUTPUT BIT 2 HIGH FROM THIS PORT LOWERS DMA2* ON THE SMB_V2 
+					;OUTPUT BIT 3 HIGH FROM THIS PORT LOWERS DMA3* ON THE SMB_V2 
+SW_TMA0	EQU	0EDH			;INPUT FROM THIS PORT LOWERS DMA0* (SWITCHES IN THE 8088,8086,80286 or 80386 boards)
+
+
+
+;-------------- VERSAFLOPPY-II	FLOPPY DISK CONTROLLER COMMANDS ETC.
+
+X	EQU	50H			;BASE PORT FOR 1791
+RSET	EQU	X+0			;CONTROLLER RESET ADDRESS
+SELECT	EQU	X+3			;DRIVE SELECT PORT
+STATUS	EQU	X+4			;STATUS PORT
+TRACK	EQU	X+5			;TRACK PORT
+SECTOR	EQU	X+6			;SECTOR PORT
+DATA	EQU	X+7			;DATA PORT
+CMD	EQU	X+4			;COMMAND PORT
+
+CIOBYTE	EQU	03H
+CDISK	EQU	04H
+ZERO_L	EQU	08H			;Some of my CPM Loader's needs these to be zero!
+ZERO_H	EQU	09H			;(The Non Banked version of CPM3). Need to later see why 
+@TADDR	EQU	40H
+@UNIT	EQU	42H			;NEW @UNIT BYTE
+@SCTR	EQU	43H			;SECTOR         (compatible with my old CPM2.2 Versafloppy BIOS)
+@TRK	EQU	44H			;TRACK
+@NREC	EQU	45H			;# OF SECTORS
+@ERMASK	EQU	46H			;ERROR MASK
+@ERSTAT	EQU	47H			;ERROR FLAG STORE
+@IDSV	EQU	48H			;6 BYTES (USED FOR TRACK ID COMMAND)
+@CMDSV	EQU	4EH			;COMMAND SAVE 
+@SPSV	EQU	4FH			;SP SAVE 
+TEMP2	EQU	51H			;2 BYTE TEMP RECORD
+@SIDE	EQU	51H			;SIDE STORE FOR MSDOS DISK
+@COUNT	EQU	53H			;SECTORS/TRACK for BOOT (Currently unused)
+@UNITCK	EQU	55H			;OLD @UNIT BYTE
+@RSEEK	EQU	56H			;NBR OF RESEEKS
+@RTRY	EQU	57H			;NBR OF RTRYS
+ADRIVE	EQU	58H			;STORE OF A: DRIVE DENSITY ETC TYPE
+BDRIVE	EQU	59H			;STORE OF B: DRIVE TYPE
+@FDCTYPE EQU	5BH			;0FFH = ZFDC FDC Board Boot, else Versafloppy II FDC Boot,  
+@SEC_SIZE EQU	5CH			;Byte count of a sector fot loader
+@SSTACK	EQU	80H			;SYSTEM STACK
+
+COLD	EQU	80H			;COLD START ADDRESS FOR CPM FLOPPY (ONLY) BOOT LOADER
+
+RDACMD	EQU	0C0H			;READ ADDRESS CODE
+RDCMD	EQU	088H			;READ SECTOR CODE
+WRCMD	EQU	0A8H			;WRITE SECTOR CODE
+WRTCMD	EQU	0F4H			;WRITE TRACK CODE
+RSCMD	EQU	008H			;RESTORE COMMAND (Note 3 Ms seek)
+SKNCMD	EQU	018H			;SEEK NO VERIFY
+FSKCMD	EQU	01CH			;FLOPPY SEEK COMAND
+RSVCMD	EQU	00CH			;RESTORE WITH VERIFY COMMAND
+MSKCMD	EQU	01FH			;MINI FLOPPY SEEK COMMAND
+
+SRMASK	EQU	0FEH			;SECTOR READ ERROR BITS MASK
+
+STDSDT	EQU	26			;STANDARD 8" 26 SECTORS/TRACK
+STDDDT	EQU	50			;STANDARD DD 8" 50 SECTORS/TRACK
+NBYTES	EQU	128			;BYTES/SECTOR 
+NTRKS	EQU	77			;TRACKS/DISK
+
+;-------------- S100Computers IDE HARD DISK CONTROLLER COMMANDS ETC. 
+
+IDEAport	EQU	030H		;lower 8 bits of IDE interface
+IDEBport	EQU	031H		;upper 8 bits of IDE interface
+IDECport	EQU	032H		;control lines for IDE interface
+IDECtrl		EQU	033H		;8255 configuration port
+IDEDrivePort	EQU	034H		;To select the 1st or 2nd CF card/drive (Not used with this monitor)
+
+IDE_Reset_Delay	EQU	020H		;Time delay for reset/initilization (~60 uS, with 10MHz Z80, 2 I/O wait states)
+
+EXT$IDE$MODE	EQU	00H		;FPGA IDE mode set to external IDE ports etc. 
+LOCAL$IDE$MODE	EQU	01H		;FPGA IDE mode set to Local IDE ports etc. 
+					
+CPM_ADDRESS	EQU	100H		;Will place the CPMLDR.COM Loader here with 
+					;CPMLDR.COM will ALWAYS be on TRK 0,SEC2, (LBA Mode)
+CPM_SEC_COUNT	EQU	12		;CPMLDR.COM requires (currently) 10, 512 byte sectors
+					;Add extra just in case
+RDcfg8255	EQU	10010010B	;Set 8255 IDECport out, IDEAport/B input
+WRcfg8255	EQU	10000000B	;Set all three 8255 ports output
+;
+IDEa0line	EQU	01H		;direct from 8255 to IDE interface
+IDEa1line	EQU	02H		;direct from 8255 to IDE interface
+IDEa2line	EQU	04H		;direct from 8255 to IDE interface
+IDEcs0line	EQU	08H		;inverter between 8255 and IDE interface
+IDEcs1line	EQU	10H		;inverter between 8255 and IDE interface
+IDEwrline	EQU	20H		;inverter between 8255 and IDE interface
+IDErdline	EQU	40H		;inverter between 8255 and IDE interface
+IDEreset	EQU	80H		;inverter between 8255 and IDE interface
+;
+;Symbolic constants for the IDE Drive registers, which makes the
+;code more readable than always specifying the address pins
+;
+REGdata		EQU	08H		;IDEcs0line
+REGerr		EQU	09H		;IDEcs0line + IDEa0line
+REGcnt		EQU	0AH		;IDEcs0line + IDEa1line
+REGsector	EQU	0BH		;IDEcs0line + IDEa1line + IDEa0line
+REGcyLSB	EQU	0CH		;IDEcs0line + IDEa2line
+REGcyMSB	EQU	0DH		;IDEcs0line + IDEa2line + IDEa0line
+REGshd		EQU	0EH		;IDEcs0line + IDEa2line + IDEa1line		;(0EH)
+REGCMD		EQU	0FH		;IDEcs0line + IDEa2line + IDEa1line + IDEa0line	;(0FH)
+REGstatus	EQU	0FH		;IDEcs0line + IDEa2line + IDEa1line + IDEa0line
+REGcontrol	EQU	16H		;IDEcs1line + IDEa2line + IDEa1line
+REGastatus	EQU	17H		;IDEcs1line + IDEa2line + IDEa1line + IDEa0line
+
+;IDE CMD Constants.  These should never change.
+CMDrecal	EQU	10H
+CMDread		EQU	20H
+CMDwrite	EQU	30H
+CMDinit		EQU	91H
+CMDid		EQU	0ECH
+CMDdownspin	EQU	0E0H
+CMDupspin	EQU	0E1H
+;
+; IDE Status Register:
+;  bit 7: Busy	1=busy, 0=not busy
+;  bit 6: Ready 1=ready for CMD, 0=not ready yet
+;  bit 5: DF	1=fault occured insIDE drive
+;  bit 4: DSC	1=seek complete
+;  bit 3: DRQ	1=data request ready, 0=not ready to xfer yet
+;  bit 2: CORR	1=correctable error occured
+;  bit 1: IDX	vendor specific
+;  bit 0: ERR	1=error occured
+;
+;
+;
+;--------------- PORTS FOR FOR S100 Bus interface to FPGA_DC Board -----------------------------------------
+
+S100_STATUS_PORT	EQU	80H		;STATUS port to send/get data to/from S100 bus.
+S100_DATA_PORT		EQU	81H		;DATA port to send/get data to/from S100 bus.
+RELEASE_ERROR_PORT	EQU	82H		;A pulse out to this port will reset the SET_FLAG_GATE on the FPGA Z80
+SOFT_RESET_PORT		EQU	83H		;Reset Handshake status port bits (80H)
+
+FPGA_RTS		EQU	01H		;01H if DC Board HAS send data
+S100_RTS		EQU	80H		;80H if S100 Bus HAS sent data
+;
+;
+@SECTOR_BUFFER		EQU	0E000H		;Location for FPGA_DC Controller DMA sector data buffer in RAM 
+
+NSCTRS			EQU	0FFH		;>>>>>>>>>>> MAX sectors/track <<<<<<<<<<<<<<<<<<<
+CPM_SEC_COUNT		EQU	12		;Allow up to 12 CPM sectors for CPMLDR
+CPMLDR_ADDRESS		EQU	100H		;Load the CPMLDR at 100H in RAM 
+
+@DRIVE1			EQU	0EE00H		;Storage for current Drive 1
+@TRK1			EQU	0EE02H		;Current Track 1
+@SEC1			EQU	0EE04H		;Current Sector 1
+@SIDE1			EQU	0EE06H		;Current Side 1
+@DISK_TYPE1		EQU	0EE08H		;SD/CF/Floppy etc.
+@FIRST_SEC		EQU	0EE0AH		;First sector number on a track. 0 for SD/CF cards. 1 for Floppies
+@SEC_TRACK		EQU	0EE0CH		;;Store for MAX sectors/track
+@MAX_TRACKS		EQU	0EE0EH		;Max tracks/disk (for floppies)
+@CURRENT_DRIVE		EQU	0EE10H		;Current selected drive
+@SEC_SIZE_FLAG		EQU	0EE12H		;0=128, 1=256, 2=512 Bytes/Sector
+
+@DMA			EQU	0EE20H		;RAM Pointer for sector writes
+@DMA_STORE		EQU	0EE22H		;RAM Pointer for sector writes
+@BOARD_CONFIG		EQU	0EE24H		;IDE +/- FDC Flag
+
+CFCARD			EQU	0FFH		;All CF & CF Card types 
+IBM3740			EQU	080H		;Disk hardware type 8" SS DD 128 Byte sectors
+IBM34			EQU	060H		;Disk hardware type 8" DS DD 256 byte Sectors
+IBM144			EQU	040H		;Disk hardware type 2.5" DS DD 512 byte Sectors
+
+;----------------------------------------------------------------------------
+;
+;JUMP TABLE TO ROUTINES WITHIN THE MONITOR1.Z80 :-
+
+;PROGRAM CODE BEGINS HERE
+;FIRST A JUMP TABLE FOR KEY JUMPS INTO THE MONITOR. NOTE THESE SHOULD NOT BE CHANGED BECAUSE
+;SOME OF MY OLDER SOFTWARE JUMPS DIRECTLY TO THEM. (WHERE POSSIBLE, TDL's ZAPPLE MONITOR FORMAT IS USED).
+
+ZAPPLE:		JP	ACTIVATE_LOW_PAGE	;INITILIZATION
+ZCI:		JP	HIGH_CI			;CONSOL INPUT
+ZRI:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZCO:		JP	HIGH_CO			;CONSOL OUTPUT
+ZPOO:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZLO:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZCSTS:		JP	HIGH_CSTS		;CONSOL STATUS
+ZMEMCK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZTRAP:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZSTART:		JP	ACTIVATE_LOW_PAGE	;JUMP BACK TO LOW PAGE MONITOR START
+ZTALK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZTALKS:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZDELAY:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZLSTAT:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZONLIST:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZOFFLIST:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZTIME:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZDATE:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZSPEAK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZSERIAL_OUT:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZSERIAL_IN:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZSERIAL_STA:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZLOADER:	JP	NoHighPageError			;This routine resides on the LOW page ROM 
+ZPMSG0:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZPMSG$:		JP	HIGH_PRINT_STRING	;DISPLAY STRING ON CONSOL [HL]=START ADD. '$'=END
+ZHLSP:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZBITS:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZLBYTE:		JP	HIGH_LBYTE		;DISPLAY [A] ON CONSOL
+ZHEXSP:		JP	HIGH_HEXSP		;PUT 16 BIT PARAMETERS ON STACK FROM CONSOL, [C]=PARAMETER #
+ZCRLF:		JP	HIGH_CRLF		;SEND CRLF TO CONSOL
+ZHILO:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZCONV:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZDOS		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZPCHK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZVBOOT		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZHARD:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZPRDY:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZRSTAT:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZCCHK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+ZZBOOT		JP	NoHighPageError			;This routine resides on the LOW page ROM
+
+
+;----------------->>> THIS CODE MUST BE AT THE SAME LOCATION AS FOR THE LOW PAGE ROM CODE <<<---------
+;
+ACTIVATE_HIGH_PAGE:				; SWITCH TO HIGH PAGE of ROM 
+	NOP
+	NOP
+	NOP
+	NOP
+	JP	HIGH_MENU_OPTION
+	
+ACTIVATE_LOW_PAGE:				; RETURN BACK TO LOW PAGE OF ROM
+	LD	A,04H				; 04H for MEMORY MANAGEMENT TO OVERLAP + Bit 1 = HIGH PAGE
+	OUT	(Z80PORT+3),A	
+	JP	NoHighPageError			; Will arrive here only IF no address line switch. 
+;
+;----------------------->>> END OF COMMON CODE LOACTIONS <<<----------------------------------
+;
+;
+HIGH_MENU_OPTION:
+	LD	A,D				; HIGH PAGE code with 1 in [D] for XMODEM
+	CP	A,1
+	JP	Z,HIGH_XMODEM
+	CP	A,2
+	JP	Z,HIGH_FPGA_DRIVES_MENU
+	JP	INVALID_MENU_ERROR		; The only menu option so far
+	
+INVALID_MENU_ERROR:
+	LD      HL,INVALID_PARM_MSG		; Point Error Message
+	CALL	HIGH_PRINT_STRING		; Print string
+	JP	ACTIVATE_LOW_PAGE
+
+MENU_ERROR:
+	LD      HL,M_ERROR_MSG			; Point Error Message
+	CALL	HIGH_PRINT_STRING		; Print string
+	JP	ACTIVATE_LOW_PAGE
+
+NoHighPageError:
+	LD	HL,NoHighPageMsg		; "No address line LA13 switch active" 
+	CALL	HIGH_PRINT_STRING		; Print string
+	JP	ACTIVATE_LOW_PAGE
+;
+;
+;<<<<<<<<<<<<<<<<<<<<<< MAIN CONSOL OUTPUT ROUTINE >>>>>>>>>>>>>>>>>>>>>>>>>
+
+HIGH_CO:
+	IN	A,(IOBYTE)
+	BIT	5,A			;SEE IF SERIAL PORT OUTPUT IS REQ
+	JR	NZ,NO_SERIAL		;MAKE SURE TO RETURN CHARACTER SENT IN [A]
+	CALL 	SERIAL_OUT		;Send data in [C] to Serial Port (Only)
+	JR	SDCON5
+NO_SERIAL:
+	IN	A,(IOBYTE)		;NOTE CHARACTER IS IN [C]
+	BIT	0,A			;CHECK IF OUTPUT TO PRINTER IS ALSO REQ
+	CALL	SDCONO			;OUTPUT TO CONSOLE (No Printer)
+	RET
+
+SDCONO:	IN	A,(CONSOL_STATUS)	;SD SYSTEMS OR PROPELLER CONSOLE I/O BOARD PORT
+	AND	4H
+	JR	Z,SDCONO
+	LD	A,C
+	CP	07H			;IS IT A BELL
+	JR	Z,BELL1
+	CP	0H			;SD BOARD CANNOT TAKE A NULL!
+	RET	Z
+	OUT	(CONSOL_OUT),A
+	IN	A,(IOBYTE)
+	BIT	5,A			;SEE IF SERIAL PORT OUTPUT IS REQ
+	JR	NZ,SDCON5		;MAKE SURE TO RETURN CHARACTER SENT IN [A]
+SDCON5:	LD	A,C
+	RET				;RETURN CHARACTER SENT IN [A]
+
+BELL1:	LD	A,06H			;SEND A BELL
+	OUT	(CONSOL_OUT),A
+	LD	A,0FH
+	CALL	DELAY
+	LD	A,07H
+	OUT	(CONSOL_OUT),A
+	JR	SDCON5
+
+
+DELAY:	DEC	A			;GENERAL COUNT DOWN TIME DELAY
+	RET	Z			;LENGTH SET IN [A]
+	PUSH	AF
+	LD	A,05H
+MORE:	DEC	A
+	PUSH	AF
+	XOR	A
+MORE2:	DEC	A
+	JR	NZ,MORE2
+	POP	AF
+	JR	NZ,MORE
+	POP	AF
+	JR	DELAY
+
+;<<<<<<<<<<<<<<<<<<< MAIN CONSOL STATUS ROUTINE >>>>>>>>>>>>>>>>>>>>>>
+
+HIGH_CSTS:
+	IN	A,(IOBYTE)
+	BIT	5,A			;SEE IF SERIAL PORT STATUS IS REQ
+	JR	NZ,NO_SER_STAT		
+	JP	SERIAL_STAT		;Check if anything at Modem IN status routine
+	
+NO_SER_STAT:
+	IN	A,(CONSOL_STATUS)
+	AND	02H
+	JP	Z,NOCHAR		
+	XOR	A
+	DEC	A			;RETURN WITH 0FFH IN [A] IF SOMETHING
+	RET
+NOCHAR: XOR	A			;RETURN WITH 0 IN A IF NOTHING THERE
+	RET
+
+
+;<<<<<<<<<<<<<<<<<<<< MAIN CONSOL INPUT ROUTINE >>>>>>>>>>>>>>>>>>>>
+
+HIGH_CI:
+	IN	A,(IOBYTE)
+	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
+	JR	NZ,CI_IN		;NO, then do normal CI
+	CALL	SERIAL_STAT		;See if anything at Serial/Modem input
+	JP	Z,HIGH_CI		;No Keep trying
+	JP	SERIAL_IN
+
+CI_IN: 	IN	A,(CONSOL_STATUS)	;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
+	AND	02H
+	JR	Z,CI_IN
+	IN	A,(CONSOL_IN)
+	AND	7FH			;7 bits only
+	RET
+
+QUICK_CSTS:	
+	IN	A,(CONSOL_STATUS)	
+	AND	02H
+	RET				;Ret Z if nothing
+
+;>>>>>>>>>>>>>>>>>> S100Computers SERIAL I/O Board <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+; Note the S100Computers I/O board will have the SSC-B set initially to 19,200 Baud 
+;
+SERIAL_OUT:	
+	XOR	A,A			;Will try 256 times, then timeout
+MODXXX:	PUSH	AF
+	IN	A,(ACTL)		;MODEM/SERIAL OUT
+	AND	04H			;Are we ready for a character
+	JR	NZ,SENDM		;NZ if ready to recieve character
+	POP	AF
+	DEC	A
+	JR	NZ,MODXXX
+	RET
+SENDM:	POP	AF
+	LD	A,C
+	OUT	(ADTA),A		;Send it
+	RET
+
+SERIAL_IN:	
+	XOR	A,A			;Will try 256 times, then timeout
+SERIAL_INX:	
+	PUSH	AF	
+	CALL	SERIAL_STAT		;MODEN/SERIAL IN
+	JR	NZ,GETMOD
+	POP	AF
+	DEC	A
+	JR	NZ,SERIAL_INX
+	RET
+GETMOD:	POP	AF	
+	IN	A,(ADTA)
+	RET
+	
+SERIAL_STAT:
+	IN	A,(ACTL)
+	AND	01H
+	RET	Z			;Ret Z if nothing
+	XOR	A
+	DEC	A
+	RET				;Ret FF/NZ if something
+
+
+;S100Computers Serial I/O Board Initilization
+;Note Zilog SCC serial port A will be set to 19,200 Baud initially (for speech synthesizer).
+;Note Zilog SCC serial port B will be set to 38,400 Baud initially (for XModem etc).
+
+HIGH_INIT_SCC_A:				
+	LD	A,ACTL			;Program Channel A
+	LD	C,A
+	LD	B,0EH			;Byte count for OTIR below
+	LD	HL,HIGH_SCCINIT_A
+	OTIR
+	RET
+	
+HIGH_INIT_SCC_B:
+	LD	A,BCTL			;Program Channel B
+	LD	C,A
+	LD	B,0EH			;Byte count for OTIR below
+	LD	HL,HIGH_SCCINIT_B
+	OTIR
+	RET
+;
+;	
+HIGH_SCCINIT_A:
+	DB	04H			;Point to WR4
+	DB	44H			;X16 clock,1 Stop,NP
+	DB	03H			;Point to WR3
+	DB	0C1H			;Enable reciever, Auto Enable, Recieve 8 bits	
+;	DB	0E1H			;Enable reciever, No Auto Enable, Recieve 8 bits (for CTS bit)	
+	DB	05H			;Point to WR5
+	DB	0EAH			;Enable, Transmit 8 bits
+	DB	0BH			;Set RTS,DTR, Enable. Point to WR11
+	DB	56H			;Recieve/transmit clock = BRG
+	DB	0CH			;Point to WR12
+;	DB	40H			;Low Byte 2400 Baud 
+;	DB	1EH			;Low Byte 4800 Baud 
+;	DB	0EH			;Low Byte 9600 Baud 
+;	DB	06H			;Low byte 19,200 Baud 
+	DB	02H			;Low byte 38,400 Baud <<<<<<<<<<< XModem I/O
+;	DB	00H			;Low byte 76,800 Baud  
+	DB	0DH			;Point to WR13
+	DB	00H			;High byte for Baud
+	DB	0EH			;Point to WR14
+	DB	01H			;Use 4.9152 MHz Clock. Note SD Systems uses a 2.4576 MHz clock, enable BRG
+	DB	0FH			;Point to WR15
+	DB	00H			;Generate Int with CTS going high
+
+HIGH_SCCINIT_B:
+	DB	04H			;Point to WR4
+	DB	44H			;X16 clock,1 Stop,NP
+	DB	03H			;Point to WR3
+	DB	0C1H			;Enable reciever, Auto Enable, Recieve 8 bits	
+	DB	05H			;Point to WR5
+	DB	0EAH			;Enable, Transmit 8 bits
+	DB	0BH			;Set RTS,DTR, Enable. Point to WR11
+	DB	56H			;Recieve/transmit clock = BRG
+	DB	0CH			;Point to WR12
+	DB	06H			;Low byte 19,200 Baud <<<<<<<<<<< Note Speech synthizer defaults to this value
+	DB	0DH			;Point to WR13
+	DB	00H			;High byte for Baud
+	DB	0EH			;Point to WR14
+	DB	01H			;Use 4.9152 MHz Clock. Note SD Systems uses a 2.4576 MHz clock, enable BRG
+	DB	0FH			;Point to WR15
+	DB	00H			;Generate Int with CTS going high
+;
+;
+;
+;---------------WE NEED A FEW ROUTINES (ALSO IN THE LOW PAGE) TO PROCESS COMMNADS--------------
+; 
+HIGH_QCHK:				;TEST FOR DELIMITERS
+	CP	SPACE
+	RET	Z
+	CP	','
+	RET	Z
+	CP	CR
+	SCF
+	RET	Z
+	CCF
+	RET 
+
+;KEYBOARD HANDELING ROUTINE (WILL NOT ECHO CR/LF)
+;IT CONVERTS LOWER CASE TO UPPER CASE FOR LOOKUP COMMANDS
+;ALSO ^C WILL FORCE A JUMP TO BOOT IN CP/M
+;ALL OTHERE CHARACTERS ARE ECHOED ON CONSOL
+
+HIGH_TI:
+	CALL	HIGH_CI
+	CP	CR
+	RET	Z
+	CP	'C'-40H			;^C TO BOOT IN CP/M
+	JP	Z,NoHighPageError
+	PUSH	BC
+	LD	C,A
+	CALL	HIGH_CO
+	LD	A,C
+	POP	BC
+	CP	40H			;LC->UC
+	RET	C
+	CP	7BH
+	RET	NC
+SF754:	AND	5FH
+	RET 
+
+EXPR1:	LD	C,01H			;GET ONE PARAMETER
+HIGH_HEXSP:	
+	LD	HL,0000
+EX0:	CALL	HIGH_TI
+EX1:	LD	B,A
+	CALL	HIGH_NIBBLE
+	JR	C,EX2X
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	L
+	LD	L,A
+	JR	EX0
+EX2X:	EX	(SP),HL
+	PUSH	HL
+	LD	A,B
+	CALL	HIGH_QCHK
+	JR	NC,SF560
+	DEC	C
+	RET	Z
+SF560:	JP	NZ,HIGH_ERROR
+	DEC	C
+	JR	NZ,HIGH_HEXSP
+	RET 
+EXF:	LD	C,01H
+	LD	HL,0000H
+	JR	EX1
+
+;CONVERT HEX TO ASCII
+
+HIGH_CONV:
+	AND	0FH
+	ADD	A,90H
+	DAA 
+	ADC	A,40H
+	DAA 
+	LD	C,A
+	CALL	HIGH_CO
+	RET
+
+
+HIGH_NIBBLE:	
+	SUB	30H
+	RET	C
+	CP	17H
+	CCF
+	RET	C
+	CP	LF
+	CCF
+	RET	NC
+	SUB	07H
+	CP	LF
+	RET
+
+HIGH_PRINT_STRING:				;A ROUTINE TO PRINT OUT A STRING @ [HL]
+	LD	A,(HL)				;UP TO THE FIRST '$'.
+	INC	HL			
+	CP	'$'
+	RET	Z
+	LD	C,A
+	CALL	HIGH_CO
+	JR	HIGH_PRINT_STRING
+
+
+;SEND TO CONSOL CR/LF
+
+HIGH_CRLF:
+	PUSH	BC
+	LD	C,LF
+	CALL	HIGH_CO
+	LD	C,CR
+	CALL	HIGH_CO
+	POP	BC
+	RET
+
+
+;PRINT [HL] ON CONSOL
+
+HIGH_LADR:
+	LD	A,H
+	CALL	HIGH_LBYTE
+	LD	A,L
+HIGH_LBYTE:
+
+HEXOUT:	PUSH	AF				;PRINT HEX in A on CONSOLE		
+	PUSH	BC
+
+	PUSH	AF
+	RRCA
+	RRCA
+	RRCA
+	RRCA
+	CALL	CONV_CO
+	POP	AF
+	CALL	CONV_CO
+	
+	POP	BC
+	POP	AF
+	RET
+
+CONV_CO:	
+	AND	A,0FH			;HEX to ASCII
+	ADD	90H
+	DAA
+	ADC	40H
+	DAA
+	LD	C,A
+	CALL	HIGH_CO
+	RET			
+
+HIGH_ERROR:				;RESTORE SYSTEM AFTER ERROR (Back to low page)
+	LD	C,'*'
+	CALL	HIGH_CO
+	JP	ACTIVATE_LOW_PAGE
+
+;---------------------------------------------------------------------------------------------------------------
+;This code will read a download file from another computer (usually a PC) sent via a serial port and place
+;it in RAM at a specified location.  The file must be sent via the XModem protocol. On PC's there are
+;many programs that do this. The "Absolute Telnet" program (by Celestial Software) is what I use.
+
+HIGH_XMODEM:
+	LD	HL,MODEM_SIGNON		;Send Modem signon message
+	CALL	HIGH_PRINT_STRING
+					
+	LD	HL,0			;SP to HL
+	ADD	HL,SP			
+	LD	DE,40H			;Drop 40H bytes below to be safe
+	SBC	HL,DE
+	PUSH	HL
+	POP	IX			;Will store data  below in RAM 40H bytes below SP to be safe
+					
+	XOR	A,A			;Initilize flags
+	LD	(IX+RECVD_SECT_NO),A
+	LD	(IX+SECTNO),A
+	LD	(IX+ERRCT),A
+					
+	LD	HL,MODEM_RAM_LOC	;Get RAM location for where to place code
+	CALL	HIGH_PRINT_STRING
+	LD	C,1
+	CALL	ZHEXSP			;Get 16 bit value, put on stack
+	POP	IY			;DMA Value now in IY
+	CALL	ZCRLF
+					
+	CALL	HIGH_INIT_SCC_A		;INITITIALIZE THE SCC SERIAL PORT A
+				
+	LD	B,1			;TIMEOUT DELAY
+	CALL	RECV			;GOBBLE UP GARBAGE CHARS FROM THE LINE
+
+RECV_LOOP:				; ---- MAIN RECIEVE LOOP ----
+	XOR	A,A			;GET 0
+	LD	(IX+ERRCT),A		;INITIAL ERROR COUNT SET TO 0
+RECV_HDR:
+	LD	HL,RMSG
+	CALL	HIGH_PRINT_STRING
+	LD	A,(IX+SECTNO)		;Get current sector number
+	INC	A
+	CALL	HIGH_LBYTE			;Show Sector Number on Console
+
+	LD	HL,MODEM_RAM_MSG	;"H.  IF OK, will write to RAM location"
+	CALL	HIGH_PRINT_STRING
+	PUSH	IY
+	POP	HL			;IY to HL
+	CALL	HIGH_LADR			;Show DMA Address
+	CALL	ZCRLF
+
+	LD	B,5			;5 SEC TIMEOUT
+	CALL	RECV
+	JP	NC,RHNTO		;IF ALL OK (NO TIMEOUT), THEN DROP DOWN TO RHNTO TO GET DATA
+
+RECV_HDR_TIMEOUT:
+	CALL	TOUT			;PRINT TIMEOUT
+
+RECV_SECT_ERR:				;PURGE THE LINE OF INPUT CHARS
+				LD	B,1			;1 SEC W/NO CHARS
+	CALL	RECV
+	JP	NC,RECV_SECT_ERR	;LOOP UNTIL SENDER DONE
+	LD	A,NAK
+	CALL	SEND			;SEND NAK
+
+	LD	A,(IX+ERRCT)
+	INC	A
+	LD	(IX+ERRCT),A
+	CP	A,MODEM_ERR_LIMIT
+	JP	C,RECV_HDR
+			
+	CALL	CHECK_FOR_QUIT
+	JP	Z,RECV_HDR
+	LD	HL,BAD_HEADER_MSG
+	CALL	HIGH_PRINT_STRING
+	JP	EXIT
+
+								
+RHNTO:	CP	A,SOH			;GOT CHAR - MUST BE SOH
+	JP	Z,GOT_SOH		;Z IF OK
+	OR	A,A			;00 FROM SPEED CHECK?
+	JP	Z,RECV_HDR
+	CP	A,EOT
+	JP	Z,GOT_EOT
+					;DIDN'T GET SOH - 
+	CALL	HIGH_LBYTE
+	LD	HL,ERRSOH
+	CALL	HIGH_PRINT_STRING
+	JP	RECV_SECT_ERR
+
+GOT_SOH:
+	LD	B,1
+	CALL	RECV
+	JP	C,RECV_HDR_TIMEOUT
+	LD	D,A			;D=BLK #
+	LD	B,1
+	CALL	RECV			;GET CMA'D SECT #
+	JP	C,RECV_HDR_TIMEOUT
+	CPL
+	CP	A,D			;GOOD SECTOR #?
+	JP	Z,RECV_SECTOR
+								
+	LD	HL,ERR2			;GOT BAD SECTOR #
+	CALL	HIGH_PRINT_STRING
+	JP	RECV_SECT_ERR
+
+
+RECV_SECTOR:				;Sector is OK, so read data and place in RAM
+	LD	A,D			;GET SECTOR #
+	LD	(IX+RECVD_SECT_NO),A
+	LD	C,0			;INIT CKSUM
+	LD	E,80H			;Sector Byte Count
+	PUSH	IY
+	POP	HL			;DMA address (IY) to HL
+					
+RECV_CHAR:
+	LD	B,1			;1 SEC TIMEOUT
+	CALL	RECV			;GET CHAR
+	JP	C,RECV_HDR_TIMEOUT
+	LD	(HL),A			;STORE CHAR
+	INC	HL		
+	DEC	E			;Next sector byte
+	JP	NZ,RECV_CHAR
+
+					;VERIFY CHECKSUM
+	LD	D,C			;SAVE CHECKSUM
+	LD	B,1			;TIMEOUT
+	CALL	RECV			;GET CHECKSUM
+	JP	C,RECV_HDR_TIMEOUT
+	CP	A,D			;CHECK
+	JP	NZ,RECV_CKSUM_ERR
+
+					;GOT A SECTOR, WRITE IF = 1+PREV SECTOR
+	LD	A,(IX+RECVD_SECT_NO)
+	LD	B,A			;SAVE IT
+	LD	A,(IX+SECTNO)		;GET PREV
+	INC	A			;CALC NEXT SECTOR #
+	CP	B			;MATCH?
+	JP	NZ,DO_ACK
+	LD	(IX+SECTNO),A		;UPDATE SECTOR #
+DO_ACK:	LD	A,ACK
+	CALL	SEND
+				
+	PUSH	HL			;ALL OK SO SAVE DMA Address in IY
+	POP	IY			
+	JP	RECV_LOOP		;Back to Top recieve loop
+
+RECV_CKSUM_ERR:
+	LD	HL,ERR3
+	CALL	HIGH_PRINT_STRING
+	JP	RECV_SECT_ERR
+
+GOT_EOT:
+	LD	A,ACK			;ACK THE EOT
+	CALL	SEND
+	JP	XFER_CPLT
+
+;----------------------------------------------------
+;   XMODEM SERIAL PORT GET CHARACTER ROUTINE
+;----------------------------------------------------
+
+RECV:	PUSH	DE			;SAVE D,E
+	LD	A,5H			;Lower RTS line
+	OUT	MODEM_CTL_PORT,A	;Sel Reg 5
+	LD	A,11101010B		;EAH
+	OUT	MODEM_CTL_PORT,A
+	NOP
+	NOP
+MSEC:	LD	DE,0BBBBH		;1 SEC DCR COUNT
+MWTI:	IN	A,MODEM_CTL_PORT
+	AND	A,MODEM_RECV_MASK
+	CP	A,RECV_READY
+	JP	Z,MCHAR			;GOT CHAR
+	DEC	E			;COUNT DOWN
+	JP	NZ,MWTI			;FOR TIMEOUT
+	DEC	D
+	JP	NZ,MWTI
+	DEC	B			;DCR # OF SECONDS
+	JP	NZ,MSEC			;MODEM TIMED OUT RECEIVING
+	POP	DE			;RESTORE D,E
+	SCF				;CARRY SHOWS TIMEOUT
+	RET
+								;GOT MODEM CHAR
+MCHAR:	IN	A,MODEM_DATA_PORT
+	POP	DE			;RESTORE DE
+	PUSH	AF			;CALC CHECKSUM
+	ADD	A,C
+	LD	C,A
+	POP	AF
+	OR	A,A			;TURN OFF CARRY TO SHOW NO TIMEOUT
+	RET
+					
+;----------------------------------------------------
+;   XMODEM SERIAL PORT SEND CHARACTER ROUTINE
+;----------------------------------------------------
+				
+SEND:	PUSH	AF			;CHECK IF MONITORING OUTPUT
+	ADD	A,C			;CALC CKSUM
+	LD	C,A
+SENDW:	IN	A,MODEM_CTL_PORT	;Don't worry PC is always fast enough!
+	AND	A,MODEM_SEND_MASK
+	CP	A,SEND_READY
+	JP	NZ,SENDW
+	POP	AF			;GET CHAR
+	OUT	MODEM_DATA_PORT,A
+				
+								;Raise RTS line to prevent the next character arriving
+	LD	A,5H			;while the Z80 is busy processing info
+	OUT	MODEM_CTL_PORT,A	;Sel Reg 5
+	LD	A,11101000B		;E8H
+	OUT	MODEM_CTL_PORT,A
+	RET
+
+;---------------- SUPPORT ROUTINES -----------------------------
+
+TOUT:	LD	HL,TOUTM		;PRINT TIMEOUT MESSAGE
+	CALL	HIGH_PRINT_STRING
+	LD	A,(IX+ERRCT)
+	CALL	HIGH_LBYTE		
+	CALL	ZCRLF
+	RET
+
+CO_A:	PUSH	AF			;PRINT VALUE of [A] on CRT
+	PUSH	BC
+	LD	C,A
+	CALL	HIGH_CO
+	POP	BC
+	POP	AF
+	RET
+
+CHECK_FOR_QUIT:				;MULTIPLE ERRORS, ASK IF TIME TO QUIT
+	XOR	A,A			;GET 0
+	LD	(IX+ERRCT),A		;RESET ERROR COUNT
+	LD	HL,QUITM
+	CALL	HIGH_PRINT_STRING
+
+CI3:	IN 	A,CONSOL_STATUS		;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
+	AND	A,02H
+	JP	Z,CI3
+	IN	A,CONSOL_IN
+	AND	A,7FH
+	PUSH	AF			;SAVE CHAR
+	CALL	ZCRLF
+	POP	AF
+	CP	A,'R'
+	RET	Z			;RETURN IF RETRY
+	CP	A,'r'
+	RET	Z
+	CP	A,'Q'			;QUIT?
+	JP	NZ,LCQ
+	OR	A,A			;TURN OFF ZERO FLAG
+	RET
+LCQ:	CP	A,'q'
+	JP	NZ,CHECK_FOR_QUIT
+	OR	A,A			;TURN OFF ZERO FLAG
+	RET
+
+XFER_CPLT:				;DONE - CLOSE UP SHOP
+	LD	HL,MODEM_DONE_MSG
+	CALL	HIGH_PRINT_STRING
+EXIT:	JP	ZSTART
+						
+;
+;--------------------------------------------------------------------------------------------------------
+;---------------------------------------------- FPGA DC Board IDE MENU ----------------------------------
+;--------------------------------------------------------------------------------------------------------
+
+HIGH_FPGA_DRIVES_MENU:
+	IN	A,(S100_STATUS_PORT)	;If FPGA_DC is active this will be X000000X
+	CP	A,0FFH
+	JP	Z,NO_RESPONSE
+	
+	LD	A,CMD$BOARD$CONFIG	;Get FPGA_DC Board hardware configuration
+	CALL	DATA_TO_FPGA		;Bits 7&6 contain IDE & FDC circuit flags 
+					;Bits 1&0 contain IDE Mode (0,1,2)
+	
+	CALL	GET_FPGA_TO_S100	;Get data back [A] back to S100 
+	LD	(@BOARD_CONFIG),A
+	AND	A,11000000B
+	JP	Z,NO_RESPONSE
+	
+	BIT	7,A				
+	JP	Z,NO_IDE_CIRCUIT	;No IDE, must be FDC
+	
+	LD	HL,IDE_CIRCUIT_MSG	;FPGA_DC Board, IDE/CF Card Circuit detected.$'
+	CALL	HIGH_PRINT_STRING
+	
+	LD	A,CMD$SET$IDE$MODE	;38H set IDE to local IDE mode 
+	CALL	DATA_TO_FPGA
+	LD	A,LOCAL$IDE$MODE	;1H, IDE to local mode 
+	CALL	DATA_TO_FPGA
+	LD	HL,LOCAL_IDE_MODE_MSG	;FPGA_DC Board, Set to local IDE ports mode.$ 
+	CALL	HIGH_PRINT_STRING
+
+NO_IDE_CIRCUIT:
+	BIT	6,A				
+	JP	Z,NO_FDC_CIRCUIT	;NO FDC Board detected
+
+	LD	HL,FDC_CIRCUIT_MSG	;FPGA_DC Board FDC Citcuit detected.$'
+	CALL	HIGH_PRINT_STRING
+
+	LD	A,'C'			;Start off with floppy Drive C:
+	CALL	SEL_DRIVE		;Drive letter returned in A
+
+	LD	A,(@BOARD_CONFIG)	;If IDE citrcuit present always start with IDE
+	BIT	7,A				
+	JP	Z,FPGA_DRIVES_LOOP	;NO IDE Circuit detected, then always start with FDC
+
+NO_FDC_CIRCUIT:				;NO FPGA_DC FDC circuit detected
+	LD	A,'A'			;Always start off with drive A:
+	CALL	SEL_DRIVE		;Drive letter returned in A
+
+;--------------------------------------------------------------------------------------------	
+
+FPGA_DRIVES_LOOP:
+	LD	HL,FPGA_DC_SIGNON	;Post the (limited) FPGA_DC Board menu
+	CALL	HIGH_PRINT_STRING
+
+FPGA_LOOP1:
+	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector,head#
+	CALL	HIGH_CRLF
+						
+	LD	C,'>'
+	CALL	HIGH_CO
+
+	CALL	HIGH_TI			;Simple UC character Input + echo (Note, no fancy checking)
+	CP	A,ESC			;Abort if ESC
+	JP	Z,EXIT
+
+	PUSH	AF
+	CALL	ZCRLF
+	POP	AF
+
+	CP	A,'D'
+	JP	Z,DO_DRIVE_SELECT
+	CP	A,'R'
+	JP	Z,DO_SEC_READ
+	CP	A,'W'
+	JP	Z,DO_SEC_WRITE
+	CP	A,'N'
+	JP	Z,DRIVE_NEXT_SEC
+	CP	A,'P'
+	JP	Z,DRIVE_PREV_SEC
+	CP	A,'T'
+	JP	Z,SET_TRK_SEC
+
+	LD	C,BELL
+	CALL	HIGH_CO
+	JP	HIGH_FPGA_DRIVES_MENU	;Bad Menu item
+;
+NO_RESPONSE:				;NO FPGA_DC Board detected
+	LD	HL,NO_FPGA_BOARD
+	JP	EXIT
+;
+;--------------------------------------- SELECT DRIVE ------------------------------------------
+
+DO_DRIVE_SELECT:
+	CALL	SELECT_CURRENT_DRIVE	;New drive in (@CURRENT_DRIVE)
+	JP	FPGA_DRIVES_LOOP
+;
+;
+;
+;-------------------------------------- SECTOR READ -----------------------------------------------------------
+;
+DO_SEC_READ:
+	LD	A,CMD$READ$SECTOR	;10H,  Send CMD_READ_IDE_SECTOR command 
+	CALL	DATA_TO_FPGA
+
+	LD	HL,@SECTOR_BUFFER	;@SECTOR_BUFFER->HL
+	LD	A,H
+	CALL	DATA_TO_FPGA
+	LD	A,L
+	CALL	DATA_TO_FPGA
+
+	LD	A,(@TRK1)		;Track	
+	CALL	DATA_TO_FPGA
+
+	LD	A,(@SEC1)		;Note: no check data is < MAXSEC, sectors start 0,1,2,3.... for SD cards
+	CALL	DATA_TO_FPGA
+
+	LD	HL,@SECTOR_BUFFER	;@SECTOR_BUFFER->HL
+	LD	(@DMA),HL
+	CALL	GET_SEC_BYTE_COUNT	;Return Bytes/sec in DE
+
+GET_SECTOR:				;<<<< LOOP Sector READ >>>>
+	CALL	GET_FPGA_TO_S100	;Get data in [A] back to S100 
+	JP	C,GLOBAL_SEC_RD_ERROR	;Set carry flag if error on s100 bus side
+	LD	(HL),A
+	INC	HL
+	DEC	DE
+	LD	A,E
+	OR	A,D
+	JR	NZ,GET_SECTOR
+
+	CALL	GET_FPGA_TO_S100	;Get ERROR FLAG
+	JP	C,GLOBAL_SEC_RD_ERROR	;Set carry flag if error on s100 bus side
+	CP	A,CMD$COMPLETE		;0F0H, Flag returned by DC board to signal the previous CMD was completed OK
+	JP	NZ,GLOBAL_SEC_RD_ERROR	
+
+	CALL	HIGH_CRLF
+	CALL	SEC_DUMP		;Show contents of RAM at (@DMA) (Registers changed)
+	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector,head#
+	CALL	HIGH_CRLF
+
+	LD	HL,CONTINUE_MSG		;Any keyboard character for next sector. Esc to Main Menu
+	CALL	HIGH_PRINT_STRING
+	CALL	HIGH_CI
+	CP	A,ESC
+	JP	Z,FPGA_DRIVES_LOOP
+	
+	CALL	SEC_BUMP		;Point to next sector. Note this updates LBA also
+	JP	DO_SEC_READ		;Read another sector
+;
+;
+GLOBAL_SEC_RD_ERROR:
+	LD	HL,SEC_RD_ERR1_MSG	;Sect RD Error 
+	CALL	HIGH_PRINT_STRING
+	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector
+	JP	FPGA_DRIVES_LOOP
+;
+; 
+;
+;---------------------------------- SECTOR WRITE ---------------------------------------------------------
+;
+DO_SEC_WRITE:
+	LD	HL,WR_RAM_MENU_MSG	;Write to disk from From RAM at:- (XXXXH):$'
+	CALL	HIGH_PRINT_STRING
+	
+	CALL	GETHEX_NO_ECHO
+	JP	C,FPGA_DRIVES_LOOP
+	LD	H,A
+	
+	CALL	GETHEX_NO_ECHO
+	JP	C,FPGA_DRIVES_LOOP
+	LD	L,A
+	LD	(@DMA),HL
+	LD	(@DMA_STORE),HL
+
+DO_MORE_SEC_WRITE:	
+	LD	(@DMA),HL
+	LD	(@DMA_STORE),HL
+
+	LD	A,CMD$WRITE$SECTOR	;11H, Send CMD_WRITE_SECTOR
+	CALL	DATA_TO_FPGA
+	
+	LD	A,H
+	CALL	DATA_TO_FPGA
+	LD	A,L
+	CALL	DATA_TO_FPGA
+
+	
+	LD	A,(@TRK1)		;Track	
+	CALL	DATA_TO_FPGA
+
+	LD	A,(@SEC1)		;Note: no check data is < MAXSEC, sectors start 0,1,2,3.... for SD cards
+	CALL	DATA_TO_FPGA
+	
+	LD	HL,(@DMA)		;RAM->HL
+	CALL	GET_SEC_BYTE_COUNT	;Return Bytes/sec in DE
+
+PUT_SECTOR:				;<<<< LOOP Sector WRITE >>>>
+	LD	A,(HL)
+	CALL	DATA_TO_FPGA		;Get data in [A] back to S100 
+	INC	HL
+	DEC	DE
+	LD	A,E
+	OR	A,D
+	JR	NZ,PUT_SECTOR
+
+	LD	(@DMA_STORE),HL		;Store for next sector
+	
+	CALL	GET_FPGA_TO_S100	;Get ERROR FLAG
+	CP	A,CMD$COMPLETE		;Flag returned by DC board to signal the previous CMD was completed OK
+	JP	NZ,GLOBAL_SEC_WR_ERROR	
+		
+
+	CALL	HIGH_CRLF
+	CALL	SEC_DUMP		;Show contents of RAM at SECTOR_BUFFER (Registers changed)
+	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector,head#
+	CALL	HIGH_CRLF
+
+	LD	HL,(@DMA_STORE)		;Store for next sector
+	LD	(@DMA),HL
+	
+	LD	HL,CONTINUE_MSG		;Any keyboard character for next sector. Esc to Main Menu
+	CALL	HIGH_PRINT_STRING
+	CALL	HIGH_CI
+	CP	A,ESC
+	JP	Z,FPGA_DRIVES_LOOP
+	
+	CALL	SEC_BUMP		;Point to next sector. Note this updates LBA also
+	JP	DO_MORE_SEC_WRITE	;Read another sector
+					;<<<<< SECTOR WRITE LOOP >>>>>>>>>>>>>>>>>>
+					
+GLOBAL_SEC_WR_ERROR:
+	LD	HL,SEC_WRD_ERR1_MSG	;Sect RD Error 
+	CALL	HIGH_PRINT_STRING
+	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector,head#
+	JP	FPGA_DRIVES_LOOP
+;
+; 
+;	
+;---------------------------------- SET TRACK & SECTOR ---------------------------------------------------------
+
+SET_TRK_SEC:				;Keyboard entry of new IDE drive track/sector data FORMAT:- (XX,XX+CR)
+	LD	HL,ENTER_TS_DATA
+	CALL	HIGH_PRINT_STRING
+
+	CALL	GETHEX_NO_ECHO
+	JP	C,ABORT_SET_TRK_SEC
+	
+	LD	(@TRK1),A
+
+	CALL	HIGH_CI			;Format must be xx,xx
+	CP	A,','
+	JR	NZ,DR_TRK_SEC_ERR
+	LD	C,','
+	CALL	HIGH_CO
+
+	CALL	GETHEX_NO_ECHO
+	JP	C,ABORT_SET_TRK_SEC
+	
+	LD	(@SEC1),A
+	
+	LD	A,CMD$SET$TRK$SEC	;31H, Now update board, Send CMD_SET_TRK_SEC
+	CALL	DATA_TO_FPGA
+	
+	LD	A,(@TRK1)
+	CALL	DATA_TO_FPGA
+
+	LD	A,(@SEC1)
+	CALL	DATA_TO_FPGA
+	JP	NZ,DR_TRK_SEC_ERR	;Error setting track/sector
+
+ABORT_SET_TRK_SEC:
+	JP	FPGA_DRIVES_LOOP
+
+DR_TRK_SEC_ERR;
+	LD	HL,TRK_SEC_ERR		;Error setting track/sector
+	CALL	HIGH_PRINT_STRING
+	JP	FPGA_DRIVES_LOOP
+
+;---------------------------------- POINTS TO NEXT SECTOR ---------------------------------------------------------
+
+DRIVE_NEXT_SEC:				;Generalized routine to point to the next sector/track
+	CALL	SEC_BUMP		;Do it locally
+
+ADJUST_TRK_SEC:	
+	LD	A,CMD$SET$TRK$SEC	;35H ;Set new current TRACK+SECTOR on current drive (new)
+	CALL	DATA_TO_FPGA
+
+	LD	A,(@TRK1)		;Track	
+	CALL	DATA_TO_FPGA
+	
+	LD	A,(@SEC1)		;Note: no check data is < MAXSEC, sectors start 0,1,2,3....
+	CALL	DATA_TO_FPGA
+	
+	JP	FPGA_DRIVES_LOOP
+;
+;
+;---------------------------------- POINTS TO PREVIOUS SECTOR ---------------------------------------------------
+
+DRIVE_PREV_SEC:
+	CALL	SEC_BACK		;Do it locally 
+	JR	ADJUST_TRK_SEC	
+;
+;
+;-----------------------------------------------------------------------------------------------	
+;--------------------------------------- IDE SUPPORT ROUTINES ----------------------------------
+;-----------------------------------------------------------------------------------------------
+;
+SELECT_CURRENT_DRIVE:			;Select a drive (A---F)
+	LD	HL,CURRENT_DR_MSG
+	CALL	HIGH_PRINT_STRING
+
+	CALL	HIGH_TI			;Simple UC character Input  + echo(Note, no fancy checking)
+	CP	A,ESC			;Abort if ESC
+	JP	Z,EXIT
+	CP	A,'A'
+	JR	Z,SEL_DRIVE
+	CP	A,'B'
+	JR	Z,SEL_DRIVE
+	CP	A,'C'
+	JR	Z,SEL_DRIVE
+	CP	A,'D'
+	JR	Z,SEL_DRIVE
+	CP	A,'E'
+	JR	Z,SEL_DRIVE
+	CP	A,'F'
+	JR	Z,SEL_DRIVE
+	JR	BAD_DRIVE
+
+SEL_DRIVE:				;Arrive here with selecetd drive in A
+	PUSH	AF			;Save selected drive for below
+	CALL	INITILIZE_DRIVE		;Initilize drive in [A]
+	
+	LD	A,CMD$SEL$DRIVE		;05H,  Select Drive CMD
+	CALL	DATA_TO_FPGA
+
+	POP	AF
+	LD	E,A			;Store in E
+	CALL	DATA_TO_FPGA
+	
+	CALL	GET_FPGA_TO_S100	;Wait for returned ACK signal 
+	CP	A,E 
+	JR	NZ,BAD_DRIVE
+	OR	A,A			;Ret NZ with ASCII in A
+	RET				;Returns with drive in A and Z if OK
+
+
+BAD_DRIVE:
+	LD	HL,BAD_SEL_DR_MSG	;Error selecting a new drive
+	CALL	HIGH_PRINT_STRING
+	XOR	A,A
+	RET				;RET Z if a problem
+
+
+INITILIZE_DRIVE:			;Initilize drive in A
+	CP	A,'A'
+	JR	Z,INIT_CF_CARD
+	CP	A,'B'
+	JR	Z,INIT_CF_CARD
+	CP	A,'C'
+	JR	C,INIT_FLOPPY1
+	CP	A,'D'
+	JR	C,INIT_FLOPPY2
+	CP	A,'E'
+	JR	C,INIT_FLOPPY3
+	JR	INIT_FLOPPY4
+INIT_CF_CARD:	
+	LD	(@DRIVE1),A
+	SUB	A,41H			;A or B - A
+	LD	(@CURRENT_DRIVE),A	;0 or 1
+	LD	A,0			;Initilize Local Track/sec info
+	LD	(@TRK1),A
+	LD	(@SEC1),A
+	LD	(@SIDE1),A
+	LD	(@FIRST_SEC),A		;First sector number on a track. 0 for SD/CF cards. 
+	LD	A,CFCARD		;All CF cards = 0FFH	
+	LD	(@DISK_TYPE1),A
+	LD	A,0FFH
+	LD	(@SEC_TRACK),A		;Store for MAX sectors/track
+	LD	(@MAX_TRACKS),A		;Max tracks/disk (for floppies)
+	LD	A,2
+	LD	(@SEC_SIZE_FLAG),A	;0=128, 1=256, 2=512 Bytes/Sector
+	RET
+
+INIT_FLOPPY1:
+INIT_FLOPPY2:
+	PUSH	AF
+	LD	A,IBM3740		;SSSD Floppy IBM 3740
+	LD	(@DISK_TYPE1),A
+	LD	A,26+1
+	LD	(@SEC_TRACK),A		;Store for MAX sectors/track +1
+	LD	A,76
+	LD	(@MAX_TRACKS),A		;Max tracks/disk (for floppies)
+	LD	A,0
+	LD	(@SEC_SIZE_FLAG),A	;0=128, 1=256, 2=512 Bytes/Sector
+	JR	COMMON_FLOPPY
+
+INIT_FLOPPY3:
+	PUSH	AF
+	LD	A,IBM34			;DSDD Floppy IBM 34
+	LD	(@DISK_TYPE1),A
+	LD	A,26+1
+	LD	(@SEC_TRACK),A		;;tore for MAX sectors/track +1
+	LD	A,76
+	LD	(@MAX_TRACKS),A		;Max tracks/disk (for floppies)
+	LD	A,1
+	LD	(@SEC_SIZE_FLAG),A	;0=128, 1=256, 2=512 Bytes/Sector
+	JR	COMMON_FLOPPY
+	
+INIT_FLOPPY4:
+	PUSH	AF
+	LD	A,IBM144		;SSSD Floppy IBM 3740
+	LD	(@DISK_TYPE1),A
+	LD	A,18+1
+	LD	(@SEC_TRACK),A		;;tore for MAX sectors/track +1
+	LD	A,80
+	LD	(@MAX_TRACKS),A		;Max tracks/disk (for floppies)
+	LD	A,2
+	LD	(@SEC_SIZE_FLAG),A	;0=128, 1=256, 2=512 Bytes/Sector
+	JR	COMMON_FLOPPY
+
+COMMON_FLOPPY:
+	POP	AF
+	LD	(@DRIVE1),A
+	SUB	A,41H			
+	LD	(@CURRENT_DRIVE),A	;0 or 1
+	LD	A,0			;Initilize Local Track/sec info
+	LD	(@TRK1),A
+	LD	(@SIDE1),A
+	LD	A,1
+	LD	(@FIRST_SEC),A		;First sector number on a track. 1 for Floppys 
+	LD	(@SEC1),A
+	RET
+
+
+;
+;----------------------------------------
+GET_SEC_BYTE_COUNT:			;Return Bytes/sec in DE
+	LD	A,(@SEC_SIZE_FLAG)	;0=128, 1=256, 2=512 Bytes/Sector
+	CP	A,2
+	JR	NZ,NOT_RD_512
+	LD	DE,512
+	RET
+NOT_RD_512:
+	CP	A,1
+	JR	NZ,NOT_RD_256
+	LD	DE,256
+	RET
+NOT_RD_256:
+	LD	DE,128
+	RET
+
+
+		
+;
+;----------------------------------------
+GETHEX_NO_ECHO:
+	PUSH	BC	
+	call	HIGH_CI			;GET A CHARACTER, convert to UC, ECHO it
+	call	UCASE	
+	CP	A,ESC
+	JP	Z,HEXABORT_NO_ECHO
+	CP	A,'/'			;check 0-9, A-F
+	JP	C,HEXABORT_NO_ECHO
+	CP	A,'F'+1
+	JP	NC,HEXABORT_NO_ECHO
+	PUSH	BC
+	PUSH	AF
+	LD	C,A
+	CALL	HIGH_CO
+	POP	AF
+	POP	BC
+	call	ASBIN			;Convert to binary
+	rlca				;Shift to high nibble
+	rlca
+	rlca
+	rlca
+	LD	B,A			;Store it
+	
+	call	HIGH_CI			;GET second CHARACTER, convert to UC, ECHO it
+	call	UCASE
+	CP	A,ESC
+	JP	Z,HEXABORT_NO_ECHO
+	CP	A,CR
+	JP	Z,ONE_DIGIT
+	
+	CP	A,'/'			;check 0-9, A-F
+	JP	C,HEXABORT_NO_ECHO
+	CP	A,'F'+1
+	JP	NC,HEXABORT_NO_ECHO
+	PUSH	BC
+	PUSH	AF
+	LD	C,A
+	CALL	HIGH_CO
+	POP	AF
+	POP	BC
+	call	ASBIN			;Convert to binary
+	OR	A,B			;add in the first digit
+	POP	BC
+	OR	A			;To return NC
+	RET
+	
+HEXABORT_NO_ECHO:
+	POP	BC
+	SCF				;Set CF if a problem
+	RET	
+;
+ONE_DIGIT:				;A CR wase ntered after only 1 digit
+	LD	A,B
+	RRA				;Shift to high nibble back down
+	RRA
+	RRA
+	RRA
+	AND	A,0FH
+	OR	A
+	RET
+
+
+
+
+; ASCII TO BINARY CONVERSION ROUTINE
+ASBIN:	SUB	30H 
+	CP	0AH 
+	RET	M
+	SUB	07H 
+	RET
+
+;					;Convert LC to UC
+UCASE:	CP	A,'a'			;must be >= lowercase a
+	RET	C			; else go back...
+	CP	A,'z'+1			;must be <= lowercase z
+	RET	NC			; else go back...
+	SUB	A,'a'-'A'		;subtract lowercase bias
+	RET
+
+
+;-------------------------------------------
+
+SHOW_DMA_TRK_SEC:
+	LD	HL,DMA_MSG
+	CALL	HIGH_PRINT_STRING
+	LD	HL,@SECTOR_BUFFER	;@SECTOR_BUFFER->HL
+	CALL	HIGH_LADR
+
+	LD	HL,DRIVE_MSG
+	CALL	HIGH_PRINT_STRING
+	LD	A,(@DRIVE1)		;Show Drive A,B....
+	LD	C,A	
+	CALL	HIGH_CO
+	
+	LD	HL,TRK_SEC_MSG
+	CALL	HIGH_PRINT_STRING
+	LD	A,(@TRK1)		;Get track	
+	CALL	HEXOUT
+	
+	LD	HL,TRK_SEC1_MSG
+	CALL	HIGH_PRINT_STRING
+	LD	A,(@SEC1)		;Get Sector
+	CALL	HEXOUT
+	
+	LD	HL,SEC_TRK_MSG		;Sectors/track = $'
+	CALL	HIGH_PRINT_STRING
+	LD	A,(@SEC_TRACK)
+	CALL	HEXOUT
+	LD	HL,HCRLF_MSG
+	CALL	HIGH_PRINT_STRING
+	RET
+
+
+;--------------------------------------------
+
+SEC_BUMP:				;Generalized routine to point to the next sector/track
+	PUSH	BC
+	LD	A,(@SEC_TRACK)		;Is it the last sector on track
+	LD	C,A
+	LD	A,(@SEC1)		
+	CP	A,C
+	JR	Z,SEC_BUMP_TRK
+	INC	A
+	LD	(@SEC1),A
+	POP	BC
+	RET
+					
+SEC_BUMP_TRK:
+	LD	A,(@FIRST_SEC)		;SEC back to first sector on the next tarck
+	LD	(@SEC1),A
+	LD	A,(@TRK1)	
+	INC	A
+	OR	A,A			;Last track if SD/CF card
+	JR	Z,AT_END		;RET Z if at end
+	LD	C,A
+	LD	A,(@MAX_TRACKS)
+	LD	C,A
+	JR	Z,AT_END		;RET Z if at end
+	LD	(@TRK1),A
+	POP	BC
+	RET
+AT_END:	
+	POP	BC
+	XOR	A,A			;Ret Z if at end of disk
+	RET
+
+
+;
+SEC_BACK:				;Generalized routine to point to the previous sector/track
+	PUSH	BC
+	LD	A,(@FIRST_SEC)		;Is it SEC back to first sector on the next tarck
+	LD	C,A			;Is it at set 0
+	LD	A,(@SEC1)
+	CP	A,C
+	JR	Z,PREV_TRACK
+	DEC	A
+	LD	(@SEC1),A
+	POP	BC
+	RET
+					
+PREV_TRACK: 
+	LD	A,(@SEC_TRACK)		;Store for MAX sectors/track + 1
+	DEC	A
+	LD	(@SEC1),A
+	LD	A,(@TRK1)
+	CP	A,0			;On first track
+	JR	Z,AT_START		;RET Z if at end
+	DEC	A
+	LD	(@TRK1),A
+	POP	BC
+	RET
+AT_START:	
+	POP	BC
+	XOR	A,A
+	RET
+
+;
+;------------------------------------------
+SEC_DUMP:				;Print a SEC_DUMP of the data in the 512 byte buffer @[HL]
+	CALL	GET_SEC_BYTE_COUNT	;Return Bytes/sec in DE
+	LD	HL,(@DMA)		;Normally @SECTOR_BUFFER->HL (Except sec writes)
+	ADD	HL,DE
+	PUSH	HL
+	POP	DE			;DE = SECTOR BUFFER + SEC SIZE
+	DEC	DE
+	LD	HL,(@DMA)		;@SECTOR_BUFFER->HL
+
+	LD	A,L			;ROUND OFF ADDRESSES TO XXX0H
+	AND	0F0H
+	LD	L,A
+	LD	A,E			;FINAL ADDRESS LOWER HALF
+	AND	0F0H
+	ADD	A,10H			;FINISH TO END 0F LINE
+	
+SF172A:	CALL	LF_PRINT_HL		;Do LF + Print value in [HL]
+SF175A:	CALL	BLANK
+	
+	LD	A,(HL)
+	CALL	HEXOUT
+	CALL	HILO			;<--- Set C flag when HL=DE
+	JP	C,FINAL_ASCII
+	LD	A,L
+	AND	0FH
+	JR	NZ,SF175A
+	LD	C,TAB			;INSERT A TAB BETWEEN DATA
+	CALL	ZCO
+	LD	B,4H			;ALSO 1 SPACE
+TA11:	LD	C,SPACE
+	CALL	HIGH_CO
+	DJNZ	TA11
+	CALL	SHOW_ASCII
+	JR	SF172A
+	
+SHOW_ASCII:
+	LD	B,16			;NOW PRINT ASCII (16 CHARACTERS)
+	PUSH	DE			;TEMPORLY SAVE [DE]
+	LD	DE,0010H
+	SBC	HL,DE
+	POP	DE
+T11:	LD	A,(HL)
+	AND	7FH
+	CP	' ' 			;FILTER OUT CONTROL CHARACTERS'
+	JR	NC,T33
+T22:	LD	A,'.'
+T33:	CP	07CH
+	JR	NC,T22
+	LD	C,A			;SET UP TO SEND
+	CALL	HIGH_CO
+	INC	HL
+	DJNZ	T11			;REPEAT FOR WHOLE LINE
+	RET
+
+FINAL_ASCII:				;Special case to show final ASCII line
+	LD	C,TAB			;INSERT A TAB BETWEEN DATA
+	CALL	HIGH_CO
+	LD	B,4H			;ALSO 1 SPACE
+TA11A:	LD	C,SPACE
+	CALL	HIGH_CO
+	DJNZ	TA11A
+	CALL	SHOW_ASCII
+	RET
+;
+;
+HILO:	INC	HL			;>>>>>>>>>>>> RANGE CHECK SET CARRY IF [DE]=[HL]
+	LD	A,H
+	OR	L
+	SCF
+	RET	Z
+	LD	A,E
+	SUB	L
+	LD	A,D
+	SBC	A,H
+	RET 
+
+;
+LF_PRINT_HL:	
+	CALL	HIGH_CRLF
+;					;>>>>>>>>>>>>PRINT [HL] AND A SPACE
+SP_PRINT_HL:	
+	PUSH	HL
+	PUSH	BC
+	CALL	HIGH_LADR
+	LD	C,SPACE
+	CALL	HIGH_CO
+	POP	BC
+	POP	HL
+	RET
+;
+;
+BLANK:	LD	C,SPACE
+	CALL	HIGH_CO
+	RET
+
+;----------------------------------------------------------------------------
+;		CORE INTERFACE BETWEEN S100 BUS and FPGA_DC BOARD
+;    The only hardware port links for the above FPGA_DC board. 
+;----------------------------------------------------------------------------
+;
+DATA_TO_FPGA:				;Send CMD/data to FPGA_DC Z80
+	PUSH	AF
+DATA_TO_FPGA1:
+	IN	A,(S100_STATUS_PORT)	
+	AND	A,80H
+	JR	NZ,DATA_TO_FPGA1	;Wait until bit 7 is 0 (ie. any previous data has been read by FPGA_DC board Z80)
+	POP	AF
+	OUT	(S100_DATA_PORT),A	;This will cause the FPGA_DC board to set the S100$RTS bit
+DATA_TO_FPGA2:
+	IN	A,(S100_STATUS_PORT)	
+	AND	A,80H
+	JR	NZ,DATA_TO_FPGA2	;Wait until bit 7 is 0 
+	RET				;Ret NZ if error
+
+
+
+
+GET_FPGA_TO_S100:			;Get data from FPGA
+	IN	A,(S100_STATUS_PORT)	;Get S100 Status Port - Bit 0, 1 = FPGA data present, 0, no data present
+	BIT	2,A			;04H, Bit 2
+	JR	NZ,CLR_ERROR_FLAG	;Return carry flag set if error
+	IN	A,(S100_STATUS_PORT)	;Get S100 Status Port - Bit 0, 1 = FPGA data present, 0, no data present
+	AND	A,01H			;01H, Bit 0
+	JR	Z,GET_FPGA_TO_S100	;wait for DC Board to present data 
+	XOR	A,A
+	IN	A,(S100_DATA_PORT)	;Return Data in [A], FPGA "hardware" will lower bit 7 of S100 Bus port 80H
+	SCF
+	CCF
+	RET
+	
+CLR_ERROR_FLAG:
+	OUT	(RELEASE_ERROR_PORT),A	;This will release the Error flag gate 43H on the FPGA side
+	SCF				;Set carry flag if error on s100 bus side
+	RET
+
+
+;---------------------------------------------------------------------------------------------------------------
+MODEM_SIGNON:	DB	CR,LF,'Get a File from a PC',CR,LF
+		DB	'Zilog SCC Ports A1H & A3H. Requires RTS & CTS, 38,400 Baud.',CR,LF,'$'
+MODEM_SCC_MSG:	DB	'SCC Port A to 38,400 Baud.',CR,LF,'$'
+RMSG:		DB	'WAITING FOR SECTOR #$'
+ERRSOH:		DB	'H RECEIVED, NOT SOH',0DH,0AH,'$'
+ERR2:		DB	'++BAD SECTOR # IN HDR',0DH,0AH,'$'
+ERR3:		DB	'++BAD CKSUM ON SECTOR',0DH,0AH,'$'
+TOUTM:		DB	'TIMEOUT $'
+QUITM:		DB	0DH,0AH,'MULTIPLE ERRORS.'
+		DB	0DH,0AH,'TYPE Q TO QUIT, R TO RETRY:$'
+MODEM_DONE_MSG:	DB	13,10,'TRANSFER COMPLETE$'
+BAD_HEADER_MSG:	DB	CR,LF,'INVALID HEADER.',0DH,0AH,'$'
+MODEM_RAM_MSG:	DB	'H. If OK will write to RAM at $'
+
+MODEM_RAM_LOC:	DB	CR,LF,'Enter RAM location (xxxxH +CR): $'
+M_ERROR_MSG:	DB	'Menu Error'CR,LF,BELL,'$'
+NoHighPageMsg:	DB	'No ROM HigH Page!',CR,LF,BELL,'$'
+INVALID_PARM_MSG: DB	CR,LF,'Invalid paramater',CR,LF,BELL,'$'
+
+FPGA_DC_SIGNON:	DB	CR,LF,LF,'FPGA_DC Board MENU',CR,LF,LF
+	        DB      'R Read Sec       W Write Sec     N Next Sec     P Previous Sec',CR,LF
+                DB	'T Set Trk & Sec  D Select Drive  ESC Main Monitor',CR,LF,'$'
+                
+NO_FPGA_BOARD	DB	CR,LF,BELL,'FPGA_DC Board not detected$'
+CURRENT_DR_MSG	DB	CR,LF,'Select Drive(A,B,C,D,E or F) $'
+TRK_SEC_ERR	DB	CR,LF,'Error setting track/sector$'
+LOCAL_IDE_MODE_MSG DB	CR,LF,'FPGA_DC Board, Set to local IDE ports mode.$'
+FDC_CIRCUIT_MSG	DB	CR,LF,'FPGA_DC Board, FDC Circuit detected.$'
+IDE_CIRCUIT_MSG	DB	CR,LF,'FPGA_DC Board, IDE/CF Card Citcuit detected.$'
+
+DMA_MSG		DB	CR,LF,LF,'DMA=$'
+DRIVE_MSG	DB	'H  Drive=$'
+TRK_SEC_MSG	DB	':  Track=$'
+TRK_SEC1_MSG	DB	'H  Sector=$'
+SEC_TRK_MSG	DB      'H  Sectors/Track=$'
+HCRLF_MSG	DB	'H',CR,LF,'$'
+
+COLON_CRLF_MSG	DB	':',CR,LF,'$'
+SEC_RD_ERR1_MSG	DB	CR,LF,BELL,'Sect RD Error$'
+CONTINUE_MSG	DB	CR,LF,'Any character for next Sec. Esc to abort$'
+ENTER_TS_DATA	DB	CR,LF,'Enter Track,Sec data (XXH,XXH) $'
+SEC_WRD_ERR1_MSG DB	CR,LF,BELL,'Sect WR Error$'
+SURE_MSG	DB	CR,LF,BELL,'Are you sure (Y/N) $'
+COPY_OK_MSG	DB	CR,LF,BELL,'Copying card complete$'
+ESC_ABORT_MSG	DB	CR,LF,'You can Hit ESC to stop/abort the process',CR,LF,'$'
+END_OF_ROM_PAGE: DB	'  End of ROM HIGH PAGE-->'
+BAD_SEL_DR_MSG	DB	CR,LF,BELL,'Error selecting drive$'
+WR_RAM_MENU_MSG	DB	CR,LF,'Write to disk from RAM at:- (XXXXH):$'
+;END

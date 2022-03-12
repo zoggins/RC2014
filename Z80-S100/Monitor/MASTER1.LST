@@ -1,0 +1,2109 @@
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   1
+MASTER1 Z80
+
+    1                   ;
+    2                   ;	MASTER.Z80  This is the Z80 CPU main monitor program for my system. 
+    3                   ;	Assemble and SLR's Z80ASM Assembler (Can also use the Cromemco Assembler)
+    4                   ;	Use:- Z80ASM MASTER FH
+    5                   ;
+    6                   ;	Since V5.4, this monitor is now split into two sections.
+    7                   ;	IF you have the V2 Z80 CPU S100 Board, the 4K monitor can reside in two 4K "Pages" in an 
+    8                   ;	8K 28C64 EEPROM (or 27C64 UV-ROM).  There is the "normal" lower 4K monitor where the A12 
+    9                   ;	address line is low. This is the "normal" state upon reset (pin 16 of U17 is low which 
+   10                   ;	via P39, 7-8 will pull A12 of the EEPROM low, thereby selecting the lower 4K half
+   11                   ;	of the 8K ROM. If you are using the original S100Computers Z80 CPU board this
+   12                   ;	this is the setup.
+   13                   
+   14                   ;	If you have the newer V2 board, outputting to port D3H with bit 1 high, will raise the A12 line 
+   15                   ;	thereby selecting the top 4K of the EEPROM. Outputting to port D3H with bit 1 low, will bring back 
+   16                   ;	the lower 4K section again.  
+   17                   ;
+   18                   ;	Code for the two "versions" of the monitor are: MASTER0 & MASTER1. The LOW version (MASTER0)will
+   19                   ;	reside from 0-FFFH in a 28C64 EEPROM. The HIGH (MASTER1)version will reside from 1000H-1FFFFH
+   20                   ;	in the same 28C64 EEPROM.  Clearly there must be code common to both sections. 
+   21                   ;	The page switching code is near the start of the monitor.  It is 
+   22                   ;	at the location "ACTIVATE_HIGH_PAGE:" and "ACTIVATE_LOW_PAGE". (See below)
+   23                   ;
+   24                   ;	Currently almost all menu options are in the LOW PAGE of the ROM.  However because of its 
+   25                   ;	size, the XModem routine (Menu "C") to download files directly into RAM from another computer 
+   26                   ;	(over a serial port) resides in the HIGH PAGE. Almost half of the HIGH PAGE is now free for
+   27                   ;	further routines. 
+   28                   ;
+   29                   ;	BTW, within the LOW PAGE code (which normally starts at F000H), there is a small jump table fixed at
+   30                   ;	F800H for old CPM V1.4 floppy disk BIOS boot routines. My old CPM V1.4 software counts on
+   31                   ;	these locations and (for me) they should not be changed. You can ignore them if you like. To do so
+   32                   ;	set the equate "RUN_CPM14" below to FALSE.
+   33                   ;	
+   34                   ;	To assemble under windows...
+   35                   ;	Load Altair.EXE in the Windows CMD box
+   36                   ;	do cpm3
+   37                   ;	I:
+   38                   ;	I:>Submit master0
+   39                   ;	I:>Submit master1
+   40                   ;
+   41                   ;	Master.HEX  is written back to the same windows folder that the PC file "altair.exe" is in.
+   42                   ;       If this is not clear see here:- (http://s100computers.com/Software%20Index%20Page.htm)
+   43                   ;
+   44                   ;	Programming an EEPROM for the V2-Z80 Board with a PROM burner is a little tricky. 
+   45                   ;	Using a 28C64 EEPROM and a Wellon VP-290 or VP299 Programmer
+   46                   ;	For a monitor at F000H-FFFFH:-
+   47                   ;	Load the MASTER0.HEX file, (Make sure the ORG is F000H).
+   48                   ;
+   49                   ;	Clear Buffer Options:- 00
+   50                   ;	Load Buffer Address : 0000
+   51                   ;	From File address use:- F000H
+   52                   ;	File Size use:- 1000H
+   53                   
+   54                   ;	This will put the code (4K) in the lower half of the 8K EEPROM, (usually a 28C64). It can be seen/edited 
+   55                   ;	at 0000H in the ROM with the Wellon software. You can run this ROM on the S100Computers V2 Z80 CPU board 
+   56                   ;	just make sure P39 is jumpered just 3-4 (PROM address line A12 always low).  You can also run it on our earlier 
+   57                   ;	Z80 CPU Boards.  You can use all your Z80 monitor commands except (currently) the X Command.
+   58                   ;
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   2
+MASTER1 Z80
+
+   59                   ;	To burn an EEPROM that adds code to the upper half of the PROM (and has the XModem command):
+   60                   ;	Load the MASTER1.HEX file, Make sure the ORG is F000H. Carefully set the following burner settings
+   61                   ;
+   62                   ;	Clear Buffer Options:- Disable <-------- Note
+   63                   ;	Load Buffer Address : 1000
+   64                   ;	From File address use:- F000H
+   65                   ;	File Size use:- 1000H
+   66                   ;
+   67                   ;	Examine the code to be burnt to the EEPROM, It should start at 0H and Run to 1FFFH with the
+   68                   ;	early code at 0h the same as at 1000H.
+   69                   ;
+   70                   ;
+   71                   ;	Recent History...
+   72                   
+   73                   ;		26/2/09		Added ability to switch CO/CI to ACIA serial from PC.
+   74                   ;		5/3/09 		Adjust RTS/CTS levels for Modem
+   75                   ;	V3.5	6/3/09		Set talker messages for new V-Stamp chip.
+   76                   ;		12/09/09	Add SD Systems IO-8 board Serial ports.
+   77                   ;	V3.52	16/9/09		Add SD Systems IO-8 Board clock display on signon
+   78                   ;	v3.6	21/9/09		Add display command for greater than 64K RAM, removed
+   79                   ;	V4.0	10/26/09	Switched in 8255 driven IDE HD Controller (Removed XComp)
+   80                   ;				some old commands to make more room.
+   81                   ;	V4.1	11/7/09		Added input ports scan/diagnostic
+   82                   ;	V4.2	11/14/09	Remove Date (keep time) from Clock (Chip is messed up by CPM3 routine)
+   83                   ;				also modified to switch from the SD System assembler to the SLR one.
+   84                   ;	V4.21	11/17/09	Removed 8086 jump far setting code
+   85                   ;	V4.3	11/18/09	Implement movement of 8086 Monitor code (EPROM) to correct location in RAM space
+   86                   ;	V4.31	11/19/09	Check 8086 Monitor ROM->ROM went OK. Added W command.
+   87                   ;	V4.32	12/7/09		Turn off any SD Systems 8024 video screen enhancements (flashing, underline etc).
+   88                   ;	V4.33	12/25/09	Correct High/Low byte Sector read for IDE board
+   89                   ;	V4.34	2/23/10		"O" command, 8086 Far jump to 500H (IF RAM @ FFFF0H), W command boots 8086 from reset at FFFF0H.
+   90                   ;	V4.35	3/25/10		"O" command just puts 8086 Far JMP to 500H (IF RAM @ FFFF0H). Done also at each reset.
+   91                   ;	V4.4	7/29/10		Removed all SD Systems IO-8. Added S-100Computers I/O board drivers.
+   92                   ;	V4.41	7/29/10		Initilization of V-Stamp chip done. Cleaned up Serial port names etc
+   93                   ;	V4.42	7/31/10		Switched RTC over to S-100Computers board (Ports A4,A5)
+   94                   ;	V4.50	2/7/11		Added Floppy Boot loader for ZFDC board. Still have the Versafloppy loader but no BIOS functions
+   95                   ;	V4.51	2/13/11		Check IDE if Boot sector is valid
+   96                   ;	V4.52	2/15/11		Pulse CF/IDE cards twice to reset (some) cards properly
+   97                   ;	V4.53	2/16/11		Initilize IDE board with IDE RD/WR lines inactive on power-up.
+   98                   ;	V4.54	2/28/11		Incoporated new fast multi-sector boot for CPM floppy loading with ZFDC board
+   99                   ;	V4.55	2/28/11		"O" command now jumps to SWITCH_8086 (activates 8086) when done
+  100                   ;	V4.55a	3/1/11		"O" cmd will just put 33 on Console (temporary 8086 board test)
+  101                   ;	V4.56   3/15/11		Re-did IDE drive hardware reset pulse to one (delayed) pulse, then wait for drive ready status.
+  102                   ;	V4.57	6/3/11		Set up an equate for IDE drive reset pulse, Fixed Z command (Last version using MM58167 RTC chip)
+  103                   ;	V4.6	11/27/11	Switched to Dallas Semiconductor/IBM-PC CMOS-RTC chip & MSDOS Support board for time & dates
+  104                   ;	V4.7	3/26/12		Cleaned up IOBYTE options. Added 68000 CPU, I/O to serial port. 
+  105                   ;	V4.8	10/27/12	Corrected SERIAL_STAT: error. Further cleaned up info on IOBYTE
+  106                   ;	V4.9	11/3/12		Added ability (XH, XL) Command to switch to low/high pages in 28C64 EEPROMS (for V2 Z80 Board)
+  107                   ;	V5.0	12/18/13	Add "C" menu option to download a ZModem file from a PC/Serial/USB port directly to RAM
+  108                   ;	V5.01	12/30/13	Add PC-Printer routines for new parallel Port Board with ST8C34 chip (ST8C4 = TRUE)
+  109                   ;	V5.02	1/31/14		Allow output to port EEH 01h activate TMA0* (8086,80286,80386 Boards) and 02h TMA1* (68000 Board)
+  110                   ;	V5.03	7/25/2014	Removed error in Z memu command
+  111                   ;	V5.04	7/29/2014	Patched date to show correct century
+  112                   ;	V5.1	3/18/2015	Added to test module to output "3" on console with 8986 reset (UP8086:) in High RAM section
+  113                   ;	V5.2	12/17/2016	Change master/slave signon message  ("O" commamd) for more general use (multiple slave CPU boards)
+  114                   ;       V5.3    11/27/2017      Fix bug for console I/O to serial port if no Propeller Console I/O board is present
+  115                   ;	V5.4    12/20/2017	Completely re-did HIGH/LOW ROM page approach. Page menus are now completely transparent to user
+  116                   ;	V5.5    7/26/2019	Corrected Monitor Print Signon with printer active. (Was sending continous 0's, Printer LO: inbalance)
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   3
+MASTER1 Z80
+
+  117                   ;	V5.6    2/23/2021	Added IDE Menu for FPGA_DC Board
+  118                   
+  119                   ;
+  120                   ;
+  121                   ;
+  122         0000      FALSE		EQU	0
+  123         FFFF      TRUE		EQU	NOT FALSE
+  124                   
+  125         F000      BASE		EQU	0F000H		;Start or EPROM Location (Assume a 2732 or half of a 28C64)
+  126                   					;Note can test running in CPM (set ORG to 100H), BUT disable setting the stack
+  127                   					;by commenting out the 4 lines below SETUP_STACK:
+  128                   					
+  129         F000      		ORG	BASE		;<--------<<<<<< LOCATION OF START OF MONITOR (HIGH PAGE) 
+  130                   					
+  131         FFFF      ST8C4		EQU	TRUE		;TRUE if S100_Parallel_IO Board.  False if IMSAI PIO Board	
+  132                   
+  133         0001      SCROLL		EQU	01H			;Set scrool direction UP.
+  134         0007      BELL		EQU	07H
+  135         0020      SPACE		EQU	20H
+  136         0009      TAB		EQU	09H			;TAB ACROSS (8 SPACES FOR SD-BOARD)
+  137         000D      CR		EQU	0DH
+  138         000A      LF		EQU	0AH
+  139         000C      FF		EQU	0CH
+  140         0011      QUIT		EQU	11H			;Turns off any screen enhancements (flashing, underline etc).
+  141         0017      NO_ENHANCEMENT	EQU 17H			;Turns off whatever is on
+  142         0010      FAST		EQU	10H			;High speed scrool
+  143         001B      ESC		EQU	1BH
+  144         007F      DELETE		EQU	7FH
+  145         0008      BACKS		EQU	08H
+  146         001A      CLEAR		EQU	1AH			;TO CLEAR SCREEN
+  147         0038      RST7		EQU	38H			;RST 7 (LOCATION FOR TRAP)
+  148         0000      NN		EQU	0H			;[I] INITIAL VALUE
+  149         0001      SOH		EQU	1			; For XModem etc.
+  150         0004      EOT		EQU	4
+  151         0006      ACK		EQU	6
+  152         0015      NAK		EQU	15H
+  153                   
+  154                   
+  155         0100      STARTCPM	EQU	100H			;LOCATION WHERE CPM WILL BE PLACED FOR COLD BOOT
+  156         0100      STARTDOS	EQU	100H			;LOCATION WHERE MSDOS WILL BE PLACED FOR COLD BOOT
+  157         0048      FFILE_SIZE	EQU	9000h/512		;SIZE OF 5MSDOS20.COM IN 512 BYTE SECTORS
+  158                   ;
+  159                   ;
+  160                   ;IOBYTE = SENSE SWITCHES AT PORT 0EFH
+  161                   ;
+  162                   ; BIT MAP OF PORT 0EFH:- X X X X  X X X X      (11111111=NORMAL CONFIG)
+  163                   ;			 | | | |  | | | |..For Z80 Monitor,	0=CONSOLE DATA TO PRINTER ALSO
+  164                   ;			 | | | |  | | |....For 8086 Monitor,	0=Force MSDOS Consol output to CGA/VGA Board instead of Propeller board
+  165                   ;			 | | | |  | |......For 8086 Monitor,	0=Do not initilize MSDOS extra ROMS
+  166                   ;			 | | | |  |........Unused
+  167                   ;			 | | | |...........Unused			
+  168                   ;			 | | |.............For Z80 Monitor,	0=ALL Consol I/O via ACIA Serial port on S100Computers Serial-IO Board
+  169                   ;			 | | 					Remember the serial port is currently set for 38.4K, 1 Stop,NP
+  170                   ;			 | |...............For CPM3,		0=Force reformat of Memory disk upon any CPM3 cold re-boot
+  171                   ;			 |.................For CPM3,		0=Write protect Memory disk for CPM3
+  172                   ;					   For 8086 Monitor,	0=Prevent doing a JMPF to 500H after 8086 reset (to CPM86 boot)
+  173                   ;								Normally a test is made to see if the CPM86 Boot is already in RAM at 500H
+  174                   ;								If it is, a 8086 reset will bypass the monitor and go directly there. 
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   4
+MASTER1 Z80
+
+  175                   ;								(see Init: in 8086 Monitor)
+  176                   ;					Note if 00xxxxxx,	This will force hardware diagnostic test. (See code at FFFF0H in the 8086 monitor)
+  177                   ;
+  178                   ;
+  179                   ;-------------- PROPELLER CONSOLE_IO (OR SD SYSTEMS VIDIO BOARD) FOR CONSOLE INPUT & OUTPUT
+  180         0000      CONSOL_STATUS	EQU	0H	
+  181         0001      CONSOL_IN	EQU	01H
+  182         0001      CONSOL_OUT	EQU	01H
+  183                   
+  184                   
+  185                   
+  186                   ;-------------- THIS IS MY PORT TO OUTPUT DATA TO HP 4050T LASAR PRINTER  (IMSAI 8PIO Board)
+  187                   
+  188         FFFF      IF	ST8C4				;If S100_Parallel_IO Board for Printer output
+  189         00C2      PRINTER_CTRL	EQU	0C2H		;ST8C4 Control Port
+  190         00C1      PRINTER_STATUS	EQU	0C1H		;ST8C4 Status port
+  191         00C0      PRINTER_OUT	EQU	0C0H		;ST8C4 Data port
+  192         000D      PRINTER_ST_LOW	EQU	0DH		;OUT STROBE LOW
+  193         000C      PRINTER_ST_HIGH	EQU	0CH		;OUT STROBE HIGH
+  194                   ELSE
+  198                   ENDIF
+  199                   
+  200         0005      DIAG_LEDS	EQU	5		;OUT, Will use this port (either board) initially for diagnostic LED display.
+  201                   
+  202                   
+  203                   ;-------------- S100Computers I/O BOARD PORT ASSIGNMENTS  (A0-AC)
+  204                   
+  205         00A0      BCTL		EQU	0A0H		;CHANNEL B CONTROL PORT ASSIGNMENTS OF THE ZILOG SCC CHIP ;<--- Adjust as necessary, 
+  206         00A2      BDTA		EQU	0A2H		;CHANNEL B DATA
+  207         00A1      ACTL		EQU	0A1H		;CHANNEL A CONTROL (MODEM_CTL_PORT)		
+  208         00A3      ADTA		EQU	0A3H		;CHANNEL A DATA (MODEM_DATA_PORT)
+  209                   
+  210         00A8      PortA_8255	EQU	0A8H		;A port of 8255 ;<--- Adjust as necessary
+  211         00A9      PortB_8255	EQU	0A9H		;B port of 8255
+  212         00AA      PortC_8255	EQU	0AAH		;C Port of 8255
+  213         00AB      PortCtrl_8255	EQU	0ABH		;8255 configuration port
+  214         0098      AinBout8255cfg	EQU	10011000b	;Set 8255 ports:- A input, B output, 
+  215                   
+  216         00AC      USB_DATA	EQU	0ACH		;PORT ASSIGNEMENT FOR DLP-USB Controller chip
+  217         00AA      USB_STATUS	EQU	0AAH		;Status port for USB port (Port C of 8255, bits 6,7)
+  218         0080      USB_RXE		EQU	80H		;If Bit 7 = 0, data available to recieve by S-100 Computer	
+  219         0040      USB_TXE		EQU	40H		;If Bit 6 = 0 data CAN be written for transmission to PC
+  220                   
+  221         00A1      BASE_PORT	EQU	0A1H		;For XModem communication routines
+  222         00A1      MODEM_CTL_PORT	EQU	BASE_PORT 	;A1H (Note modem I/O will be on CHANNEL A. Speaker on CHANNEL B
+  223         00A3      MODEM_DATA_PORT	EQU	BASE_PORT+2	;A3H 
+  224                   
+  225         0004      MODEM_SEND_MASK	EQU	4
+  226         0004      SEND_READY	EQU	4		;VALUE WHEN READY
+  227         0001      MODEM_RECV_MASK	EQU	1
+  228         0001      RECV_READY	EQU	1		;BIT ON WHEN READY
+  229         0008      MODEM_ERR_LIMIT	EQU	8		;Max number of Modem serial port re-reads aborting
+  230         0001      MODEM_RTS_DELAY	EQU	1		;Time to check Modem RTS line (See XMODEM_LOAD & P_XMODEM_LOAD). Not critical.
+  231                   
+  232         0000      RECVD_SECT_NO	EQU	0H		;IX Offset for XModem Recieved Sector Number
+  233         0001      SECTNO		EQU	1H		;IX Offset for XModem CURRENT SECTOR NUMBER 
+  234         0002      ERRCT		EQU	2H		;IX Offset for XModem ERROR COUNT
+  235                   
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   5
+MASTER1 Z80
+
+  236                   
+  237                   ;-------------- S100Computers MSDOS Support Board PORT ASSIGNMENTS 
+  238                    
+  239         0070      CMOS_PORT	EQU	70H		;Base Port for CMOS Clock/Date Chip on MSDOS Support Board
+  240         0020      MASTER_PIC_PORT	EQU	20h		;Hardware port the 8259A (two ports 20H & 21H)
+  241                   
+  242         0017      MasterICW1	equ	00010111B	;EDGE triggered, 4 bytes, single Master,ICW4 needed
+  243         0008      MasterICW2	equ	8H		;Base address for 8259A Int Table (IBM-PC uses 8X4 = 20H)
+  244         0000      MasterICW3	equ	0H		;No slave
+  245         0003      MasterICW4	equ	00000011B	;No special mode, non buffer, Auto EOI, 8086.  ;<<<<,
+  246                   
+  247                   
+  248                   ;--------------- PORTS FOR FOR Z80/WD2793 FDC Board
+  249                   
+  250         0010      S100_DATA_A	EQU	10H		;IN,  S100 Data port to GET data to from FDC Board
+  251         0010      S100_DATA_B	EQU	10H		;OUT, S100 Data port to SEND data to FDC Board
+  252         0011      S100_STATUS_A	EQU	11H		;Status port for A
+  253         0011      S100_STATUS_B	EQU	11H		;Status port for B
+  254         0013      RESET_ZFDC_PORT EQU	13H		;Port to reset ZFDC Z80 CPU.
+  255                   
+  256         0005      STATUS_DELAY	EQU	5		;Time-out for waiting for ZFDC Board handshake signal (~0.5 seconds @ 10MHz)
+  257         0007      DIRECTION_BIT	EQU	7		;Bits for the ZFDC flags 0 = IN, 1 = OUT
+  258         0000      DATA_IN_RDY	EQU	0		;Bit for data available from ZFDC board
+  259         0001      DATA_OUT_RDY	EQU	1		;Bit for data can be sent to ZFDC board
+  260         0001      STD8IBM		EQU	1		;IBM 8" SDSS Diak
+  261         0000      NO_ERRORS_FLAG	EQU	0		;No Errors flag for previous cmd, sent back to S-100 BIOS
+  262                   
+  263                   
+  264                   ;	Commands to the FPGA_DC Board:-
+  265                   ;	Note these commands are a sub-set of the old ZFDC and ZFDC_II Board commands
+  266                   
+  267         0005      CMD$SEL$DRIVE		EQU	5H		;**** (Re)select an already initilized drive
+  268         0008      CMD$SET$SIDE		EQU	8H		;**** This will set the active side for a floppy disk
+  269         0035      CMD$SET$TRK$SEC		EQU	35H		;Set new current TRACK+SECTOR on current drive (new)
+  270         0010      CMD$READ$SECTOR		EQU	10H		;**** Read data from the CURRENT sector (on current track,drive).
+  271         0011      CMD$WRITE$SECTOR	EQU	11H		;**** Write data to the CURRENT sector (on current track,drive).
+  272         0021      CMD$HANDSHAKE		EQU	21H		;**** Handshake command only sent during board initilization/testing 
+  273         0038      CMD$SET$IDE$MODE	EQU	38H		;Set IDE drive hardware mode on FPG_DC Board (Internal or External)
+  274                   						;Second Byte 0 = External IDE mode + Interrupt driven info (Default Mode). 
+  275                   						;Second Byte 1 = External IDE mode + CMD driven info
+  276                   						;Second Byte 2 = Local FPGA Board IDE mode + CMD driven info
+  277                   
+  278         0039      CMD$FAST$COPY$AB	EQU	39H		;Special CMD to fast copy CF Card A:->B: (All within FPGA_DC Board software)
+  279                   
+  280         000A      CMD$SET$HOME		EQU	0AH		;This will set floppy disk head request to Track 0 of CURRENT drive
+  281         000F      CMD$GET$TRACK$ID	EQU	0FH		;Read the CURRENT TRACK ID
+  282         000B      CMD$STEP$IN		EQU	0BH		;Step head in one track of CURRENT drive
+  283         000C      CMD$STEP$OUT		EQU	0CH		;Step head out one track of CURRENT drive
+  284         000D      CMD$SEEK$NV		EQU	0DH		;Seek to track with NO verify of CURRENT drive
+  285         000E      CMD$SEEK$TRACK		EQU	0EH		;Seek to track to (IY+DRIVE_TRACK) with the track verify bit set on CURRENT drive/format
+  286         0015      CMD$TRACK$DUMP		EQU	15H		;Dump complete CURRENT track to S-100 system
+  287                   						
+  288         0042      INFO$READ$SECTOR	EQU	42H		;Send info, read sector (Actual Sec Read done externally)
+  289         0043      INFO$WRITE$SECTOR	EQU	43H		;Send info, write sector
+  290         0044      CMD$FORMAT$DISK		EQU	44H		;Format the disk in the of the CURRENT drive
+  291         0045      CMD$FDC$COPY		EQU	45H		;Fast Copy Disk C:->D:
+  292                   
+  293                   ;INFO$SEL$DRIVE		EQU	40H		;Send info, drive select
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   6
+MASTER1 Z80
+
+  294                   ;INFO$SET$TRK$SEC	EQU	41H		;Send info, set track,sector
+  295         0041      INFO$POST$MSG		EQU	41H		;Post a message on the USB Port Terminal
+  296                   
+  297         0080      CMD$GET$TIME		EQU	80H		;Get Time and Data from FPGA DC Board RTC
+  298         0081      CMD$SET$TIME		EQU	81H		;Set Time and Data on FPGA DC Board RTC
+  299                   
+  300         0082      CMD$BOARD$CONFIG	EQU	82H		;Get FPGA_DC Board hardware configuration
+  301                   						;Bits 7&6 contain IDE & FDC circuit flags 
+  302                   						;Bits 1&0 contain IDE Mode (0,1,2) 
+  303                   
+  304         00FF      CMD$FAILED		EQU	0FFH		;CMD failed to exicute completely
+  305         00F0      CMD$COMPLETE		EQU	0F0H		;Flag returned by DC board to signal the previous CMD was completed OK
+  306         00E0      CMD$ABORT		EQU	0E0H		;CMD to abort the current process
+  307                   
+  308                   
+  309                   
+  310                   ;-------------- PORT(S) TO SWITCH MASTER/SLAVE(S)
+  311                   
+  312         00D0      Z80PORT	EQU	0D0H			;4 PORTS ON Z80 BOARD FOR MEMORY MANAGEMENT (& INT Controller on IA Z80 CPU Board)
+  313                   
+  314         00EF      IOBYTE	EQU	0EFH			;IOBYTE (SEE ABOVE)
+  315         00EE      SW_TMAX	EQU	0EEH			;OUTPUT BIT 0 HIGH FROM THIS PORT LOWERS DMA0* ON THE SMB_V2 (SWITCH IN THE 8086 FAMILY of boards)
+  316                   					;OUTPUT BIT 1 HIGH FROM THIS PORT LOWERS DMA1* ON THE SMB_V2 (SWITCH IN THE 68000 CPU Board)
+  317                   					;OUTPUT BIT 2 HIGH FROM THIS PORT LOWERS DMA2* ON THE SMB_V2 
+  318                   					;OUTPUT BIT 3 HIGH FROM THIS PORT LOWERS DMA3* ON THE SMB_V2 
+  319         00ED      SW_TMA0	EQU	0EDH			;INPUT FROM THIS PORT LOWERS DMA0* (SWITCHES IN THE 8088,8086,80286 or 80386 boards)
+  320                   
+  321                   
+  322                   
+  323                   ;-------------- VERSAFLOPPY-II	FLOPPY DISK CONTROLLER COMMANDS ETC.
+  324                   
+  325         0050      X	EQU	50H			;BASE PORT FOR 1791
+  326         0050      RSET	EQU	X+0			;CONTROLLER RESET ADDRESS
+  327         0053      SELECT	EQU	X+3			;DRIVE SELECT PORT
+  328         0054      STATUS	EQU	X+4			;STATUS PORT
+  329         0055      TRACK	EQU	X+5			;TRACK PORT
+  330         0056      SECTOR	EQU	X+6			;SECTOR PORT
+  331         0057      DATA	EQU	X+7			;DATA PORT
+  332         0054      CMD	EQU	X+4			;COMMAND PORT
+  333                   
+  334         0003      CIOBYTE	EQU	03H
+  335         0004      CDISK	EQU	04H
+  336         0008      ZERO_L	EQU	08H			;Some of my CPM Loader's needs these to be zero!
+  337         0009      ZERO_H	EQU	09H			;(The Non Banked version of CPM3). Need to later see why 
+  338         0040      @TADDR	EQU	40H
+  339         0042      @UNIT	EQU	42H			;NEW @UNIT BYTE
+  340         0043      @SCTR	EQU	43H			;SECTOR         (compatible with my old CPM2.2 Versafloppy BIOS)
+  341         0044      @TRK	EQU	44H			;TRACK
+  342         0045      @NREC	EQU	45H			;# OF SECTORS
+  343         0046      @ERMASK	EQU	46H			;ERROR MASK
+  344         0047      @ERSTAT	EQU	47H			;ERROR FLAG STORE
+  345         0048      @IDSV	EQU	48H			;6 BYTES (USED FOR TRACK ID COMMAND)
+  346         004E      @CMDSV	EQU	4EH			;COMMAND SAVE 
+  347         004F      @SPSV	EQU	4FH			;SP SAVE 
+  348         0051      TEMP2	EQU	51H			;2 BYTE TEMP RECORD
+  349         0051      @SIDE	EQU	51H			;SIDE STORE FOR MSDOS DISK
+  350         0053      @COUNT	EQU	53H			;SECTORS/TRACK for BOOT (Currently unused)
+  351         0055      @UNITCK	EQU	55H			;OLD @UNIT BYTE
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   7
+MASTER1 Z80
+
+  352         0056      @RSEEK	EQU	56H			;NBR OF RESEEKS
+  353         0057      @RTRY	EQU	57H			;NBR OF RTRYS
+  354         0058      ADRIVE	EQU	58H			;STORE OF A: DRIVE DENSITY ETC TYPE
+  355         0059      BDRIVE	EQU	59H			;STORE OF B: DRIVE TYPE
+  356         005B      @FDCTYPE EQU	5BH			;0FFH = ZFDC FDC Board Boot, else Versafloppy II FDC Boot,  
+  357         005C      @SEC_SIZE EQU	5CH			;Byte count of a sector fot loader
+  358         0080      @SSTACK	EQU	80H			;SYSTEM STACK
+  359                   
+  360         0080      COLD	EQU	80H			;COLD START ADDRESS FOR CPM FLOPPY (ONLY) BOOT LOADER
+  361                   
+  362         00C0      RDACMD	EQU	0C0H			;READ ADDRESS CODE
+  363         0088      RDCMD	EQU	088H			;READ SECTOR CODE
+  364         00A8      WRCMD	EQU	0A8H			;WRITE SECTOR CODE
+  365         00F4      WRTCMD	EQU	0F4H			;WRITE TRACK CODE
+  366         0008      RSCMD	EQU	008H			;RESTORE COMMAND (Note 3 Ms seek)
+  367         0018      SKNCMD	EQU	018H			;SEEK NO VERIFY
+  368         001C      FSKCMD	EQU	01CH			;FLOPPY SEEK COMAND
+  369         000C      RSVCMD	EQU	00CH			;RESTORE WITH VERIFY COMMAND
+  370         001F      MSKCMD	EQU	01FH			;MINI FLOPPY SEEK COMMAND
+  371                   
+  372         00FE      SRMASK	EQU	0FEH			;SECTOR READ ERROR BITS MASK
+  373                   
+  374         001A      STDSDT	EQU	26			;STANDARD 8" 26 SECTORS/TRACK
+  375         0032      STDDDT	EQU	50			;STANDARD DD 8" 50 SECTORS/TRACK
+  376         0080      NBYTES	EQU	128			;BYTES/SECTOR 
+  377         004D      NTRKS	EQU	77			;TRACKS/DISK
+  378                   
+  379                   ;-------------- S100Computers IDE HARD DISK CONTROLLER COMMANDS ETC. 
+  380                   
+  381         0030      IDEAport	EQU	030H		;lower 8 bits of IDE interface
+  382         0031      IDEBport	EQU	031H		;upper 8 bits of IDE interface
+  383         0032      IDECport	EQU	032H		;control lines for IDE interface
+  384         0033      IDECtrl		EQU	033H		;8255 configuration port
+  385         0034      IDEDrivePort	EQU	034H		;To select the 1st or 2nd CF card/drive (Not used with this monitor)
+  386                   
+  387         0020      IDE_Reset_Delay	EQU	020H		;Time delay for reset/initilization (~60 uS, with 10MHz Z80, 2 I/O wait states)
+  388                   
+  389         0000      EXT$IDE$MODE	EQU	00H		;FPGA IDE mode set to external IDE ports etc. 
+  390         0001      LOCAL$IDE$MODE	EQU	01H		;FPGA IDE mode set to Local IDE ports etc. 
+  391                   					
+  392         0100      CPM_ADDRESS	EQU	100H		;Will place the CPMLDR.COM Loader here with 
+  393                   					;CPMLDR.COM will ALWAYS be on TRK 0,SEC2, (LBA Mode)
+  394         000C      CPM_SEC_COUNT	EQU	12		;CPMLDR.COM requires (currently) 10, 512 byte sectors
+  395                   					;Add extra just in case
+  396         0092      RDcfg8255	EQU	10010010B	;Set 8255 IDECport out, IDEAport/B input
+  397         0080      WRcfg8255	EQU	10000000B	;Set all three 8255 ports output
+  398                   ;
+  399         0001      IDEa0line	EQU	01H		;direct from 8255 to IDE interface
+  400         0002      IDEa1line	EQU	02H		;direct from 8255 to IDE interface
+  401         0004      IDEa2line	EQU	04H		;direct from 8255 to IDE interface
+  402         0008      IDEcs0line	EQU	08H		;inverter between 8255 and IDE interface
+  403         0010      IDEcs1line	EQU	10H		;inverter between 8255 and IDE interface
+  404         0020      IDEwrline	EQU	20H		;inverter between 8255 and IDE interface
+  405         0040      IDErdline	EQU	40H		;inverter between 8255 and IDE interface
+  406         0080      IDEreset	EQU	80H		;inverter between 8255 and IDE interface
+  407                   ;
+  408                   ;Symbolic constants for the IDE Drive registers, which makes the
+  409                   ;code more readable than always specifying the address pins
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   8
+MASTER1 Z80
+
+  410                   ;
+  411         0008      REGdata		EQU	08H		;IDEcs0line
+  412         0009      REGerr		EQU	09H		;IDEcs0line + IDEa0line
+  413         000A      REGcnt		EQU	0AH		;IDEcs0line + IDEa1line
+  414         000B      REGsector	EQU	0BH		;IDEcs0line + IDEa1line + IDEa0line
+  415         000C      REGcyLSB	EQU	0CH		;IDEcs0line + IDEa2line
+  416         000D      REGcyMSB	EQU	0DH		;IDEcs0line + IDEa2line + IDEa0line
+  417         000E      REGshd		EQU	0EH		;IDEcs0line + IDEa2line + IDEa1line		;(0EH)
+  418         000F      REGCMD		EQU	0FH		;IDEcs0line + IDEa2line + IDEa1line + IDEa0line	;(0FH)
+  419         000F      REGstatus	EQU	0FH		;IDEcs0line + IDEa2line + IDEa1line + IDEa0line
+  420         0016      REGcontrol	EQU	16H		;IDEcs1line + IDEa2line + IDEa1line
+  421         0017      REGastatus	EQU	17H		;IDEcs1line + IDEa2line + IDEa1line + IDEa0line
+  422                   
+  423                   ;IDE CMD Constants.  These should never change.
+  424         0010      CMDrecal	EQU	10H
+  425         0020      CMDread		EQU	20H
+  426         0030      CMDwrite	EQU	30H
+  427         0091      CMDinit		EQU	91H
+  428         00EC      CMDid		EQU	0ECH
+  429         00E0      CMDdownspin	EQU	0E0H
+  430         00E1      CMDupspin	EQU	0E1H
+  431                   ;
+  432                   ; IDE Status Register:
+  433                   ;  bit 7: Busy	1=busy, 0=not busy
+  434                   ;  bit 6: Ready 1=ready for CMD, 0=not ready yet
+  435                   ;  bit 5: DF	1=fault occured insIDE drive
+  436                   ;  bit 4: DSC	1=seek complete
+  437                   ;  bit 3: DRQ	1=data request ready, 0=not ready to xfer yet
+  438                   ;  bit 2: CORR	1=correctable error occured
+  439                   ;  bit 1: IDX	vendor specific
+  440                   ;  bit 0: ERR	1=error occured
+  441                   ;
+  442                   ;
+  443                   ;
+  444                   ;--------------- PORTS FOR FOR S100 Bus interface to FPGA_DC Board -----------------------------------------
+  445                   
+  446         0080      S100_STATUS_PORT	EQU	80H		;STATUS port to send/get data to/from S100 bus.
+  447         0081      S100_DATA_PORT		EQU	81H		;DATA port to send/get data to/from S100 bus.
+  448         0082      RELEASE_ERROR_PORT	EQU	82H		;A pulse out to this port will reset the SET_FLAG_GATE on the FPGA Z80
+  449         0083      SOFT_RESET_PORT		EQU	83H		;Reset Handshake status port bits (80H)
+  450                   
+  451         0001      FPGA_RTS		EQU	01H		;01H if DC Board HAS send data
+  452         0080      S100_RTS		EQU	80H		;80H if S100 Bus HAS sent data
+  453                   ;
+  454                   ;
+  455         E000      @SECTOR_BUFFER		EQU	0E000H		;Location for FPGA_DC Controller DMA sector data buffer in RAM 
+  456                   
+  457         00FF      NSCTRS			EQU	0FFH		;>>>>>>>>>>> MAX sectors/track <<<<<<<<<<<<<<<<<<<
+  458         000C      CPM_SEC_COUNT		EQU	12		;Allow up to 12 CPM sectors for CPMLDR
+  459         0100      CPMLDR_ADDRESS		EQU	100H		;Load the CPMLDR at 100H in RAM 
+  460                   
+  461         EE00      @DRIVE1			EQU	0EE00H		;Storage for current Drive 1
+  462         EE02      @TRK1			EQU	0EE02H		;Current Track 1
+  463         EE04      @SEC1			EQU	0EE04H		;Current Sector 1
+  464         EE06      @SIDE1			EQU	0EE06H		;Current Side 1
+  465         EE08      @DISK_TYPE1		EQU	0EE08H		;SD/CF/Floppy etc.
+  466         EE0A      @FIRST_SEC		EQU	0EE0AH		;First sector number on a track. 0 for SD/CF cards. 1 for Floppies
+  467         EE0C      @SEC_TRACK		EQU	0EE0CH		;;Store for MAX sectors/track
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   9
+MASTER1 Z80
+
+  468         EE0E      @MAX_TRACKS		EQU	0EE0EH		;Max tracks/disk (for floppies)
+  469         EE10      @CURRENT_DRIVE		EQU	0EE10H		;Current selected drive
+  470         EE12      @SEC_SIZE_FLAG		EQU	0EE12H		;0=128, 1=256, 2=512 Bytes/Sector
+  471                   
+  472         EE20      @DMA			EQU	0EE20H		;RAM Pointer for sector writes
+  473         EE22      @DMA_STORE		EQU	0EE22H		;RAM Pointer for sector writes
+  474         EE24      @BOARD_CONFIG		EQU	0EE24H		;IDE +/- FDC Flag
+  475                   
+  476         00FF      CFCARD			EQU	0FFH		;All CF & CF Card types 
+  477         0080      IBM3740			EQU	080H		;Disk hardware type 8" SS DD 128 Byte sectors
+  478         0060      IBM34			EQU	060H		;Disk hardware type 8" DS DD 256 byte Sectors
+  479         0040      IBM144			EQU	040H		;Disk hardware type 2.5" DS DD 512 byte Sectors
+  480                   
+  481                   ;----------------------------------------------------------------------------
+  482                   ;
+  483                   ;JUMP TABLE TO ROUTINES WITHIN THE MONITOR1.Z80 :-
+  484                   
+  485                   ;PROGRAM CODE BEGINS HERE
+  486                   ;FIRST A JUMP TABLE FOR KEY JUMPS INTO THE MONITOR. NOTE THESE SHOULD NOT BE CHANGED BECAUSE
+  487                   ;SOME OF MY OLDER SOFTWARE JUMPS DIRECTLY TO THEM. (WHERE POSSIBLE, TDL's ZAPPLE MONITOR FORMAT IS USED).
+  488                   
+  489 F000  C3 F07F     ZAPPLE:		JP	ACTIVATE_LOW_PAGE	;INITILIZATION
+  490 F003  C3 F10F     ZCI:		JP	HIGH_CI			;CONSOL INPUT
+  491 F006  C3 F0A6     ZRI:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  492 F009  C3 F0AF     ZCO:		JP	HIGH_CO			;CONSOL OUTPUT
+  493 F00C  C3 F0A6     ZPOO:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  494 F00F  C3 F0A6     ZLO:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  495 F012  C3 F0FA     ZCSTS:		JP	HIGH_CSTS		;CONSOL STATUS
+  496 F015  C3 F0A6     ZMEMCK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  497 F018  C3 F0A6     ZTRAP:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  498 F01B  C3 F07F     ZSTART:		JP	ACTIVATE_LOW_PAGE	;JUMP BACK TO LOW PAGE MONITOR START
+  499 F01E  C3 F0A6     ZTALK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  500 F021  C3 F0A6     ZTALKS:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  501 F024  C3 F0A6     ZDELAY:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  502 F027  C3 F0A6     ZLSTAT:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  503 F02A  C3 F0A6     ZONLIST:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+  504 F02D  C3 F0A6     ZOFFLIST:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+  505 F030  C3 F0A6     ZTIME:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  506 F033  C3 F0A6     ZDATE:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  507 F036  C3 F0A6     ZSPEAK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  508 F039  C3 F0A6     ZSERIAL_OUT:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+  509 F03C  C3 F0A6     ZSERIAL_IN:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+  510 F03F  C3 F0A6     ZSERIAL_STA:	JP	NoHighPageError			;This routine resides on the LOW page ROM
+  511 F042  C3 F0A6     ZLOADER:	JP	NoHighPageError			;This routine resides on the LOW page ROM 
+  512 F045  C3 F0A6     ZPMSG0:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  513 F048  C3 F200     ZPMSG$:		JP	HIGH_PRINT_STRING	;DISPLAY STRING ON CONSOL [HL]=START ADD. '$'=END
+  514 F04B  C3 F0A6     ZHLSP:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  515 F04E  C3 F0A6     ZBITS:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  516 F051  C3 F21D     ZLBYTE:		JP	HIGH_LBYTE		;DISPLAY [A] ON CONSOL
+  517 F054  C3 F1B7     ZHEXSP:		JP	HIGH_HEXSP		;PUT 16 BIT PARAMETERS ON STACK FROM CONSOL, [C]=PARAMETER #
+  518 F057  C3 F20B     ZCRLF:		JP	HIGH_CRLF		;SEND CRLF TO CONSOL
+  519 F05A  C3 F0A6     ZHILO:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  520 F05D  C3 F0A6     ZCONV:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  521 F060  C3 F0A6     ZDOS		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  522 F063  C3 F0A6     ZPCHK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  523 F066  C3 F0A6     ZVBOOT		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  524 F069  C3 F0A6     ZHARD:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  525 F06C  C3 F0A6     ZPRDY:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  10
+MASTER1 Z80
+
+  526 F06F  C3 F0A6     ZRSTAT:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  527 F072  C3 F0A6     ZCCHK:		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  528 F075  C3 F0A6     ZZBOOT		JP	NoHighPageError			;This routine resides on the LOW page ROM
+  529                   
+  530                   
+  531                   ;----------------->>> THIS CODE MUST BE AT THE SAME LOCATION AS FOR THE LOW PAGE ROM CODE <<<---------
+  532                   ;
+  533 F078              ACTIVATE_HIGH_PAGE:				; SWITCH TO HIGH PAGE of ROM 
+  534 F078  00          	NOP
+  535 F079  00          	NOP
+  536 F07A  00          	NOP
+  537 F07B  00          	NOP
+  538 F07C  C3 F086     	JP	HIGH_MENU_OPTION
+  539                   	
+  540 F07F              ACTIVATE_LOW_PAGE:				; RETURN BACK TO LOW PAGE OF ROM
+  541 F07F  3E 04       	LD	A,04H				; 04H for MEMORY MANAGEMENT TO OVERLAP + Bit 1 = HIGH PAGE
+  542 F081  D3 D3       	OUT	(Z80PORT+3),A	
+  543 F083  C3 F0A6     	JP	NoHighPageError			; Will arrive here only IF no address line switch. 
+  544                   ;
+  545                   ;----------------------->>> END OF COMMON CODE LOACTIONS <<<----------------------------------
+  546                   ;
+  547                   ;
+  548 F086              HIGH_MENU_OPTION:
+  549 F086  7A          	LD	A,D				; HIGH PAGE code with 1 in [D] for XMODEM
+  550 F087  FE 01       	CP	A,1
+  551 F089  CA F243     	JP	Z,HIGH_XMODEM
+  552 F08C  FE 02       	CP	A,2
+  553 F08E  CA F3EB     	JP	Z,HIGH_FPGA_DRIVES_MENU
+  554 F091  C3 F094     	JP	INVALID_MENU_ERROR		; The only menu option so far
+  555                   	
+  556 F094              INVALID_MENU_ERROR:
+  557 F094  21 FA22     	LD      HL,INVALID_PARM_MSG		; Point Error Message
+  558 F097  CD F200     	CALL	HIGH_PRINT_STRING		; Print string
+  559 F09A  C3 F07F     	JP	ACTIVATE_LOW_PAGE
+  560                   
+  561 F09D              MENU_ERROR:
+  562 F09D  21 F9FF     	LD      HL,M_ERROR_MSG			; Point Error Message
+  563 F0A0  CD F200     	CALL	HIGH_PRINT_STRING		; Print string
+  564 F0A3  C3 F07F     	JP	ACTIVATE_LOW_PAGE
+  565                   
+  566 F0A6              NoHighPageError:
+  567 F0A6  21 FA0D     	LD	HL,NoHighPageMsg		; "No address line LA13 switch active" 
+  568 F0A9  CD F200     	CALL	HIGH_PRINT_STRING		; Print string
+  569 F0AC  C3 F07F     	JP	ACTIVATE_LOW_PAGE
+  570                   ;
+  571                   ;
+  572                   ;<<<<<<<<<<<<<<<<<<<<<< MAIN CONSOL OUTPUT ROUTINE >>>>>>>>>>>>>>>>>>>>>>>>>
+  573                   
+  574 F0AF              HIGH_CO:
+  575 F0AF  DB EF       	IN	A,(IOBYTE)
+  576 F0B1  CB 6F       	BIT	5,A			;SEE IF SERIAL PORT OUTPUT IS REQ
+  577 F0B3  20 05       	JR	NZ,NO_SERIAL		;MAKE SURE TO RETURN CHARACTER SENT IN [A]
+  578 F0B5  CD F12E     	CALL 	SERIAL_OUT		;Send data in [C] to Serial Port (Only)
+  579 F0B8  18 1E       	JR	SDCON5
+  580 F0BA              NO_SERIAL:
+  581 F0BA  DB EF       	IN	A,(IOBYTE)		;NOTE CHARACTER IS IN [C]
+  582 F0BC  CB 47       	BIT	0,A			;CHECK IF OUTPUT TO PRINTER IS ALSO REQ
+  583 F0BE  CD F0C2     	CALL	SDCONO			;OUTPUT TO CONSOLE (No Printer)
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  11
+MASTER1 Z80
+
+  584 F0C1  C9          	RET
+  585                   
+  586 F0C2  DB 00       SDCONO:	IN	A,(CONSOL_STATUS)	;SD SYSTEMS OR PROPELLER CONSOLE I/O BOARD PORT
+  587 F0C4  E6 04       	AND	4H
+  588 F0C6  28 FA       	JR	Z,SDCONO
+  589 F0C8  79          	LD	A,C
+  590 F0C9  FE 07       	CP	07H			;IS IT A BELL
+  591 F0CB  28 0D       	JR	Z,BELL1
+  592 F0CD  FE 00       	CP	0H			;SD BOARD CANNOT TAKE A NULL!
+  593 F0CF  C8          	RET	Z
+  594 F0D0  D3 01       	OUT	(CONSOL_OUT),A
+  595 F0D2  DB EF       	IN	A,(IOBYTE)
+  596 F0D4  CB 6F       	BIT	5,A			;SEE IF SERIAL PORT OUTPUT IS REQ
+  597 F0D6  20 00       	JR	NZ,SDCON5		;MAKE SURE TO RETURN CHARACTER SENT IN [A]
+  598 F0D8  79          SDCON5:	LD	A,C
+  599 F0D9  C9          	RET				;RETURN CHARACTER SENT IN [A]
+  600                   
+  601 F0DA  3E 06       BELL1:	LD	A,06H			;SEND A BELL
+  602 F0DC  D3 01       	OUT	(CONSOL_OUT),A
+  603 F0DE  3E 0F       	LD	A,0FH
+  604 F0E0  CD F0E9     	CALL	DELAY
+  605 F0E3  3E 07       	LD	A,07H
+  606 F0E5  D3 01       	OUT	(CONSOL_OUT),A
+  607 F0E7  18 EF       	JR	SDCON5
+  608                   
+  609                   
+  610 F0E9  3D          DELAY:	DEC	A			;GENERAL COUNT DOWN TIME DELAY
+  611 F0EA  C8          	RET	Z			;LENGTH SET IN [A]
+  612 F0EB  F5          	PUSH	AF
+  613 F0EC  3E 05       	LD	A,05H
+  614 F0EE  3D          MORE:	DEC	A
+  615 F0EF  F5          	PUSH	AF
+  616 F0F0  AF          	XOR	A
+  617 F0F1  3D          MORE2:	DEC	A
+  618 F0F2  20 FD       	JR	NZ,MORE2
+  619 F0F4  F1          	POP	AF
+  620 F0F5  20 F7       	JR	NZ,MORE
+  621 F0F7  F1          	POP	AF
+  622 F0F8  18 EF       	JR	DELAY
+  623                   
+  624                   ;<<<<<<<<<<<<<<<<<<< MAIN CONSOL STATUS ROUTINE >>>>>>>>>>>>>>>>>>>>>>
+  625                   
+  626 F0FA              HIGH_CSTS:
+  627 F0FA  DB EF       	IN	A,(IOBYTE)
+  628 F0FC  CB 6F       	BIT	5,A			;SEE IF SERIAL PORT STATUS IS REQ
+  629 F0FE  20 03       	JR	NZ,NO_SER_STAT		
+  630 F100  C3 F150     	JP	SERIAL_STAT		;Check if anything at Modem IN status routine
+  631                   	
+  632 F103              NO_SER_STAT:
+  633 F103  DB 00       	IN	A,(CONSOL_STATUS)
+  634 F105  E6 02       	AND	02H
+  635 F107  CA F10D     	JP	Z,NOCHAR		
+  636 F10A  AF          	XOR	A
+  637 F10B  3D          	DEC	A			;RETURN WITH 0FFH IN [A] IF SOMETHING
+  638 F10C  C9          	RET
+  639 F10D  AF          NOCHAR: XOR	A			;RETURN WITH 0 IN A IF NOTHING THERE
+  640 F10E  C9          	RET
+  641                   
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  12
+MASTER1 Z80
+
+  642                   
+  643                   ;<<<<<<<<<<<<<<<<<<<< MAIN CONSOL INPUT ROUTINE >>>>>>>>>>>>>>>>>>>>
+  644                   
+  645 F10F              HIGH_CI:
+  646 F10F  DB EF       	IN	A,(IOBYTE)
+  647 F111  CB 6F       	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
+  648 F113  20 09       	JR	NZ,CI_IN		;NO, then do normal CI
+  649 F115  CD F150     	CALL	SERIAL_STAT		;See if anything at Serial/Modem input
+  650 F118  CA F10F     	JP	Z,HIGH_CI		;No Keep trying
+  651 F11B  C3 F140     	JP	SERIAL_IN
+  652                   
+  653 F11E  DB 00       CI_IN: 	IN	A,(CONSOL_STATUS)	;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
+  654 F120  E6 02       	AND	02H
+  655 F122  28 FA       	JR	Z,CI_IN
+  656 F124  DB 01       	IN	A,(CONSOL_IN)
+  657 F126  E6 7F       	AND	7FH			;7 bits only
+  658 F128  C9          	RET
+  659                   
+  660 F129              QUICK_CSTS:	
+  661 F129  DB 00       	IN	A,(CONSOL_STATUS)	
+  662 F12B  E6 02       	AND	02H
+  663 F12D  C9          	RET				;Ret Z if nothing
+  664                   
+  665                   ;>>>>>>>>>>>>>>>>>> S100Computers SERIAL I/O Board <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  666                   ; Note the S100Computers I/O board will have the SSC-B set initially to 19,200 Baud 
+  667                   ;
+  668 F12E              SERIAL_OUT:	
+  669 F12E  AF          	XOR	A,A			;Will try 256 times, then timeout
+  670 F12F  F5          MODXXX:	PUSH	AF
+  671 F130  DB A1       	IN	A,(ACTL)		;MODEM/SERIAL OUT
+  672 F132  E6 04       	AND	04H			;Are we ready for a character
+  673 F134  20 05       	JR	NZ,SENDM		;NZ if ready to recieve character
+  674 F136  F1          	POP	AF
+  675 F137  3D          	DEC	A
+  676 F138  20 F5       	JR	NZ,MODXXX
+  677 F13A  C9          	RET
+  678 F13B  F1          SENDM:	POP	AF
+  679 F13C  79          	LD	A,C
+  680 F13D  D3 A3       	OUT	(ADTA),A		;Send it
+  681 F13F  C9          	RET
+  682                   
+  683 F140              SERIAL_IN:	
+  684 F140  AF          	XOR	A,A			;Will try 256 times, then timeout
+  685 F141              SERIAL_INX:	
+  686 F141  F5          	PUSH	AF	
+  687 F142  CD F150     	CALL	SERIAL_STAT		;MODEN/SERIAL IN
+  688 F145  20 05       	JR	NZ,GETMOD
+  689 F147  F1          	POP	AF
+  690 F148  3D          	DEC	A
+  691 F149  20 F6       	JR	NZ,SERIAL_INX
+  692 F14B  C9          	RET
+  693 F14C  F1          GETMOD:	POP	AF	
+  694 F14D  DB A3       	IN	A,(ADTA)
+  695 F14F  C9          	RET
+  696                   	
+  697 F150              SERIAL_STAT:
+  698 F150  DB A1       	IN	A,(ACTL)
+  699 F152  E6 01       	AND	01H
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  13
+MASTER1 Z80
+
+  700 F154  C8          	RET	Z			;Ret Z if nothing
+  701 F155  AF          	XOR	A
+  702 F156  3D          	DEC	A
+  703 F157  C9          	RET				;Ret FF/NZ if something
+  704                   
+  705                   
+  706                   ;S100Computers Serial I/O Board Initilization
+  707                   ;Note Zilog SCC serial port A will be set to 19,200 Baud initially (for speech synthesizer).
+  708                   ;Note Zilog SCC serial port B will be set to 38,400 Baud initially (for XModem etc).
+  709                   
+  710 F158              HIGH_INIT_SCC_A:				
+  711 F158  3E A1       	LD	A,ACTL			;Program Channel A
+  712 F15A  4F          	LD	C,A
+  713 F15B  06 0E       	LD	B,0EH			;Byte count for OTIR below
+  714 F15D  21 F16E     	LD	HL,HIGH_SCCINIT_A
+  715 F160  ED B3       	OTIR
+  716 F162  C9          	RET
+  717                   	
+  718 F163              HIGH_INIT_SCC_B:
+  719 F163  3E A0       	LD	A,BCTL			;Program Channel B
+  720 F165  4F          	LD	C,A
+  721 F166  06 0E       	LD	B,0EH			;Byte count for OTIR below
+  722 F168  21 F17E     	LD	HL,HIGH_SCCINIT_B
+  723 F16B  ED B3       	OTIR
+  724 F16D  C9          	RET
+  725                   ;
+  726                   ;	
+  727 F16E              HIGH_SCCINIT_A:
+  728 F16E  04          	DB	04H			;Point to WR4
+  729 F16F  44          	DB	44H			;X16 clock,1 Stop,NP
+  730 F170  03          	DB	03H			;Point to WR3
+  731 F171  C1          	DB	0C1H			;Enable reciever, Auto Enable, Recieve 8 bits	
+  732                   ;	DB	0E1H			;Enable reciever, No Auto Enable, Recieve 8 bits (for CTS bit)	
+  733 F172  05          	DB	05H			;Point to WR5
+  734 F173  EA          	DB	0EAH			;Enable, Transmit 8 bits
+  735 F174  0B          	DB	0BH			;Set RTS,DTR, Enable. Point to WR11
+  736 F175  56          	DB	56H			;Recieve/transmit clock = BRG
+  737 F176  0C          	DB	0CH			;Point to WR12
+  738                   ;	DB	40H			;Low Byte 2400 Baud 
+  739                   ;	DB	1EH			;Low Byte 4800 Baud 
+  740                   ;	DB	0EH			;Low Byte 9600 Baud 
+  741                   ;	DB	06H			;Low byte 19,200 Baud 
+  742 F177  02          	DB	02H			;Low byte 38,400 Baud <<<<<<<<<<< XModem I/O
+  743                   ;	DB	00H			;Low byte 76,800 Baud  
+  744 F178  0D          	DB	0DH			;Point to WR13
+  745 F179  00          	DB	00H			;High byte for Baud
+  746 F17A  0E          	DB	0EH			;Point to WR14
+  747 F17B  01          	DB	01H			;Use 4.9152 MHz Clock. Note SD Systems uses a 2.4576 MHz clock, enable BRG
+  748 F17C  0F          	DB	0FH			;Point to WR15
+  749 F17D  00          	DB	00H			;Generate Int with CTS going high
+  750                   
+  751 F17E              HIGH_SCCINIT_B:
+  752 F17E  04          	DB	04H			;Point to WR4
+  753 F17F  44          	DB	44H			;X16 clock,1 Stop,NP
+  754 F180  03          	DB	03H			;Point to WR3
+  755 F181  C1          	DB	0C1H			;Enable reciever, Auto Enable, Recieve 8 bits	
+  756 F182  05          	DB	05H			;Point to WR5
+  757 F183  EA          	DB	0EAH			;Enable, Transmit 8 bits
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  14
+MASTER1 Z80
+
+  758 F184  0B          	DB	0BH			;Set RTS,DTR, Enable. Point to WR11
+  759 F185  56          	DB	56H			;Recieve/transmit clock = BRG
+  760 F186  0C          	DB	0CH			;Point to WR12
+  761 F187  06          	DB	06H			;Low byte 19,200 Baud <<<<<<<<<<< Note Speech synthizer defaults to this value
+  762 F188  0D          	DB	0DH			;Point to WR13
+  763 F189  00          	DB	00H			;High byte for Baud
+  764 F18A  0E          	DB	0EH			;Point to WR14
+  765 F18B  01          	DB	01H			;Use 4.9152 MHz Clock. Note SD Systems uses a 2.4576 MHz clock, enable BRG
+  766 F18C  0F          	DB	0FH			;Point to WR15
+  767 F18D  00          	DB	00H			;Generate Int with CTS going high
+  768                   ;
+  769                   ;
+  770                   ;
+  771                   ;---------------WE NEED A FEW ROUTINES (ALSO IN THE LOW PAGE) TO PROCESS COMMNADS--------------
+  772                   ; 
+  773 F18E              HIGH_QCHK:				;TEST FOR DELIMITERS
+  774 F18E  FE 20       	CP	SPACE
+  775 F190  C8          	RET	Z
+  776 F191  FE 2C       	CP	','
+  777 F193  C8          	RET	Z
+  778 F194  FE 0D       	CP	CR
+  779 F196  37          	SCF
+  780 F197  C8          	RET	Z
+  781 F198  3F          	CCF
+  782 F199  C9          	RET 
+  783                   
+  784                   ;KEYBOARD HANDELING ROUTINE (WILL NOT ECHO CR/LF)
+  785                   ;IT CONVERTS LOWER CASE TO UPPER CASE FOR LOOKUP COMMANDS
+  786                   ;ALSO ^C WILL FORCE A JUMP TO BOOT IN CP/M
+  787                   ;ALL OTHERE CHARACTERS ARE ECHOED ON CONSOL
+  788                   
+  789 F19A              HIGH_TI:
+  790 F19A  CD F10F     	CALL	HIGH_CI
+  791 F19D  FE 0D       	CP	CR
+  792 F19F  C8          	RET	Z
+  793 F1A0  FE 03       	CP	'C'-40H			;^C TO BOOT IN CP/M
+  794 F1A2  CA F0A6     	JP	Z,NoHighPageError
+  795 F1A5  C5          	PUSH	BC
+  796 F1A6  4F          	LD	C,A
+  797 F1A7  CD F0AF     	CALL	HIGH_CO
+  798 F1AA  79          	LD	A,C
+  799 F1AB  C1          	POP	BC
+  800 F1AC  FE 40       	CP	40H			;LC->UC
+  801 F1AE  D8          	RET	C
+  802 F1AF  FE 7B       	CP	7BH
+  803 F1B1  D0          	RET	NC
+  804 F1B2  E6 5F       SF754:	AND	5FH
+  805 F1B4  C9          	RET 
+  806                   
+  807 F1B5  0E 01       EXPR1:	LD	C,01H			;GET ONE PARAMETER
+  808 F1B7              HIGH_HEXSP:	
+  809 F1B7  21 0000     	LD	HL,0000
+  810 F1BA  CD F19A     EX0:	CALL	HIGH_TI
+  811 F1BD  47          EX1:	LD	B,A
+  812 F1BE  CD F1F0     	CALL	HIGH_NIBBLE
+  813 F1C1  38 08       	JR	C,EX2X
+  814 F1C3  29          	ADD	HL,HL
+  815 F1C4  29          	ADD	HL,HL
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  15
+MASTER1 Z80
+
+  816 F1C5  29          	ADD	HL,HL
+  817 F1C6  29          	ADD	HL,HL
+  818 F1C7  B5          	OR	L
+  819 F1C8  6F          	LD	L,A
+  820 F1C9  18 EF       	JR	EX0
+  821 F1CB  E3          EX2X:	EX	(SP),HL
+  822 F1CC  E5          	PUSH	HL
+  823 F1CD  78          	LD	A,B
+  824 F1CE  CD F18E     	CALL	HIGH_QCHK
+  825 F1D1  30 02       	JR	NC,SF560
+  826 F1D3  0D          	DEC	C
+  827 F1D4  C8          	RET	Z
+  828 F1D5  C2 F23B     SF560:	JP	NZ,HIGH_ERROR
+  829 F1D8  0D          	DEC	C
+  830 F1D9  20 DC       	JR	NZ,HIGH_HEXSP
+  831 F1DB  C9          	RET 
+  832 F1DC  0E 01       EXF:	LD	C,01H
+  833 F1DE  21 0000     	LD	HL,0000H
+  834 F1E1  18 DA       	JR	EX1
+  835                   
+  836                   ;CONVERT HEX TO ASCII
+  837                   
+  838 F1E3              HIGH_CONV:
+  839 F1E3  E6 0F       	AND	0FH
+  840 F1E5  C6 90       	ADD	A,90H
+  841 F1E7  27          	DAA 
+  842 F1E8  CE 40       	ADC	A,40H
+  843 F1EA  27          	DAA 
+  844 F1EB  4F          	LD	C,A
+  845 F1EC  CD F0AF     	CALL	HIGH_CO
+  846 F1EF  C9          	RET
+  847                   
+  848                   
+  849 F1F0              HIGH_NIBBLE:	
+  850 F1F0  D6 30       	SUB	30H
+  851 F1F2  D8          	RET	C
+  852 F1F3  FE 17       	CP	17H
+  853 F1F5  3F          	CCF
+  854 F1F6  D8          	RET	C
+  855 F1F7  FE 0A       	CP	LF
+  856 F1F9  3F          	CCF
+  857 F1FA  D0          	RET	NC
+  858 F1FB  D6 07       	SUB	07H
+  859 F1FD  FE 0A       	CP	LF
+  860 F1FF  C9          	RET
+  861                   
+  862 F200              HIGH_PRINT_STRING:				;A ROUTINE TO PRINT OUT A STRING @ [HL]
+  863 F200  7E          	LD	A,(HL)				;UP TO THE FIRST '$'.
+  864 F201  23          	INC	HL			
+  865 F202  FE 24       	CP	'$'
+  866 F204  C8          	RET	Z
+  867 F205  4F          	LD	C,A
+  868 F206  CD F0AF     	CALL	HIGH_CO
+  869 F209  18 F5       	JR	HIGH_PRINT_STRING
+  870                   
+  871                   
+  872                   ;SEND TO CONSOL CR/LF
+  873                   
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  16
+MASTER1 Z80
+
+  874 F20B              HIGH_CRLF:
+  875 F20B  C5          	PUSH	BC
+  876 F20C  0E 0A       	LD	C,LF
+  877 F20E  CD F0AF     	CALL	HIGH_CO
+  878 F211  0E 0D       	LD	C,CR
+  879 F213  CD F0AF     	CALL	HIGH_CO
+  880 F216  C1          	POP	BC
+  881 F217  C9          	RET
+  882                   
+  883                   
+  884                   ;PRINT [HL] ON CONSOL
+  885                   
+  886 F218              HIGH_LADR:
+  887 F218  7C          	LD	A,H
+  888 F219  CD F21D     	CALL	HIGH_LBYTE
+  889 F21C  7D          	LD	A,L
+  890 F21D              HIGH_LBYTE:
+  891                   
+  892 F21D  F5          HEXOUT:	PUSH	AF				;PRINT HEX in A on CONSOLE		
+  893 F21E  C5          	PUSH	BC
+  894                   
+  895 F21F  F5          	PUSH	AF
+  896 F220  0F          	RRCA
+  897 F221  0F          	RRCA
+  898 F222  0F          	RRCA
+  899 F223  0F          	RRCA
+  900 F224  CD F22E     	CALL	CONV_CO
+  901 F227  F1          	POP	AF
+  902 F228  CD F22E     	CALL	CONV_CO
+  903                   	
+  904 F22B  C1          	POP	BC
+  905 F22C  F1          	POP	AF
+  906 F22D  C9          	RET
+  907                   
+  908 F22E              CONV_CO:	
+  909 F22E  E6 0F       	AND	A,0FH			;HEX to ASCII
+  910 F230  C6 90       	ADD	90H
+  911 F232  27          	DAA
+  912 F233  CE 40       	ADC	40H
+  913 F235  27          	DAA
+  914 F236  4F          	LD	C,A
+  915 F237  CD F0AF     	CALL	HIGH_CO
+  916 F23A  C9          	RET			
+  917                   
+  918 F23B              HIGH_ERROR:				;RESTORE SYSTEM AFTER ERROR (Back to low page)
+  919 F23B  0E 2A       	LD	C,'*'
+  920 F23D  CD F0AF     	CALL	HIGH_CO
+  921 F240  C3 F07F     	JP	ACTIVATE_LOW_PAGE
+  922                   
+  923                   ;---------------------------------------------------------------------------------------------------------------
+  924                   ;This code will read a download file from another computer (usually a PC) sent via a serial port and place
+  925                   ;it in RAM at a specified location.  The file must be sent via the XModem protocol. On PC's there are
+  926                   ;many programs that do this. The "Absolute Telnet" program (by Celestial Software) is what I use.
+  927                   
+  928 F243              HIGH_XMODEM:
+  929 F243  21 F88E     	LD	HL,MODEM_SIGNON		;Send Modem signon message
+  930 F246  CD F200     	CALL	HIGH_PRINT_STRING
+  931                   					
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  17
+MASTER1 Z80
+
+  932 F249  21 0000     	LD	HL,0			;SP to HL
+  933 F24C  39          	ADD	HL,SP			
+  934 F24D  11 0040     	LD	DE,40H			;Drop 40H bytes below to be safe
+  935 F250  ED 52       	SBC	HL,DE
+  936 F252  E5          	PUSH	HL
+  937 F253  DD E1       	POP	IX			;Will store data  below in RAM 40H bytes below SP to be safe
+  938                   					
+  939 F255  AF          	XOR	A,A			;Initilize flags
+  940 F256  DD 77 00    	LD	(IX+RECVD_SECT_NO),A
+  941 F259  DD 77 01    	LD	(IX+SECTNO),A
+  942 F25C  DD 77 02    	LD	(IX+ERRCT),A
+  943                   					
+  944 F25F  21 F9DC     	LD	HL,MODEM_RAM_LOC	;Get RAM location for where to place code
+  945 F262  CD F200     	CALL	HIGH_PRINT_STRING
+  946 F265  0E 01       	LD	C,1
+  947 F267  CD F054     	CALL	ZHEXSP			;Get 16 bit value, put on stack
+  948 F26A  FD E1       	POP	IY			;DMA Value now in IY
+  949 F26C  CD F057     	CALL	ZCRLF
+  950                   					
+  951 F26F  CD F158     	CALL	HIGH_INIT_SCC_A		;INITITIALIZE THE SCC SERIAL PORT A
+  952                   				
+  953 F272  06 01       	LD	B,1			;TIMEOUT DELAY
+  954 F274  CD F354     	CALL	RECV			;GOBBLE UP GARBAGE CHARS FROM THE LINE
+  955                   
+  956 F277              RECV_LOOP:				; ---- MAIN RECIEVE LOOP ----
+  957 F277  AF          	XOR	A,A			;GET 0
+  958 F278  DD 77 02    	LD	(IX+ERRCT),A		;INITIAL ERROR COUNT SET TO 0
+  959 F27B              RECV_HDR:
+  960 F27B  21 F901     	LD	HL,RMSG
+  961 F27E  CD F200     	CALL	HIGH_PRINT_STRING
+  962 F281  DD 7E 01    	LD	A,(IX+SECTNO)		;Get current sector number
+  963 F284  3C          	INC	A
+  964 F285  CD F21D     	CALL	HIGH_LBYTE			;Show Sector Number on Console
+  965                   
+  966 F288  21 F9BD     	LD	HL,MODEM_RAM_MSG	;"H.  IF OK, will write to RAM location"
+  967 F28B  CD F200     	CALL	HIGH_PRINT_STRING
+  968 F28E  FD E5       	PUSH	IY
+  969 F290  E1          	POP	HL			;IY to HL
+  970 F291  CD F218     	CALL	HIGH_LADR			;Show DMA Address
+  971 F294  CD F057     	CALL	ZCRLF
+  972                   
+  973 F297  06 05       	LD	B,5			;5 SEC TIMEOUT
+  974 F299  CD F354     	CALL	RECV
+  975 F29C  D2 F2CA     	JP	NC,RHNTO		;IF ALL OK (NO TIMEOUT), THEN DROP DOWN TO RHNTO TO GET DATA
+  976                   
+  977 F29F              RECV_HDR_TIMEOUT:
+  978 F29F  CD F39B     	CALL	TOUT			;PRINT TIMEOUT
+  979                   
+  980 F2A2              RECV_SECT_ERR:				;PURGE THE LINE OF INPUT CHARS
+  981 F2A2  06 01       				LD	B,1			;1 SEC W/NO CHARS
+  982 F2A4  CD F354     	CALL	RECV
+  983 F2A7  D2 F2A2     	JP	NC,RECV_SECT_ERR	;LOOP UNTIL SENDER DONE
+  984 F2AA  3E 15       	LD	A,NAK
+  985 F2AC  CD F383     	CALL	SEND			;SEND NAK
+  986                   
+  987 F2AF  DD 7E 02    	LD	A,(IX+ERRCT)
+  988 F2B2  3C          	INC	A
+  989 F2B3  DD 77 02    	LD	(IX+ERRCT),A
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  18
+MASTER1 Z80
+
+  990 F2B6  FE 08       	CP	A,MODEM_ERR_LIMIT
+  991 F2B8  DA F27B     	JP	C,RECV_HDR
+  992                   			
+  993 F2BB  CD F3B4     	CALL	CHECK_FOR_QUIT
+  994 F2BE  CA F27B     	JP	Z,RECV_HDR
+  995 F2C1  21 F9A9     	LD	HL,BAD_HEADER_MSG
+  996 F2C4  CD F200     	CALL	HIGH_PRINT_STRING
+  997 F2C7  C3 F3E8     	JP	EXIT
+  998                   
+  999                   								
+ 1000 F2CA  FE 01       RHNTO:	CP	A,SOH			;GOT CHAR - MUST BE SOH
+ 1001 F2CC  CA F2E4     	JP	Z,GOT_SOH		;Z IF OK
+ 1002 F2CF  B7          	OR	A,A			;00 FROM SPEED CHECK?
+ 1003 F2D0  CA F27B     	JP	Z,RECV_HDR
+ 1004 F2D3  FE 04       	CP	A,EOT
+ 1005 F2D5  CA F34C     	JP	Z,GOT_EOT
+ 1006                   					;DIDN'T GET SOH - 
+ 1007 F2D8  CD F21D     	CALL	HIGH_LBYTE
+ 1008 F2DB  21 F916     	LD	HL,ERRSOH
+ 1009 F2DE  CD F200     	CALL	HIGH_PRINT_STRING
+ 1010 F2E1  C3 F2A2     	JP	RECV_SECT_ERR
+ 1011                   
+ 1012 F2E4              GOT_SOH:
+ 1013 F2E4  06 01       	LD	B,1
+ 1014 F2E6  CD F354     	CALL	RECV
+ 1015 F2E9  DA F29F     	JP	C,RECV_HDR_TIMEOUT
+ 1016 F2EC  57          	LD	D,A			;D=BLK #
+ 1017 F2ED  06 01       	LD	B,1
+ 1018 F2EF  CD F354     	CALL	RECV			;GET CMA'D SECT #
+ 1019 F2F2  DA F29F     	JP	C,RECV_HDR_TIMEOUT
+ 1020 F2F5  2F          	CPL
+ 1021 F2F6  BA          	CP	A,D			;GOOD SECTOR #?
+ 1022 F2F7  CA F303     	JP	Z,RECV_SECTOR
+ 1023                   								
+ 1024 F2FA  21 F92C     	LD	HL,ERR2			;GOT BAD SECTOR #
+ 1025 F2FD  CD F200     	CALL	HIGH_PRINT_STRING
+ 1026 F300  C3 F2A2     	JP	RECV_SECT_ERR
+ 1027                   
+ 1028                   
+ 1029 F303              RECV_SECTOR:				;Sector is OK, so read data and place in RAM
+ 1030 F303  7A          	LD	A,D			;GET SECTOR #
+ 1031 F304  DD 77 00    	LD	(IX+RECVD_SECT_NO),A
+ 1032 F307  0E 00       	LD	C,0			;INIT CKSUM
+ 1033 F309  1E 80       	LD	E,80H			;Sector Byte Count
+ 1034 F30B  FD E5       	PUSH	IY
+ 1035 F30D  E1          	POP	HL			;DMA address (IY) to HL
+ 1036                   					
+ 1037 F30E              RECV_CHAR:
+ 1038 F30E  06 01       	LD	B,1			;1 SEC TIMEOUT
+ 1039 F310  CD F354     	CALL	RECV			;GET CHAR
+ 1040 F313  DA F29F     	JP	C,RECV_HDR_TIMEOUT
+ 1041 F316  77          	LD	(HL),A			;STORE CHAR
+ 1042 F317  23          	INC	HL		
+ 1043 F318  1D          	DEC	E			;Next sector byte
+ 1044 F319  C2 F30E     	JP	NZ,RECV_CHAR
+ 1045                   
+ 1046                   					;VERIFY CHECKSUM
+ 1047 F31C  51          	LD	D,C			;SAVE CHECKSUM
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  19
+MASTER1 Z80
+
+ 1048 F31D  06 01       	LD	B,1			;TIMEOUT
+ 1049 F31F  CD F354     	CALL	RECV			;GET CHECKSUM
+ 1050 F322  DA F29F     	JP	C,RECV_HDR_TIMEOUT
+ 1051 F325  BA          	CP	A,D			;CHECK
+ 1052 F326  C2 F343     	JP	NZ,RECV_CKSUM_ERR
+ 1053                   
+ 1054                   					;GOT A SECTOR, WRITE IF = 1+PREV SECTOR
+ 1055 F329  DD 7E 00    	LD	A,(IX+RECVD_SECT_NO)
+ 1056 F32C  47          	LD	B,A			;SAVE IT
+ 1057 F32D  DD 7E 01    	LD	A,(IX+SECTNO)		;GET PREV
+ 1058 F330  3C          	INC	A			;CALC NEXT SECTOR #
+ 1059 F331  B8          	CP	B			;MATCH?
+ 1060 F332  C2 F338     	JP	NZ,DO_ACK
+ 1061 F335  DD 77 01    	LD	(IX+SECTNO),A		;UPDATE SECTOR #
+ 1062 F338  3E 06       DO_ACK:	LD	A,ACK
+ 1063 F33A  CD F383     	CALL	SEND
+ 1064                   				
+ 1065 F33D  E5          	PUSH	HL			;ALL OK SO SAVE DMA Address in IY
+ 1066 F33E  FD E1       	POP	IY			
+ 1067 F340  C3 F277     	JP	RECV_LOOP		;Back to Top recieve loop
+ 1068                   
+ 1069 F343              RECV_CKSUM_ERR:
+ 1070 F343  21 F944     	LD	HL,ERR3
+ 1071 F346  CD F200     	CALL	HIGH_PRINT_STRING
+ 1072 F349  C3 F2A2     	JP	RECV_SECT_ERR
+ 1073                   
+ 1074 F34C              GOT_EOT:
+ 1075 F34C  3E 06       	LD	A,ACK			;ACK THE EOT
+ 1076 F34E  CD F383     	CALL	SEND
+ 1077 F351  C3 F3E2     	JP	XFER_CPLT
+ 1078                   
+ 1079                   ;----------------------------------------------------
+ 1080                   ;   XMODEM SERIAL PORT GET CHARACTER ROUTINE
+ 1081                   ;----------------------------------------------------
+ 1082                   
+ 1083 F354  D5          RECV:	PUSH	DE			;SAVE D,E
+ 1084 F355  3E 05       	LD	A,5H			;Lower RTS line
+ 1085 F357  D3 A1       	OUT	MODEM_CTL_PORT,A	;Sel Reg 5
+ 1086 F359  3E EA       	LD	A,11101010B		;EAH
+ 1087 F35B  D3 A1       	OUT	MODEM_CTL_PORT,A
+ 1088 F35D  00          	NOP
+ 1089 F35E  00          	NOP
+ 1090 F35F  11 BBBB     MSEC:	LD	DE,0BBBBH		;1 SEC DCR COUNT
+ 1091 F362  DB A1       MWTI:	IN	A,MODEM_CTL_PORT
+ 1092 F364  E6 01       	AND	A,MODEM_RECV_MASK
+ 1093 F366  FE 01       	CP	A,RECV_READY
+ 1094 F368  CA F37A     	JP	Z,MCHAR			;GOT CHAR
+ 1095 F36B  1D          	DEC	E			;COUNT DOWN
+ 1096 F36C  C2 F362     	JP	NZ,MWTI			;FOR TIMEOUT
+ 1097 F36F  15          	DEC	D
+ 1098 F370  C2 F362     	JP	NZ,MWTI
+ 1099 F373  05          	DEC	B			;DCR # OF SECONDS
+ 1100 F374  C2 F35F     	JP	NZ,MSEC			;MODEM TIMED OUT RECEIVING
+ 1101 F377  D1          	POP	DE			;RESTORE D,E
+ 1102 F378  37          	SCF				;CARRY SHOWS TIMEOUT
+ 1103 F379  C9          	RET
+ 1104                   								;GOT MODEM CHAR
+ 1105 F37A  DB A3       MCHAR:	IN	A,MODEM_DATA_PORT
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  20
+MASTER1 Z80
+
+ 1106 F37C  D1          	POP	DE			;RESTORE DE
+ 1107 F37D  F5          	PUSH	AF			;CALC CHECKSUM
+ 1108 F37E  81          	ADD	A,C
+ 1109 F37F  4F          	LD	C,A
+ 1110 F380  F1          	POP	AF
+ 1111 F381  B7          	OR	A,A			;TURN OFF CARRY TO SHOW NO TIMEOUT
+ 1112 F382  C9          	RET
+ 1113                   					
+ 1114                   ;----------------------------------------------------
+ 1115                   ;   XMODEM SERIAL PORT SEND CHARACTER ROUTINE
+ 1116                   ;----------------------------------------------------
+ 1117                   				
+ 1118 F383  F5          SEND:	PUSH	AF			;CHECK IF MONITORING OUTPUT
+ 1119 F384  81          	ADD	A,C			;CALC CKSUM
+ 1120 F385  4F          	LD	C,A
+ 1121 F386  DB A1       SENDW:	IN	A,MODEM_CTL_PORT	;Don't worry PC is always fast enough!
+ 1122 F388  E6 04       	AND	A,MODEM_SEND_MASK
+ 1123 F38A  FE 04       	CP	A,SEND_READY
+ 1124 F38C  C2 F386     	JP	NZ,SENDW
+ 1125 F38F  F1          	POP	AF			;GET CHAR
+ 1126 F390  D3 A3       	OUT	MODEM_DATA_PORT,A
+ 1127                   				
+ 1128                   								;Raise RTS line to prevent the next character arriving
+ 1129 F392  3E 05       	LD	A,5H			;while the Z80 is busy processing info
+ 1130 F394  D3 A1       	OUT	MODEM_CTL_PORT,A	;Sel Reg 5
+ 1131 F396  3E E8       	LD	A,11101000B		;E8H
+ 1132 F398  D3 A1       	OUT	MODEM_CTL_PORT,A
+ 1133 F39A  C9          	RET
+ 1134                   
+ 1135                   ;---------------- SUPPORT ROUTINES -----------------------------
+ 1136                   
+ 1137 F39B  21 F95C     TOUT:	LD	HL,TOUTM		;PRINT TIMEOUT MESSAGE
+ 1138 F39E  CD F200     	CALL	HIGH_PRINT_STRING
+ 1139 F3A1  DD 7E 02    	LD	A,(IX+ERRCT)
+ 1140 F3A4  CD F21D     	CALL	HIGH_LBYTE		
+ 1141 F3A7  CD F057     	CALL	ZCRLF
+ 1142 F3AA  C9          	RET
+ 1143                   
+ 1144 F3AB  F5          CO_A:	PUSH	AF			;PRINT VALUE of [A] on CRT
+ 1145 F3AC  C5          	PUSH	BC
+ 1146 F3AD  4F          	LD	C,A
+ 1147 F3AE  CD F0AF     	CALL	HIGH_CO
+ 1148 F3B1  C1          	POP	BC
+ 1149 F3B2  F1          	POP	AF
+ 1150 F3B3  C9          	RET
+ 1151                   
+ 1152 F3B4              CHECK_FOR_QUIT:				;MULTIPLE ERRORS, ASK IF TIME TO QUIT
+ 1153 F3B4  AF          	XOR	A,A			;GET 0
+ 1154 F3B5  DD 77 02    	LD	(IX+ERRCT),A		;RESET ERROR COUNT
+ 1155 F3B8  21 F965     	LD	HL,QUITM
+ 1156 F3BB  CD F200     	CALL	HIGH_PRINT_STRING
+ 1157                   
+ 1158 F3BE  DB 00       CI3:	IN 	A,CONSOL_STATUS		;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
+ 1159 F3C0  E6 02       	AND	A,02H
+ 1160 F3C2  CA F3BE     	JP	Z,CI3
+ 1161 F3C5  DB 01       	IN	A,CONSOL_IN
+ 1162 F3C7  E6 7F       	AND	A,7FH
+ 1163 F3C9  F5          	PUSH	AF			;SAVE CHAR
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  21
+MASTER1 Z80
+
+ 1164 F3CA  CD F057     	CALL	ZCRLF
+ 1165 F3CD  F1          	POP	AF
+ 1166 F3CE  FE 52       	CP	A,'R'
+ 1167 F3D0  C8          	RET	Z			;RETURN IF RETRY
+ 1168 F3D1  FE 72       	CP	A,'r'
+ 1169 F3D3  C8          	RET	Z
+ 1170 F3D4  FE 51       	CP	A,'Q'			;QUIT?
+ 1171 F3D6  C2 F3DB     	JP	NZ,LCQ
+ 1172 F3D9  B7          	OR	A,A			;TURN OFF ZERO FLAG
+ 1173 F3DA  C9          	RET
+ 1174 F3DB  FE 71       LCQ:	CP	A,'q'
+ 1175 F3DD  C2 F3B4     	JP	NZ,CHECK_FOR_QUIT
+ 1176 F3E0  B7          	OR	A,A			;TURN OFF ZERO FLAG
+ 1177 F3E1  C9          	RET
+ 1178                   
+ 1179 F3E2              XFER_CPLT:				;DONE - CLOSE UP SHOP
+ 1180 F3E2  21 F995     	LD	HL,MODEM_DONE_MSG
+ 1181 F3E5  CD F200     	CALL	HIGH_PRINT_STRING
+ 1182 F3E8  C3 F01B     EXIT:	JP	ZSTART
+ 1183                   						
+ 1184                   ;
+ 1185                   ;--------------------------------------------------------------------------------------------------------
+ 1186                   ;---------------------------------------------- FPGA DC Board IDE MENU ----------------------------------
+ 1187                   ;--------------------------------------------------------------------------------------------------------
+ 1188                   
+ 1189 F3EB              HIGH_FPGA_DRIVES_MENU:
+ 1190 F3EB  DB 80       	IN	A,(S100_STATUS_PORT)	;If FPGA_DC is active this will be X000000X
+ 1191 F3ED  FE FF       	CP	A,0FFH
+ 1192 F3EF  CA F47E     	JP	Z,NO_RESPONSE
+ 1193                   	
+ 1194 F3F2  3E 82       	LD	A,CMD$BOARD$CONFIG	;Get FPGA_DC Board hardware configuration
+ 1195 F3F4  CD F867     	CALL	DATA_TO_FPGA		;Bits 7&6 contain IDE & FDC circuit flags 
+ 1196                   					;Bits 1&0 contain IDE Mode (0,1,2)
+ 1197                   	
+ 1198 F3F7  CD F878     	CALL	GET_FPGA_TO_S100	;Get data back [A] back to S100 
+ 1199 F3FA  32 EE24     	LD	(@BOARD_CONFIG),A
+ 1200 F3FD  E6 C0       	AND	A,11000000B
+ 1201 F3FF  CA F47E     	JP	Z,NO_RESPONSE
+ 1202                   	
+ 1203 F402  CB 7F       	BIT	7,A				
+ 1204 F404  CA F41D     	JP	Z,NO_IDE_CIRCUIT	;No IDE, must be FDC
+ 1205                   	
+ 1206 F407  21 FB75     	LD	HL,IDE_CIRCUIT_MSG	;FPGA_DC Board, IDE/CF Card Circuit detected.$'
+ 1207 F40A  CD F200     	CALL	HIGH_PRINT_STRING
+ 1208                   	
+ 1209 F40D  3E 38       	LD	A,CMD$SET$IDE$MODE	;38H set IDE to local IDE mode 
+ 1210 F40F  CD F867     	CALL	DATA_TO_FPGA
+ 1211 F412  3E 01       	LD	A,LOCAL$IDE$MODE	;1H, IDE to local mode 
+ 1212 F414  CD F867     	CALL	DATA_TO_FPGA
+ 1213 F417  21 FB20     	LD	HL,LOCAL_IDE_MODE_MSG	;FPGA_DC Board, Set to local IDE ports mode.$ 
+ 1214 F41A  CD F200     	CALL	HIGH_PRINT_STRING
+ 1215                   
+ 1216 F41D              NO_IDE_CIRCUIT:
+ 1217 F41D  CB 77       	BIT	6,A				
+ 1218 F41F  CA F435     	JP	Z,NO_FDC_CIRCUIT	;NO FDC Board detected
+ 1219                   
+ 1220 F422  21 FB4E     	LD	HL,FDC_CIRCUIT_MSG	;FPGA_DC Board FDC Citcuit detected.$'
+ 1221 F425  CD F200     	CALL	HIGH_PRINT_STRING
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  22
+MASTER1 Z80
+
+ 1222                   
+ 1223 F428  3E 43       	LD	A,'C'			;Start off with floppy Drive C:
+ 1224 F42A  CD F601     	CALL	SEL_DRIVE		;Drive letter returned in A
+ 1225                   
+ 1226 F42D  3A EE24     	LD	A,(@BOARD_CONFIG)	;If IDE citrcuit present always start with IDE
+ 1227 F430  CB 7F       	BIT	7,A				
+ 1228 F432  CA F43A     	JP	Z,FPGA_DRIVES_LOOP	;NO IDE Circuit detected, then always start with FDC
+ 1229                   
+ 1230 F435              NO_FDC_CIRCUIT:				;NO FPGA_DC FDC circuit detected
+ 1231 F435  3E 41       	LD	A,'A'			;Always start off with drive A:
+ 1232 F437  CD F601     	CALL	SEL_DRIVE		;Drive letter returned in A
+ 1233                   
+ 1234                   ;--------------------------------------------------------------------------------------------	
+ 1235                   
+ 1236 F43A              FPGA_DRIVES_LOOP:
+ 1237 F43A  21 FA39     	LD	HL,FPGA_DC_SIGNON	;Post the (limited) FPGA_DC Board menu
+ 1238 F43D  CD F200     	CALL	HIGH_PRINT_STRING
+ 1239                   
+ 1240 F440              FPGA_LOOP1:
+ 1241 F440  CD F740     	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector,head#
+ 1242 F443  CD F20B     	CALL	HIGH_CRLF
+ 1243                   						
+ 1244 F446  0E 3E       	LD	C,'>'
+ 1245 F448  CD F0AF     	CALL	HIGH_CO
+ 1246                   
+ 1247 F44B  CD F19A     	CALL	HIGH_TI			;Simple UC character Input + echo (Note, no fancy checking)
+ 1248 F44E  FE 1B       	CP	A,ESC			;Abort if ESC
+ 1249 F450  CA F3E8     	JP	Z,EXIT
+ 1250                   
+ 1251 F453  F5          	PUSH	AF
+ 1252 F454  CD F057     	CALL	ZCRLF
+ 1253 F457  F1          	POP	AF
+ 1254                   
+ 1255 F458  FE 44       	CP	A,'D'
+ 1256 F45A  CA F484     	JP	Z,DO_DRIVE_SELECT
+ 1257 F45D  FE 52       	CP	A,'R'
+ 1258 F45F  CA F48A     	JP	Z,DO_SEC_READ
+ 1259 F462  FE 57       	CP	A,'W'
+ 1260 F464  CA F4F3     	JP	Z,DO_SEC_WRITE
+ 1261 F467  FE 4E       	CP	A,'N'
+ 1262 F469  CA F5BD     	JP	Z,DRIVE_NEXT_SEC
+ 1263 F46C  FE 50       	CP	A,'P'
+ 1264 F46E  CA F5D4     	JP	Z,DRIVE_PREV_SEC
+ 1265 F471  FE 54       	CP	A,'T'
+ 1266 F473  CA F579     	JP	Z,SET_TRK_SEC
+ 1267                   
+ 1268 F476  0E 07       	LD	C,BELL
+ 1269 F478  CD F0AF     	CALL	HIGH_CO
+ 1270 F47B  C3 F3EB     	JP	HIGH_FPGA_DRIVES_MENU	;Bad Menu item
+ 1271                   ;
+ 1272 F47E              NO_RESPONSE:				;NO FPGA_DC Board detected
+ 1273 F47E  21 FAC5     	LD	HL,NO_FPGA_BOARD
+ 1274 F481  C3 F3E8     	JP	EXIT
+ 1275                   ;
+ 1276                   ;--------------------------------------- SELECT DRIVE ------------------------------------------
+ 1277                   
+ 1278 F484              DO_DRIVE_SELECT:
+ 1279 F484  CD F5D9     	CALL	SELECT_CURRENT_DRIVE	;New drive in (@CURRENT_DRIVE)
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  23
+MASTER1 Z80
+
+ 1280 F487  C3 F43A     	JP	FPGA_DRIVES_LOOP
+ 1281                   ;
+ 1282                   ;
+ 1283                   ;
+ 1284                   ;-------------------------------------- SECTOR READ -----------------------------------------------------------
+ 1285                   ;
+ 1286 F48A              DO_SEC_READ:
+ 1287 F48A  3E 10       	LD	A,CMD$READ$SECTOR	;10H,  Send CMD_READ_IDE_SECTOR command 
+ 1288 F48C  CD F867     	CALL	DATA_TO_FPGA
+ 1289                   
+ 1290 F48F  21 E000     	LD	HL,@SECTOR_BUFFER	;@SECTOR_BUFFER->HL
+ 1291 F492  7C          	LD	A,H
+ 1292 F493  CD F867     	CALL	DATA_TO_FPGA
+ 1293 F496  7D          	LD	A,L
+ 1294 F497  CD F867     	CALL	DATA_TO_FPGA
+ 1295                   
+ 1296 F49A  3A EE02     	LD	A,(@TRK1)		;Track	
+ 1297 F49D  CD F867     	CALL	DATA_TO_FPGA
+ 1298                   
+ 1299 F4A0  3A EE04     	LD	A,(@SEC1)		;Note: no check data is < MAXSEC, sectors start 0,1,2,3.... for SD cards
+ 1300 F4A3  CD F867     	CALL	DATA_TO_FPGA
+ 1301                   
+ 1302 F4A6  21 E000     	LD	HL,@SECTOR_BUFFER	;@SECTOR_BUFFER->HL
+ 1303 F4A9  22 EE20     	LD	(@DMA),HL
+ 1304 F4AC  CD F6BD     	CALL	GET_SEC_BYTE_COUNT	;Return Bytes/sec in DE
+ 1305                   
+ 1306 F4AF              GET_SECTOR:				;<<<< LOOP Sector READ >>>>
+ 1307 F4AF  CD F878     	CALL	GET_FPGA_TO_S100	;Get data in [A] back to S100 
+ 1308 F4B2  DA F4E7     	JP	C,GLOBAL_SEC_RD_ERROR	;Set carry flag if error on s100 bus side
+ 1309 F4B5  77          	LD	(HL),A
+ 1310 F4B6  23          	INC	HL
+ 1311 F4B7  1B          	DEC	DE
+ 1312 F4B8  7B          	LD	A,E
+ 1313 F4B9  B2          	OR	A,D
+ 1314 F4BA  20 F3       	JR	NZ,GET_SECTOR
+ 1315                   
+ 1316 F4BC  CD F878     	CALL	GET_FPGA_TO_S100	;Get ERROR FLAG
+ 1317 F4BF  DA F4E7     	JP	C,GLOBAL_SEC_RD_ERROR	;Set carry flag if error on s100 bus side
+ 1318 F4C2  FE F0       	CP	A,CMD$COMPLETE		;0F0H, Flag returned by DC board to signal the previous CMD was completed OK
+ 1319 F4C4  C2 F4E7     	JP	NZ,GLOBAL_SEC_RD_ERROR	
+ 1320                   
+ 1321 F4C7  CD F20B     	CALL	HIGH_CRLF
+ 1322 F4CA  CD F7D9     	CALL	SEC_DUMP		;Show contents of RAM at (@DMA) (Registers changed)
+ 1323 F4CD  CD F740     	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector,head#
+ 1324 F4D0  CD F20B     	CALL	HIGH_CRLF
+ 1325                   
+ 1326 F4D3  21 FBF6     	LD	HL,CONTINUE_MSG		;Any keyboard character for next sector. Esc to Main Menu
+ 1327 F4D6  CD F200     	CALL	HIGH_PRINT_STRING
+ 1328 F4D9  CD F10F     	CALL	HIGH_CI
+ 1329 F4DC  FE 1B       	CP	A,ESC
+ 1330 F4DE  CA F43A     	JP	Z,FPGA_DRIVES_LOOP
+ 1331                   	
+ 1332 F4E1  CD F784     	CALL	SEC_BUMP		;Point to next sector. Note this updates LBA also
+ 1333 F4E4  C3 F48A     	JP	DO_SEC_READ		;Read another sector
+ 1334                   ;
+ 1335                   ;
+ 1336 F4E7              GLOBAL_SEC_RD_ERROR:
+ 1337 F4E7  21 FBE5     	LD	HL,SEC_RD_ERR1_MSG	;Sect RD Error 
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  24
+MASTER1 Z80
+
+ 1338 F4EA  CD F200     	CALL	HIGH_PRINT_STRING
+ 1339 F4ED  CD F740     	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector
+ 1340 F4F0  C3 F43A     	JP	FPGA_DRIVES_LOOP
+ 1341                   ;
+ 1342                   ; 
+ 1343                   ;
+ 1344                   ;---------------------------------- SECTOR WRITE ---------------------------------------------------------
+ 1345                   ;
+ 1346 F4F3              DO_SEC_WRITE:
+ 1347 F4F3  21 FCE4     	LD	HL,WR_RAM_MENU_MSG	;Write to disk from From RAM at:- (XXXXH):$'
+ 1348 F4F6  CD F200     	CALL	HIGH_PRINT_STRING
+ 1349                   	
+ 1350 F4F9  CD F6D4     	CALL	GETHEX_NO_ECHO
+ 1351 F4FC  DA F43A     	JP	C,FPGA_DRIVES_LOOP
+ 1352 F4FF  67          	LD	H,A
+ 1353                   	
+ 1354 F500  CD F6D4     	CALL	GETHEX_NO_ECHO
+ 1355 F503  DA F43A     	JP	C,FPGA_DRIVES_LOOP
+ 1356 F506  6F          	LD	L,A
+ 1357 F507  22 EE20     	LD	(@DMA),HL
+ 1358 F50A  22 EE22     	LD	(@DMA_STORE),HL
+ 1359                   
+ 1360 F50D              DO_MORE_SEC_WRITE:	
+ 1361 F50D  22 EE20     	LD	(@DMA),HL
+ 1362 F510  22 EE22     	LD	(@DMA_STORE),HL
+ 1363                   
+ 1364 F513  3E 11       	LD	A,CMD$WRITE$SECTOR	;11H, Send CMD_WRITE_SECTOR
+ 1365 F515  CD F867     	CALL	DATA_TO_FPGA
+ 1366                   	
+ 1367 F518  7C          	LD	A,H
+ 1368 F519  CD F867     	CALL	DATA_TO_FPGA
+ 1369 F51C  7D          	LD	A,L
+ 1370 F51D  CD F867     	CALL	DATA_TO_FPGA
+ 1371                   
+ 1372                   	
+ 1373 F520  3A EE02     	LD	A,(@TRK1)		;Track	
+ 1374 F523  CD F867     	CALL	DATA_TO_FPGA
+ 1375                   
+ 1376 F526  3A EE04     	LD	A,(@SEC1)		;Note: no check data is < MAXSEC, sectors start 0,1,2,3.... for SD cards
+ 1377 F529  CD F867     	CALL	DATA_TO_FPGA
+ 1378                   	
+ 1379 F52C  2A EE20     	LD	HL,(@DMA)		;RAM->HL
+ 1380 F52F  CD F6BD     	CALL	GET_SEC_BYTE_COUNT	;Return Bytes/sec in DE
+ 1381                   
+ 1382 F532              PUT_SECTOR:				;<<<< LOOP Sector WRITE >>>>
+ 1383 F532  7E          	LD	A,(HL)
+ 1384 F533  CD F867     	CALL	DATA_TO_FPGA		;Get data in [A] back to S100 
+ 1385 F536  23          	INC	HL
+ 1386 F537  1B          	DEC	DE
+ 1387 F538  7B          	LD	A,E
+ 1388 F539  B2          	OR	A,D
+ 1389 F53A  20 F6       	JR	NZ,PUT_SECTOR
+ 1390                   
+ 1391 F53C  22 EE22     	LD	(@DMA_STORE),HL		;Store for next sector
+ 1392                   	
+ 1393 F53F  CD F878     	CALL	GET_FPGA_TO_S100	;Get ERROR FLAG
+ 1394 F542  FE F0       	CP	A,CMD$COMPLETE		;Flag returned by DC board to signal the previous CMD was completed OK
+ 1395 F544  C2 F56D     	JP	NZ,GLOBAL_SEC_WR_ERROR	
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  25
+MASTER1 Z80
+
+ 1396                   		
+ 1397                   
+ 1398 F547  CD F20B     	CALL	HIGH_CRLF
+ 1399 F54A  CD F7D9     	CALL	SEC_DUMP		;Show contents of RAM at SECTOR_BUFFER (Registers changed)
+ 1400 F54D  CD F740     	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector,head#
+ 1401 F550  CD F20B     	CALL	HIGH_CRLF
+ 1402                   
+ 1403 F553  2A EE22     	LD	HL,(@DMA_STORE)		;Store for next sector
+ 1404 F556  22 EE20     	LD	(@DMA),HL
+ 1405                   	
+ 1406 F559  21 FBF6     	LD	HL,CONTINUE_MSG		;Any keyboard character for next sector. Esc to Main Menu
+ 1407 F55C  CD F200     	CALL	HIGH_PRINT_STRING
+ 1408 F55F  CD F10F     	CALL	HIGH_CI
+ 1409 F562  FE 1B       	CP	A,ESC
+ 1410 F564  CA F43A     	JP	Z,FPGA_DRIVES_LOOP
+ 1411                   	
+ 1412 F567  CD F784     	CALL	SEC_BUMP		;Point to next sector. Note this updates LBA also
+ 1413 F56A  C3 F50D     	JP	DO_MORE_SEC_WRITE	;Read another sector
+ 1414                   					;<<<<< SECTOR WRITE LOOP >>>>>>>>>>>>>>>>>>
+ 1415                   					
+ 1416 F56D              GLOBAL_SEC_WR_ERROR:
+ 1417 F56D  21 FC43     	LD	HL,SEC_WRD_ERR1_MSG	;Sect RD Error 
+ 1418 F570  CD F200     	CALL	HIGH_PRINT_STRING
+ 1419 F573  CD F740     	CALL	SHOW_DMA_TRK_SEC	;Display current Track,sector,head#
+ 1420 F576  C3 F43A     	JP	FPGA_DRIVES_LOOP
+ 1421                   ;
+ 1422                   ; 
+ 1423                   ;	
+ 1424                   ;---------------------------------- SET TRACK & SECTOR ---------------------------------------------------------
+ 1425                   
+ 1426 F579              SET_TRK_SEC:				;Keyboard entry of new IDE drive track/sector data FORMAT:- (XX,XX+CR)
+ 1427 F579  21 FC21     	LD	HL,ENTER_TS_DATA
+ 1428 F57C  CD F200     	CALL	HIGH_PRINT_STRING
+ 1429                   
+ 1430 F57F  CD F6D4     	CALL	GETHEX_NO_ECHO
+ 1431 F582  DA F5B1     	JP	C,ABORT_SET_TRK_SEC
+ 1432                   	
+ 1433 F585  32 EE02     	LD	(@TRK1),A
+ 1434                   
+ 1435 F588  CD F10F     	CALL	HIGH_CI			;Format must be xx,xx
+ 1436 F58B  FE 2C       	CP	A,','
+ 1437 F58D  20 25       	JR	NZ,DR_TRK_SEC_ERR
+ 1438 F58F  0E 2C       	LD	C,','
+ 1439 F591  CD F0AF     	CALL	HIGH_CO
+ 1440                   
+ 1441 F594  CD F6D4     	CALL	GETHEX_NO_ECHO
+ 1442 F597  DA F5B1     	JP	C,ABORT_SET_TRK_SEC
+ 1443                   	
+ 1444 F59A  32 EE04     	LD	(@SEC1),A
+ 1445                   	
+ 1446 F59D  3E 35       	LD	A,CMD$SET$TRK$SEC	;31H, Now update board, Send CMD_SET_TRK_SEC
+ 1447 F59F  CD F867     	CALL	DATA_TO_FPGA
+ 1448                   	
+ 1449 F5A2  3A EE02     	LD	A,(@TRK1)
+ 1450 F5A5  CD F867     	CALL	DATA_TO_FPGA
+ 1451                   
+ 1452 F5A8  3A EE04     	LD	A,(@SEC1)
+ 1453 F5AB  CD F867     	CALL	DATA_TO_FPGA
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  26
+MASTER1 Z80
+
+ 1454 F5AE  C2 F5B4     	JP	NZ,DR_TRK_SEC_ERR	;Error setting track/sector
+ 1455                   
+ 1456 F5B1              ABORT_SET_TRK_SEC:
+ 1457 F5B1  C3 F43A     	JP	FPGA_DRIVES_LOOP
+ 1458                   
+ 1459 F5B4              DR_TRK_SEC_ERR;
+ 1460 F5B4  21 FB03     	LD	HL,TRK_SEC_ERR		;Error setting track/sector
+ 1461 F5B7  CD F200     	CALL	HIGH_PRINT_STRING
+ 1462 F5BA  C3 F43A     	JP	FPGA_DRIVES_LOOP
+ 1463                   
+ 1464                   ;---------------------------------- POINTS TO NEXT SECTOR ---------------------------------------------------------
+ 1465                   
+ 1466 F5BD              DRIVE_NEXT_SEC:				;Generalized routine to point to the next sector/track
+ 1467 F5BD  CD F784     	CALL	SEC_BUMP		;Do it locally
+ 1468                   
+ 1469 F5C0              ADJUST_TRK_SEC:	
+ 1470 F5C0  3E 35       	LD	A,CMD$SET$TRK$SEC	;35H ;Set new current TRACK+SECTOR on current drive (new)
+ 1471 F5C2  CD F867     	CALL	DATA_TO_FPGA
+ 1472                   
+ 1473 F5C5  3A EE02     	LD	A,(@TRK1)		;Track	
+ 1474 F5C8  CD F867     	CALL	DATA_TO_FPGA
+ 1475                   	
+ 1476 F5CB  3A EE04     	LD	A,(@SEC1)		;Note: no check data is < MAXSEC, sectors start 0,1,2,3....
+ 1477 F5CE  CD F867     	CALL	DATA_TO_FPGA
+ 1478                   	
+ 1479 F5D1  C3 F43A     	JP	FPGA_DRIVES_LOOP
+ 1480                   ;
+ 1481                   ;
+ 1482                   ;---------------------------------- POINTS TO PREVIOUS SECTOR ---------------------------------------------------
+ 1483                   
+ 1484 F5D4              DRIVE_PREV_SEC:
+ 1485 F5D4  CD F7B1     	CALL	SEC_BACK		;Do it locally 
+ 1486 F5D7  18 E7       	JR	ADJUST_TRK_SEC	
+ 1487                   ;
+ 1488                   ;
+ 1489                   ;-----------------------------------------------------------------------------------------------	
+ 1490                   ;--------------------------------------- IDE SUPPORT ROUTINES ----------------------------------
+ 1491                   ;-----------------------------------------------------------------------------------------------
+ 1492                   ;
+ 1493 F5D9              SELECT_CURRENT_DRIVE:			;Select a drive (A---F)
+ 1494 F5D9  21 FAE3     	LD	HL,CURRENT_DR_MSG
+ 1495 F5DC  CD F200     	CALL	HIGH_PRINT_STRING
+ 1496                   
+ 1497 F5DF  CD F19A     	CALL	HIGH_TI			;Simple UC character Input  + echo(Note, no fancy checking)
+ 1498 F5E2  FE 1B       	CP	A,ESC			;Abort if ESC
+ 1499 F5E4  CA F3E8     	JP	Z,EXIT
+ 1500 F5E7  FE 41       	CP	A,'A'
+ 1501 F5E9  28 16       	JR	Z,SEL_DRIVE
+ 1502 F5EB  FE 42       	CP	A,'B'
+ 1503 F5ED  28 12       	JR	Z,SEL_DRIVE
+ 1504 F5EF  FE 43       	CP	A,'C'
+ 1505 F5F1  28 0E       	JR	Z,SEL_DRIVE
+ 1506 F5F3  FE 44       	CP	A,'D'
+ 1507 F5F5  28 0A       	JR	Z,SEL_DRIVE
+ 1508 F5F7  FE 45       	CP	A,'E'
+ 1509 F5F9  28 06       	JR	Z,SEL_DRIVE
+ 1510 F5FB  FE 46       	CP	A,'F'
+ 1511 F5FD  28 02       	JR	Z,SEL_DRIVE
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  27
+MASTER1 Z80
+
+ 1512 F5FF  18 16       	JR	BAD_DRIVE
+ 1513                   
+ 1514 F601              SEL_DRIVE:				;Arrive here with selecetd drive in A
+ 1515 F601  F5          	PUSH	AF			;Save selected drive for below
+ 1516 F602  CD F61F     	CALL	INITILIZE_DRIVE		;Initilize drive in [A]
+ 1517                   	
+ 1518 F605  3E 05       	LD	A,CMD$SEL$DRIVE		;05H,  Select Drive CMD
+ 1519 F607  CD F867     	CALL	DATA_TO_FPGA
+ 1520                   
+ 1521 F60A  F1          	POP	AF
+ 1522 F60B  5F          	LD	E,A			;Store in E
+ 1523 F60C  CD F867     	CALL	DATA_TO_FPGA
+ 1524                   	
+ 1525 F60F  CD F878     	CALL	GET_FPGA_TO_S100	;Wait for returned ACK signal 
+ 1526 F612  BB          	CP	A,E 
+ 1527 F613  20 02       	JR	NZ,BAD_DRIVE
+ 1528 F615  B7          	OR	A,A			;Ret NZ with ASCII in A
+ 1529 F616  C9          	RET				;Returns with drive in A and Z if OK
+ 1530                   
+ 1531                   
+ 1532 F617              BAD_DRIVE:
+ 1533 F617  21 FCCB     	LD	HL,BAD_SEL_DR_MSG	;Error selecting a new drive
+ 1534 F61A  CD F200     	CALL	HIGH_PRINT_STRING
+ 1535 F61D  AF          	XOR	A,A
+ 1536 F61E  C9          	RET				;RET Z if a problem
+ 1537                   
+ 1538                   
+ 1539 F61F              INITILIZE_DRIVE:			;Initilize drive in A
+ 1540 F61F  FE 41       	CP	A,'A'
+ 1541 F621  28 12       	JR	Z,INIT_CF_CARD
+ 1542 F623  FE 42       	CP	A,'B'
+ 1543 F625  28 0E       	JR	Z,INIT_CF_CARD
+ 1544 F627  FE 43       	CP	A,'C'
+ 1545 F629  38 33       	JR	C,INIT_FLOPPY1
+ 1546 F62B  FE 44       	CP	A,'D'
+ 1547 F62D  38 2F       	JR	C,INIT_FLOPPY2
+ 1548 F62F  FE 45       	CP	A,'E'
+ 1549 F631  38 42       	JR	C,INIT_FLOPPY3
+ 1550 F633  18 57       	JR	INIT_FLOPPY4
+ 1551 F635              INIT_CF_CARD:	
+ 1552 F635  32 EE00     	LD	(@DRIVE1),A
+ 1553 F638  D6 41       	SUB	A,41H			;A or B - A
+ 1554 F63A  32 EE10     	LD	(@CURRENT_DRIVE),A	;0 or 1
+ 1555 F63D  3E 00       	LD	A,0			;Initilize Local Track/sec info
+ 1556 F63F  32 EE02     	LD	(@TRK1),A
+ 1557 F642  32 EE04     	LD	(@SEC1),A
+ 1558 F645  32 EE06     	LD	(@SIDE1),A
+ 1559 F648  32 EE0A     	LD	(@FIRST_SEC),A		;First sector number on a track. 0 for SD/CF cards. 
+ 1560 F64B  3E FF       	LD	A,CFCARD		;All CF cards = 0FFH	
+ 1561 F64D  32 EE08     	LD	(@DISK_TYPE1),A
+ 1562 F650  3E FF       	LD	A,0FFH
+ 1563 F652  32 EE0C     	LD	(@SEC_TRACK),A		;Store for MAX sectors/track
+ 1564 F655  32 EE0E     	LD	(@MAX_TRACKS),A		;Max tracks/disk (for floppies)
+ 1565 F658  3E 02       	LD	A,2
+ 1566 F65A  32 EE12     	LD	(@SEC_SIZE_FLAG),A	;0=128, 1=256, 2=512 Bytes/Sector
+ 1567 F65D  C9          	RET
+ 1568                   
+ 1569 F65E              INIT_FLOPPY1:
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  28
+MASTER1 Z80
+
+ 1570 F65E              INIT_FLOPPY2:
+ 1571 F65E  F5          	PUSH	AF
+ 1572 F65F  3E 80       	LD	A,IBM3740		;SSSD Floppy IBM 3740
+ 1573 F661  32 EE08     	LD	(@DISK_TYPE1),A
+ 1574 F664  3E 1B       	LD	A,26+1
+ 1575 F666  32 EE0C     	LD	(@SEC_TRACK),A		;Store for MAX sectors/track +1
+ 1576 F669  3E 4C       	LD	A,76
+ 1577 F66B  32 EE0E     	LD	(@MAX_TRACKS),A		;Max tracks/disk (for floppies)
+ 1578 F66E  3E 00       	LD	A,0
+ 1579 F670  32 EE12     	LD	(@SEC_SIZE_FLAG),A	;0=128, 1=256, 2=512 Bytes/Sector
+ 1580 F673  18 2E       	JR	COMMON_FLOPPY
+ 1581                   
+ 1582 F675              INIT_FLOPPY3:
+ 1583 F675  F5          	PUSH	AF
+ 1584 F676  3E 60       	LD	A,IBM34			;DSDD Floppy IBM 34
+ 1585 F678  32 EE08     	LD	(@DISK_TYPE1),A
+ 1586 F67B  3E 1B       	LD	A,26+1
+ 1587 F67D  32 EE0C     	LD	(@SEC_TRACK),A		;;tore for MAX sectors/track +1
+ 1588 F680  3E 4C       	LD	A,76
+ 1589 F682  32 EE0E     	LD	(@MAX_TRACKS),A		;Max tracks/disk (for floppies)
+ 1590 F685  3E 01       	LD	A,1
+ 1591 F687  32 EE12     	LD	(@SEC_SIZE_FLAG),A	;0=128, 1=256, 2=512 Bytes/Sector
+ 1592 F68A  18 17       	JR	COMMON_FLOPPY
+ 1593                   	
+ 1594 F68C              INIT_FLOPPY4:
+ 1595 F68C  F5          	PUSH	AF
+ 1596 F68D  3E 40       	LD	A,IBM144		;SSSD Floppy IBM 3740
+ 1597 F68F  32 EE08     	LD	(@DISK_TYPE1),A
+ 1598 F692  3E 13       	LD	A,18+1
+ 1599 F694  32 EE0C     	LD	(@SEC_TRACK),A		;;tore for MAX sectors/track +1
+ 1600 F697  3E 50       	LD	A,80
+ 1601 F699  32 EE0E     	LD	(@MAX_TRACKS),A		;Max tracks/disk (for floppies)
+ 1602 F69C  3E 02       	LD	A,2
+ 1603 F69E  32 EE12     	LD	(@SEC_SIZE_FLAG),A	;0=128, 1=256, 2=512 Bytes/Sector
+ 1604 F6A1  18 00       	JR	COMMON_FLOPPY
+ 1605                   
+ 1606 F6A3              COMMON_FLOPPY:
+ 1607 F6A3  F1          	POP	AF
+ 1608 F6A4  32 EE00     	LD	(@DRIVE1),A
+ 1609 F6A7  D6 41       	SUB	A,41H			
+ 1610 F6A9  32 EE10     	LD	(@CURRENT_DRIVE),A	;0 or 1
+ 1611 F6AC  3E 00       	LD	A,0			;Initilize Local Track/sec info
+ 1612 F6AE  32 EE02     	LD	(@TRK1),A
+ 1613 F6B1  32 EE06     	LD	(@SIDE1),A
+ 1614 F6B4  3E 01       	LD	A,1
+ 1615 F6B6  32 EE0A     	LD	(@FIRST_SEC),A		;First sector number on a track. 1 for Floppys 
+ 1616 F6B9  32 EE04     	LD	(@SEC1),A
+ 1617 F6BC  C9          	RET
+ 1618                   
+ 1619                   
+ 1620                   ;
+ 1621                   ;----------------------------------------
+ 1622 F6BD              GET_SEC_BYTE_COUNT:			;Return Bytes/sec in DE
+ 1623 F6BD  3A EE12     	LD	A,(@SEC_SIZE_FLAG)	;0=128, 1=256, 2=512 Bytes/Sector
+ 1624 F6C0  FE 02       	CP	A,2
+ 1625 F6C2  20 04       	JR	NZ,NOT_RD_512
+ 1626 F6C4  11 0200     	LD	DE,512
+ 1627 F6C7  C9          	RET
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  29
+MASTER1 Z80
+
+ 1628 F6C8              NOT_RD_512:
+ 1629 F6C8  FE 01       	CP	A,1
+ 1630 F6CA  20 04       	JR	NZ,NOT_RD_256
+ 1631 F6CC  11 0100     	LD	DE,256
+ 1632 F6CF  C9          	RET
+ 1633 F6D0              NOT_RD_256:
+ 1634 F6D0  11 0080     	LD	DE,128
+ 1635 F6D3  C9          	RET
+ 1636                   
+ 1637                   
+ 1638                   		
+ 1639                   ;
+ 1640                   ;----------------------------------------
+ 1641 F6D4              GETHEX_NO_ECHO:
+ 1642 F6D4  C5          	PUSH	BC	
+ 1643 F6D5  CD F10F     	call	HIGH_CI			;GET A CHARACTER, convert to UC, ECHO it
+ 1644 F6D8  CD F737     	call	UCASE	
+ 1645 F6DB  FE 1B       	CP	A,ESC
+ 1646 F6DD  CA F723     	JP	Z,HEXABORT_NO_ECHO
+ 1647 F6E0  FE 2F       	CP	A,'/'			;check 0-9, A-F
+ 1648 F6E2  DA F723     	JP	C,HEXABORT_NO_ECHO
+ 1649 F6E5  FE 47       	CP	A,'F'+1
+ 1650 F6E7  D2 F723     	JP	NC,HEXABORT_NO_ECHO
+ 1651 F6EA  C5          	PUSH	BC
+ 1652 F6EB  F5          	PUSH	AF
+ 1653 F6EC  4F          	LD	C,A
+ 1654 F6ED  CD F0AF     	CALL	HIGH_CO
+ 1655 F6F0  F1          	POP	AF
+ 1656 F6F1  C1          	POP	BC
+ 1657 F6F2  CD F72F     	call	ASBIN			;Convert to binary
+ 1658 F6F5  07          	rlca				;Shift to high nibble
+ 1659 F6F6  07          	rlca
+ 1660 F6F7  07          	rlca
+ 1661 F6F8  07          	rlca
+ 1662 F6F9  47          	LD	B,A			;Store it
+ 1663                   	
+ 1664 F6FA  CD F10F     	call	HIGH_CI			;GET second CHARACTER, convert to UC, ECHO it
+ 1665 F6FD  CD F737     	call	UCASE
+ 1666 F700  FE 1B       	CP	A,ESC
+ 1667 F702  CA F723     	JP	Z,HEXABORT_NO_ECHO
+ 1668 F705  FE 0D       	CP	A,CR
+ 1669 F707  CA F726     	JP	Z,ONE_DIGIT
+ 1670                   	
+ 1671 F70A  FE 2F       	CP	A,'/'			;check 0-9, A-F
+ 1672 F70C  DA F723     	JP	C,HEXABORT_NO_ECHO
+ 1673 F70F  FE 47       	CP	A,'F'+1
+ 1674 F711  D2 F723     	JP	NC,HEXABORT_NO_ECHO
+ 1675 F714  C5          	PUSH	BC
+ 1676 F715  F5          	PUSH	AF
+ 1677 F716  4F          	LD	C,A
+ 1678 F717  CD F0AF     	CALL	HIGH_CO
+ 1679 F71A  F1          	POP	AF
+ 1680 F71B  C1          	POP	BC
+ 1681 F71C  CD F72F     	call	ASBIN			;Convert to binary
+ 1682 F71F  B0          	OR	A,B			;add in the first digit
+ 1683 F720  C1          	POP	BC
+ 1684 F721  B7          	OR	A			;To return NC
+ 1685 F722  C9          	RET
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  30
+MASTER1 Z80
+
+ 1686                   	
+ 1687 F723              HEXABORT_NO_ECHO:
+ 1688 F723  C1          	POP	BC
+ 1689 F724  37          	SCF				;Set CF if a problem
+ 1690 F725  C9          	RET	
+ 1691                   ;
+ 1692 F726              ONE_DIGIT:				;A CR wase ntered after only 1 digit
+ 1693 F726  78          	LD	A,B
+ 1694 F727  1F          	RRA				;Shift to high nibble back down
+ 1695 F728  1F          	RRA
+ 1696 F729  1F          	RRA
+ 1697 F72A  1F          	RRA
+ 1698 F72B  E6 0F       	AND	A,0FH
+ 1699 F72D  B7          	OR	A
+ 1700 F72E  C9          	RET
+ 1701                   
+ 1702                   
+ 1703                   
+ 1704                   
+ 1705                   ; ASCII TO BINARY CONVERSION ROUTINE
+ 1706 F72F  D6 30       ASBIN:	SUB	30H 
+ 1707 F731  FE 0A       	CP	0AH 
+ 1708 F733  F8          	RET	M
+ 1709 F734  D6 07       	SUB	07H 
+ 1710 F736  C9          	RET
+ 1711                   
+ 1712                   ;					;Convert LC to UC
+ 1713 F737  FE 61       UCASE:	CP	A,'a'			;must be >= lowercase a
+ 1714 F739  D8          	RET	C			; else go back...
+ 1715 F73A  FE 7B       	CP	A,'z'+1			;must be <= lowercase z
+ 1716 F73C  D0          	RET	NC			; else go back...
+ 1717 F73D  D6 20       	SUB	A,'a'-'A'		;subtract lowercase bias
+ 1718 F73F  C9          	RET
+ 1719                   
+ 1720                   
+ 1721                   ;-------------------------------------------
+ 1722                   
+ 1723 F740              SHOW_DMA_TRK_SEC:
+ 1724 F740  21 FBA4     	LD	HL,DMA_MSG
+ 1725 F743  CD F200     	CALL	HIGH_PRINT_STRING
+ 1726 F746  21 E000     	LD	HL,@SECTOR_BUFFER	;@SECTOR_BUFFER->HL
+ 1727 F749  CD F218     	CALL	HIGH_LADR
+ 1728                   
+ 1729 F74C  21 FBAC     	LD	HL,DRIVE_MSG
+ 1730 F74F  CD F200     	CALL	HIGH_PRINT_STRING
+ 1731 F752  3A EE00     	LD	A,(@DRIVE1)		;Show Drive A,B....
+ 1732 F755  4F          	LD	C,A	
+ 1733 F756  CD F0AF     	CALL	HIGH_CO
+ 1734                   	
+ 1735 F759  21 FBB6     	LD	HL,TRK_SEC_MSG
+ 1736 F75C  CD F200     	CALL	HIGH_PRINT_STRING
+ 1737 F75F  3A EE02     	LD	A,(@TRK1)		;Get track	
+ 1738 F762  CD F21D     	CALL	HEXOUT
+ 1739                   	
+ 1740 F765  21 FBC0     	LD	HL,TRK_SEC1_MSG
+ 1741 F768  CD F200     	CALL	HIGH_PRINT_STRING
+ 1742 F76B  3A EE04     	LD	A,(@SEC1)		;Get Sector
+ 1743 F76E  CD F21D     	CALL	HEXOUT
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  31
+MASTER1 Z80
+
+ 1744                   	
+ 1745 F771  21 FBCB     	LD	HL,SEC_TRK_MSG		;Sectors/track = $'
+ 1746 F774  CD F200     	CALL	HIGH_PRINT_STRING
+ 1747 F777  3A EE0C     	LD	A,(@SEC_TRACK)
+ 1748 F77A  CD F21D     	CALL	HEXOUT
+ 1749 F77D  21 FBDD     	LD	HL,HCRLF_MSG
+ 1750 F780  CD F200     	CALL	HIGH_PRINT_STRING
+ 1751 F783  C9          	RET
+ 1752                   
+ 1753                   
+ 1754                   ;--------------------------------------------
+ 1755                   
+ 1756 F784              SEC_BUMP:				;Generalized routine to point to the next sector/track
+ 1757 F784  C5          	PUSH	BC
+ 1758 F785  3A EE0C     	LD	A,(@SEC_TRACK)		;Is it the last sector on track
+ 1759 F788  4F          	LD	C,A
+ 1760 F789  3A EE04     	LD	A,(@SEC1)		
+ 1761 F78C  B9          	CP	A,C
+ 1762 F78D  28 06       	JR	Z,SEC_BUMP_TRK
+ 1763 F78F  3C          	INC	A
+ 1764 F790  32 EE04     	LD	(@SEC1),A
+ 1765 F793  C1          	POP	BC
+ 1766 F794  C9          	RET
+ 1767                   					
+ 1768 F795              SEC_BUMP_TRK:
+ 1769 F795  3A EE0A     	LD	A,(@FIRST_SEC)		;SEC back to first sector on the next tarck
+ 1770 F798  32 EE04     	LD	(@SEC1),A
+ 1771 F79B  3A EE02     	LD	A,(@TRK1)	
+ 1772 F79E  3C          	INC	A
+ 1773 F79F  B7          	OR	A,A			;Last track if SD/CF card
+ 1774 F7A0  28 0C       	JR	Z,AT_END		;RET Z if at end
+ 1775 F7A2  4F          	LD	C,A
+ 1776 F7A3  3A EE0E     	LD	A,(@MAX_TRACKS)
+ 1777 F7A6  4F          	LD	C,A
+ 1778 F7A7  28 05       	JR	Z,AT_END		;RET Z if at end
+ 1779 F7A9  32 EE02     	LD	(@TRK1),A
+ 1780 F7AC  C1          	POP	BC
+ 1781 F7AD  C9          	RET
+ 1782 F7AE              AT_END:	
+ 1783 F7AE  C1          	POP	BC
+ 1784 F7AF  AF          	XOR	A,A			;Ret Z if at end of disk
+ 1785 F7B0  C9          	RET
+ 1786                   
+ 1787                   
+ 1788                   ;
+ 1789 F7B1              SEC_BACK:				;Generalized routine to point to the previous sector/track
+ 1790 F7B1  C5          	PUSH	BC
+ 1791 F7B2  3A EE0A     	LD	A,(@FIRST_SEC)		;Is it SEC back to first sector on the next tarck
+ 1792 F7B5  4F          	LD	C,A			;Is it at set 0
+ 1793 F7B6  3A EE04     	LD	A,(@SEC1)
+ 1794 F7B9  B9          	CP	A,C
+ 1795 F7BA  28 06       	JR	Z,PREV_TRACK
+ 1796 F7BC  3D          	DEC	A
+ 1797 F7BD  32 EE04     	LD	(@SEC1),A
+ 1798 F7C0  C1          	POP	BC
+ 1799 F7C1  C9          	RET
+ 1800                   					
+ 1801 F7C2              PREV_TRACK: 
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  32
+MASTER1 Z80
+
+ 1802 F7C2  3A EE0C     	LD	A,(@SEC_TRACK)		;Store for MAX sectors/track + 1
+ 1803 F7C5  3D          	DEC	A
+ 1804 F7C6  32 EE04     	LD	(@SEC1),A
+ 1805 F7C9  3A EE02     	LD	A,(@TRK1)
+ 1806 F7CC  FE 00       	CP	A,0			;On first track
+ 1807 F7CE  28 06       	JR	Z,AT_START		;RET Z if at end
+ 1808 F7D0  3D          	DEC	A
+ 1809 F7D1  32 EE02     	LD	(@TRK1),A
+ 1810 F7D4  C1          	POP	BC
+ 1811 F7D5  C9          	RET
+ 1812 F7D6              AT_START:	
+ 1813 F7D6  C1          	POP	BC
+ 1814 F7D7  AF          	XOR	A,A
+ 1815 F7D8  C9          	RET
+ 1816                   
+ 1817                   ;
+ 1818                   ;------------------------------------------
+ 1819 F7D9              SEC_DUMP:				;Print a SEC_DUMP of the data in the 512 byte buffer @[HL]
+ 1820 F7D9  CD F6BD     	CALL	GET_SEC_BYTE_COUNT	;Return Bytes/sec in DE
+ 1821 F7DC  2A EE20     	LD	HL,(@DMA)		;Normally @SECTOR_BUFFER->HL (Except sec writes)
+ 1822 F7DF  19          	ADD	HL,DE
+ 1823 F7E0  E5          	PUSH	HL
+ 1824 F7E1  D1          	POP	DE			;DE = SECTOR BUFFER + SEC SIZE
+ 1825 F7E2  1B          	DEC	DE
+ 1826 F7E3  2A EE20     	LD	HL,(@DMA)		;@SECTOR_BUFFER->HL
+ 1827                   
+ 1828 F7E6  7D          	LD	A,L			;ROUND OFF ADDRESSES TO XXX0H
+ 1829 F7E7  E6 F0       	AND	0F0H
+ 1830 F7E9  6F          	LD	L,A
+ 1831 F7EA  7B          	LD	A,E			;FINAL ADDRESS LOWER HALF
+ 1832 F7EB  E6 F0       	AND	0F0H
+ 1833 F7ED  C6 10       	ADD	A,10H			;FINISH TO END 0F LINE
+ 1834                   	
+ 1835 F7EF  CD F851     SF172A:	CALL	LF_PRINT_HL		;Do LF + Print value in [HL]
+ 1836 F7F2  CD F861     SF175A:	CALL	BLANK
+ 1837                   	
+ 1838 F7F5  7E          	LD	A,(HL)
+ 1839 F7F6  CD F21D     	CALL	HEXOUT
+ 1840 F7F9  CD F847     	CALL	HILO			;<--- Set C flag when HL=DE
+ 1841 F7FC  DA F835     	JP	C,FINAL_ASCII
+ 1842 F7FF  7D          	LD	A,L
+ 1843 F800  E6 0F       	AND	0FH
+ 1844 F802  20 EE       	JR	NZ,SF175A
+ 1845 F804  0E 09       	LD	C,TAB			;INSERT A TAB BETWEEN DATA
+ 1846 F806  CD F009     	CALL	ZCO
+ 1847 F809  06 04       	LD	B,4H			;ALSO 1 SPACE
+ 1848 F80B  0E 20       TA11:	LD	C,SPACE
+ 1849 F80D  CD F0AF     	CALL	HIGH_CO
+ 1850 F810  10 F9       	DJNZ	TA11
+ 1851 F812  CD F817     	CALL	SHOW_ASCII
+ 1852 F815  18 D8       	JR	SF172A
+ 1853                   	
+ 1854 F817              SHOW_ASCII:
+ 1855 F817  06 10       	LD	B,16			;NOW PRINT ASCII (16 CHARACTERS)
+ 1856 F819  D5          	PUSH	DE			;TEMPORLY SAVE [DE]
+ 1857 F81A  11 0010     	LD	DE,0010H
+ 1858 F81D  ED 52       	SBC	HL,DE
+ 1859 F81F  D1          	POP	DE
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  33
+MASTER1 Z80
+
+ 1860 F820  7E          T11:	LD	A,(HL)
+ 1861 F821  E6 7F       	AND	7FH
+ 1862 F823  FE 20       	CP	' ' 			;FILTER OUT CONTROL CHARACTERS'
+ 1863 F825  30 02       	JR	NC,T33
+ 1864 F827  3E 2E       T22:	LD	A,'.'
+ 1865 F829  FE 7C       T33:	CP	07CH
+ 1866 F82B  30 FA       	JR	NC,T22
+ 1867 F82D  4F          	LD	C,A			;SET UP TO SEND
+ 1868 F82E  CD F0AF     	CALL	HIGH_CO
+ 1869 F831  23          	INC	HL
+ 1870 F832  10 EC       	DJNZ	T11			;REPEAT FOR WHOLE LINE
+ 1871 F834  C9          	RET
+ 1872                   
+ 1873 F835              FINAL_ASCII:				;Special case to show final ASCII line
+ 1874 F835  0E 09       	LD	C,TAB			;INSERT A TAB BETWEEN DATA
+ 1875 F837  CD F0AF     	CALL	HIGH_CO
+ 1876 F83A  06 04       	LD	B,4H			;ALSO 1 SPACE
+ 1877 F83C  0E 20       TA11A:	LD	C,SPACE
+ 1878 F83E  CD F0AF     	CALL	HIGH_CO
+ 1879 F841  10 F9       	DJNZ	TA11A
+ 1880 F843  CD F817     	CALL	SHOW_ASCII
+ 1881 F846  C9          	RET
+ 1882                   ;
+ 1883                   ;
+ 1884 F847  23          HILO:	INC	HL			;>>>>>>>>>>>> RANGE CHECK SET CARRY IF [DE]=[HL]
+ 1885 F848  7C          	LD	A,H
+ 1886 F849  B5          	OR	L
+ 1887 F84A  37          	SCF
+ 1888 F84B  C8          	RET	Z
+ 1889 F84C  7B          	LD	A,E
+ 1890 F84D  95          	SUB	L
+ 1891 F84E  7A          	LD	A,D
+ 1892 F84F  9C          	SBC	A,H
+ 1893 F850  C9          	RET 
+ 1894                   
+ 1895                   ;
+ 1896 F851              LF_PRINT_HL:	
+ 1897 F851  CD F20B     	CALL	HIGH_CRLF
+ 1898                   ;					;>>>>>>>>>>>>PRINT [HL] AND A SPACE
+ 1899 F854              SP_PRINT_HL:	
+ 1900 F854  E5          	PUSH	HL
+ 1901 F855  C5          	PUSH	BC
+ 1902 F856  CD F218     	CALL	HIGH_LADR
+ 1903 F859  0E 20       	LD	C,SPACE
+ 1904 F85B  CD F0AF     	CALL	HIGH_CO
+ 1905 F85E  C1          	POP	BC
+ 1906 F85F  E1          	POP	HL
+ 1907 F860  C9          	RET
+ 1908                   ;
+ 1909                   ;
+ 1910 F861  0E 20       BLANK:	LD	C,SPACE
+ 1911 F863  CD F0AF     	CALL	HIGH_CO
+ 1912 F866  C9          	RET
+ 1913                   
+ 1914                   ;----------------------------------------------------------------------------
+ 1915                   ;		CORE INTERFACE BETWEEN S100 BUS and FPGA_DC BOARD
+ 1916                   ;    The only hardware port links for the above FPGA_DC board. 
+ 1917                   ;----------------------------------------------------------------------------
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  34
+MASTER1 Z80
+
+ 1918                   ;
+ 1919 F867              DATA_TO_FPGA:				;Send CMD/data to FPGA_DC Z80
+ 1920 F867  F5          	PUSH	AF
+ 1921 F868              DATA_TO_FPGA1:
+ 1922 F868  DB 80       	IN	A,(S100_STATUS_PORT)	
+ 1923 F86A  E6 80       	AND	A,80H
+ 1924 F86C  20 FA       	JR	NZ,DATA_TO_FPGA1	;Wait until bit 7 is 0 (ie. any previous data has been read by FPGA_DC board Z80)
+ 1925 F86E  F1          	POP	AF
+ 1926 F86F  D3 81       	OUT	(S100_DATA_PORT),A	;This will cause the FPGA_DC board to set the S100$RTS bit
+ 1927 F871              DATA_TO_FPGA2:
+ 1928 F871  DB 80       	IN	A,(S100_STATUS_PORT)	
+ 1929 F873  E6 80       	AND	A,80H
+ 1930 F875  20 FA       	JR	NZ,DATA_TO_FPGA2	;Wait until bit 7 is 0 
+ 1931 F877  C9          	RET				;Ret NZ if error
+ 1932                   
+ 1933                   
+ 1934                   
+ 1935                   
+ 1936 F878              GET_FPGA_TO_S100:			;Get data from FPGA
+ 1937 F878  DB 80       	IN	A,(S100_STATUS_PORT)	;Get S100 Status Port - Bit 0, 1 = FPGA data present, 0, no data present
+ 1938 F87A  CB 57       	BIT	2,A			;04H, Bit 2
+ 1939 F87C  20 0C       	JR	NZ,CLR_ERROR_FLAG	;Return carry flag set if error
+ 1940 F87E  DB 80       	IN	A,(S100_STATUS_PORT)	;Get S100 Status Port - Bit 0, 1 = FPGA data present, 0, no data present
+ 1941 F880  E6 01       	AND	A,01H			;01H, Bit 0
+ 1942 F882  28 F4       	JR	Z,GET_FPGA_TO_S100	;wait for DC Board to present data 
+ 1943 F884  AF          	XOR	A,A
+ 1944 F885  DB 81       	IN	A,(S100_DATA_PORT)	;Return Data in [A], FPGA "hardware" will lower bit 7 of S100 Bus port 80H
+ 1945 F887  37          	SCF
+ 1946 F888  3F          	CCF
+ 1947 F889  C9          	RET
+ 1948                   	
+ 1949 F88A              CLR_ERROR_FLAG:
+ 1950 F88A  D3 82       	OUT	(RELEASE_ERROR_PORT),A	;This will release the Error flag gate 43H on the FPGA side
+ 1951 F88C  37          	SCF				;Set carry flag if error on s100 bus side
+ 1952 F88D  C9          	RET
+ 1953                   
+ 1954                   
+ 1955                   ;---------------------------------------------------------------------------------------------------------------
+ 1956 F88E  0D 0A 47 65 MODEM_SIGNON:	DB	CR,LF,'Get a File from a PC',CR,LF
+ 1957 F8A6  5A 69 6C 6F 		DB	'Zilog SCC Ports A1H & A3H. Requires RTS & CTS, 38,400 Baud.',CR,LF,'$'
+ 1958 F8E4  53 43 43 20 MODEM_SCC_MSG:	DB	'SCC Port A to 38,400 Baud.',CR,LF,'$'
+ 1959 F901  57 41 49 54 RMSG:		DB	'WAITING FOR SECTOR #$'
+ 1960 F916  48 20 52 45 ERRSOH:		DB	'H RECEIVED, NOT SOH',0DH,0AH,'$'
+ 1961 F92C  2B 2B 42 41 ERR2:		DB	'++BAD SECTOR # IN HDR',0DH,0AH,'$'
+ 1962 F944  2B 2B 42 41 ERR3:		DB	'++BAD CKSUM ON SECTOR',0DH,0AH,'$'
+ 1963 F95C  54 49 4D 45 TOUTM:		DB	'TIMEOUT $'
+ 1964 F965  0D 0A 4D 55 QUITM:		DB	0DH,0AH,'MULTIPLE ERRORS.'
+ 1965 F977  0D 0A 54 59 		DB	0DH,0AH,'TYPE Q TO QUIT, R TO RETRY:$'
+ 1966 F995  0D 0A 54 52 MODEM_DONE_MSG:	DB	13,10,'TRANSFER COMPLETE$'
+ 1967 F9A9  0D 0A 49 4E BAD_HEADER_MSG:	DB	CR,LF,'INVALID HEADER.',0DH,0AH,'$'
+ 1968 F9BD  48 2E 20 49 MODEM_RAM_MSG:	DB	'H. If OK will write to RAM at $'
+ 1969                   
+ 1970 F9DC  0D 0A 45 6E MODEM_RAM_LOC:	DB	CR,LF,'Enter RAM location (xxxxH +CR): $'
+ 1971 F9FF  4D 65 6E 75 M_ERROR_MSG:	DB	'Menu Error'CR,LF,BELL,'$'
+ 1972 FA0D  4E 6F 20 52 NoHighPageMsg:	DB	'No ROM HigH Page!',CR,LF,BELL,'$'
+ 1973 FA22  0D 0A 49 6E INVALID_PARM_MSG: DB	CR,LF,'Invalid paramater',CR,LF,BELL,'$'
+ 1974                   
+ 1975 FA39  0D 0A 0A 46 FPGA_DC_SIGNON:	DB	CR,LF,LF,'FPGA_DC Board MENU',CR,LF,LF
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  35
+MASTER1 Z80
+
+ 1976 FA51  52 20 52 65 	        DB      'R Read Sec       W Write Sec     N Next Sec     P Previous Sec',CR,LF
+ 1977 FA91  54 20 53 65                 DB	'T Set Trk & Sec  D Select Drive  ESC Main Monitor',CR,LF,'$'
+ 1978                                   
+ 1979 FAC5  0D 0A 07 46 NO_FPGA_BOARD	DB	CR,LF,BELL,'FPGA_DC Board not detected$'
+ 1980 FAE3  0D 0A 53 65 CURRENT_DR_MSG	DB	CR,LF,'Select Drive(A,B,C,D,E or F) $'
+ 1981 FB03  0D 0A 45 72 TRK_SEC_ERR	DB	CR,LF,'Error setting track/sector$'
+ 1982 FB20  0D 0A 46 50 LOCAL_IDE_MODE_MSG DB	CR,LF,'FPGA_DC Board, Set to local IDE ports mode.$'
+ 1983 FB4E  0D 0A 46 50 FDC_CIRCUIT_MSG	DB	CR,LF,'FPGA_DC Board, FDC Circuit detected.$'
+ 1984 FB75  0D 0A 46 50 IDE_CIRCUIT_MSG	DB	CR,LF,'FPGA_DC Board, IDE/CF Card Citcuit detected.$'
+ 1985                   
+ 1986 FBA4  0D 0A 0A 44 DMA_MSG		DB	CR,LF,LF,'DMA=$'
+ 1987 FBAC  48 20 20 44 DRIVE_MSG	DB	'H  Drive=$'
+ 1988 FBB6  3A 20 20 54 TRK_SEC_MSG	DB	':  Track=$'
+ 1989 FBC0  48 20 20 53 TRK_SEC1_MSG	DB	'H  Sector=$'
+ 1990 FBCB  48 20 20 53 SEC_TRK_MSG	DB      'H  Sectors/Track=$'
+ 1991 FBDD  48 0D 0A 24 HCRLF_MSG	DB	'H',CR,LF,'$'
+ 1992                   
+ 1993 FBE1  3A 0D 0A 24 COLON_CRLF_MSG	DB	':',CR,LF,'$'
+ 1994 FBE5  0D 0A 07 53 SEC_RD_ERR1_MSG	DB	CR,LF,BELL,'Sect RD Error$'
+ 1995 FBF6  0D 0A 41 6E CONTINUE_MSG	DB	CR,LF,'Any character for next Sec. Esc to abort$'
+ 1996 FC21  0D 0A 45 6E ENTER_TS_DATA	DB	CR,LF,'Enter Track,Sec data (XXH,XXH) $'
+ 1997 FC43  0D 0A 07 53 SEC_WRD_ERR1_MSG DB	CR,LF,BELL,'Sect WR Error$'
+ 1998 FC54  0D 0A 07 41 SURE_MSG	DB	CR,LF,BELL,'Are you sure (Y/N) $'
+ 1999 FC6B  0D 0A 07 43 COPY_OK_MSG	DB	CR,LF,BELL,'Copying card complete$'
+ 2000 FC84  0D 0A 59 6F ESC_ABORT_MSG	DB	CR,LF,'You can Hit ESC to stop/abort the process',CR,LF,'$'
+ 2001 FCB2  20 20 45 6E END_OF_ROM_PAGE: DB	'  End of ROM HIGH PAGE-->'
+ 2002 FCCB  0D 0A 07 45 BAD_SEL_DR_MSG	DB	CR,LF,BELL,'Error selecting drive$'
+ 2003 FCE4  0D 0A 57 72 WR_RAM_MENU_MSG	DB	CR,LF,'Write to disk from RAM at:- (XXXXH):$'
+ 2004                   ;END
+ 0 Error(s) Detected.
+ 3339 Absolute Bytes. 438 Symbols Detected.
+
