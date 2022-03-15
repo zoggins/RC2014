@@ -452,21 +452,21 @@ MASTER0 Z80
   431 F00F  C3 F353     ZLO:		JP	LO			;LIST OUTPUT
   432 F012  C3 F324     ZCSTS:		JP	CSTS			;CONSOL STATUS
   433 F015  C3 F268     ZMEMCK:		JP	MEMSIZ			;GET HIGHEST RAM RETURNS IT IN [HL]
-  434 F018  C3 FC60     ZTRAP:		JP	TRAP			;ERROR TRAP ADDRESS
+  434 F018  C3 FC9C     ZTRAP:		JP	TRAP			;ERROR TRAP ADDRESS
   435 F01B  C3 F17D     ZSTART:		JP	START			;JUMP TO MONITOR DO NOT RESET HARDWARE
   436 F01E  C3 F934     ZTALK:		JP	SPEAKOUT		;SEND AN ASCII CHARACTER TO TALKER (One at a time)
   437 F021  C3 F92B     ZTALKS:		JP	SPEAKER_CTS		;STATUS FOR SPEECH CTS Line (V-Stamp CTS low when ready)
   438 F024  C3 F313     ZDELAY:		JP	DELAY			;SOFTWARE DELAY LENGTH IN [A]
   439 F027  C3 F379     ZLSTAT:		JP	LSTAT			;LIST STATUS
-  440 F02A  C3 FC61     ZONLIST:	JP	ONLIST			;INITILIZE LIST DEVICE
-  441 F02D  C3 FC5F     ZOFFLIST:	JP	OFLIST			;TURN OFF LIST DEVICE
+  440 F02A  C3 FC9D     ZONLIST:	JP	ONLIST			;INITILIZE LIST DEVICE
+  441 F02D  C3 FC9B     ZOFFLIST:	JP	OFLIST			;TURN OFF LIST DEVICE
   442 F030  C3 F856     ZTIME:		JP	PRINT_TIME		;PUT TIME ON CRT @ CURSOR POSITION
   443 F033  C3 F897     ZDATE:		JP	PRINT_DATE		;PRINT DATE ON CRT @ CURSOR POSITION
   444 F036  C3 F946     ZSPEAK$:	JP	SPEAK$			;SEND ASCII STRING TO TALKER [HL] UP TO '$'
   445 F039  C3 F957     ZSERIAL_OUT:	JP	SERIAL_OUT		;OUT TO ZILOG SCC SERIAL PORT
   446 F03C  C3 F969     ZSERIAL_IN:	JP	SERIAL_IN		;INPUT FROM ZILOG SCC SERIAL PORT
   447 F03F  C3 F979     ZSERIAL_STA:	JP	SERIAL_STAT		;STATUS FROM ZILOG SCC SERIAL PORT
-  448 F042  C3 FB06     ZLOADER:	JP	LOADER			;LOAD IN CPM IMAGE ON TRACKS 0 & 1 (VIA FLOPPY BOOT LOADER ON DISK SECTOR 1) 
+  448 F042  C3 FB42     ZLOADER:	JP	LOADER			;LOAD IN CPM IMAGE ON TRACKS 0 & 1 (VIA FLOPPY BOOT LOADER ON DISK SECTOR 1) 
   449 F045  C3 F1AD     ZPMSG0:		JP	TOM			;DISPLAY STRING ON CONSOL [HL]=START ADD. [B]=LENGTH
   450 F048  C3 F1B5     ZPMSG$:		JP	PRINT_STRING		;DISPLAY STRING ON CONSOL [HL]=START ADD. '$'=END
   451 F04B  C3 F1D9     ZHLSP:		JP	HLSP			;DISPLAY [HL] ON CONSOL THEN ONE SPACE
@@ -476,12 +476,12 @@ MASTER0 Z80
   455 F057  C3 F1FB     ZCRLF:		JP	CRLF			;SEND CRLF TO CONSOL
   456 F05A  C3 F24A     ZHILO:		JP	HILO			;RANGE CHECK (INC [HL], IF HL=DE THEN SET CARRY)
   457 F05D  C3 F1EC     ZCONV:		JP	CONV			;CONVERT HEX IN [A] TO ASCII IN [A]
-  458 F060  C3 FC61     ZDOS		JP	DOS			;LOAD MSDOS FROM 5" DRIVE D:
+  458 F060  C3 FC9D     ZDOS		JP	DOS			;LOAD MSDOS FROM 5" DRIVE D:
   459 F063  C3 F28F     ZPCHK:		JP	PCHK			;INPUT FROM CONSOL & TEST FOR DELIMITERS RET {Z} IF
   460 F066  C3 F9D6     ZVBOOT		JP	VBOOT			;BOOT UP CPM-80 FROM VERSAFLOPPY II FDC
   461 F069  C3 F386     ZHARD:		JP	HBOOTCPM		;BOOT UP CPM-80 FROM HARD DISK
-  462 F06C  C3 FC61     ZPRDY:		JP	PRDY			;PUNCH READY CHECK
-  463 F06F  C3 FC61     ZRSTAT:		JP	RSTAT			;READER STATUS
+  462 F06C  C3 FC9D     ZPRDY:		JP	PRDY			;PUNCH READY CHECK
+  463 F06F  C3 FC9D     ZRSTAT:		JP	RSTAT			;READER STATUS
   464 F072  C3 F1C0     ZCCHK:		JP	CCHK			;CHECK FOR ^S & ESC AT KEYBOARD 
   465 F075  C3 F9D9     ZZBOOT		JP	ZBOOT			;BOOT UP CPM-80 FROM ZFDC FDC
   466                   
@@ -550,12 +550,12 @@ MASTER0 Z80
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  10
 MASTER0 Z80
 
-  526 F0C6  21 FF2E     	LD      HL,Menu_ErrorMsg		; Point Error Message
+  526 F0C6  21 FF6A     	LD      HL,Menu_ErrorMsg		; Point Error Message
   527 F0C9  CD F048     	CALL	ZPMSG$				; Print string
   528 F0CC  C3 F17D     	JP	START
   529                   
   530 F0CF              NoHighPageError:
-  531 F0CF  21 FF3C     	LD	HL,NoHighPageMsg		; "No address line LA13 switch active" 
+  531 F0CF  21 FF78     	LD	HL,NoHighPageMsg		; "No address line LA13 switch active" 
   532 F0D2  CD F048     	CALL	ZPMSG$				; Print string
   533 F0D5  C3 F17D     	JP	START
   534                   ;
@@ -622,7 +622,7 @@ MASTER0 Z80
   594 F11E  3E C0       	LD	A,11000000B		;FLAG PROGRESS VISUALLY FOR DIAGNOSTIC (2 LED's ON)
   595 F120  D3 05       	OUT	(DIAG_LEDS),A 
   596                   
-  597 F122  21 FC6A     	LD	HL,SIGNON_MSG		;Have a Stack, so now we can use CALL
+  597 F122  21 FCA6     	LD	HL,SIGNON_MSG		;Have a Stack, so now we can use CALL
   598 F125  CD F1B5     	CALL	PRINT_STRING
   599                   
   600                   					;Initilize the S100Computers I/O Board
@@ -639,7 +639,7 @@ MASTER0 Z80
   611                   
   612 F136  CD F856     	CALL	PRINT_TIME		;PRINT TIME ON CRT (IF RTC BOARD PRESENT)
   613 F139  DA F145     	JP	C,NO_CLOCK
-  614 F13C  21 FE79     	LD	HL,GAP_MSG
+  614 F13C  21 FEB5     	LD	HL,GAP_MSG
   615 F13F  CD F1B5     	CALL	PRINT_STRING
   616 F142  CD F897     	CALL	PRINT_DATE		;PRINT DATE ON CRT, then CRLF
   617                   
@@ -649,14 +649,14 @@ MASTER0 Z80
   621 F148  3E F0       	LD	A,11110000B		;FLAG PROGRESS (I/O board initilized, 4 LED's ON)
   622 F14A  D3 05       	OUT	(DIAG_LEDS),A
   623                   
-  624 F14C  21 FE95     	LD	HL,SP_MSG		;Print Current Stack Location
+  624 F14C  21 FED1     	LD	HL,SP_MSG		;Print Current Stack Location
   625 F14F  CD F1B5     	CALL	PRINT_STRING
   626                   	
   627 F152  DD E5       	PUSH	IX			;SP is stored from above in [IX]
   628 F154  E1          	POP	HL
   629 F155  CD F1D9     	CALL	HLSP			;Print HL/SP 
   630                   	
-  631 F158  21 FEA2     	LD	HL,IOBYTE_MSG		;Print Current IOBYTE value
+  631 F158  21 FEDE     	LD	HL,IOBYTE_MSG		;Print Current IOBYTE value
   632 F15B  CD F1B5     	CALL	PRINT_STRING
   633                   	
   634 F15E  DB EF       	IN	A,(IOBYTE)		;Show IOBYTE. If bit 0=0 (force printer output), CMP/3 boot will hang
@@ -672,7 +672,7 @@ MASTER0 Z80
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  12
 MASTER0 Z80
 
-  644 F170  21 FE99     	LD	HL,CR_SMSG_SP		;lets V-Stamp chip get baud rate
+  644 F170  21 FED5     	LD	HL,CR_SMSG_SP		;lets V-Stamp chip get baud rate
   645 F173  CD F946     	CALL	SPEAK$		
   646                   
   647 F176  CD F43B     	CALL	INITILIZE_IDE_BOARD	;initilize first IDE drive (if present)
@@ -829,7 +829,7 @@ MASTER0 Z80
   792 F22F  30 02       	JR	NC,SF560
   793 F231  0D          	DEC	C
   794 F232  C8          	RET	Z
-  795 F233  C2 FAC8     SF560:	JP	NZ,ERROR
+  795 F233  C2 FB04     SF560:	JP	NZ,ERROR
   796 F236  0D          	DEC	C
   797 F237  20 DC       	JR	NZ,HEXSP
   798 F239  C9          	RET 
@@ -1123,7 +1123,7 @@ MASTER0 Z80
  1092                   
  1093 F386              HBOOTCPM:
  1094 F386  E1          	POP	HL			;CLEAN UP STACK
- 1095 F387  21 FDD8     	LD	HL,SPEAKCPM_SP		;Announce Booting CPM on speaker
+ 1095 F387  21 FE14     	LD	HL,SPEAKCPM_SP		;Announce Booting CPM on speaker
  1096 F38A  CD F946     	CALL	SPEAK$
  1097                   	
  1098 F38D  CD F43B     	CALL	INITILIZE_IDE_BOARD	;Initilze the 8255 and drive (again just in case)
@@ -1151,7 +1151,7 @@ MASTER0 Z80
  1120 F3B0  C1          	POP	BC
  1121 F3B1  10 E6       	DJNZ	WaitInit		;If after 0FFH, 0FEH, 0FDH... 0, then drive initilization problem
  1122 F3B3              IDError:
- 1123 F3B3  21 FDC1     	LD	HL,DRIVE_NR_ERR		;Drive not ready
+ 1123 F3B3  21 FDFD     	LD	HL,DRIVE_NR_ERR		;Drive not ready
  1124 F3B6  C3 F423     	JP	ABORT_ERR_MSG
  1125                   
  1126 F3B9              SECREAD:				;Note CPMLDR will ALWAYS be on TRK 0,SEC 1,Head 0
@@ -1222,18 +1222,18 @@ MASTER0 Z80
 MASTER0 Z80
 
  1187 F41D              IDEerr1:
- 1188 F41D  21 FE7C     	LD	HL,IDE_RW_ERROR		;Drive R/W Error
+ 1188 F41D  21 FEB8     	LD	HL,IDE_RW_ERROR		;Drive R/W Error
  1189 F420  C3 F423     	JP	ABORT_ERR_MSG
  1190                   
  1191 F423              ABORT_ERR_MSG:	
  1192 F423  CD F1B5     	CALL	PRINT_STRING
  1193 F426  C3 F000     	JP	ZAPPLE			;BACK TO START OF MONITOR.
  1194                   
- 1195 F429  21 FDC1     ERR_NR:	LD	HL,DRIVE_NR_ERR		;"DRIVE NOT READY
+ 1195 F429  21 FDFD     ERR_NR:	LD	HL,DRIVE_NR_ERR		;"DRIVE NOT READY
  1196 F42C  C3 F423     	JP	ABORT_ERR_MSG
- 1197 F42F  21 FDFA     ERR_LD:	LD	HL,BOOT_LD_ERR		;"ERROR READING BOOT/LOADER SECTORS"
+ 1197 F42F  21 FE36     ERR_LD:	LD	HL,BOOT_LD_ERR		;"ERROR READING BOOT/LOADER SECTORS"
  1198 F432  C3 F423     	JP	ABORT_ERR_MSG
- 1199 F435  21 FE0C     ERR_LD1:LD	HL,BOOT_LD1_ERR		;"DATA ERROR IN BOOT SECTOR"
+ 1199 F435  21 FE48     ERR_LD1:LD	HL,BOOT_LD1_ERR		;"DATA ERROR IN BOOT SECTOR"
  1200 F438  C3 F423     	JP	ABORT_ERR_MSG
  1201                   	
  1202                   	
@@ -1624,7 +1624,7 @@ MASTER0 Z80
  1569                   ;Display Extended memory map for 1MG RAM using IA-2 Z80 Board window registers
  1570                   
  1571 F635              XMEMMAP:
- 1572 F635  21 FE54     	LD	HL,MSG17		;Get segment (0-F)
+ 1572 F635  21 FE90     	LD	HL,MSG17		;Get segment (0-F)
  1573 F638  CD F1B5     	CALL	PRINT_STRING
  1574 F63B  0E 01       	LD	C,1
  1575 F63D  CD F054     	CALL	ZHEXSP			;Get 2 or 4 hex digits (count in C).
@@ -1883,12 +1883,12 @@ MASTER0 Z80
  1816                   
  1817 F833  C3 F83C     DTYPE:	JP	BIOS_JP_ERR		;UNITSL	SET UP @UNIT BYTE (DISK DENSITY)
  1818 F836  C3 F83C     SVE:	JP	BIOS_JP_ERR		;SAVER	SAVE N RECORDS
- 1819 F839  C3 FB06     LDE:	JP	LOADER			;LOADER	LOAD N SECTORS FROM TRACK 0 (& TRACK 1)
+ 1819 F839  C3 FB42     LDE:	JP	LOADER			;LOADER	LOAD N SECTORS FROM TRACK 0 (& TRACK 1)
  1820                   
  1821                   ;-------------  END of FIXED LOCATION VERSA JMP TABLE----------------------------------------------------
  1822                   
  1823 F83C              BIOS_JP_ERR:				
- 1824 F83C  21 FDE5     	LD	HL,BIOS_ERR		;"BIOS JMP no longer implemented in ROM @ F800H."
+ 1824 F83C  21 FE21     	LD	HL,BIOS_ERR		;"BIOS JMP no longer implemented in ROM @ F800H."
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  32
 MASTER0 Z80
 
@@ -1899,13 +1899,13 @@ MASTER0 Z80
  1829                   ;------THIS IS THE MAIN ROUTINE TO GET THE TIME DATA FROM THE CMOS-RTC Chip on the MSDOS Support Board 
  1830                   
  1831 F842              SHOW_TIME:	
- 1832 F842  21 FE65     	LD	HL,TIME_MSG
+ 1832 F842  21 FEA1     	LD	HL,TIME_MSG
  1833 F845  CD F1B5     	CALL	PRINT_STRING		;Print message up to '$'
  1834 F848  CD F856     	CALL	PRINT_TIME
  1835 F84B  C9          	RET
  1836                   	
  1837 F84C              SHOW_DATE:	
- 1838 F84C  21 FE6F     	LD	HL,DATE_MSG
+ 1838 F84C  21 FEAB     	LD	HL,DATE_MSG
  1839 F84F  CD F1B5     	CALL	PRINT_STRING		;Print message up to '$'
  1840 F852  CD F897     	CALL	PRINT_DATE
  1841 F855  C9          	RET
@@ -2169,11 +2169,11 @@ MASTER0 Z80
  2087                   
  2088                   ;PRINT MAIN MONITOR MENU ON CRT
  2089                   
- 2090 F981  21 FC6A     KCMD:	LD	HL,SIGNON_MSG		;Signon Msg again (K Command)
+ 2090 F981  21 FCA6     KCMD:	LD	HL,SIGNON_MSG		;Signon Msg again (K Command)
  2091 F984  CD F1B5     	CALL	PRINT_STRING
- 2092 F987  21 FDA1     	LD	HL,SMSG_SP		;Signon speech message
+ 2092 F987  21 FDDD     	LD	HL,SMSG_SP		;Signon speech message
  2093 F98A  CD F946     	CALL	SPEAK$
- 2094 F98D  21 FCA8     	LD	HL,MENUMSG		;Then Menu Message
+ 2094 F98D  21 FCE4     	LD	HL,MENUMSG		;Then Menu Message
  2095 F990  C3 F1B5     	JP	PRINT_STRING
  2096                   
  2097                   ;
@@ -2186,7 +2186,7 @@ MASTER0 Z80
  2104                   ;WE WILL INCLUDE BOTH OPTIONS
  2105                   
  2106 F993              SWITCH_8086:	
- 2107 F993  21 FE1E     	LD	HL,MSG14
+ 2107 F993  21 FE5A     	LD	HL,MSG14
  2108 F996  CD F1B5     	CALL	PRINT_STRING
  2109 F999  DB ED       	IN	A,(SW_TMA0)		;THIS SWITCHES CPU'S with no block Move
  2110 F99B  00          	NOP				;Z80 WILL BE HELD HERE
@@ -2208,7 +2208,7 @@ MASTER0 Z80
  2123                   ;THE Z80 WILL BE IN A PERMANANT HOLD STATE UNTIL THE S100 PIN #56 IS AGAIN RAISED.
  2124                   
  2125 F9A7              SWITCH_68K:	
- 2126 F9A7  21 FE39     	LD	HL,MSG68K
+ 2126 F9A7  21 FE75     	LD	HL,MSG68K
  2127 F9AA  CD F1B5     	CALL	PRINT_STRING
  2128 F9AD  3E 02       	LD	A,02
  2129 F9AF  D3 EE       	OUT	(SW_TMAX),A		;Make sure its bit 1
@@ -2267,7 +2267,7 @@ MASTER0 Z80
  2179 F9DE  3E FF       BOOT:	LD	A,11111111B		;FLAG PROGRESS VISUALLY FOR DIAGNOSTIC
  2180 F9E0  D3 05       	OUT	(DIAG_LEDS),A
  2181                   
- 2182 F9E2  21 FDD8     	LD	HL,SPEAKCPM_SP		;Announce on speaker
+ 2182 F9E2  21 FE14     	LD	HL,SPEAKCPM_SP		;Announce on speaker
  2183 F9E5  CD F946     	CALL	SPEAK$
  2184 F9E8  AF          	XOR	A
  2185 F9E9  32 0004     	LD	(CDISK),A		;MAKE CURRENT DISK A:
@@ -2282,485 +2282,534 @@ MASTER0 Z80
  2194 F9FE  31 0080     BOOTW1:	LD	SP,@SSTACK
  2195 FA01  3A 005B     	LD	A,(@FDCTYPE)		;Are we using a Versafloppy II or ZFDC FDC board
  2196 FA04  B7          	OR	A,A
- 2197 FA05  C2 FB3E     	JP	NZ,ZFDC_BOOT		;<<<<<<<<< Go to ZFDC Board BOOT >>>>>>>>>>>>>
+ 2197 FA05  C2 FB7A     	JP	NZ,ZFDC_BOOT		;<<<<<<<<< Go to ZFDC Board BOOT >>>>>>>>>>>>>
  2198                   
  2199 FA08              VFDC_BOOT:	
- 2200 FA08  21 FF04     	LD	HL,BOOT_MSG0		;<<<<<<<<< BOOT FROM VERSAFLOPPY-II >>>>>>>>>>>>
+ 2200 FA08  21 FF40     	LD	HL,BOOT_MSG0		;<<<<<<<<< BOOT FROM VERSAFLOPPY-II >>>>>>>>>>>>
  2201 FA0B  CD F1B5     	CALL	PRINT_STRING			;"Loading CPM from VF FDC"
- 2202 FA0E  21 FF18     	LD	HL,VF_MSG		
+ 2202 FA0E  21 FF54     	LD	HL,VF_MSG		
  2203 FA11  CD F1B5     	CALL	PRINT_STRING
  2204                   
  2205 FA14  3E D0       	LD	A,0D0H			;FORCE CHIP INTERUPT
  2206 FA16  D3 54       	OUT	(CMD),A
  2207                   
- 2208 FA18  3E 1A       	LD	A,STDSDT		;SETUP FOR SD
- 2209 FA1A  32 0053     	LD	(@COUNT),A		;STORE AS 26 SECTORS/TRACK
- 2210 FA1D  3E FE       	LD	A,0FEH
- 2211 FA1F  D3 53       	OUT	(SELECT),A		;Select Drive A: (Always)
- 2212                   	
- 2213 FA21  AF          	XOR	A
- 2214 FA22  32 0044     	LD	(@TRK),A
- 2215 FA25  3C          	INC	A
- 2216 FA26  32 0043     	LD	(@SCTR),A
- 2217                   	
- 2218 FA29  CD FAB7     	CALL	READY_CHK		;Critical to make sure chip is ready first!
- 2219 FA2C  3E 08       	LD	A,RSCMD			;RESTORE COMMAND (Note 3 Ms seek)
- 2220 FA2E  D3 54       	OUT	(CMD),A
- 2221 FA30  CD FAB7     	CALL	READY_CHK		;Critical to make sure chip is ready first!
- 2222                   
- 2223 FA33  21 0080     	LD	HL,COLD
- 2224 FA36  22 0040     	LD	(@TADDR),HL
- 2225                   	
- 2226 FA39  CD FA4B     	CALL	VF_READ_SECTOR		;Read the Boot Sector
- 2227 FA3C              BOOT_SEC_READ:
- 2228 FA3C  C2 F42F     	JP	NZ,ERR_LD
- 2229 FA3F              BOOT_SEC_CHECK:
- 2230 FA3F  21 0080     	LD	HL,COLD
+ 2208                   	; Zoggins's VF2 BIOS Boot Code BEGIN
+ 2209                   
+ 2210 FA18  F3          	DI
+ 2211 FA19  31 0100     	LD     SP,100H
+ 2212                   
+ 2213 FA1C  3E 7E       	LD		A,7EH		;SELECT DRIVE 0, LOWER HEAD, SINGLE DENSITY
+ 2214 FA1E  D3 53       	OUT		(SELECT),A		
+ 2215                   
+ 2216 FA20              VFRETRY:
+ 2217 FA20  21 0000     	LD		HL,0000H
+ 2218 FA23              ..HOME:
+ 2219 FA23  3E 0B       	LD		A,0BH		;RESTORE DRIVE
+ 2220 FA25  D3 54       	OUT		(CMD),A		;SEND TO CONTROLLER
+ 2221 FA27  06 C8       	LD		B,200		;DELAY TILL VALID STATUS
+ 2222 FA29              ..WAIT1:		
+ 2223 FA29  10 FE       	DJNZ	..WAIT1
+ 2224                   
+ 2225 FA2B              ..NB1:		
+ 2226 FA2B  DB 54       	IN		A,(STATUS)	;GET STATUS
+ 2227 FA2D  CB 47       	BIT		0,A			;BUSY (y/n)
+ 2228 FA2F  C2 FA2B     	JP		NZ,..NB1		;YES,KEEP WAITING
+ 2229                   
+ 2230 FA32  3E 01       	LD		A,1			;START WITH SECTOR 1
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  39
 MASTER0 Z80
 
- 2231 FA42  7E          	LD	A,(HL)
- 2232 FA43  FE 31       	CP	31H			;EXPECT TO HAVE 31H @80H IE. LD SP,80H
- 2233 FA45  CA 0080     	JP	Z,COLD			;AS THE FIRST INSTRUCTION. IF OK JP 80H
- 2234 FA48  C3 F435     	JP	ERR_LD1			;Boot Sector Data incorrect
- 2235                   
- 2236                   
- 2237 FA4B              VF_READ_SECTOR:				;READ SECTOR COMMAND
- 2238 FA4B  06 03       	LD	B,3			;Will Try 3 times
- 2239 FA4D  C5          READ1:	PUSH	BC
- 2240 FA4E  CD FA77     	CALL	DRINIT			;Setup sector paramaters
- 2241 FA51  7B          	LD	A,E
- 2242 FA52  FE 80       	CP	A,80H			;128 or 512 byte sectors ?
- 2243 FA54  06 80       	LD	B,128
- 2244 FA56  F3          	DI
- 2245 FA57  3E 88       	LD	A,RDCMD	
- 2246 FA59  D3 54       	OUT	(CMD),A			;Note wait states are now switched on
- 2247                   
- 2248 FA5B  18 00       	JR	M2
- 2249 FA5D  18 00       M2:	JR	MM2
- 2250 FA5F  28 04       MM2:	JR	Z,RD_128
- 2251 FA61  06 00       	LD	B,0			;256X2
- 2252 FA63  ED B2       	INIR				;[C]-> [HL++],[B--]
- 2253 FA65  ED B2       RD_128:	INIR	
- 2254                   
- 2255 FA67  FB          	EI
- 2256 FA68  CD FAD4     	CALL	WAITF			;Wait states are now off
- 2257 FA6B  DB 54       	IN	A,(STATUS)
- 2258 FA6D  E6 FE       	AND	A,SRMASK		;Check sector was read OK	
- 2259 FA6F  C1          	POP	BC
- 2260 FA70  C8          	RET	Z			
- 2261 FA71  05          	DEC	B
- 2262 FA72  20 D9       	JR	NZ,READ1
- 2263 FA74  AF          	XOR	A,A
- 2264 FA75  3D          	DEC	A
- 2265 FA76  C9          	RET				;Return NZ if failure after 3 reads
- 2266                   
- 2267                   					
- 2268 FA77  CD FA8F     DRINIT:	CALL	SEEK			;DRIVE INITIALIZATION
- 2269 FA7A  2A 0040     	LD	HL,(@TADDR)		;SETUP DMA ADDRESS AND BYTE COUNT
- 2270 FA7D  3A 0043     	LD	A,(@SCTR)
- 2271 FA80  D3 56       	OUT	(SECTOR),A
- 2272                   
- 2273 FA82  ED 5B 005C  	LD	DE,(@SEC_SIZE)		;This will be 128 or 512 sectors 
- 2274 FA86  0E 57       	LD	C,DATA			;8067H in BC
- 2275                   
- 2276 FA88  DB 53       SWEB:	IN	A,(SELECT)		;ENABLE WAIT STATES
- 2277 FA8A  E6 7F       	AND	7FH
- 2278 FA8C  D3 53       	OUT	(SELECT),A
- 2279 FA8E  C9          	RET
- 2280                   
+ 2231 FA34  D3 56       	OUT		(SECTOR),A	;SET SECTOR REG
+ 2232 FA36              VFSECTOR:
+ 2233 FA36  3E 80       	LD		A,80H		;ISSUE READ SECTOR COMMAND 
+ 2234 FA38  D3 54       	OUT		(CMD),A
+ 2235 FA3A  01 0057     	LD		BC,DATA		;SET UP BC FOR PIO READ NEXT
+ 2236 FA3D  ED B2       	INIR				;DO PIO SECTOR READ
+ 2237 FA3F  ED B2       	INIR
+ 2238                   
+ 2239 FA41  06 C8       	LD		B,200		;DELAY TILL VALID STATUS
+ 2240 FA43              ..WAIT2:	
+ 2241 FA43  10 FE       	DJNZ	..WAIT2
+ 2242                   
+ 2243 FA45              ..NB2:	
+ 2244 FA45  DB 54       	IN		A,(STATUS)	;GET STATUS
+ 2245 FA47  CB 47       	BIT		0,A			;BUSY (y/n)
+ 2246 FA49  C2 FA45     	JP		NZ,..NB2	;YES,KEEP WAITING
+ 2247 FA4C  E6 9D       	AND		9DH			;WAS READ SUCCESSFUL(y/n)
+ 2248 FA4E  CA 0000     	JP		Z,00000H	;GET SYSTEM
+ 2249 FA51  C3 FA20     	JP		VFRETRY
+ 2250                   
+ 2251                   	; Zoggins's VF2 BIOS Boot Code END
+ 2252                   
+ 2253                   
+ 2254 FA54  3E 1A       	LD	A,STDSDT		;SETUP FOR SD
+ 2255 FA56  32 0053     	LD	(@COUNT),A		;STORE AS 26 SECTORS/TRACK
+ 2256 FA59  3E FE       	LD	A,0FEH
+ 2257 FA5B  D3 53       	OUT	(SELECT),A		;Select Drive A: (Always)
+ 2258                   	
+ 2259 FA5D  AF          	XOR	A
+ 2260 FA5E  32 0044     	LD	(@TRK),A
+ 2261 FA61  3C          	INC	A
+ 2262 FA62  32 0043     	LD	(@SCTR),A
+ 2263                   	
+ 2264 FA65  CD FAF3     	CALL	READY_CHK		;Critical to make sure chip is ready first!
+ 2265 FA68  3E 08       	LD	A,RSCMD			;RESTORE COMMAND (Note 3 Ms seek)
+ 2266 FA6A  D3 54       	OUT	(CMD),A
+ 2267 FA6C  CD FAF3     	CALL	READY_CHK		;Critical to make sure chip is ready first!
+ 2268                   
+ 2269 FA6F  21 0080     	LD	HL,COLD
+ 2270 FA72  22 0040     	LD	(@TADDR),HL
+ 2271                   	
+ 2272 FA75  CD FA87     	CALL	VF_READ_SECTOR		;Read the Boot Sector
+ 2273 FA78              BOOT_SEC_READ:
+ 2274 FA78  C2 F42F     	JP	NZ,ERR_LD
+ 2275 FA7B              BOOT_SEC_CHECK:
+ 2276 FA7B  21 0080     	LD	HL,COLD
+ 2277 FA7E  7E          	LD	A,(HL)
+ 2278 FA7F  FE 31       	CP	31H			;EXPECT TO HAVE 31H @80H IE. LD SP,80H
+ 2279 FA81  CA 0080     	JP	Z,COLD			;AS THE FIRST INSTRUCTION. IF OK JP 80H
+ 2280 FA84  C3 F435     	JP	ERR_LD1			;Boot Sector Data incorrect
  2281                   
- 2282                   ;	SEEK TRACK
- 2283 FA8F  3A 0044     SEEK:	LD	A,(@TRK)
- 2284 FA92  4F          	LD	C,A
- 2285 FA93  DB 55       	IN	A,(TRACK)
- 2286 FA95  B9          	CP	C
- 2287 FA96  C8          	RET	Z			;IF SAME TRACK NO NEED TO SEEK
- 2288                   	
+ 2282                   
+ 2283 FA87              VF_READ_SECTOR:				;READ SECTOR COMMAND
+ 2284 FA87  06 03       	LD	B,3			;Will Try 3 times
+ 2285 FA89  C5          READ1:	PUSH	BC
+ 2286 FA8A  CD FAB3     	CALL	DRINIT			;Setup sector paramaters
+ 2287 FA8D  7B          	LD	A,E
+ 2288 FA8E  FE 80       	CP	A,80H			;128 or 512 byte sectors ?
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  40
 MASTER0 Z80
 
- 2289 FA97  3A 0044     	LD	A,(@TRK)
- 2290 FA9A  D3 57       	OUT	(DATA),A
- 2291 FA9C  CD FAB7     	CALL	READY_CHK		;Critical to make sure chip is ready first!
- 2292 FA9F  3E 1C       	LD	A,FSKCMD		;Send Seeek Command to WD1791
- 2293 FAA1  D3 54       	OUT	(CMD),A
- 2294 FAA3  CD F468     	CALL	DELAY_15		;Delay ~15ms
- 2295 FAA6  CD FAB7     	CALL	READY_CHK
- 2296 FAA9  DB 55       	IN	A,(TRACK)
- 2297 FAAB  4F          	LD	C,A
- 2298 FAAC  3A 0044     	LD	A,(@TRK)
- 2299 FAAF  B9          	CP	A,C
- 2300 FAB0  C8          	RET	Z
- 2301 FAB1  21 FEDB     	LD	HL,SEEK_ERROR_MSG
- 2302 FAB4  C3 F423     	JP	ABORT_ERR_MSG
- 2303                   
- 2304                   
- 2305 FAB7              READY_CHK:
- 2306 FAB7  01 0000     	LD	BC,0
- 2307 FABA              READY_CHK1:
- 2308 FABA  DB 54       	IN	A,(STATUS)
- 2309 FABC  E6 01       	AND	A,1
- 2310 FABE  C8          	RET	Z
- 2311 FABF  0B          	DEC	BC
- 2312 FAC0  79          	LD	A,C
- 2313 FAC1  B0          	OR	A,B
- 2314 FAC2  C2 FABA     	JP	NZ,READY_CHK1		;Wait until 1791/5 is ready
- 2315 FAC5  C3 FAE8     	JP	WAIT3
- 2316                   
- 2317                   ;RESTORE SYSTEM AFTER ERROR
+ 2289 FA90  06 80       	LD	B,128
+ 2290 FA92  F3          	DI
+ 2291 FA93  3E 88       	LD	A,RDCMD	
+ 2292 FA95  D3 54       	OUT	(CMD),A			;Note wait states are now switched on
+ 2293                   
+ 2294 FA97  18 00       	JR	M2
+ 2295 FA99  18 00       M2:	JR	MM2
+ 2296 FA9B  28 04       MM2:	JR	Z,RD_128
+ 2297 FA9D  06 00       	LD	B,0			;256X2
+ 2298 FA9F  ED B2       	INIR				;[C]-> [HL++],[B--]
+ 2299 FAA1  ED B2       RD_128:	INIR	
+ 2300                   
+ 2301 FAA3  FB          	EI
+ 2302 FAA4  CD FB10     	CALL	WAITF			;Wait states are now off
+ 2303 FAA7  DB 54       	IN	A,(STATUS)
+ 2304 FAA9  E6 FE       	AND	A,SRMASK		;Check sector was read OK	
+ 2305 FAAB  C1          	POP	BC
+ 2306 FAAC  C8          	RET	Z			
+ 2307 FAAD  05          	DEC	B
+ 2308 FAAE  20 D9       	JR	NZ,READ1
+ 2309 FAB0  AF          	XOR	A,A
+ 2310 FAB1  3D          	DEC	A
+ 2311 FAB2  C9          	RET				;Return NZ if failure after 3 reads
+ 2312                   
+ 2313                   					
+ 2314 FAB3  CD FACB     DRINIT:	CALL	SEEK			;DRIVE INITIALIZATION
+ 2315 FAB6  2A 0040     	LD	HL,(@TADDR)		;SETUP DMA ADDRESS AND BYTE COUNT
+ 2316 FAB9  3A 0043     	LD	A,(@SCTR)
+ 2317 FABC  D3 56       	OUT	(SECTOR),A
  2318                   
- 2319 FAC8  CD F268     ERROR:	CALL	MEMSIZ			;GET RAM AVAILABLE - WORKSPACE IN [HL]
- 2320 FACB  F9          	LD	SP,HL			;SET STACK UP IN WORKSPACE AREA
- 2321 FACC  0E 2A       	LD	C,'*'
- 2322 FACE  CD F2D3     	CALL	CO
- 2323 FAD1  C3 F17D     	JP	START
- 2324                   
- 2325 FAD4  1E 00       WAITF:	LD	E,0
- 2326 FAD6  C5          	PUSH	BC
- 2327 FAD7  0E 02       	LD	C,2
- 2328 FAD9  DB 54       WAIT2:	IN	A,(STATUS)
- 2329 FADB  E6 01       	AND	1
- 2330 FADD  28 15       	JR	Z,DWAIT
- 2331 FADF  10 F8       	DJNZ	WAIT2  
- 2332 FAE1  1D          	DEC	E
- 2333 FAE2  20 F5       	JR	NZ,WAIT2
- 2334 FAE4  0D          	DEC	C
- 2335 FAE5  20 F2       	JR	NZ,WAIT2
- 2336 FAE7  C1          	POP	BC  
- 2337 FAE8  DB 53       WAIT3:	IN	A,(SELECT)		;IF BY THIS TIME NOT READY FORCE
- 2338 FAEA  F6 80       	OR	80H			;A HARDWARE RESET
- 2339 FAEC  D3 50       	OUT	(RSET),A
- 2340 FAEE  21 FEED     	LD	HL,VF_HUNG
- 2341 FAF1  C3 F423     	JP	ABORT_ERR_MSG
- 2342                   	
- 2343                   
- 2344                   ;	DISABLE WAIT STATES
- 2345 FAF4  C1          DWAIT:	POP	BC			;TO BALANCE THE ABOVE PUSH IN WAIT
- 2346 FAF5  DB 53       DDWAIT:	IN	A,(SELECT)
+ 2319 FABE  ED 5B 005C  	LD	DE,(@SEC_SIZE)		;This will be 128 or 512 sectors 
+ 2320 FAC2  0E 57       	LD	C,DATA			;8067H in BC
+ 2321                   
+ 2322 FAC4  DB 53       SWEB:	IN	A,(SELECT)		;ENABLE WAIT STATES
+ 2323 FAC6  E6 7F       	AND	7FH
+ 2324 FAC8  D3 53       	OUT	(SELECT),A
+ 2325 FACA  C9          	RET
+ 2326                   
+ 2327                   
+ 2328                   ;	SEEK TRACK
+ 2329 FACB  3A 0044     SEEK:	LD	A,(@TRK)
+ 2330 FACE  4F          	LD	C,A
+ 2331 FACF  DB 55       	IN	A,(TRACK)
+ 2332 FAD1  B9          	CP	C
+ 2333 FAD2  C8          	RET	Z			;IF SAME TRACK NO NEED TO SEEK
+ 2334                   	
+ 2335 FAD3  3A 0044     	LD	A,(@TRK)
+ 2336 FAD6  D3 57       	OUT	(DATA),A
+ 2337 FAD8  CD FAF3     	CALL	READY_CHK		;Critical to make sure chip is ready first!
+ 2338 FADB  3E 1C       	LD	A,FSKCMD		;Send Seeek Command to WD1791
+ 2339 FADD  D3 54       	OUT	(CMD),A
+ 2340 FADF  CD F468     	CALL	DELAY_15		;Delay ~15ms
+ 2341 FAE2  CD FAF3     	CALL	READY_CHK
+ 2342 FAE5  DB 55       	IN	A,(TRACK)
+ 2343 FAE7  4F          	LD	C,A
+ 2344 FAE8  3A 0044     	LD	A,(@TRK)
+ 2345 FAEB  B9          	CP	A,C
+ 2346 FAEC  C8          	RET	Z
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  41
 MASTER0 Z80
 
- 2347 FAF7  F6 80       	OR	80H
- 2348 FAF9  D3 53       	OUT	(SELECT),A
- 2349 FAFB  C9          	RET
+ 2347 FAED  21 FF17     	LD	HL,SEEK_ERROR_MSG
+ 2348 FAF0  C3 F423     	JP	ABORT_ERR_MSG
+ 2349                   
  2350                   
- 2351 FAFC              DELAY_150:				;DELAY ~150 MS 
- 2352 FAFC  0E 0A       	LD	C,10
- 2353 FAFE              DELAY320A:
- 2354 FAFE  CD F468     	CALL	DELAY_15
- 2355 FB01  0D          	DEC	C
- 2356 FB02  C2 FAFE     	JP	NZ,DELAY320A
- 2357 FB05  C9          	RET
- 2358                   
- 2359 FB06  3A 005B     LOADER: LD	A,(@FDCTYPE)		;Are we using a Versafloppy II or ZFDC FDC board
- 2360 FB09  B7          	OR	A,A
- 2361 FB0A  C2 FC5B     	JP	NZ,ZFDC_LOADER		;Go to ZFDC Board Loader
+ 2351 FAF3              READY_CHK:
+ 2352 FAF3  01 0000     	LD	BC,0
+ 2353 FAF6              READY_CHK1:
+ 2354 FAF6  DB 54       	IN	A,(STATUS)
+ 2355 FAF8  E6 01       	AND	A,1
+ 2356 FAFA  C8          	RET	Z
+ 2357 FAFB  0B          	DEC	BC
+ 2358 FAFC  79          	LD	A,C
+ 2359 FAFD  B0          	OR	A,B
+ 2360 FAFE  C2 FAF6     	JP	NZ,READY_CHK1		;Wait until 1791/5 is ready
+ 2361 FB01  C3 FB24     	JP	WAIT3
  2362                   
- 2363                   
- 2364                   ;	LOAD A NUMBER OF SECTORS
- 2365 FB0D              VF_LOADER:				;Versafloppy Loader
- 2366 FB0D  CD FA4B     	CALL	VF_READ_SECTOR
- 2367 FB10  C2 F42F     	JP	NZ,ERR_LD
- 2368 FB13  0E 2E       	LD	C,'.'			;Show progress
- 2369 FB15  CD F2D3     	CALL	CO
- 2370 FB18  CD FB1E     	CALL	INCP	
- 2371 FB1B  20 F0       	JR	NZ,VF_LOADER 
- 2372 FB1D  C9          	RET
- 2373                   
- 2374                   ;	INC SECTOR AND TRACK
- 2375 FB1E  2A 0040     INCP:	LD	HL,(@TADDR)
- 2376 FB21  ED 5B 005C  	LD	DE,(@SEC_SIZE)		;128 or 512 byte sectors
- 2377 FB25  19          INCP2:	ADD	HL,DE
- 2378 FB26  22 0040     	LD	(@TADDR),HL
- 2379 FB29  21 0045     	LD	HL,@NREC
- 2380 FB2C  35          	DEC	(HL)
- 2381 FB2D  C8          	RET	Z			;Return when we have done all sectors (~51)
- 2382 FB2E  21 0043     	LD	HL,@SCTR
- 2383 FB31  34          	INC	(HL)
- 2384 FB32  3A 0053     	LD	A,(@COUNT)		;IS ONE TRACK DONE YET (Sec/track+1)
- 2385 FB35  3C          	INC	A
- 2386 FB36  BE          	CP	(HL)
- 2387 FB37  C0          	RET	NZ			;IF FULL Z, THEN GO TO NEXT TRACK
- 2388 FB38  36 01       	LD	(HL),1			;SET SECTOR COUNT BACK TO 1
- 2389 FB3A  23          	INC	HL			;ASSUMES @TRK=SECTOR+1 IE 44H
- 2390 FB3B  34          	INC	(HL)
- 2391 FB3C  B7          	OR	A			;MAKE SURE TO RETURN NZ
- 2392 FB3D  C9          	RET
- 2393                   
- 2394                   
- 2395                   ;---------------------- ZFDC FDC BOOT & LOADER -----------------------------------
+ 2363                   ;RESTORE SYSTEM AFTER ERROR
+ 2364                   
+ 2365 FB04  CD F268     ERROR:	CALL	MEMSIZ			;GET RAM AVAILABLE - WORKSPACE IN [HL]
+ 2366 FB07  F9          	LD	SP,HL			;SET STACK UP IN WORKSPACE AREA
+ 2367 FB08  0E 2A       	LD	C,'*'
+ 2368 FB0A  CD F2D3     	CALL	CO
+ 2369 FB0D  C3 F17D     	JP	START
+ 2370                   
+ 2371 FB10  1E 00       WAITF:	LD	E,0
+ 2372 FB12  C5          	PUSH	BC
+ 2373 FB13  0E 02       	LD	C,2
+ 2374 FB15  DB 54       WAIT2:	IN	A,(STATUS)
+ 2375 FB17  E6 01       	AND	1
+ 2376 FB19  28 15       	JR	Z,DWAIT
+ 2377 FB1B  10 F8       	DJNZ	WAIT2  
+ 2378 FB1D  1D          	DEC	E
+ 2379 FB1E  20 F5       	JR	NZ,WAIT2
+ 2380 FB20  0D          	DEC	C
+ 2381 FB21  20 F2       	JR	NZ,WAIT2
+ 2382 FB23  C1          	POP	BC  
+ 2383 FB24  DB 53       WAIT3:	IN	A,(SELECT)		;IF BY THIS TIME NOT READY FORCE
+ 2384 FB26  F6 80       	OR	80H			;A HARDWARE RESET
+ 2385 FB28  D3 50       	OUT	(RSET),A
+ 2386 FB2A  21 FF29     	LD	HL,VF_HUNG
+ 2387 FB2D  C3 F423     	JP	ABORT_ERR_MSG
+ 2388                   	
+ 2389                   
+ 2390                   ;	DISABLE WAIT STATES
+ 2391 FB30  C1          DWAIT:	POP	BC			;TO BALANCE THE ABOVE PUSH IN WAIT
+ 2392 FB31  DB 53       DDWAIT:	IN	A,(SELECT)
+ 2393 FB33  F6 80       	OR	80H
+ 2394 FB35  D3 53       	OUT	(SELECT),A
+ 2395 FB37  C9          	RET
  2396                   
- 2397 FB3E              ZFDC_BOOT:				;Cold Boot with ZFDC FDC Board
- 2398 FB3E  21 FF04     	LD	HL,BOOT_MSG0		;<<<<<<<<< BOOT FROM ZFDC BOARD >>>>>>>>>>>>>>
- 2399 FB41  CD F1B5     	CALL	PRINT_STRING		;"Loading CPM from ZFDC FDC"
- 2400 FB44  21 FF22     	LD	HL,ZFDC_MSG		
- 2401 FB47  CD F1B5     	CALL	PRINT_STRING
- 2402                   
- 2403 FB4A  D3 13       	OUT	RESET_ZFDC_PORT,A	;Do a hardware reset. Does not matter what is in [A]
- 2404                   	
+ 2397 FB38              DELAY_150:				;DELAY ~150 MS 
+ 2398 FB38  0E 0A       	LD	C,10
+ 2399 FB3A              DELAY320A:
+ 2400 FB3A  CD F468     	CALL	DELAY_15
+ 2401 FB3D  0D          	DEC	C
+ 2402 FB3E  C2 FB3A     	JP	NZ,DELAY320A
+ 2403 FB41  C9          	RET
+ 2404                   
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  42
 MASTER0 Z80
 
- 2405 FB4C  3E 05       	LD	A,STATUS_DELAY		;~0.5 second at 10 MHz 
- 2406 FB4E  01 0000     	LD	BC,0			;Delay to allow board to setup hardware
- 2407 FB51  05          WAIT_D:	DEC	B
- 2408 FB52  20 FD       	JR	NZ,WAIT_D		;Delay for ~0.5 seconds
- 2409 FB54  05          	DEC	B			;Reset B to 0FFH
- 2410 FB55  0D          	DEC	C
- 2411 FB56  20 F9       	JR	NZ,WAIT_D
- 2412 FB58  3D          	DEC	A
- 2413 FB59  20 F6       	JR	NZ,WAIT_D
- 2414                   	
- 2415 FB5B  DB 10       	IN	A,S100_DATA_B		;Check the board is there
- 2416 FB5D  FE 21       	CP	A,CMD_HANDSHAKE		;Make sure we get HANDSHAKE byte back
- 2417 FB5F  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
- 2418                   	
- 2419 FB62  3E 21       	LD	A,CMD_HANDSHAKE		;Send another byte just to be sure.	
- 2420 FB64  D3 10       	OUT	S100_DATA_B,A		;This clears up ints on ZFDC board
- 2421 FB66  CD FC30     	CALL	WAIT_FOR_ACK		;Wait to make sure all is well.
- 2422 FB69  B7          	OR	A,A
- 2423 FB6A  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
- 2424                   	
- 2425 FB6D  0E 04       	LD	C,CMD_SET_FORMAT	;Send Set Disk Format to 8" SSSD DISK
- 2426 FB6F  CD FC0D     	CALL	S100OUT
- 2427 FB72  0E 00       	LD	C,0			;Floppy Drive 0, (ZFDC Board expects a 0H, 1H, 2H or 3H)
- 2428 FB74  CD FC0D     	CALL	S100OUT			
- 2429 FB77  0E 01       	LD	C,STD8IBM		;ZFDC Board expects a Disk Format Table Number (0,1,2...13H)
- 2430 FB79  CD FC0D     	CALL	S100OUT			
- 2431 FB7C  CD FC30     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
- 2432 FB7F  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
- 2433                   	
- 2434 FB82  0E 05       	LD	C,CMD_SET_DRIVE		;Send a "Set Drive CMD" to ZFDC board
- 2435 FB84  CD FC0D     	CALL	S100OUT
- 2436 FB87  0E 00       	LD	C,0			;Floppy Drive #, (ZFDC Board expects a 0H, 1H, 2H or 3H)
- 2437 FB89  CD FC0D     	CALL	S100OUT			
- 2438 FB8C  CD FC30     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
- 2439 FB8F  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
+ 2405 FB42  3A 005B     LOADER: LD	A,(@FDCTYPE)		;Are we using a Versafloppy II or ZFDC FDC board
+ 2406 FB45  B7          	OR	A,A
+ 2407 FB46  C2 FC97     	JP	NZ,ZFDC_LOADER		;Go to ZFDC Board Loader
+ 2408                   
+ 2409                   
+ 2410                   ;	LOAD A NUMBER OF SECTORS
+ 2411 FB49              VF_LOADER:				;Versafloppy Loader
+ 2412 FB49  CD FA87     	CALL	VF_READ_SECTOR
+ 2413 FB4C  C2 F42F     	JP	NZ,ERR_LD
+ 2414 FB4F  0E 2E       	LD	C,'.'			;Show progress
+ 2415 FB51  CD F2D3     	CALL	CO
+ 2416 FB54  CD FB5A     	CALL	INCP	
+ 2417 FB57  20 F0       	JR	NZ,VF_LOADER 
+ 2418 FB59  C9          	RET
+ 2419                   
+ 2420                   ;	INC SECTOR AND TRACK
+ 2421 FB5A  2A 0040     INCP:	LD	HL,(@TADDR)
+ 2422 FB5D  ED 5B 005C  	LD	DE,(@SEC_SIZE)		;128 or 512 byte sectors
+ 2423 FB61  19          INCP2:	ADD	HL,DE
+ 2424 FB62  22 0040     	LD	(@TADDR),HL
+ 2425 FB65  21 0045     	LD	HL,@NREC
+ 2426 FB68  35          	DEC	(HL)
+ 2427 FB69  C8          	RET	Z			;Return when we have done all sectors (~51)
+ 2428 FB6A  21 0043     	LD	HL,@SCTR
+ 2429 FB6D  34          	INC	(HL)
+ 2430 FB6E  3A 0053     	LD	A,(@COUNT)		;IS ONE TRACK DONE YET (Sec/track+1)
+ 2431 FB71  3C          	INC	A
+ 2432 FB72  BE          	CP	(HL)
+ 2433 FB73  C0          	RET	NZ			;IF FULL Z, THEN GO TO NEXT TRACK
+ 2434 FB74  36 01       	LD	(HL),1			;SET SECTOR COUNT BACK TO 1
+ 2435 FB76  23          	INC	HL			;ASSUMES @TRK=SECTOR+1 IE 44H
+ 2436 FB77  34          	INC	(HL)
+ 2437 FB78  B7          	OR	A			;MAKE SURE TO RETURN NZ
+ 2438 FB79  C9          	RET
+ 2439                   
  2440                   
- 2441                   					;Drive selected and ready to read sectors. Note this code 
- 2442                   					;is written to eb compatible with the boot loader for the 
- 2443                   					;Versafloppy-II disk controller as well.
- 2444                   					
- 2445 FB92  3E 1A       	LD	A,STDSDT		;SETUP FOR SD
- 2446 FB94  32 0053     	LD	(@COUNT),A		;STORE AS 26 SECTORS/TRACK
- 2447                   	
- 2448 FB97  AF          	XOR	A			;Setup Boot Sector read track
- 2449 FB98  32 0044     	LD	(@TRK),A
- 2450 FB9B  3C          	INC	A
- 2451 FB9C  32 0043     	LD	(@SCTR),A
- 2452 FB9F  32 0045     	LD	(@NREC),A		;read only 1 sector initially
- 2453                   
- 2454 FBA2  21 0080     	LD	HL,COLD
- 2455 FBA5  22 0040     	LD	(@TADDR),HL
- 2456                   
- 2457 FBA8  CD FBAE     	CALL	ZFDC_MULTI_READ_SECTOR	;Actully we will only read one sector here
- 2458 FBAB  C3 FA3C     	JP	BOOT_SEC_READ		;JMP to same section as for Versafloppy boot
- 2459                   
- 2460                   
- 2461 FBAE              ZFDC_MULTI_READ_SECTOR:	
- 2462 FBAE  0E 07       	LD	C,CMD_SET_TRACK		;Set Track 
+ 2441                   ;---------------------- ZFDC FDC BOOT & LOADER -----------------------------------
+ 2442                   
+ 2443 FB7A              ZFDC_BOOT:				;Cold Boot with ZFDC FDC Board
+ 2444 FB7A  21 FF40     	LD	HL,BOOT_MSG0		;<<<<<<<<< BOOT FROM ZFDC BOARD >>>>>>>>>>>>>>
+ 2445 FB7D  CD F1B5     	CALL	PRINT_STRING		;"Loading CPM from ZFDC FDC"
+ 2446 FB80  21 FF5E     	LD	HL,ZFDC_MSG		
+ 2447 FB83  CD F1B5     	CALL	PRINT_STRING
+ 2448                   
+ 2449 FB86  D3 13       	OUT	RESET_ZFDC_PORT,A	;Do a hardware reset. Does not matter what is in [A]
+ 2450                   	
+ 2451 FB88  3E 05       	LD	A,STATUS_DELAY		;~0.5 second at 10 MHz 
+ 2452 FB8A  01 0000     	LD	BC,0			;Delay to allow board to setup hardware
+ 2453 FB8D  05          WAIT_D:	DEC	B
+ 2454 FB8E  20 FD       	JR	NZ,WAIT_D		;Delay for ~0.5 seconds
+ 2455 FB90  05          	DEC	B			;Reset B to 0FFH
+ 2456 FB91  0D          	DEC	C
+ 2457 FB92  20 F9       	JR	NZ,WAIT_D
+ 2458 FB94  3D          	DEC	A
+ 2459 FB95  20 F6       	JR	NZ,WAIT_D
+ 2460                   	
+ 2461 FB97  DB 10       	IN	A,S100_DATA_B		;Check the board is there
+ 2462 FB99  FE 21       	CP	A,CMD_HANDSHAKE		;Make sure we get HANDSHAKE byte back
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  43
 MASTER0 Z80
 
- 2463 FBB0  CD FC0D     	CALL	S100OUT
- 2464 FBB3  3A 0044     	LD	A,(@TRK)
- 2465 FBB6  4F          	LD	C,A
- 2466 FBB7  CD FC0D     	CALL	S100OUT			;Send Selected track HEX number
- 2467 FBBA  CD FC30     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
- 2468 FBBD  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
- 2469                   	
- 2470 FBC0  0E 09       	LD	C,CMD_SET_SECTOR	;Set Sector # to side A (or for DS disks also side B)
- 2471 FBC2  CD FC0D     	CALL	S100OUT
- 2472 FBC5  3A 0043     	LD	A,(@SCTR)
- 2473 FBC8  4F          	LD	C,A
- 2474 FBC9  CD FC0D     	CALL	S100OUT			;Send Selected sector HEX number
- 2475 FBCC  CD FC30     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
- 2476 FBCF  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
- 2477                   
- 2478 FBD2  0E 0E       	LD	C,CMD_SEEK_TRACK	;Later can let board do this	
- 2479 FBD4  CD FC0D     	CALL	S100OUT
- 2480 FBD7  CD FC30     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
- 2481 FBDA  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
- 2482                   
- 2483 FBDD  0E 29       	LD	C,CMD_RD_MULTI_SECTOR	;Routine assumes required Drive Table,Drive,Side,Track, and sector are already sent to board
- 2484 FBDF  CD FC0D     	CALL	S100OUT			;(Note [HL]-> Sector DMA address)
- 2485 FBE2  3A 0045     	LD	A,(@NREC)		;How many sectors
- 2486 FBE5  4F          	LD	C,A			
- 2487 FBE6  CD FC0D     	CALL	S100OUT				
- 2488 FBE9  CD FC30     	CALL	WAIT_FOR_ACK		;Wait for NO_ERRORS_FLAG to come back
- 2489 FBEC  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
- 2490                   
- 2491 FBEF  2A 0040     	LD	HL,(@TADDR)		;Set DMA address
- 2492                   
- 2493 FBF2              MULTI_RD_SEC:
- 2494 FBF2  ED 5B 005C  	LD	DE,(@SEC_SIZE)		;For CPM this will be 128 Byte sector(s)
- 2495 FBF6  CD FC23     RD_SEC:CALL	S100IN			;Note potential to lockup here & below (but unlightly)
- 2496 FBF9  77          	LD	(HL),A
- 2497 FBFA  23          	INC	HL
- 2498 FBFB  1B          	DEC	DE
- 2499 FBFC  7B          	LD	A,E
- 2500 FBFD  B2          	OR	A,D
- 2501 FBFE  20 F6       	JR	NZ,RD_SEC
- 2502                   	
- 2503 FC00  3A 0045     	LD	A,(@NREC)		;How many sectors of data worth
- 2504 FC03  3D          	DEC	A
- 2505 FC04  32 0045     	LD	(@NREC),A
- 2506 FC07  20 E9       	JR	NZ,MULTI_RD_SEC		;Are there more
- 2507                   	
- 2508 FC09  CD FC30     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
- 2509 FC0C  C9          	RET
- 2510                   
- 2511                   
- 2512 FC0D              S100OUT:
- 2513 FC0D  DB 11       	IN	A,S100_STATUS_B		;Send data to ZFDC output (arrive with character to be sent in C)
- 2514 FC0F  CB 7F       	BIT	DIRECTION_BIT,A		;Is ZFDC in output mode, if not wait
- 2515 FC11  20 FA       	JR	NZ,S100OUT
- 2516 FC13  CB 4F       	BIT	DATA_OUT_RDY,A		;Has previous (if any) character been read.
- 2517 FC15  28 F6       	JR	Z,S100OUT		;Z if not yet ready
- 2518 FC17  79          	LD	A,C
- 2519 FC18  D3 10       	OUT	S100_DATA_B,A
- 2520 FC1A  C9          	RET
+ 2463 FB9B  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
+ 2464                   	
+ 2465 FB9E  3E 21       	LD	A,CMD_HANDSHAKE		;Send another byte just to be sure.	
+ 2466 FBA0  D3 10       	OUT	S100_DATA_B,A		;This clears up ints on ZFDC board
+ 2467 FBA2  CD FC6C     	CALL	WAIT_FOR_ACK		;Wait to make sure all is well.
+ 2468 FBA5  B7          	OR	A,A
+ 2469 FBA6  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
+ 2470                   	
+ 2471 FBA9  0E 04       	LD	C,CMD_SET_FORMAT	;Send Set Disk Format to 8" SSSD DISK
+ 2472 FBAB  CD FC49     	CALL	S100OUT
+ 2473 FBAE  0E 00       	LD	C,0			;Floppy Drive 0, (ZFDC Board expects a 0H, 1H, 2H or 3H)
+ 2474 FBB0  CD FC49     	CALL	S100OUT			
+ 2475 FBB3  0E 01       	LD	C,STD8IBM		;ZFDC Board expects a Disk Format Table Number (0,1,2...13H)
+ 2476 FBB5  CD FC49     	CALL	S100OUT			
+ 2477 FBB8  CD FC6C     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
+ 2478 FBBB  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
+ 2479                   	
+ 2480 FBBE  0E 05       	LD	C,CMD_SET_DRIVE		;Send a "Set Drive CMD" to ZFDC board
+ 2481 FBC0  CD FC49     	CALL	S100OUT
+ 2482 FBC3  0E 00       	LD	C,0			;Floppy Drive #, (ZFDC Board expects a 0H, 1H, 2H or 3H)
+ 2483 FBC5  CD FC49     	CALL	S100OUT			
+ 2484 FBC8  CD FC6C     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
+ 2485 FBCB  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
+ 2486                   
+ 2487                   					;Drive selected and ready to read sectors. Note this code 
+ 2488                   					;is written to eb compatible with the boot loader for the 
+ 2489                   					;Versafloppy-II disk controller as well.
+ 2490                   					
+ 2491 FBCE  3E 1A       	LD	A,STDSDT		;SETUP FOR SD
+ 2492 FBD0  32 0053     	LD	(@COUNT),A		;STORE AS 26 SECTORS/TRACK
+ 2493                   	
+ 2494 FBD3  AF          	XOR	A			;Setup Boot Sector read track
+ 2495 FBD4  32 0044     	LD	(@TRK),A
+ 2496 FBD7  3C          	INC	A
+ 2497 FBD8  32 0043     	LD	(@SCTR),A
+ 2498 FBDB  32 0045     	LD	(@NREC),A		;read only 1 sector initially
+ 2499                   
+ 2500 FBDE  21 0080     	LD	HL,COLD
+ 2501 FBE1  22 0040     	LD	(@TADDR),HL
+ 2502                   
+ 2503 FBE4  CD FBEA     	CALL	ZFDC_MULTI_READ_SECTOR	;Actully we will only read one sector here
+ 2504 FBE7  C3 FA78     	JP	BOOT_SEC_READ		;JMP to same section as for Versafloppy boot
+ 2505                   
+ 2506                   
+ 2507 FBEA              ZFDC_MULTI_READ_SECTOR:	
+ 2508 FBEA  0E 07       	LD	C,CMD_SET_TRACK		;Set Track 
+ 2509 FBEC  CD FC49     	CALL	S100OUT
+ 2510 FBEF  3A 0044     	LD	A,(@TRK)
+ 2511 FBF2  4F          	LD	C,A
+ 2512 FBF3  CD FC49     	CALL	S100OUT			;Send Selected track HEX number
+ 2513 FBF6  CD FC6C     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
+ 2514 FBF9  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
+ 2515                   	
+ 2516 FBFC  0E 09       	LD	C,CMD_SET_SECTOR	;Set Sector # to side A (or for DS disks also side B)
+ 2517 FBFE  CD FC49     	CALL	S100OUT
+ 2518 FC01  3A 0043     	LD	A,(@SCTR)
+ 2519 FC04  4F          	LD	C,A
+ 2520 FC05  CD FC49     	CALL	S100OUT			;Send Selected sector HEX number
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  44
 MASTER0 Z80
 
- 2521                   
- 2522 FC1B              S100STAT:
- 2523 FC1B  DB 11       	IN	A,S100_STATUS_B		;Check if ZFDC has any data for S-100 system
- 2524 FC1D  CB 47       	BIT	DATA_IN_RDY,A		;Anything there ?
- 2525 FC1F  C8          	RET	Z			;Return 0 if nothing
- 2526 FC20  AF          	XOR	A,A
- 2527 FC21  3D          	DEC	A			;Return NZ, & 0FFH in A if something there
- 2528 FC22  C9          	RET
- 2529                   
- 2530 FC23              S100IN:
- 2531 FC23  DB 11       	IN	A,S100_STATUS_B		;Check if ZFDC has any data for S-100 system
- 2532 FC25  CB 7F       	BIT	DIRECTION_BIT,A		;Is ZFDC in input mode, if not wait
- 2533 FC27  28 FA       	JR	Z,S100IN		;If low then ZFDC board is still in input mode, wait
- 2534 FC29  CB 47       	BIT	DATA_IN_RDY,A
- 2535 FC2B  28 F6       	JR	Z,S100IN
- 2536 FC2D  DB 10       	IN	A,S100_DATA_A		;return with character in A
- 2537 FC2F  C9          	RET
+ 2521 FC08  CD FC6C     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
+ 2522 FC0B  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
+ 2523                   
+ 2524 FC0E  0E 0E       	LD	C,CMD_SEEK_TRACK	;Later can let board do this	
+ 2525 FC10  CD FC49     	CALL	S100OUT
+ 2526 FC13  CD FC6C     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
+ 2527 FC16  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
+ 2528                   
+ 2529 FC19  0E 29       	LD	C,CMD_RD_MULTI_SECTOR	;Routine assumes required Drive Table,Drive,Side,Track, and sector are already sent to board
+ 2530 FC1B  CD FC49     	CALL	S100OUT			;(Note [HL]-> Sector DMA address)
+ 2531 FC1E  3A 0045     	LD	A,(@NREC)		;How many sectors
+ 2532 FC21  4F          	LD	C,A			
+ 2533 FC22  CD FC49     	CALL	S100OUT				
+ 2534 FC25  CD FC6C     	CALL	WAIT_FOR_ACK		;Wait for NO_ERRORS_FLAG to come back
+ 2535 FC28  C2 F429     	JP	NZ,ERR_NR		;If error, just abort 
+ 2536                   
+ 2537 FC2B  2A 0040     	LD	HL,(@TADDR)		;Set DMA address
  2538                   
- 2539 FC30              WAIT_FOR_ACK:				;Delay to wait for ZFDC to return data. There is a timeout of about 2 sec.
- 2540 FC30  C5          	PUSH	BC			;This can be increased if you are displaying debugging info on the ZFDC 
- 2541 FC31  D5          	PUSH	DE			;HEX LED display.
- 2542 FC32  01 0000     	LD	BC,0
- 2543 FC35  1E 05       	LD	E,STATUS_DELAY		;Timeout, (about 2 seconds)
- 2544 FC37  DB 11       WAIT_1:	IN	A,S100_STATUS_B		;Check if ZFDC has any data for S-100 system
- 2545 FC39  CB 7F       	BIT	DIRECTION_BIT,A		;Is ZFDC in input mode
- 2546 FC3B  28 0D       	JR	Z,WAIT_2		;if low then ZFDC is still in input mode
- 2547 FC3D  CD FC1B     	CALL	S100STAT		;Wait until ZFDC Board sends something
- 2548 FC40  28 08       	JR	Z,WAIT_2		
- 2549 FC42  CD FC23     	CALL	S100IN			;Get returned Error # (Note this releases the SEND_DATA routine on the ZFDC board)
- 2550 FC45  FE 00       	CP	A,NO_ERRORS_FLAG	;Was SEND_OK/NO_ERRORS_FLAG sent back from ZFDC Board
- 2551 FC47  D1          	POP	DE			;Balance up stack
- 2552 FC48  C1          	POP	BC
- 2553 FC49  C9          	RET				;Return NZ if problem, Z if no problem
- 2554 FC4A  05          WAIT_2:	DEC	B
- 2555 FC4B  20 EA       	JR	NZ,WAIT_1		;Try for ~2 seconds
- 2556 FC4D  05          	DEC	B			;Reset B to 0FFH
- 2557 FC4E  0D          	DEC	C
- 2558 FC4F  20 E6       	JR	NZ,WAIT_1
- 2559 FC51  05          	DEC	B			;Reset B to 0FFH
- 2560 FC52  0D          	DEC	C
- 2561 FC53  1D          	DEC	E
- 2562 FC54  20 E1       	JR	NZ,WAIT_1
- 2563 FC56  AF          	XOR	A,A
- 2564 FC57  3D          	DEC	A
- 2565 FC58  D1          	POP	DE			;Balance up stack
- 2566 FC59  C1          	POP	BC
- 2567 FC5A  C9          	RET				;Return NZ flag set if timeout AND 0FFH in [A]
- 2568                   
- 2569                   
- 2570                   ;	LOAD A NUMBER OF SECTORS	;Note this loader utilizes the fast multi-sec read in V2.8 of later 
- 2571                   					
- 2572 FC5B              ZFDC_LOADER:				;CPM Loader with ZFDC FDC Board
- 2573 FC5B  CD FBAE     	CALL	ZFDC_MULTI_READ_SECTOR	;Note the Boot sector has by now setup the sector count etc. in low RAM
+ 2539 FC2E              MULTI_RD_SEC:
+ 2540 FC2E  ED 5B 005C  	LD	DE,(@SEC_SIZE)		;For CPM this will be 128 Byte sector(s)
+ 2541 FC32  CD FC5F     RD_SEC:CALL	S100IN			;Note potential to lockup here & below (but unlightly)
+ 2542 FC35  77          	LD	(HL),A
+ 2543 FC36  23          	INC	HL
+ 2544 FC37  1B          	DEC	DE
+ 2545 FC38  7B          	LD	A,E
+ 2546 FC39  B2          	OR	A,D
+ 2547 FC3A  20 F6       	JR	NZ,RD_SEC
+ 2548                   	
+ 2549 FC3C  3A 0045     	LD	A,(@NREC)		;How many sectors of data worth
+ 2550 FC3F  3D          	DEC	A
+ 2551 FC40  32 0045     	LD	(@NREC),A
+ 2552 FC43  20 E9       	JR	NZ,MULTI_RD_SEC		;Are there more
+ 2553                   	
+ 2554 FC45  CD FC6C     	CALL	WAIT_FOR_ACK		;Return Z (and NO_ERRORS_FLAG in [A]), or NZ with error # in [A]
+ 2555 FC48  C9          	RET
+ 2556                   
+ 2557                   
+ 2558 FC49              S100OUT:
+ 2559 FC49  DB 11       	IN	A,S100_STATUS_B		;Send data to ZFDC output (arrive with character to be sent in C)
+ 2560 FC4B  CB 7F       	BIT	DIRECTION_BIT,A		;Is ZFDC in output mode, if not wait
+ 2561 FC4D  20 FA       	JR	NZ,S100OUT
+ 2562 FC4F  CB 4F       	BIT	DATA_OUT_RDY,A		;Has previous (if any) character been read.
+ 2563 FC51  28 F6       	JR	Z,S100OUT		;Z if not yet ready
+ 2564 FC53  79          	LD	A,C
+ 2565 FC54  D3 10       	OUT	S100_DATA_B,A
+ 2566 FC56  C9          	RET
+ 2567                   
+ 2568 FC57              S100STAT:
+ 2569 FC57  DB 11       	IN	A,S100_STATUS_B		;Check if ZFDC has any data for S-100 system
+ 2570 FC59  CB 47       	BIT	DATA_IN_RDY,A		;Anything there ?
+ 2571 FC5B  C8          	RET	Z			;Return 0 if nothing
+ 2572 FC5C  AF          	XOR	A,A
+ 2573 FC5D  3D          	DEC	A			;Return NZ, & 0FFH in A if something there
  2574 FC5E  C9          	RET
  2575                   
- 2576                   
- 2577                   ;THESE ARE ROUTINES NOT YET IMPLEMENTED
- 2578                   ;
+ 2576 FC5F              S100IN:
+ 2577 FC5F  DB 11       	IN	A,S100_STATUS_B		;Check if ZFDC has any data for S-100 system
+ 2578 FC61  CB 7F       	BIT	DIRECTION_BIT,A		;Is ZFDC in input mode, if not wait
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  45
 MASTER0 Z80
 
- 2579 FC5F  C9          OFLIST:	RET				;OFF LIST
- 2580 FC60  76          TRAP:	HALT
- 2581 FC61              RI:					;READER
- 2582 FC61              POO:					;PUNCH
- 2583 FC61              PRDY:					;PUNCH STATUS (Sent to Serial port right now)
- 2584 FC61              RSTAT:					;READER STATUS (Input from Serial port right now)
- 2585 FC61              ONLIST: 				;SWITCH ON "LIST PRINTER"
- 2586 FC61              DOS:					;BOOT UP MSDOS LOADER FROM 5" DISK THEN SWITCH TO 8086
- 2587                   
- 2588 FC61  21 FDE5     NOT_DONE:	LD	HL,BIOS_ERR
- 2589 FC64  CD F1B5     		CALL	PRINT_STRING
- 2590 FC67  C3 F17D     		JP	START
- 2591                   		
- 2592                   		
- 2593                   ;-------------------------------------------------------------------------------------------------------------------		
- 2594                   ;
- 2595 FC6A  01 11 17 10 SIGNON_MSG:	DB SCROLL,QUIT,NO_ENHANCEMENT,FAST,BELL,CR,LF,LF		
- 2596 FC72  5A 38 30 20 		DB 'Z80 ROM MONITOR (V5.6) @ F000H (J.Monahan,2/23/2021) $'	
- 2597                   
- 2598 FCA8  0D 0A       MENUMSG:	DB	CR,LF
- 2599 FCAA  41 3D 4D 65   		DB	'A=Memmap B=68000    C=CP/M(F) D=Disp  E=Echo   F=Fill G=Goto'
- 2600 FCE6  0D 0A       		DB	CR,LF
- 2601 FCE8  48 3D 44 61 		DB	'H=Date   I=Time     J=Test    K=Menu  L=CPM(V) M=Move N=SeqMap'
- 2602 FD26  0D 0A       		DB	CR,LF
- 2603 FD28  4F 3D 38 30 		DB	'O=8086   P=CPM(IDE) QI,O=Port R=Ports S=Subs   T=Type'
- 2604 FD5D  0D 0A         		DB	CR,LF
- 2605 FD5F  56 3D 56 65 		DB	'V=Verify W=Port EDH X=XModem  Y=IDE   Z=Top    @=Flush Printer'
- 2606 FD9D  0D 0A 0A 24 		DB	CR,LF,LF,'$'
- 2607                   
- 2608 FDA1  54 48 45 20 SMSG_SP:	DB	'THE Z80 ROM MONITOR VERSION 5.5$'
- 2609 FDC1  07 0D 0A    DRIVE_NR_ERR:	DB	BELL,CR,LF
- 2610 FDC4  44 72 69 76 		DB	'Drive not Ready.',CR,LF,LF,'$'
- 2611 FDD8  4C 4F 41 44 		SPEAKCPM_SP:	DB	'LOADING CPM $'
- 2612 FDE5  43 6F 64 65 BIOS_ERR:	DB	'Code not done yet',CR,LF,LF,'$'
- 2613 FDFA  07 0D 0A    BOOT_LD_ERR:	DB	BELL,CR,LF
- 2614 FDFD  52 65 61 64 		DB	'Read Error.',CR,LF,LF,'$'
- 2615 FE0C  07 0D 0A    BOOT_LD1_ERR:	DB	BELL,CR,LF
- 2616 FE0F  42 4F 4F 54 		DB	'BOOT error.',CR,LF,LF,'$'
- 2617 FE1E  07 0D 0A    MSG14:		DB	BELL,CR,LF
- 2618 FE21  54 4D 41 20 		DB	'TMA line 0 Activated'
- 2619 FE35  0D 0A 0A 24 		DB	CR,LF,LF,'$'
- 2620 FE39  07 0D 0A    MSG68K:		DB	BELL,CR,LF
- 2621 FE3C  54 4D 41 20 		DB	'TMA line 1 Activated'
- 2622 FE50  0D 0A 0A 24 		DB	CR,LF,LF,'$'
- 2623 FE54  0D 0A       MSG17:		DB	CR,LF
- 2624 FE56  53 65 67 6D 		DB	'Segment (0-F):$'
- 2625 FE65  0D 0A 54 69 TIME_MSG:	DB	CR,LF,'Time:- $'
- 2626 FE6F  0D 0A 44 61 DATE_MSG:	DB	CR,LF,'Date:- $'
- 2627 FE79  20 20 24    GAP_MSG:	DB	'  $'
- 2628                   
- 2629 FE7C  0D 0A       IDE_RW_ERROR:	DB	CR,LF
- 2630 FE7E  49 44 45 20 		DB	'IDE Drive R/W Error'
- 2631 FE91  0D 0A 07 24 		DB	CR,LF,BELL,'$'
- 2632 FE95  53 50 3D 24 SP_MSG		DB	'SP=$'
- 2633 FE99  0D 0D 0D 0D CR_SMSG_SP:	DB	CR,CR,CR,CR,'$'
- 2634 FE9E  48 0D 0A 24 H_MSG_CRLF	DB	'H',CR,LF,'$'
- 2635 FEA2  20 49 4F 42 IOBYTE_MSG	DB	' IOBYTE=$'
- 2636                   
+ 2579 FC63  28 FA       	JR	Z,S100IN		;If low then ZFDC board is still in input mode, wait
+ 2580 FC65  CB 47       	BIT	DATA_IN_RDY,A
+ 2581 FC67  28 F6       	JR	Z,S100IN
+ 2582 FC69  DB 10       	IN	A,S100_DATA_A		;return with character in A
+ 2583 FC6B  C9          	RET
+ 2584                   
+ 2585 FC6C              WAIT_FOR_ACK:				;Delay to wait for ZFDC to return data. There is a timeout of about 2 sec.
+ 2586 FC6C  C5          	PUSH	BC			;This can be increased if you are displaying debugging info on the ZFDC 
+ 2587 FC6D  D5          	PUSH	DE			;HEX LED display.
+ 2588 FC6E  01 0000     	LD	BC,0
+ 2589 FC71  1E 05       	LD	E,STATUS_DELAY		;Timeout, (about 2 seconds)
+ 2590 FC73  DB 11       WAIT_1:	IN	A,S100_STATUS_B		;Check if ZFDC has any data for S-100 system
+ 2591 FC75  CB 7F       	BIT	DIRECTION_BIT,A		;Is ZFDC in input mode
+ 2592 FC77  28 0D       	JR	Z,WAIT_2		;if low then ZFDC is still in input mode
+ 2593 FC79  CD FC57     	CALL	S100STAT		;Wait until ZFDC Board sends something
+ 2594 FC7C  28 08       	JR	Z,WAIT_2		
+ 2595 FC7E  CD FC5F     	CALL	S100IN			;Get returned Error # (Note this releases the SEND_DATA routine on the ZFDC board)
+ 2596 FC81  FE 00       	CP	A,NO_ERRORS_FLAG	;Was SEND_OK/NO_ERRORS_FLAG sent back from ZFDC Board
+ 2597 FC83  D1          	POP	DE			;Balance up stack
+ 2598 FC84  C1          	POP	BC
+ 2599 FC85  C9          	RET				;Return NZ if problem, Z if no problem
+ 2600 FC86  05          WAIT_2:	DEC	B
+ 2601 FC87  20 EA       	JR	NZ,WAIT_1		;Try for ~2 seconds
+ 2602 FC89  05          	DEC	B			;Reset B to 0FFH
+ 2603 FC8A  0D          	DEC	C
+ 2604 FC8B  20 E6       	JR	NZ,WAIT_1
+ 2605 FC8D  05          	DEC	B			;Reset B to 0FFH
+ 2606 FC8E  0D          	DEC	C
+ 2607 FC8F  1D          	DEC	E
+ 2608 FC90  20 E1       	JR	NZ,WAIT_1
+ 2609 FC92  AF          	XOR	A,A
+ 2610 FC93  3D          	DEC	A
+ 2611 FC94  D1          	POP	DE			;Balance up stack
+ 2612 FC95  C1          	POP	BC
+ 2613 FC96  C9          	RET				;Return NZ flag set if timeout AND 0FFH in [A]
+ 2614                   
+ 2615                   
+ 2616                   ;	LOAD A NUMBER OF SECTORS	;Note this loader utilizes the fast multi-sec read in V2.8 of later 
+ 2617                   					
+ 2618 FC97              ZFDC_LOADER:				;CPM Loader with ZFDC FDC Board
+ 2619 FC97  CD FBEA     	CALL	ZFDC_MULTI_READ_SECTOR	;Note the Boot sector has by now setup the sector count etc. in low RAM
+ 2620 FC9A  C9          	RET
+ 2621                   
+ 2622                   
+ 2623                   ;THESE ARE ROUTINES NOT YET IMPLEMENTED
+ 2624                   ;
+ 2625 FC9B  C9          OFLIST:	RET				;OFF LIST
+ 2626 FC9C  76          TRAP:	HALT
+ 2627 FC9D              RI:					;READER
+ 2628 FC9D              POO:					;PUNCH
+ 2629 FC9D              PRDY:					;PUNCH STATUS (Sent to Serial port right now)
+ 2630 FC9D              RSTAT:					;READER STATUS (Input from Serial port right now)
+ 2631 FC9D              ONLIST: 				;SWITCH ON "LIST PRINTER"
+ 2632 FC9D              DOS:					;BOOT UP MSDOS LOADER FROM 5" DISK THEN SWITCH TO 8086
+ 2633                   
+ 2634 FC9D  21 FE21     NOT_DONE:	LD	HL,BIOS_ERR
+ 2635 FCA0  CD F1B5     		CALL	PRINT_STRING
+ 2636 FCA3  C3 F17D     		JP	START
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  46
 MASTER0 Z80
 
- 2637 FEAB  44 6F 77 6E DOWNLOAD_SP:	DB	'Downloading file Started.$'
- 2638 FEC5  0D 0A       RESTORE_ERR:	DB	CR,LF
- 2639 FEC7  52 65 73 74 		DB	'Restore Failed.',CR,LF,LF,BELL,'$'
- 2640 FEDB  0D 0A       SEEK_ERROR_MSG:	DB	CR,LF
- 2641 FEDD  53 65 65 6B 		DB	'Seek Error.',CR,LF,LF,BELL,'$'		
- 2642 FEED  56 46 20 43 VF_HUNG:	DB	'VF Controller Hung',CR,LF,LF,BELL,'$'
- 2643 FF04  0D 0A 4C 6F BOOT_MSG0:	DB	CR,LF,'Loading CPM from $'
- 2644 FF18  56 46 20 46 VF_MSG:		DB	'VF FDC.',CR,LF,'$'
- 2645 FF22  5A 46 44 43 ZFDC_MSG:	DB	'ZFDC FDC.',CR,LF,'$'
- 2646 FF2E  4D 65 6E 75 Menu_ErrorMsg:	DB	'Menu Error'CR,LF,BELL,'$'
- 2647 FF3C  4E 6F 20 52 NoHighPageMsg	DB	'No ROM HigH Page!',CR,LF,BELL,'$'
- 2648 FF51  00          		NOP
- 2649 FF52  20 20 45 6E END_OF_ROM_PAGE DB	'  End of ROM LOW PAGE-->'
- 2650                   
- 2651                   ;END
+ 2637                   		
+ 2638                   		
+ 2639                   ;-------------------------------------------------------------------------------------------------------------------		
+ 2640                   ;
+ 2641 FCA6  01 11 17 10 SIGNON_MSG:	DB SCROLL,QUIT,NO_ENHANCEMENT,FAST,BELL,CR,LF,LF		
+ 2642 FCAE  5A 38 30 20 		DB 'Z80 ROM MONITOR (V5.6) @ F000H (J.Monahan,2/23/2021) $'	
+ 2643                   
+ 2644 FCE4  0D 0A       MENUMSG:	DB	CR,LF
+ 2645 FCE6  41 3D 4D 65   		DB	'A=Memmap B=68000    C=CP/M(F) D=Disp  E=Echo   F=Fill G=Goto'
+ 2646 FD22  0D 0A       		DB	CR,LF
+ 2647 FD24  48 3D 44 61 		DB	'H=Date   I=Time     J=Test    K=Menu  L=CPM(V) M=Move N=SeqMap'
+ 2648 FD62  0D 0A       		DB	CR,LF
+ 2649 FD64  4F 3D 38 30 		DB	'O=8086   P=CPM(IDE) QI,O=Port R=Ports S=Subs   T=Type'
+ 2650 FD99  0D 0A         		DB	CR,LF
+ 2651 FD9B  56 3D 56 65 		DB	'V=Verify W=Port EDH X=XModem  Y=IDE   Z=Top    @=Flush Printer'
+ 2652 FDD9  0D 0A 0A 24 		DB	CR,LF,LF,'$'
+ 2653                   
+ 2654 FDDD  54 48 45 20 SMSG_SP:	DB	'THE Z80 ROM MONITOR VERSION 5.5$'
+ 2655 FDFD  07 0D 0A    DRIVE_NR_ERR:	DB	BELL,CR,LF
+ 2656 FE00  44 72 69 76 		DB	'Drive not Ready.',CR,LF,LF,'$'
+ 2657 FE14  4C 4F 41 44 		SPEAKCPM_SP:	DB	'LOADING CPM $'
+ 2658 FE21  43 6F 64 65 BIOS_ERR:	DB	'Code not done yet',CR,LF,LF,'$'
+ 2659 FE36  07 0D 0A    BOOT_LD_ERR:	DB	BELL,CR,LF
+ 2660 FE39  52 65 61 64 		DB	'Read Error.',CR,LF,LF,'$'
+ 2661 FE48  07 0D 0A    BOOT_LD1_ERR:	DB	BELL,CR,LF
+ 2662 FE4B  42 4F 4F 54 		DB	'BOOT error.',CR,LF,LF,'$'
+ 2663 FE5A  07 0D 0A    MSG14:		DB	BELL,CR,LF
+ 2664 FE5D  54 4D 41 20 		DB	'TMA line 0 Activated'
+ 2665 FE71  0D 0A 0A 24 		DB	CR,LF,LF,'$'
+ 2666 FE75  07 0D 0A    MSG68K:		DB	BELL,CR,LF
+ 2667 FE78  54 4D 41 20 		DB	'TMA line 1 Activated'
+ 2668 FE8C  0D 0A 0A 24 		DB	CR,LF,LF,'$'
+ 2669 FE90  0D 0A       MSG17:		DB	CR,LF
+ 2670 FE92  53 65 67 6D 		DB	'Segment (0-F):$'
+ 2671 FEA1  0D 0A 54 69 TIME_MSG:	DB	CR,LF,'Time:- $'
+ 2672 FEAB  0D 0A 44 61 DATE_MSG:	DB	CR,LF,'Date:- $'
+ 2673 FEB5  20 20 24    GAP_MSG:	DB	'  $'
+ 2674                   
+ 2675 FEB8  0D 0A       IDE_RW_ERROR:	DB	CR,LF
+ 2676 FEBA  49 44 45 20 		DB	'IDE Drive R/W Error'
+ 2677 FECD  0D 0A 07 24 		DB	CR,LF,BELL,'$'
+ 2678 FED1  53 50 3D 24 SP_MSG		DB	'SP=$'
+ 2679 FED5  0D 0D 0D 0D CR_SMSG_SP:	DB	CR,CR,CR,CR,'$'
+ 2680 FEDA  48 0D 0A 24 H_MSG_CRLF	DB	'H',CR,LF,'$'
+ 2681 FEDE  20 49 4F 42 IOBYTE_MSG	DB	' IOBYTE=$'
+ 2682                   
+ 2683 FEE7  44 6F 77 6E DOWNLOAD_SP:	DB	'Downloading file Started.$'
+ 2684 FF01  0D 0A       RESTORE_ERR:	DB	CR,LF
+ 2685 FF03  52 65 73 74 		DB	'Restore Failed.',CR,LF,LF,BELL,'$'
+ 2686 FF17  0D 0A       SEEK_ERROR_MSG:	DB	CR,LF
+ 2687 FF19  53 65 65 6B 		DB	'Seek Error.',CR,LF,LF,BELL,'$'		
+ 2688 FF29  56 46 20 43 VF_HUNG:	DB	'VF Controller Hung',CR,LF,LF,BELL,'$'
+ 2689 FF40  0D 0A 4C 6F BOOT_MSG0:	DB	CR,LF,'Loading CPM from $'
+ 2690 FF54  56 46 20 46 VF_MSG:		DB	'VF FDC.',CR,LF,'$'
+ 2691 FF5E  5A 46 44 43 ZFDC_MSG:	DB	'ZFDC FDC.',CR,LF,'$'
+ 2692 FF6A  4D 65 6E 75 Menu_ErrorMsg:	DB	'Menu Error'CR,LF,BELL,'$'
+ 2693 FF78  4E 6F 20 52 NoHighPageMsg	DB	'No ROM HigH Page!',CR,LF,BELL,'$'
+ 2694 FF8D  00          		NOP
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  47
+MASTER0 Z80
+
+ 2695 FF8E  20 20 45 6E END_OF_ROM_PAGE DB	'  End of ROM LOW PAGE-->'
+ 2696                   
+ 2697                   ;END
  0 Error(s) Detected.
- 3946 Absolute Bytes. 514 Symbols Detected.
+ 4006 Absolute Bytes. 521 Symbols Detected.
 
