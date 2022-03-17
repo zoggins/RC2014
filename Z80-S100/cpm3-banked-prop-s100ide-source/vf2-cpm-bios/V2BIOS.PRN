@@ -252,13 +252,13 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
    EE00    C3 EE52              JMP     CBOOT           ;COLD BOOT
    EE03    C3 EE63      WBOOTE: JMP     WBOOT           ;WARM BOOT
-   EE06    C3 F534              JMP     CONST           ;CONSOLE STATUS
-   EE09    C3 F537              JMP     CONIN           ;CONSOLE CHARACTER IN
-   EE0C    C3 F53A      BIOOUT: JMP     CONOUT          ;CONSOLE CHARACTER OUT,
-   EE0F    C3 F533              JMP     LIST            ;LIST CHARACTER OUT
-   EE12    C3 F533              JMP     PUNCH           ;PUNCH CHARACTER OUT
-   EE15    C3 F533              JMP     READER          ;READER CHARACTER IN
-   EE18    C3 EFFE              JMP     HOME            ;MOVE HEAD TO HOME POSITION
+   EE06    C3 F56A              JMP     CONST           ;CONSOLE STATUS
+   EE09    C3 F56D              JMP     CONIN           ;CONSOLE CHARACTER IN
+   EE0C    C3 F570      BIOOUT: JMP     CONOUT          ;CONSOLE CHARACTER OUT,
+   EE0F    C3 F569              JMP     LIST            ;LIST CHARACTER OUT
+   EE12    C3 F569              JMP     PUNCH           ;PUNCH CHARACTER OUT
+   EE15    C3 F569              JMP     READER          ;READER CHARACTER IN
+   EE18    C3 F001              JMP     HOME            ;MOVE HEAD TO HOME POSITION
 
 
 
@@ -271,13 +271,13 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
    EE1B    C3 EF11              JMP     SELDSK          ;SELECT DISK
-   EE1E    C3 F00D              JMP     SETTRK          ;SET TRACK NUMBER
-   EE21    C3 F012              JMP     SETSEC          ;SET SECTOR NUMBER
-   EE24    C3 F017              JMP     SETDMA          ;SET DMA ADDRESS
-   EE27    C3 F027              JMP     READ            ;READ DISK
-   EE2A    C3 F03A              JMP     WRITE           ;WRITE DISK
-   EE2D    C3 F533              JMP     LISTST          ;RETURN LIST STATUS
-   EE30    C3 F01C              JMP     SECTRA          ;SECTOR TRANSLATE
+   EE1E    C3 F010              JMP     SETTRK          ;SET TRACK NUMBER
+   EE21    C3 F015              JMP     SETSEC          ;SET SECTOR NUMBER
+   EE24    C3 F01A              JMP     SETDMA          ;SET DMA ADDRESS
+   EE27    C3 F02A              JMP     READ            ;READ DISK
+   EE2A    C3 F03D              JMP     WRITE           ;WRITE DISK
+   EE2D    C3 F569              JMP     LISTST          ;RETURN LIST STATUS
+   EE30    C3 F01F              JMP     SECTRA          ;SECTOR TRANSLATE
                         
                         
                         
@@ -428,7 +428,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    EE55    2A EE37              LHLD    INITIO          ;SET INITIAL I/O BYTE, DISK
    EE58    22 0003              SHLD    IOBYTE
                         
-   EE5B    CD F5DD              CALL    SYSNIT          ;ROUTINE IN HOST BUFFER SPACE
+   EE5B    CD F613              CALL    SYSNIT          ;ROUTINE IN HOST BUFFER SPACE
                                                                         ;IS DISCARDED AFTER THIS CALL
                             
    EE5E    CD EEE2              CALL    BCOMM           ;DO COMMON STUFF
@@ -471,7 +471,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    EE63                 WBOOT:
    EE63    F3                   DI
    EE64    31 0080              LXI     SP,80H          ;VALIDATE THE STACK POINTER
-   EE67    CD F12C              CALL    CLOSE
+   EE67    CD F12F              CALL    CLOSE
    EE6A                 EEXIT:
    EE6A    CD EEE2              CALL    BCOMN           ;DO COMMON STUFF
                         
@@ -505,12 +505,12 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
    EE8D    3E01                 MVI     A,1             ;READ FROM TRACK 1
    EE8F    01 0103              LXI     B,1<8+(1+..FULL);READ ONE LAST SECTOR
-   EE92    21 F5DD              LXI     H,RDBUFF        ;INTO READ BUFFER FOR NOW
+   EE92    21 F613              LXI     H,RDBUFF        ;INTO READ BUFFER FOR NOW
    EE95    CD EEC8              CALL    READM
                         
    EE98    01 0100              LXI     B,..PART*128
    EE9B    11 ED00              LXI     D,..LAST        ;SECTOR GOES HERE
-   EE9E    21 F5DD              LXI     H,RDBUFF        ;SECTOR COMES FROM READ BUFFER
+   EE9E    21 F613              LXI     H,RDBUFF        ;SECTOR COMES FROM READ BUFFER
    EEA1    EDB0                 LDIR                    ;MOVE THE SECTOR
                         
                                 ]
@@ -549,7 +549,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    EEB8    22 0006              SHLD    6
                         
    EEBB    21 0080              LXI     H,80H           ;SET DEFAULT DMA ADDR
-   EEBE    22 F9E0              SHLD    DMAADD
+   EEBE    22 FA16              SHLD    DMAADD
                         
    EEC1    3A 0004              LDA     CPMDSK          ;PASS CURRENT DISK
    EEC4    4F                   MOV     C,A             ;NUMBER TO THE CCP
@@ -560,15 +560,15 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; BOOT.
                         ;********************************************************
                         
-   EEC8    32 F9E4      READM:  STA     PTRACK          ;SET TRACK
+   EEC8    32 FA1A      READM:  STA     PTRACK          ;SET TRACK
                         
    EECB    C5           LOOP:   PUSH    B               ;SAVE COUNT, SECTOR
    EECC    79                   MOV     A,C
-   EECD    32 F9E6              STA     PSECT           ;SET SECTOR
+   EECD    32 FA1C              STA     PSECT           ;SET SECTOR
    EED0    E5                   PUSH    H               ;SAVE DMA ADDRESS
-   EED1    22 F9E8              SHLD    PDMA            ;SET DMA ADDRESS
-   EED4    CD F1BB              CALL    PREAD           ;READ THE SECTOR
-   EED7    DA F4B8              JC      FATERR          ;FATAL ERROR
+   EED1    22 FA1E              SHLD    PDMA            ;SET DMA ADDRESS
+   EED4    CD F1BE              CALL    PREAD           ;READ THE SECTOR
+   EED7    DA F4C6              JC      FATER1          ;FATAL ERROR
    EEDA    E1                   POP     H
    EEDB    24                   INR     H               ;POINT TO NEXT DMA ADDRESS
    EEDC    24                   INR     H               ;INCREMENT BY 2 PAGES (512 BYTES)
@@ -605,7 +605,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    EEEA    7C                   MOV     A,H             ;TEST FOR SUCCESSFUL SELECT
    EEEB    B5                   ORA     L
    EEEC    C0                   RNZ                     ;SUCCESSFUL
-   EEED    C3 F4B8              JMP     QUIT            ;FATAL ERROR
+   EEED    C3 F4EE              JMP     QUIT1           ;FATAL ERROR
                         
                         ;********************************************************
                         ; RESET DISK SYSTEM. INVALIDATE CERTAIN FLOPPY DISK
@@ -614,7 +614,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         
    EEF0    AF           DSKRST: XRA     A
-   EEF1    21 FA0A              LXI     H,UNACNT        ;INVALIDATE UNALLOCATED COUNT
+   EEF1    21 FA40              LXI     H,UNACNT        ;INVALIDATE UNALLOCATED COUNT
    EEF4    0616                 MVI     B,UNALEN
    EEF6    77           LOP:    MOV     M,A
    EEF7    23                   INX     H
@@ -623,15 +623,15 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    EEFD    46                   MOV     B,M             ;GET NUMBER INTO B
    EEFE    11 0078              LXI     D,APBDIS        ;GET DISTANCE BETWEEN FD APBS
                         
-   EF01    21 FA3E              LXI     H,APB0+(FLAG-ATABLE) ;POINT TO FLAG
+   EF01    21 FA74              LXI     H,APB0+(FLAG-ATABLE) ;POINT TO FLAG
                         
    EF04    77           LOOP1:  MOV     M,A             ;INVALIDATE ALL FLOPPY DISK
    EF05    19                   DAD     D               ;APBS BY CLEARING FLAGS
    EF06    10FC                 DJNZ    LOOP1
                         
    EF08    3D                   DCR     A
-   EF09    32 F9F1              STA     OLDFLO          ;FORCE HEAD UNLOAD/LOAD
-   EF0C    32 F9F0              STA     ADISK           ;INVALIDATE ATABLE
+   EF09    32 FA27              STA     OLDFLO          ;FORCE HEAD UNLOAD/LOAD
+   EF0C    32 FA26              STA     ADISK           ;INVALIDATE ATABLE
    EF0F    C9                   RET
                         
                         ;********************************************************
@@ -666,38 +666,38 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   EF16    D2 EFF7              JNC     BAD             ;NO
-   EF19    32 FA1B              STA     SEKDSK          ;D.R. HOST DISK
-   EF1C    32 F9E3              STA     PDISK
+   EF16    D2 EFFA              JNC     BAD             ;NO
+   EF19    32 FA51              STA     SEKDSK          ;D.R. HOST DISK
+   EF1C    32 FA19              STA     PDISK
                         
    EF1F    D5                   PUSH    D               ;SAVE DISK RESET FLAG
                         
    EF20    69                   MOV     L,C             ;GET APB, DPH ADDRESSES
-   EF21    CD F4A6              CALL    GETDPH          ;GET RAM LOCATION FOR DPH
-   EF24    ED53 F9F6            SDED    APBADR          ;SAVE APB ADDRESS
-   EF28    22 F9F4              SHLD    DPHADR          ;SAVE DPH ADDRESS
-   EF2B    CD F470              CALL    GETAPB          ;GET ATABLE FOR THIS DISK
+   EF21    CD F4B4              CALL    GETDPH          ;GET RAM LOCATION FOR DPH
+   EF24    ED53 FA2C            SDED    APBADR          ;SAVE APB ADDRESS
+   EF28    22 FA2A              SHLD    DPHADR          ;SAVE DPH ADDRESS
+   EF2B    CD F47E              CALL    GETAPB          ;GET ATABLE FOR THIS DISK
                         
    EF2E    D1                   POP     D
    EF2F    CB43                 BIT     0,E
    EF31    2807                 JRZ     FRST            ;MAY HAVE BEEN RESET
                         
-   EF33    3A FA2A              LDA     FLAG
+   EF33    3A FA60              LDA     FLAG
    EF36    B7                   ORA     A               ;DDB PROCESSED(y/n)
    EF37    C2 EFF0              JNZ     OK              ;YES
                         
    EF3A                 FRST:
-   EF3A    CD F12C              CALL    CLOSE           ;ELSE CLEAR ANY PENDING WRITE
+   EF3A    CD F12F              CALL    CLOSE           ;ELSE CLEAR ANY PENDING WRITE
                                                         ;AND READ DDB FROM DISK
                         
    EF3D    AF                   XRA     A               ;WE WILL READ FROM TRACK 0
-   EF3E    32 F9E4              STA     PTRACK
+   EF3E    32 FA1A              STA     PTRACK
    EF41    3E08                 MVI     A,8             ;AND SECTOR 8
-   EF43    32 F9E6              STA     PSECT
-   EF46    21 F5DD              LXI     H,RDBUFF        ;INTO THE READ BUFFER
-   EF49    22 F9E8              SHLD    PDMA
+   EF43    32 FA1C              STA     PSECT
+   EF46    21 F613              LXI     H,RDBUFF        ;INTO THE READ BUFFER
+   EF49    22 FA1E              SHLD    PDMA
                         
-   EF4C    3A F9E3              LDA     PDISK           ;GET DISK NUMBER
+   EF4C    3A FA19              LDA     PDISK           ;GET DISK NUMBER
    EF4F    21 EE33              LXI     H,SPDTAB        ;POINT TO STEP SPEED TABLE
    EF52    5F                   MOV     E,A
    EF53    1600                 MVI     D,0
@@ -707,7 +707,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    EF58    E603                 ANI     3               ;ISOLATE SPEED BITS
    EF5A    67                   MOV     H,A             ;PUT IN H FOR DOUBLE STORE NEXT
    EF5B    2EFF                 MVI     L,0FFH          ;CURRENT TRACK - UNKNOWN
-   EF5D    22 FA28              SHLD    TRACK           ;UPDATE ATABLE TRACK AND SPEED
+   EF5D    22 FA5E              SHLD    TRACK           ;UPDATE ATABLE TRACK AND SPEED
                         
                         
                         ;********************************************************
@@ -715,7 +715,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         
    EF60    3E01                 MVI     A,00000001B     ;INITIAL FLAG FOR 8" DRIVE
-   EF62    21 F585              LXI     H,STDDDB        ;STANDARD 8" DDB ADDRESS
+   EF62    21 F5BB              LXI     H,STDDDB        ;STANDARD 8" DDB ADDRESS
                         
                         
                         ;TEST IF 5" OR 8" DISK IN SPEED TABLE
@@ -734,18 +734,18 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
    EF67    2805                 JRZ     EIG             ;IF YES GO DO 8"
    EF69    3E15                 MVI     A,00010101B     ;INITIAL 5" FLAG
-   EF6B    21 F5B5              LXI     H,ALTDDB
+   EF6B    21 F5EB              LXI     H,ALTDDB
                         
-   EF6E    32 FA2A      EIG:    STA     FLAG
-   EF71    22 F9FB              SHLD    SAVADR
+   EF6E    32 FA60      EIG:    STA     FLAG
+   EF71    22 FA31              SHLD    SAVADR
                         
    EF74    21 0001              LXI     H,1             ;AT LEAST 1 SYSTEM TRACK
-   EF77    22 FA2B              SHLD    OFF
+   EF77    22 FA61              SHLD    OFF
    EF7A    21 2002              LXI     H,2+32 < 8      ;512 BYTE SECTOR & 32 LOGICAL SECTORS
-   EF7D    22 FA2D              SHLD    SSLEN
+   EF7D    22 FA63              SHLD    SSLEN
                         
-   EF80    CD F32C              CALL    GETD3S          ;GET Z3S CTRL BYTES INTO ATABLE
-   EF83    CD F1BB              CALL    PREAD           ;GET THE DDB
+   EF80    CD F32B              CALL    GETD3S          ;GET Z3S CTRL BYTES INTO ATABLE
+   EF83    CD F1BE              CALL    PREAD           ;GET THE DDB
    EF86    301F                 JRNC    YUP             ;WE GOT SOMETHING
                         
                         
@@ -755,7 +755,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         
    EF88    CB67                 BIT     WBRNF,A         ;RNF ERROR(y/n)
-   EF8A    2868                 JRZ     ERR             ;NOPE, GIVE UP
+   EF8A    286B                 JRZ     ERR             ;NOPE, GIVE UP
                         
                         
                         ;********************************************************
@@ -763,29 +763,29 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         
    EF8C                 NOV:
-   EF8C    CD F4C2              CALL    MSG     ;WARN THE USER AND
+   EF8C    CD F4F8              CALL    MSG     ;WARN THE USER AND
    EF8F    0D0A                 .BYTE   CR,LF   ;   HOPE FOR THE BEST
    EF91    535444204469         .ASCIS  \STD Disk?\
-   EF9A    2A F9FB              LHLD    SAVADR  ;POINT TO STANDARD DDB
+   EF9A    2A FA31              LHLD    SAVADR  ;POINT TO STANDARD DDB
    EF9D    01 0076              LXI     B,128-10
-   EFA0    11 F767              LXI     D,RDBUFF+384+10
+   EFA0    11 F79D              LXI     D,RDBUFF+384+10
    EFA3    EDB0                 LDIR                    ;FIX RD BUFFER TO BE A STD DDB
    EFA5    1819                 JMPR    COMP
                         
-   EFA7    2A F75D      YUP:    LHLD    RDBUFF+384      ;GET VALIDITY BYTES FROM DDB
+   EFA7    2A F793      YUP:    LHLD    RDBUFF+384      ;GET VALIDITY BYTES FROM DDB
    EFAA    11 FDDD              LXI     D,0DDH+0FDH < 8 ;EXPECTED VALUE OF BYTES
    EFAD    B7                   ORA     A
    EFAE    ED52                 DSBC    D               ;DDB VALID(y/n)
    EFB0    20DA                 JRNZ    NOV             ;NOPE
-   EFB2    2A F75F              LHLD    RDBUFF+384+2    ;MORE VALIDITY BYTES
+   EFB2    2A F795              LHLD    RDBUFF+384+2    ;MORE VALIDITY BYTES
    EFB5    ED52                 DSBC    D               ;DDB VALID(y/n)
    EFB7    20D3                 JRNZ    NOV             ;NOPE
                         
-   EFB9    3A F761              LDA     RDBUFF+384+4    ;TEST FOR COMPATIBILITY
+   EFB9    3A F797              LDA     RDBUFF+384+4    ;TEST FOR COMPATIBILITY
    EFBC    E6FE                 ANI     11111110B
-   EFBE    2037                 JRNZ    BAD             ;GIVE UP ON THIS DISK
+   EFBE    203A                 JRNZ    BAD             ;GIVE UP ON THIS DISK
                         
-   EFC0    CD F467      COMP:   CALL    PUTAPB          ;UPDATE TRACK, SPEED IN APB
+   EFC0    CD F475      COMP:   CALL    PUTAPB          ;UPDATE TRACK, SPEED IN APB
                         
 
 
@@ -798,11 +798,11 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   EFC3    2A F9F6              LHLD    APBADR          ;GET APB ADDR FOR THIS DISK
+   EFC3    2A FA2C              LHLD    APBADR          ;GET APB ADDR FOR THIS DISK
    EFC6    11 000A              LXI     D,FLAG-ATABLE   ;POINT TO WHERE FLAG GOES
    EFC9    19                   DAD     D
    EFCA    EB                   XCHG                    ;MAKE THIS THE DESTINATION ADDR
-   EFCB    21 F767              LXI     H,RDBUFF+384+10 ;FROM FLAG IN RD BUFFER
+   EFCB    21 F79D              LXI     H,RDBUFF+384+10 ;FROM FLAG IN RD BUFFER
                         
    EFCE    01 006E              LXI     B,ALEN-(FLAG-ATABLE)+DPBLEN+TRALEN
                         
@@ -816,32 +816,33 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         
    EFD3                 GALV:
-   EFD3    3A F770              LDA     RDBUFF+384+19   ;GET DSM
+   EFD3    3A F7A6              LDA     RDBUFF+384+19   ;GET DSM
    EFD6    4F                   MOV     C,A             ;SAVE VALUE
-   EFD7    3A FA1B              LDA     SEKDSK
+   EFD7    3A FA51              LDA     SEKDSK
    EFDA    5F                   MOV     E,A
    EFDB    1600                 MVI     D,0
-   EFDD    21 FA05              LXI     H,ALOCSZ
+   EFDD    21 FA3B              LXI     H,ALOCSZ
    EFE0    19                   DAD     D
    EFE1    71                   MOV     M,C             ;SAVE FOR THIS DISK
                         
    EFE2    3EFF                 MVI     A,0FFH          ;UPDATE ATABLE FROM APB
-   EFE4    32 F9F0              STA     ADISK
-   EFE7    CD F470              CALL    GETAPB
-   EFEA    CD F32C              CALL    GETD3S          ;PUT VALID Z3S BYTES IN ATABLE
-   EFED    CD F467              CALL    PUTAPB          ;UPDATE APB FROM FULLY VALID ATABLE
+   EFE4    32 FA26              STA     ADISK
+   EFE7    CD F47E              CALL    GETAPB
+   EFEA    CD F32B              CALL    GETD3S          ;PUT VALID Z3S BYTES IN ATABLE
+   EFED    CD F475              CALL    PUTAPB          ;UPDATE APB FROM FULLY VALID ATABLE
                         
-   EFF0    2A F9F4      OK:     LHLD    DPHADR          ;RETURN DPH ADDRESS
-   EFF3    C9                   RET
+   EFF0    CD F369      OK:     CALL    FHOME
+   EFF3    2A FA2A              LHLD    DPHADR          ;RETURN DPH ADDRESS
+   EFF6    C9                   RET
                         
-   EFF4                 ERR:
-   EFF4    CD F3C9              CALL    EPRINT          ;PRINT ERROR IN READING DDB
+   EFF7                 ERR:
+   EFF7    CD F3D7              CALL    EPRINT          ;PRINT ERROR IN READING DDB
                         
-   EFF7    AF           BAD:    XRA     A               ;DESELECT INVALID DRIVE
-   EFF8    32 0004              STA     CPMDSK
-   EFFB    67                   MOV     H,A             ;ERROR RETURN CODE
-   EFFC    6F                   MOV     L,A
-   EFFD    C9                   RET
+   EFFA    AF           BAD:    XRA     A               ;DESELECT INVALID DRIVE
+   EFFB    32 0004              STA     CPMDSK
+   EFFE    67                   MOV     H,A             ;ERROR RETURN CODE
+   EFFF    6F                   MOV     L,A
+   F000    C9                   RET
                         
                         
                         ;********************************************************
@@ -850,9 +851,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; DISKS.
                         ;********************************************************
                         
-   EFFE                 HOME:
-   EFFE    CD F12C              CALL    CLOSE
-   F001    3A FA15              LDA     HSTWRT          ;TEST FOR PENDING WRITE
+   F001                 HOME:
+   F001    CD F12F              CALL    CLOSE
 
 
 
@@ -864,27 +864,28 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F004    B7                   ORA     A
-   F005    2003                 JRNZ    HOMED
-   F007    32 FA14              STA     HSTACT          ;CLEAR HOST ACTIVE FLAG
-   F00A                 HOMED:
-   F00A    01 0000              LXI     B,0             ;DROP THRU TO SET TRACK TO 0
+   F004    3A FA4B              LDA     HSTWRT          ;TEST FOR PENDING WRITE
+   F007    B7                   ORA     A
+   F008    2003                 JRNZ    HOMED
+   F00A    32 FA4A              STA     HSTACT          ;CLEAR HOST ACTIVE FLAG
+   F00D                 HOMED:
+   F00D    01 0000              LXI     B,0             ;DROP THRU TO SET TRACK TO 0
                         
                         ;********************************************************
                         ; SET TRACK FOR FUTURE READS OR WRITES TO THAT PASSED
                         ; IN REGISTER PAIR BC.
                         ;********************************************************
                         
-   F00D    ED43 FA1C    SETTRK: SBCD    SEKTRK
-   F011    C9                   RET
+   F010    ED43 FA52    SETTRK: SBCD    SEKTRK
+   F014    C9                   RET
                         
                         ;********************************************************
                         ; SET SECTOR FOR FUTURE READS OR WRITES TO THAT PASSED
                         ; IN REGISTER PAIR BC.
                         ;********************************************************
                         
-   F012    ED43 F9DE    SETSEC: SBCD    SEKSEC
-   F016    C9                   RET
+   F015    ED43 FA14    SETSEC: SBCD    SEKSEC
+   F019    C9                   RET
                         
                         
                         ;********************************************************
@@ -892,8 +893,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; PASSED IN REGISTER PAIR BC.
                         ;********************************************************
                         
-   F017    ED43 F9E0    SETDMA: SBCD    DMAADD
-   F01B    C9                   RET
+   F01A    ED43 FA16    SETDMA: SBCD    DMAADD
+   F01E    C9                   RET
                         
                         
                         ;********************************************************
@@ -903,22 +904,21 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; TRANSLATION.
                         ;********************************************************
                         
-   F01C                 SECTRA:
+   F01F                 SECTRA:
                         
-   F01C    EB           YUP1:   XCHG                    ;HL GETS TRANS TABLE ADDRESS
+   F01F    EB           YUP1:   XCHG                    ;HL GETS TRANS TABLE ADDRESS
                                                         ;CP/M PASSED IT IN DE
-   F01D    79                   MOV     A,C             ;GET SECTOR #
-   F01E    ED43 FA10            SBCD    NEWSEC          ;SAVE FOR UNALLOC TEST
-   F022    09                   DAD     B               ;INDEX INTO TABLE, LOGICAL SECTOR
+   F020    79                   MOV     A,C             ;GET SECTOR #
+   F021    ED43 FA46            SBCD    NEWSEC          ;SAVE FOR UNALLOC TEST
+   F025    09                   DAD     B               ;INDEX INTO TABLE, LOGICAL SECTOR
                                                         ;IS PASSED IN BC
-   F023    6E                   MOV     L,M             ;GET THE TRANSLATED BYTE
-   F024    2600                 MVI     H,0
-   F026    C9                   RET
+   F026    6E                   MOV     L,M             ;GET THE TRANSLATED BYTE
+   F027    2600                 MVI     H,0
+   F029    C9                   RET
                         
                         ;********************************************************
                         ; CP/M ENTRY POINT FOR SECTOR READS. BUFFERED SECTOR
                         ; READS ARE DONE HERE. BUFFERED READ OPERATIONS REQUIRE
-                        ; READING THE SECTOR FROM DISK INTO THE READ BUFFER,
 
 
 
@@ -930,22 +930,23 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ; READING THE SECTOR FROM DISK INTO THE READ BUFFER,
                         ; AND THEN PROVIDING 128 BYTE LOGICAL SECTORS TO THE
                         ; CALLING PROGRAM ON REQUEST.
                         ;********************************************************
                         
-   F027                 READ:
+   F02A                 READ:
                         
-   F027    AF                   XRA     A
-   F028    32 FA0A              STA     UNACNT          ;UNACNT=0, WE WON'T WRITE WITHOUT
+   F02A    AF                   XRA     A
+   F02B    32 FA40              STA     UNACNT          ;UNACNT=0, WE WON'T WRITE WITHOUT
                                                         ;PRE-READS FOR NOW
-   F02B    3C                   INR     A       
-   F02C    32 FA13              STA     READOP          ;SHOW WE ARE DOING A READ OPERATION
-   F02F    32 FA12              STA     RSFLAG          ;MUST READ DATA
-   F032    3E02                 MVI     A,2
-   F034    32 F9F8              STA     WRTYPE          ;TREAT AS UNALLOCATED
+   F02E    3C                   INR     A       
+   F02F    32 FA49              STA     READOP          ;SHOW WE ARE DOING A READ OPERATION
+   F032    32 FA48              STA     RSFLAG          ;MUST READ DATA
+   F035    3E02                 MVI     A,2
+   F037    32 FA2E              STA     WRTYPE          ;TREAT AS UNALLOCATED
                         
-   F037    C3 F0A3              JMP     RWOPER          ;DO THE READ
+   F03A    C3 F0A6              JMP     RWOPER          ;DO THE READ
                         
                         
                         ;********************************************************
@@ -959,32 +960,31 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         
                         
-   F03A                 WRITE:
+   F03D                 WRITE:
                         
-   F03A    AF                   XRA     A
-   F03B    32 FA13              STA     READOP          ;SET TO WRITE
+   F03D    AF                   XRA     A
+   F03E    32 FA49              STA     READOP          ;SET TO WRITE
                         
-   F03E    79                   MOV     A,C
-   F03F    32 F9F8              STA     WRTYPE          ;SAVE TYPE OF WRITE
+   F041    79                   MOV     A,C
+   F042    32 FA2E              STA     WRTYPE          ;SAVE TYPE OF WRITE
                         
-   F042    FE02                 CPI     2               ;WRITE UNALLOCATED(y/n)
-   F044    2018                 JRNZ    CKUN            ;GO SEE IF O.K. ANYWAY
+   F045    FE02                 CPI     2               ;WRITE UNALLOCATED(y/n)
+   F047    2018                 JRNZ    CKUN            ;GO SEE IF O.K. ANYWAY
                         
-   F046    3A FA09              LDA     ALOCA           ;GET MAXIMUM UNALLOCATED RECORD COUNT
-   F049    32 FA0A              STA     UNACNT          ;AND PUT HERE FOR WRITING
-   F04C    3A FA1B              LDA     SEKDSK          ;GET CURRENT DISK
-   F04F    32 FA0B              STA     UNADSK
-   F052    2A FA1C              LHLD    SEKTRK          ;GET CURRENT TRACK
-   F055    22 FA0C              SHLD    UNATRK
-   F058    3A FA10              LDA     NEWSEC          ;GET CURRENT CP/M SECTOR
-   F05B    32 FA0E              STA     UNASEC
+   F049    3A FA3F              LDA     ALOCA           ;GET MAXIMUM UNALLOCATED RECORD COUNT
+   F04C    32 FA40              STA     UNACNT          ;AND PUT HERE FOR WRITING
+   F04F    3A FA51              LDA     SEKDSK          ;GET CURRENT DISK
+   F052    32 FA41              STA     UNADSK
+   F055    2A FA52              LHLD    SEKTRK          ;GET CURRENT TRACK
+   F058    22 FA42              SHLD    UNATRK
+   F05B    3A FA46              LDA     NEWSEC          ;GET CURRENT CP/M SECTOR
+   F05E    32 FA44              STA     UNASEC
                         
-   F05E                 CKUN:                           ;SEE IF UNALLOCATED RECORDS REMAIN
+   F061                 CKUN:                           ;SEE IF UNALLOCATED RECORDS REMAIN
                         
-   F05E    3A FA0A              LDA     UNACNT          ;GET UNALLOCATED RECORDS LEFT
-   F061    B7                   ORA     A
-   F062    CA F09B              JZ      ALOC            ;NO UNALLOCATED LEFT
-                        
+   F061    3A FA40              LDA     UNACNT          ;GET UNALLOCATED RECORDS LEFT
+   F064    B7                   ORA     A
+   F065    CA F09E              JZ      ALOC            ;NO UNALLOCATED LEFT
 
 
 
@@ -997,60 +997,60 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
                         
+                        
                         ;WE STILL HAVE UNALLOCATED RECORDS LEFT
                         
-   F065    3D                   DCR     A               ;UPDATE UNALLOCATED RECORD COUNT
-   F066    32 FA0A              STA     UNACNT
+   F068    3D                   DCR     A               ;UPDATE UNALLOCATED RECORD COUNT
+   F069    32 FA40              STA     UNACNT
                         
                         
                         ;NOW CHECK FOR CORRECT DISK, TRACK & SECTOR
                         
-   F069    3A FA1B              LDA     SEKDSK          ;COMPARE DISKS FIRST
-   F06C    21 FA0B              LXI     H,UNADSK
-   F06F    BE                   CMP     M
-   F070    C2 F09B              JNZ     ALOC
+   F06C    3A FA51              LDA     SEKDSK          ;COMPARE DISKS FIRST
+   F06F    21 FA41              LXI     H,UNADSK
+   F072    BE                   CMP     M
+   F073    C2 F09E              JNZ     ALOC
                         
                         
                         ;DISKS ARE SAME, NOW CHECK FOR TRACK
                         
-   F073    21 FA0C              LXI     H,UNATRK
-   F076    3A FA1C              LDA     SEKTRK
-   F079    BE                   CMP     M
-   F07A    201F                 JRNZ    ALOC
+   F076    21 FA42              LXI     H,UNATRK
+   F079    3A FA52              LDA     SEKTRK
+   F07C    BE                   CMP     M
+   F07D    201F                 JRNZ    ALOC
                         
                         
                         ;TRACKS ARE SAME, NOW TEST FOR SECTOR
                         
-   F07C    3A FA10              LDA     NEWSEC          ;COMPARE SECTORS NOW
-   F07F    21 FA0E              LXI     H,UNASEC
-   F082    BE                   CMP     M
-   F083    2016                 JRNZ    ALOC
+   F07F    3A FA46              LDA     NEWSEC          ;COMPARE SECTORS NOW
+   F082    21 FA44              LXI     H,UNASEC
+   F085    BE                   CMP     M
+   F086    2016                 JRNZ    ALOC
                         
                         
                         ;SECTORS ARE SAME, NOW UPDATE PARAMETERS
                         
-   F085    34                   INR     M               ;MAKE NEXT EXPECTED SECTOR
-   F086    7E                   MOV     A,M             ;GET NEXT EXPECTED SECTOR
-   F087    21 FA30              LXI     H,ULRPS         ;POINT TO SECTORS/USER TRACK
-   F08A    BE                   CMP     M               ;TEST FOR END OF TRACK
-   F08B    3808                 JRC     NOVR            ;NO OVERFLOW
+   F088    34                   INR     M               ;MAKE NEXT EXPECTED SECTOR
+   F089    7E                   MOV     A,M             ;GET NEXT EXPECTED SECTOR
+   F08A    21 FA66              LXI     H,ULRPS         ;POINT TO SECTORS/USER TRACK
+   F08D    BE                   CMP     M               ;TEST FOR END OF TRACK
+   F08E    3808                 JRC     NOVR            ;NO OVERFLOW
                         
                         
                         ;HERE WE ALLOW FOR NEXT UNALLOCATED RECORD ON A NEW TRACK
                         
-   F08D    AF                   XRA     A               ;SET SECTOR AS FIRST
-   F08E    32 FA0E              STA     UNASEC
-   F091    21 FA0C              LXI     H,UNATRK        ;POINT TO UNALLOCATED TRACK #
-   F094    34                   INR     M               ;MAKE IT NEXT ONE
+   F090    AF                   XRA     A               ;SET SECTOR AS FIRST
+   F091    32 FA44              STA     UNASEC
+   F094    21 FA42              LXI     H,UNATRK        ;POINT TO UNALLOCATED TRACK #
+   F097    34                   INR     M               ;MAKE IT NEXT ONE
                         
                         
                         ;WRITE PARAMETERS MATCH, DON'T PRE-READ
                         
-   F095                 NOVR:
-   F095    AF                   XRA     A
-   F096    32 FA12              STA     RSFLAG          ;SHOW WE DON'T READ A SECTOR
-   F099    1808                 JMPR    RWOPER
-                        
+   F098                 NOVR:
+   F098    AF                   XRA     A
+   F099    32 FA48              STA     RSFLAG          ;SHOW WE DON'T READ A SECTOR
+   F09C    1808                 JMPR    RWOPER
 
 
 
@@ -1063,26 +1063,27 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
                         
+                        
                         ;NOT AN UNALLOCATED RECORD, DO A PRE-READ
                         
-   F09B                 ALOC:
-   F09B    AF                   XRA     A
-   F09C    32 FA0A              STA     UNACNT          ;SET UNALLOCATED = 0
-   F09F    3C                   INR     A
-   F0A0    32 FA12              STA     RSFLAG          ;RSFLAG = 1, WE MUST READ THE SECTOR
+   F09E                 ALOC:
+   F09E    AF                   XRA     A
+   F09F    32 FA40              STA     UNACNT          ;SET UNALLOCATED = 0
+   F0A2    3C                   INR     A
+   F0A3    32 FA48              STA     RSFLAG          ;RSFLAG = 1, WE MUST READ THE SECTOR
                         
                         
                         ;DO READ OR WRITE OPERATION NEXT
                         
-   F0A3                 RWOPER:
+   F0A6                 RWOPER:
                         
-   F0A3    CD F16C              CALL    GETTRK          ;COMPUTE PHYSICAL TRACK & SECTOR
+   F0A6    CD F16F              CALL    GETTRK          ;COMPUTE PHYSICAL TRACK & SECTOR
                         
-   F0A6    21 FA14              LXI     H,HSTACT        ;GET HOST ACTIVE FLAG
-   F0A9    7E                   MOV     A,M     
-   F0AA    3601                 MVI     M,1             ;SET IT ACTIVE FOR SURE
-   F0AC    B7                   ORA     A               ;SEE IF IT WAS ACTIVE
-   F0AD    CA F0D2              JZ      FILHST          ;IF NOT FILL IT
+   F0A9    21 FA4A              LXI     H,HSTACT        ;GET HOST ACTIVE FLAG
+   F0AC    7E                   MOV     A,M     
+   F0AD    3601                 MVI     M,1             ;SET IT ACTIVE FOR SURE
+   F0AF    B7                   ORA     A               ;SEE IF IT WAS ACTIVE
+   F0B0    CA F0D5              JZ      FILHST          ;IF NOT FILL IT
                                 
                         
                         ;********************************************************
@@ -1093,30 +1094,29 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         ;SEE IF DISKS ARE SAME
                         
-   F0B0    3A FA1B              LDA     SEKDSK          ;COMPARE DISKS FIRST
-   F0B3    21 FA16              LXI     H,HSTDSK
-   F0B6    BE                   CMP     M
-   F0B7    2012                 JRNZ    NOMAT
+   F0B3    3A FA51              LDA     SEKDSK          ;COMPARE DISKS FIRST
+   F0B6    21 FA4C              LXI     H,HSTDSK
+   F0B9    BE                   CMP     M
+   F0BA    2012                 JRNZ    NOMAT
                         
                         
                         ;SEE IF TRACKS ARE SAME
                         
-   F0B9    21 FA17              LXI     H,HSTTRK
-   F0BC    3A F9EA              LDA     CTRACK
-   F0BF    BE                   CMP     M
-   F0C0    2009                 JRNZ    NOMAT
+   F0BC    21 FA4D              LXI     H,HSTTRK
+   F0BF    3A FA20              LDA     CTRACK
+   F0C2    BE                   CMP     M
+   F0C3    2009                 JRNZ    NOMAT
                         
                         
                         ;SEE IF SECTORS ARE SAME
                         
-   F0C2    3A FA1E              LDA     SEKHST          ;COMPARE SECTORS NOW
-   F0C5    21 FA19              LXI     H,HSTSEC
-   F0C8    BE                   CMP     M
-   F0C9    2824                 JRZ     MATCH
+   F0C5    3A FA54              LDA     SEKHST          ;COMPARE SECTORS NOW
+   F0C8    21 FA4F              LXI     H,HSTSEC
+   F0CB    BE                   CMP     M
+   F0CC    2824                 JRZ     MATCH
                         
                         
                         ;HOST PARAMETERS DO NOT MATCH CURRENT R/W PARAMETERS
-                        ;SEE IF WE HAVE TO FLUSH THE HOST BUFFER
 
 
 
@@ -1128,61 +1128,61 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ;SEE IF WE HAVE TO FLUSH THE HOST BUFFER
                         
-   F0CB                 NOMAT:
-   F0CB    3A FA15              LDA     HSTWRT          ;SEE IF HOST BUFFER WAS WRITTEN
-   F0CE    B7                   ORA     A
-   F0CF    C4 F131              CNZ     FLUSH           ;WRITE OUT THE BUFFER IF NOT
+   F0CE                 NOMAT:
+   F0CE    3A FA4B              LDA     HSTWRT          ;SEE IF HOST BUFFER WAS WRITTEN
+   F0D1    B7                   ORA     A
+   F0D2    C4 F134              CNZ     FLUSH           ;WRITE OUT THE BUFFER IF NOT
                         
                         
                         ;MAY HAVE TO FILL HOST BUFFER
                         ;SEET UP NEW PARAMETERS
                         
-   F0D2                 FILHST:
+   F0D5                 FILHST:
                         
-   F0D2    3A FA1B              LDA     SEKDSK
-   F0D5    32 FA16              STA     HSTDSK
-   F0D8    2A F9EA              LHLD    CTRACK
-   F0DB    22 FA17              SHLD    HSTTRK
-   F0DE    3A FA1E              LDA     SEKHST          ;THE PHYSICAL SECTOR
-   F0E1    32 FA19              STA     HSTSEC
+   F0D5    3A FA51              LDA     SEKDSK
+   F0D8    32 FA4C              STA     HSTDSK
+   F0DB    2A FA20              LHLD    CTRACK
+   F0DE    22 FA4D              SHLD    HSTTRK
+   F0E1    3A FA54              LDA     SEKHST          ;THE PHYSICAL SECTOR
+   F0E4    32 FA4F              STA     HSTSEC
                         
-   F0E4    3A FA12              LDA     RSFLAG          ;SEE IF WE NEED TO READ
-   F0E7    B7                   ORA     A
-   F0E8    C4 F150              CNZ     RDHST           ;IF SO READ IT
-   F0EB    AF                   XRA     A
-   F0EC    32 FA15              STA     HSTWRT          ;SHOW NO PENDING WRITE
+   F0E7    3A FA48              LDA     RSFLAG          ;SEE IF WE NEED TO READ
+   F0EA    B7                   ORA     A
+   F0EB    C4 F153              CNZ     RDHST           ;IF SO READ IT
+   F0EE    AF                   XRA     A
+   F0EF    32 FA4B              STA     HSTWRT          ;SHOW NO PENDING WRITE
                         
                         ;WE HAVE CORRECT SECTOR SO COPY DATA TO/FROM DMA BUFFER
                         
-   F0EF                 MATCH:
+   F0F2                 MATCH:
                         
-   F0EF    3A F9E2              LDA     CREC            ;GET RECORD #
-   F0F2    47                   MOV     B,A             ;COMPUTE RECORD IN HOST BUFFER
-   F0F3    0E00                 MVI     C,0
-   F0F5    CB38                 SRLR    B
-   F0F7    CB19                 RARR    C
-   F0F9    21 F5DD              LXI     H,HSTBUF
-   F0FC    09                   DAD     B               ;HL IS NOW HOST BUFFER
-   F0FD    ED5B F9E0            LDED    DMAADD          ;DE HAS DMA ADDRESS
-   F101    01 0080              LXI     B,128           ;BYTES TO MOVE
-   F104    3A FA13              LDA     READOP
-   F107    B7                   ORA     A               ;SEE IF WE ARE READING OR WRITING
-   F108    2009                 JRNZ    RWMOVE          ;SKIP ON READ
-   F10A    3E01                 MVI     A,1             ;IF A WRITE THEN MARK & COPY TO BUFFER
-   F10C    32 FA15              STA     HSTWRT          ;HSTWRT = 1
-   F10F    EB                   XCHG                    ;DE IS NOW DESTINATION,= HOST ON WRITE
-   F110    2A F9E0              LHLD    DMAADD          ;HL IS SOURCE, = USER AREA TO GET       
+   F0F2    3A FA18              LDA     CREC            ;GET RECORD #
+   F0F5    47                   MOV     B,A             ;COMPUTE RECORD IN HOST BUFFER
+   F0F6    0E00                 MVI     C,0
+   F0F8    CB38                 SRLR    B
+   F0FA    CB19                 RARR    C
+   F0FC    21 F613              LXI     H,HSTBUF
+   F0FF    09                   DAD     B               ;HL IS NOW HOST BUFFER
+   F100    ED5B FA16            LDED    DMAADD          ;DE HAS DMA ADDRESS
+   F104    01 0080              LXI     B,128           ;BYTES TO MOVE
+   F107    3A FA49              LDA     READOP
+   F10A    B7                   ORA     A               ;SEE IF WE ARE READING OR WRITING
+   F10B    2009                 JRNZ    RWMOVE          ;SKIP ON READ
+   F10D    3E01                 MVI     A,1             ;IF A WRITE THEN MARK & COPY TO BUFFER
+   F10F    32 FA4B              STA     HSTWRT          ;HSTWRT = 1
+   F112    EB                   XCHG                    ;DE IS NOW DESTINATION,= HOST ON WRITE
+   F113    2A FA16              LHLD    DMAADD          ;HL IS SOURCE, = USER AREA TO GET       
                         
-   F113                 RWMOVE:
+   F116                 RWMOVE:
                                 
-   F113    EDB0                 LDIR                    ;MOVE DATA
+   F116    EDB0                 LDIR                    ;MOVE DATA
                         
                         
                         ;NOW CHECK WRITE TYPE FOR DIRECTORY UPDATE
                         
-   F115    3A F9F8              LDA     WRTYPE          ;GET TYPE OF WRITE
-   F118    3D                   DCR     A               ;IS IT TO THE DIRECTORY
+   F118    3A FA2E              LDA     WRTYPE          ;GET TYPE OF WRITE
 
 
 
@@ -1194,61 +1194,61 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F119    2802                 JRZ     WRITIT          ;IF SO WRITE IT OUT
+   F11B    3D                   DCR     A               ;IS IT TO THE DIRECTORY
+   F11C    2802                 JRZ     WRITIT          ;IF SO WRITE IT OUT
                         
-   F11B    1806                 JMPR    GOODOP          ;IF NOT SHOW A SUCCESSFUL R/W OPERATION 
+   F11E    1806                 JMPR    GOODOP          ;IF NOT SHOW A SUCCESSFUL R/W OPERATION 
                         
                         
                         ;CLEAR HOST BUFFER FOR DIRECTORY WRITE
                         
-   F11D                 WRITIT:
+   F120                 WRITIT:
                         
-   F11D    32 FA15              STA     HSTWRT
-   F120    CD F131              CALL    WRTHST
+   F120    32 FA4B              STA     HSTWRT
+   F123    CD F134              CALL    WRTHST
                                 
-   F123                 GOODOP:
-   F123    3A F9FD              LDA     MRML            ;GET RETRY BYTE
-   F126    B7                   ORA     A               ;TEST FOR ZERO
-   F127    3E01                 MVI     A,1             ;JUST IN CASE OF FAILURE
-   F129    C8                   RZ                      ;IF FAILED SHOW IT TO BDOS
-   F12A    AF                   XRA     A               ;ELSE SET AS O.K.
-   F12B    C9                   RET                     ;SHOW BDOS SUCCESSFUL READ/WRITE
+   F126                 GOODOP:
+   F126    3A FA33              LDA     MRML            ;GET RETRY BYTE
+   F129    B7                   ORA     A               ;TEST FOR ZERO
+   F12A    3E01                 MVI     A,1             ;JUST IN CASE OF FAILURE
+   F12C    C8                   RZ                      ;IF FAILED SHOW IT TO BDOS
+   F12D    AF                   XRA     A               ;ELSE SET AS O.K.
+   F12E    C9                   RET                     ;SHOW BDOS SUCCESSFUL READ/WRITE
                         
-   F12C                 CLOSE:
-   F12C    3A FA15              LDA     HSTWRT          ;SEE IF WE HAVE A PENDING WRITE
-   F12F    B7                   ORA     A
-   F130    C8                   RZ                      ;IF NOT RETURN NOW
+   F12F                 CLOSE:
+   F12F    3A FA4B              LDA     HSTWRT          ;SEE IF WE HAVE A PENDING WRITE
+   F132    B7                   ORA     A
+   F133    C8                   RZ                      ;IF NOT RETURN NOW
                         
                         ;WRITE FROM THE HOST BUFFER
                         
-   F131                 FLUSH:
-   F131                 WRTHST:
-   F131    3A FA16              LDA     HSTDSK          ;GET ACTUAL WRITE DISK
-   F134    32 F9E3              STA     PDISK           ;MAKE IT THE PHYSICAL DISK
-   F137    CD F470              CALL    GETAPB          ;GET APB FOR THE DISK
-   F13A    3A FA19              LDA     HSTSEC
-   F13D    32 F9E6              STA     PSECT
-   F140    3A FA17              LDA     HSTTRK
-   F143    32 F9E4              STA     PTRACK
-   F146    21 F5DD              LXI     H,WRBUFF        ;POINT TO WRITE BUFFER
-   F149    22 F9E8              SHLD    PDMA            ;MAKE IT THE PHYSICAL DMA ADDRESS
+   F134                 FLUSH:
+   F134                 WRTHST:
+   F134    3A FA4C              LDA     HSTDSK          ;GET ACTUAL WRITE DISK
+   F137    32 FA19              STA     PDISK           ;MAKE IT THE PHYSICAL DISK
+   F13A    CD F47E              CALL    GETAPB          ;GET APB FOR THE DISK
+   F13D    3A FA4F              LDA     HSTSEC
+   F140    32 FA1C              STA     PSECT
+   F143    3A FA4D              LDA     HSTTRK
+   F146    32 FA1A              STA     PTRACK
+   F149    21 F613              LXI     H,WRBUFF        ;POINT TO WRITE BUFFER
+   F14C    22 FA1E              SHLD    PDMA            ;MAKE IT THE PHYSICAL DMA ADDRESS
                                 
-   F14C    CD F1B7              CALL    PWRITE          ;WRITE BACK THE COMBINED SECTOR
-   F14F    C9                   RET
+   F14F    CD F1BA              CALL    PWRITE          ;WRITE BACK THE COMBINED SECTOR
+   F152    C9                   RET
                         
-   F150                 RDHST:
-   F150    3A FA16              LDA     HSTDSK
-   F153    32 F9E3              STA     PDISK
-   F156    21 F5DD              LXI     H,RDBUFF        ;POINT TO READ BUFFER
-   F159    22 F9E8              SHLD    PDMA            ;MAKE IT PHYSICAL DMA ADDRESS
-   F15C    3A F9EA              LDA     CTRACK
-   F15F    32 F9E4              STA     PTRACK
-   F162    3A F9EC              LDA     CSECT
-   F165    32 F9E6              STA     PSECT
+   F153                 RDHST:
+   F153    3A FA4C              LDA     HSTDSK
+   F156    32 FA19              STA     PDISK
+   F159    21 F613              LXI     H,RDBUFF        ;POINT TO READ BUFFER
+   F15C    22 FA1E              SHLD    PDMA            ;MAKE IT PHYSICAL DMA ADDRESS
+   F15F    3A FA20              LDA     CTRACK
+   F162    32 FA1A              STA     PTRACK
+   F165    3A FA22              LDA     CSECT
+   F168    32 FA1C              STA     PSECT
                         
-   F168    CD F1BB              CALL    PREAD           ;READ SECTOR INTO READ BUFFER
-   F16B    C9                   RET
-                        
+   F16B    CD F1BE              CALL    PREAD           ;READ SECTOR INTO READ BUFFER
+   F16E    C9                   RET
 
 
 
@@ -1261,60 +1261,60 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
                         
+                        
                         ;GET ACTUAL TRACK TO SEEK
                         
-   F16C                 GETTRK:
-   F16C    3A FA1C              LDA     SEKTRK          ;GET CP/M TRACK NUMBER
-   F16F    21 FA2B              LXI     H,OFF           ;GET NUMBER OF SYSTEM TRACKS
-   F172    5E                   MOV     E,M
-   F173    0E00                 MVI     C,0             ;ASSUME SINGLE SIDED DISK
-   F175    21 FA2D              LXI     H,SSLEN         ;POINT TO SYSTEM SECTOR LENGTH
-   F178    BB                   CMP     E
-   F179    380F                 JRC     SYST            ;IT WAS A SYSTEM TRACK
-   F17B    21 FA2A              LXI     H,FLAG          ;POINT TO FLAG BYTE
-   F17E    CB4E                 BIT     1,M             ;TEST SIDES BIT
-   F180    2805                 JRZ     SING            ;SINGLE SIDED DISK
-   F182    83                   ADD     E               ;ADD IN OFFSET
-   F183    CB3F                 SRLR    A               ;COMPUTE PHYSICAL TRACK NUMBER
-   F185    CB19                 RARR    C               ;GET SIDE NUMBER BIT
-   F187    21 FA2F      SING:   LXI     H,USLEN
-   F18A                 SYST:
-   F18A    32 F9EA              STA     CTRACK          ;SAVE ACTUAL TRACK NUMBER
+   F16F                 GETTRK:
+   F16F    3A FA52              LDA     SEKTRK          ;GET CP/M TRACK NUMBER
+   F172    21 FA61              LXI     H,OFF           ;GET NUMBER OF SYSTEM TRACKS
+   F175    5E                   MOV     E,M
+   F176    0E00                 MVI     C,0             ;ASSUME SINGLE SIDED DISK
+   F178    21 FA63              LXI     H,SSLEN         ;POINT TO SYSTEM SECTOR LENGTH
+   F17B    BB                   CMP     E
+   F17C    380F                 JRC     SYST            ;IT WAS A SYSTEM TRACK
+   F17E    21 FA60              LXI     H,FLAG          ;POINT TO FLAG BYTE
+   F181    CB4E                 BIT     1,M             ;TEST SIDES BIT
+   F183    2805                 JRZ     SING            ;SINGLE SIDED DISK
+   F185    83                   ADD     E               ;ADD IN OFFSET
+   F186    CB3F                 SRLR    A               ;COMPUTE PHYSICAL TRACK NUMBER
+   F188    CB19                 RARR    C               ;GET SIDE NUMBER BIT
+   F18A    21 FA65      SING:   LXI     H,USLEN
+   F18D                 SYST:
+   F18D    32 FA20              STA     CTRACK          ;SAVE ACTUAL TRACK NUMBER
                                         
                         
                         ;GET ACTUAL SECTOR TO READ/WRITE
                         
-   F18D                 PYSEC:
-   F18D    7E                   MOV     A,M             ;GET LENGTH BYTE
-   F18E    47                   MOV     B,A
-   F18F    FE03                 CPI     3
-   F191    2004                 JRNZ    LRG
-   F193    2607                 MVI     H,7
-   F195    1806                 JMPR    GSEC
-   F197    FE02         LRG:    CPI     2               ;512 BYTE SECTOR(y/n)
-   F199    2001                 JRNZ    NO              ;NOPE, ACC HAS RECORD MASK
-   F19B    3C                   INR     A               ;FIND MASK FOR 512 BYTE SECTOR
-   F19C    67           NO:     MOV     H,A             ;SAVE RECORD MASK
+   F190                 PYSEC:
+   F190    7E                   MOV     A,M             ;GET LENGTH BYTE
+   F191    47                   MOV     B,A
+   F192    FE03                 CPI     3
+   F194    2004                 JRNZ    LRG
+   F196    2607                 MVI     H,7
+   F198    1806                 JMPR    GSEC
+   F19A    FE02         LRG:    CPI     2               ;512 BYTE SECTOR(y/n)
+   F19C    2001                 JRNZ    NO              ;NOPE, ACC HAS RECORD MASK
+   F19E    3C                   INR     A               ;FIND MASK FOR 512 BYTE SECTOR
+   F19F    67           NO:     MOV     H,A             ;SAVE RECORD MASK
                         
-   F19D    3A F9DE      GSEC:   LDA     SEKSEC          ;GET CP/M SECTOR NUMBER
-   F1A0    3D                   DCR     A               ;ADJUST DOWN TO START AT ZERO
-   F1A1    6F                   MOV     L,A             ;SAVE FOR LATER
-   F1A2    04                   INR     B               ;ADJUST FOR EASY LOOP
-   F1A3    1802                 JMPR    JOIN
-   F1A5    CB3F         LOOP2:  SRLR    A               ;PLACE SECTOR NUMBER IN LSB'S
-   F1A7    10FC         JOIN:   DJNZ    LOOP2           ;REPEAT UNTIL ALIGNED IN LSB'S
-   F1A9    3C                   INR     A               ;ADJUST TO MAKE PHYSICAL SECTOR
-   F1AA    B1                   ORA     C               ;GET SIDE BIT   
-   F1AB    32 FA1E              STA     SEKHST          ;HOST SECTOR
-   F1AE    32 F9EC              STA     CSECT           ;SAVE COMBINED SECTOR
-   F1B1    7D                   MOV     A,L             ;GET CP/M SECTOR NUMBER
-   F1B2    A4                   ANA     H               ;MASK ALL BUT RECORD NUMBER
-   F1B3    32 F9E2              STA     CREC            ;SAVE RECORD NUMBER
-   F1B6    C9                   RET
+   F1A0    3A FA14      GSEC:   LDA     SEKSEC          ;GET CP/M SECTOR NUMBER
+   F1A3    3D                   DCR     A               ;ADJUST DOWN TO START AT ZERO
+   F1A4    6F                   MOV     L,A             ;SAVE FOR LATER
+   F1A5    04                   INR     B               ;ADJUST FOR EASY LOOP
+   F1A6    1802                 JMPR    JOIN
+   F1A8    CB3F         LOOP2:  SRLR    A               ;PLACE SECTOR NUMBER IN LSB'S
+   F1AA    10FC         JOIN:   DJNZ    LOOP2           ;REPEAT UNTIL ALIGNED IN LSB'S
+   F1AC    3C                   INR     A               ;ADJUST TO MAKE PHYSICAL SECTOR
+   F1AD    B1                   ORA     C               ;GET SIDE BIT   
+   F1AE    32 FA54              STA     SEKHST          ;HOST SECTOR
+   F1B1    32 FA22              STA     CSECT           ;SAVE COMBINED SECTOR
+   F1B4    7D                   MOV     A,L             ;GET CP/M SECTOR NUMBER
+   F1B5    A4                   ANA     H               ;MASK ALL BUT RECORD NUMBER
+   F1B6    32 FA18              STA     CREC            ;SAVE RECORD NUMBER
+   F1B9    C9                   RET
                         
                         
                         ;********************************************************
-                        ; FLOPPY DISK PHYSICAL READ AND WRITE ROUTINE. ALL
 
 
 
@@ -1326,18 +1326,19 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ; FLOPPY DISK PHYSICAL READ AND WRITE ROUTINE. ALL
                         ; FLOPPY DISK I/O IS PERFORMED BY CALLS TO THIS
                         ; ROUTINE. ON ENTRY PDISK, PTRACK, PSECT, AND PDMA
                         ; MUST BE VALID.
                         ;********************************************************
                         
-   F1B7    3EA0         PWRITE: MVI     A,WWRITE        ;SET WRITE COMMAND
-   F1B9    1802                 JMPR    PCOM            ;JOIN COMMON CODE
+   F1BA    3EA0         PWRITE: MVI     A,WWRITE        ;SET WRITE COMMAND
+   F1BC    1802                 JMPR    PCOM            ;JOIN COMMON CODE
                         
-   F1BB    3E80         PREAD:  MVI     A,WREAD         ;SET READ COMMAND
+   F1BE    3E80         PREAD:  MVI     A,WREAD         ;SET READ COMMAND
                         
-   F1BD    32 F9F2      PCOM:   STA     PCMD            ;REMEMBER WHETHER READ OR WRITE
-   F1C0    CD F470              CALL    GETAPB          ;MAKE SURE ATABLE IS RIGHT ONE
+   F1C0    32 FA28      PCOM:   STA     PCMD            ;REMEMBER WHETHER READ OR WRITE
+   F1C3    CD F47E              CALL    GETAPB          ;MAKE SURE ATABLE IS RIGHT ONE
                         
                         
                         ;********************************************************       
@@ -1346,14 +1347,14 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;       WILL THEN BE RETRIGERED ON THE NEXT COMMAND.
                         ;********************************************************
                         
-   F1C3    21 F9F1              LXI     H,OLDFLO        ;POINT TO OLD FLOPPY NUMBER
-   F1C6    3A F9E3              LDA     PDISK           ;GET NEW NUMBER
-   F1C9    BE                   CMP     M               ;SAME DISK(y/n)
-   F1CA    2807                 JRZ     SADS            ;YES
+   F1C6    21 FA27              LXI     H,OLDFLO        ;POINT TO OLD FLOPPY NUMBER
+   F1C9    3A FA19              LDA     PDISK           ;GET NEW NUMBER
+   F1CC    BE                   CMP     M               ;SAME DISK(y/n)
+   F1CD    2807                 JRZ     SADS            ;YES
                         
-   F1CC    77                   MOV     M,A             ;NO, UPDATE OLD NUMBER TO NEW
-   F1CD    CD F35F              CALL    TRIMWT          ;WAIT FOR TRIM ERASE TO END
-   F1D0    CD F306              CALL    SETD3S          ;SET Z3S CONTROL BYTE
+   F1CF    77                   MOV     M,A             ;NO, UPDATE OLD NUMBER TO NEW
+   F1D0    CD F35E              CALL    TRIMWT          ;WAIT FOR TRIM ERASE TO END
+   F1D3    CD F2F9              CALL    SETD3S          ;SET Z3S CONTROL BYTE
                         
                         ; FOLLOWING IS AN OBSOLETE OPERATION, NO LONGER USED,
                         ; BUT THE ORIGINAL CODE IS SHOWN FOR INTEREST.
@@ -1374,13 +1375,12 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;       SET. SEEK TO CORRECT TRACK.
                         ;********************************************************
                         
-   F1D3                 SADS:
-   F1D3    3A EE39              LDA     HOMER           ;NUMBER OF HOME OPERATIONS
-   F1D6    32 F9FD              STA     MRML
-   F1D9    32 EE51              STA     KBIT
-   F1DC                 MAC:
-   F1DC    3A EE3A              LDA     RETRYIT         ;RETRIES BETWEEN HOME OPERATIONS
-   F1DF    32 F9EF              STA     RMACRO
+   F1D6                 SADS:
+   F1D6    3A EE39              LDA     HOMER           ;NUMBER OF HOME OPERATIONS
+   F1D9    32 FA33              STA     MRML
+   F1DC    32 EE51              STA     KBIT
+   F1DF                 MAC:
+   F1DF    3A EE3A              LDA     RETRYIT         ;RETRIES BETWEEN HOME OPERATIONS
 
 
 
@@ -1392,28 +1392,28 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F1E2    32 FA25              STA     RMACRO
                         
-   F1E2    CD F306              CALL    SETD3S          ;SET Z3S CONTROL BYTE
-   F1E5    21 FA28              LXI     H,TRACK         ;GET OLD TRACK NUMBER
-   F1E8    7E                   MOV     A,M
-   F1E9    D355                 OUT     WTRACK          ;UPDATE 179X TRACK REG
-   F1EB    3A F9E4              LDA     PTRACK          ;GET DESIRED TRACK NUMBER
-   F1EE    BE                   CMP     M               ;SAME AS BEFORE(y/n)
-   F1EF    2819                 JRZ     SATR            ;YES
+   F1E5    CD F2F9              CALL    SETD3S          ;SET Z3S CONTROL BYTE
+   F1E8    21 FA5E              LXI     H,TRACK         ;GET OLD TRACK NUMBER
+   F1EB    7E                   MOV     A,M
+   F1EC    D355                 OUT     WTRACK          ;UPDATE 179X TRACK REG
+   F1EE    3A FA1A              LDA     PTRACK          ;GET DESIRED TRACK NUMBER
+   F1F1    BE                   CMP     M               ;SAME AS BEFORE(y/n)
+   F1F2    2818                 JRZ     SATR            ;YES
                         
-   F1F1    77                   MOV     M,A             ;UPDATE TRACK NUMBER
-   F1F2    CD F35F              CALL    TRIMWT          ;WAIT FOR TRIM ERASE TO END
-   F1F5    3A F9E4              LDA     PTRACK          ;GET DESIRED TRACK
-   F1F8    B7                   ORA     A               ;TRACK 0 DESIRED(y/n)
-                                
-   F1F9    CD F36E              CALL    FSEEK           ;SEEK TO DESIRED TRACK
-   F1FC    DA F4B8              JC              FATERR
+   F1F4    77                   MOV     M,A             ;UPDATE TRACK NUMBER
+   F1F5    CD F35E              CALL    TRIMWT          ;WAIT FOR TRIM ERASE TO END
+   F1F8    3A FA1A              LDA     PTRACK          ;GET DESIRED TRACK
                         
-   F1FF    CD F467      ENDS:   CALL    PUTAPB          ;UPDATE APB FROM ATABLE
-   F202    3A F9F2              LDA     PCMD            ;GET READ/WRITE COMMAND
-   F205    CBD7                 SET     WBDEL,A         ;INSURE HEAD IS SETTLED
-   F207                 NOMIL:
-   F207    32 F9F2              STA     PCMD            ;BY SETTING DELAY BIT IN CMD
+   F1FB    CD F376              CALL    FSEEK           ;NORMAL SEEK TO DESIRED TRACK
+   F1FE    DA F4D0              JC      FATER2
+                        
+   F201    CD F475      ENDS:   CALL    PUTAPB          ;UPDATE APB FROM ATABLE
+   F204    3A FA28              LDA     PCMD            ;GET READ/WRITE COMMAND
+   F207    CBD7                 SET     WBDEL,A         ;INSURE HEAD IS SETTLED
+   F209                 NOMIL:
+   F209    32 FA28              STA     PCMD            ;BY SETTING DELAY BIT IN CMD
                         
                         
                         ;********************************************************
@@ -1421,32 +1421,32 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;       THE READ OR WRITE COMMAND. SET HARDWARE WAIT.
                         ;********************************************************
                         
-   F20A                 SATR:
-   F20A                 MIC:
-   F20A    3A F9E6              LDA     PSECT           ;GET DESIRED SECTOR NUMBER
-   F20D    47                   MOV     B,A             ;SAVE SIDE BIT
-   F20E    CB7F                 BIT     7,A             ;TEST SIDE BIT
-   F210    3E30                 MVI     A,'0'
-   F212    2802                 JRZ     SIDEZERO
-   F214    3E31                 MVI     A,'1'
-   F216                 SIDEZERO:
-   F216    32 FA04              STA     SIDEID
+   F20C                 SATR:
+   F20C                 MIC:
+   F20C    3A FA1C              LDA     PSECT           ;GET DESIRED SECTOR NUMBER
+   F20F    47                   MOV     B,A             ;SAVE SIDE BIT
+   F210    CB7F                 BIT     7,A             ;TEST SIDE BIT
+   F212    3E30                 MVI     A,'0'
+   F214    2802                 JRZ     SIDEZERO
+   F216    3E31                 MVI     A,'1'
+   F218                 SIDEZERO:
+   F218    32 FA3A              STA     SIDEID
                         
-   F219    CB78                 BIT             7,B
-   F21B    CA F22C              JZ              SSIDEA
-   F21E    DB53                 IN              DCMD    ; SET SIDE FOR 1791
-   F220    CB67                 BIT             4,A
-   F222    CA F23D              JZ              SSECTOR
-   F225    CBA7                 RES             4,A             ; SET SIDE B
-   F227    D353                 OUT             DCMD
-   F229    C3 F237              JMP             SETSIDE
-   F22C                 SSIDEA:
-   F22C    DB53                 IN              DCMD            ; SET SIDE FOR 1791
-   F22E    CB67                 BIT             4,A
-   F230    C2 F23D              JNZ             SSECTOR
-   F233    CBE7                 SET             4,A                     ; SET SIDE A
-   F235    D353                 OUT             DCMD
-   F237                 SETSIDE:
+   F21B    CB78                 BIT             7,B
+   F21D    CA F22E              JZ              SSIDEA
+   F220    DB53                 IN              DCMD    ; SET SIDE FOR 1791
+   F222    CB67                 BIT             4,A
+   F224    CA F23F              JZ              SSECTOR
+   F227    CBA7                 RES             4,A             ; SET SIDE B
+   F229    D353                 OUT             DCMD
+   F22B    C3 F239              JMP             SETSIDE
+   F22E                 SSIDEA:
+   F22E    DB53                 IN              DCMD            ; SET SIDE FOR 1791
+   F230    CB67                 BIT             4,A
+   F232    C2 F23F              JNZ             SSECTOR
+   F235    CBE7                 SET             4,A                     ; SET SIDE A
+   F237    D353                 OUT             DCMD
+   F239                 SETSIDE:
 
 
 
@@ -1458,61 +1458,61 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F237    C5                   PUSH    B
-   F238    06FF                 MVI             B,0FFH          ;Slight delay for hardware
-   F23A    10FE                 DELYS:  DJNZ DELYS
-   F23C    C1                   POP             B
+   F239    C5                   PUSH    B
+   F23A    06FF                 MVI             B,0FFH          ;Slight delay for hardware
+   F23C    10FE                 DELYS:  DJNZ DELYS
+   F23E    C1                   POP             B
                                 
-   F23D                 SSECTOR:
-   F23D    78                   MOV     A,B                     ;GET BACK SECTOR
-   F23E    E67F                 ANI     07FH            ;DROP SIDE BIT
-   F240    D356                 OUT     WSECT           ;UPDATE 179X SECTOR REGISTER
+   F23F                 SSECTOR:
+   F23F    78                   MOV     A,B                     ;GET BACK SECTOR
+   F240    E67F                 ANI     07FH            ;DROP SIDE BIT
+   F242    D356                 OUT     WSECT           ;UPDATE 179X SECTOR REGISTER
                         
-   F242    DB53                 IN              DCMD
-   F244    E67F                 ANI             07FH
-   F246    D353                 OUT             DCMD
-   F248    32 FA02              STA             OD3S
+   F244    CD F3CD              CALL WAITON
                         
-   F24B    3A F9F2              LDA     PCMD            ;GET READ OR WRITE COMMAND
-   F24E    CBCF                 SET     WBSID1,A        ;UPDATE SSO BIT TO 1
-   F250    CB78                 BIT     7,B                     ;ARE WE ON SIDE 1(y/n)
-   F252    2802                 JRZ     SID01           ;NO, LEAVE WBSIDE BIT AS 0
-   F254    CBDF                 SET     WBSIDE,A
+   F247    3A FA28              LDA     PCMD            ;GET READ OR WRITE COMMAND
+   F24A    CBCF                 SET     WBSID1,A        ;UPDATE SSO BIT TO 1
+   F24C    CB78                 BIT     7,B                     ;ARE WE ON SIDE 1(y/n)
+   F24E    2802                 JRZ     SID01           ;NO, LEAVE WBSIDE BIT AS 0
+   F250    CBDF                 SET     WBSIDE,A
                         
                         
-   F256                 SID01:
-   F256    F3                   DI
-   F257    D354                 OUT     WCMD            ;FOR PIO 179X COMMAND
-   F259    32 FA03      SID2:   STA     OCMD
-   F25C    32 F9F3              STA     ORWCMD          ;SAVE LAST READ OR WRITE CMD
-   F25F    57                   MOV     D,A             ;SAVE THE COMMAND
+   F252                 SID01:
+   F252    F3                   DI
+   F253    D354                 OUT     WCMD            ;FOR PIO 179X COMMAND
+   F255    32 FA39      SID2:   STA     OCMD
+   F258    32 FA29              STA     ORWCMD          ;SAVE LAST READ OR WRITE CMD
+   F25B    57                   MOV     D,A             ;SAVE THE COMMAND
                         
                         
-   F260    01 8057              LXI     B,128 < 8+WDATA ;SET PORT AND LENGTH
-   F263    3A F9E4              LDA     PTRACK          ;GET CURRENT TRACK
-   F266    21 FA2B              LXI     H,OFF
-   F269    BE                   CMP     M               ;IS IT A USER TRACK(y/n)
-   F26A    3A FA2F              LDA     USLEN           ;GET USER SECTOR LENGTH
-   F26D    3003                 JRNC    ULEN
-   F26F    3A FA2D              LDA     SSLEN           ;GET SYSTEM SECTOR LENGTH
+   F25C    01 8057              LXI     B,128 < 8+WDATA ;SET PORT AND LENGTH
+   F25F    3A FA1A              LDA     PTRACK          ;GET CURRENT TRACK
+   F262    21 FA61              LXI     H,OFF
+   F265    BE                   CMP     M               ;IS IT A USER TRACK(y/n)
+   F266    3A FA65              LDA     USLEN           ;GET USER SECTOR LENGTH
+   F269    3003                 JRNC    ULEN
+   F26B    3A FA63              LDA     SSLEN           ;GET SYSTEM SECTOR LENGTH
                         
-   F272    2A F9E8      ULEN:   LHLD    PDMA            ;GET DMA ADDRESS
-   F275    CB6A                 BIT     WBWRIT,D        ;ARE WE WRITING(y/n)
-   F277    2018                 JRNZ    WRIT            ;YES, GO WRITE
+   F26E    2A FA1E      ULEN:   LHLD    PDMA            ;GET DMA ADDRESS
+   F271    CB6A                 BIT     WBWRIT,D        ;ARE WE WRITING(y/n)
+   F273    2018                 JRNZ    WRIT            ;YES, GO WRITE
                         
                         
                         ;********************************************************
                         ;                     READ THE SECTOR.
                         ;********************************************************
                         
-   F279                 PIRD:
-   F279    B7                   ORA     A
-   F27A    280E                 JRZ     PR12
-   F27C    0600                 MVI     B,0H
-   F27E    3D                   DCR     A
-   F27F    2809                 JRZ     PR25
-   F281    3D                   DCR     A
-   F282    2804                 JRZ     PR51
+   F275                 PIRD:
+   F275    B7                   ORA     A
+   F276    280E                 JRZ     PR12
+   F278    0600                 MVI     B,0H
+   F27A    3D                   DCR     A
+   F27B    2809                 JRZ     PR25
+   F27D    3D                   DCR     A
+   F27E    2804                 JRZ     PR51
+   F280    EDB2                 INIR
+   F282    EDB2                 INIR
+   F284    EDB2         PR51:   INIR
 
 
 
@@ -1524,41 +1524,39 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F284    EDB2                 INIR
-   F286    EDB2                 INIR
-   F288    EDB2         PR51:   INIR
-   F28A                 PR25:
-   F28A    EDB2         PR12:   INIR
+   F286                 PR25:
+   F286    EDB2         PR12:   INIR
                                 
-   F28C                 RDFN:
+   F288                 RDFN:
                         
-   F28C    FB                   EI
-   F28D    0E9C                 MVI     C,WSREAD        ;STATUS BITS TO TEST
-   F28F    1816                 JMPR    CHEK
+   F288    FB                   EI
+   F289    0E9C                 MVI     C,WSREAD        ;STATUS BITS TO TEST
+   F28B    1816                 JMPR    CHEK
                         
                         
                         ;********************************************************
                         ;                   WRITE THE SECTOR.
                         ;********************************************************
                         
-   F291                 WRIT:
-   F291    B7                   ORA     A
-   F292    280E                 JRZ     PW12
-   F294    0600                 MVI     B,0H
-   F296    3D                   DCR     A
-   F297    2809                 JRZ     PW25
-   F299    3D                   DCR     A
-   F29A    2804                 JRZ     PW51
-   F29C    EDB3                 OUTIR
-   F29E    EDB3                 OUTIR
+   F28D                 WRIT:
+   F28D    B7                   ORA     A
+   F28E    280E                 JRZ     PW12
+   F290    0600                 MVI     B,0H
+   F292    3D                   DCR     A
+   F293    2809                 JRZ     PW25
+   F295    3D                   DCR     A
+   F296    2804                 JRZ     PW51
+   F298    EDB3                 OUTIR
+   F29A    EDB3                 OUTIR
                         
-   F2A0    EDB3         PW51:   OUTIR
-   F2A2                 PW25:
-   F2A2    EDB3         PW12:   OUTIR
+   F29C    EDB3         PW51:   OUTIR
+   F29E                 PW25:
+   F29E    EDB3         PW12:   OUTIR
                                                 
-   F2A4                 WRFN:
-   F2A4    FB                   EI
-   F2A5    0EFC                 MVI     C,WSWRIT        ;STATUS BITS TO TEST
+   F2A0                 WRFN:
+   F2A0    FB                   EI
+   F2A1    0EFC                 MVI     C,WSWRIT        ;STATUS BITS TO TEST
+                                
                         
                         
                         ;********************************************************
@@ -1566,19 +1564,21 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;       TEST FOR ERRORS.
                         ;********************************************************
                         
-   F2A7                 CHEK:   
-   F2A7    DB53                 IN      DCMD
-   F2A9    F680                 ORI     80H
-   F2AB    D353                 OUT     DCMD
-   F2AD    32 FA02              STA     OD3S
-   F2B0    CD F3A1              CALL    FDONE           ;WAIT FOR 179X DONE
-   F2B3    A1                   ANA     C               ;ANY ERROR BITS(y/n)
-   F2B4    C8                   RZ                      ;NO, RETURN - SUCCESSFUL
+   F2A3                 CHEK:   
+                        
+   F2A3    CD F396              CALL    FDONE           ;WAIT FOR 179X DONE
+                        
+   F2A6    A1                   ANA     C               ;ANY ERROR BITS(y/n)
+   F2A7    C8                   RZ                      ;NO, RETURN - SUCCESSFUL
                         
                         
                         ;********************************************************
                         ;           RETRY THE I/O IF AN ERROR OCCURED.
                         ;********************************************************
+                        
+   F2A8                 NOPRNT:
+   F2A8    21 FA25              LXI     H,RMACRO        ;POINT TO MACRO RETRY COUNT
+   F2AB    35                   DCR     M               ;DECREMENT IT
 
 
 
@@ -1590,43 +1590,39 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F2AC    C2 F20C              JNZ     MIC             ;RE-DO READ/WRITE
                         
-   F2B5                 NOPRNT:
-   F2B5    21 F9EF              LXI     H,RMACRO        ;POINT TO MACRO RETRY COUNT
-   F2B8    35                   DCR     M               ;DECREMENT IT
-   F2B9    C2 F20A              JNZ     MIC             ;RE-DO READ/WRITE
+   F2AF    21 EE51              LXI     H,KBIT
+   F2B2    35                   DCR     M
+   F2B3    CA F2C1              JZ      KEYIT
                         
-   F2BC    21 EE51              LXI     H,KBIT
-   F2BF    35                   DCR     M
-   F2C0    CA F2CE              JZ      KEYIT
-                        
-   F2C3    CD F36A              CALL    FHOME
-   F2C6    D8                   RC
-   F2C7    AF                   XRA     A
-   F2C8    32 FA28              STA     TRACK
-   F2CB    C3 F1DC              JMP     MAC
+   F2B6    CD F369              CALL    FHOME
+   F2B9    D8                   RC
+   F2BA    AF                   XRA     A
+   F2BB    32 FA5E              STA     TRACK
+   F2BE    C3 F1DF              JMP     MAC
                         
                         
                         ;       IF WE CAME HERE IT IS TIME TO RE-CALIBRATE THE DRIVE
                         
-   F2CE                 KEYIT:
-   F2CE    3E04                 MVI     A,4
-   F2D0    32 EE51              STA     KBIT
-   F2D3    3A FA00              LDA     ISTAT           ;GET BACK LAST STATUS
-   F2D6    A1                   ANA     C
-   F2D7    CD F3C9              CALL    EPRINT
+   F2C1                 KEYIT:
+   F2C1    3E04                 MVI     A,4
+   F2C3    32 EE51              STA     KBIT
+   F2C6    3A FA36              LDA     ISTAT           ;GET BACK LAST STATUS
+   F2C9    A1                   ANA     C
+   F2CA    CD F3D7              CALL    EPRINT
                         
-   F2DA                 NORE:
+   F2CD                 NORE:
                         
                         ;********************************************************
                         ;THE FOLLOWING ROUTINE WAITS FOR USER
                         ;TO RETRY OPERATION ON DRIVE WITH ERROR
                         ;********************************************************
                         
-   F2DA    CD F36A              CALL    FHOME
-   F2DD    DA F4B8              JC      FATERR
-   F2E0    AF                   XRA     A
-   F2E1    32 FA28              STA     TRACK
+   F2CD    CD F369              CALL    FHOME
+   F2D0    DA F4DA              JC      FATER3
+   F2D3    AF                   XRA     A
+   F2D4    32 FA5E              STA     TRACK
                         
                         ; ON A MEDIA ERROR YOU CAN TYPE IN A CONTROL CHARACTER
                         ; THAT DETERMINS WHAT THE BIOS AND BDOS WILL DO NEXT
@@ -1636,15 +1632,19 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;   'BAD' DATA AND CONTINUE ON WITHOUT A 'BDOS BAD SECTOR' MESSAGE
                         ; - <RETURN> TO RETRY THE OPERATION ANOTHER 12 TIMES
                         
-   F2E4                 CRIN:
-   F2E4    CD F534              CALL    CONST           ;SEE IF KEY PRESSED
-   F2E7    28FB                 JRZ     CRIN            ;IF NOT KEEP RINGING
-   F2E9    CD F537              CALL    CONIN           ;GET CHAR
-   F2EC    FE03                 CPI     3               ;A ^C (y/n)
-   F2EE    CA EE6A              JZ      EEXIT           ;DO A WARM BOOT IF SO
-   F2F1    FE04                 CPI     4               ;A ^D (y/n)
-   F2F3    280D                 JRZ     FXER            ;IGNORE ERROR
-   F2F5    FE0D                 CPI     13              ;SEE IF 'CR'
+   F2D7                 CRIN:
+   F2D7    CD F56A              CALL    CONST           ;SEE IF KEY PRESSED
+   F2DA    28FB                 JRZ     CRIN            ;IF NOT KEEP RINGING
+   F2DC    CD F56D              CALL    CONIN           ;GET CHAR
+   F2DF    FE03                 CPI     3               ;A ^C (y/n)
+   F2E1    CA EE6A              JZ      EEXIT           ;DO A WARM BOOT IF SO
+   F2E4    FE04                 CPI     4               ;A ^D (y/n)
+   F2E6    280D                 JRZ     FXER            ;IGNORE ERROR
+   F2E8    FE0D                 CPI     13              ;SEE IF 'CR'
+   F2EA    20EB                 JRNZ    CRIN            ;IF NOT TRY AGAIN
+   F2EC    21 FA33              LXI     H,MRML
+   F2EF    35                   DCR     M
+   F2F0    37                   STC
 
 
 
@@ -1656,21 +1656,17 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F2F7    20EB                 JRNZ    CRIN            ;IF NOT TRY AGAIN
-   F2F9    21 F9FD              LXI     H,MRML
-   F2FC    35                   DCR     M
-   F2FD    37                   STC
-   F2FE    C8                   RZ
-   F2FF    C3 F1DC              JMP     MAC             ;DO ANOTHER RE-TRY
+   F2F1    C8                   RZ
+   F2F2    C3 F1DF              JMP     MAC             ;DO ANOTHER RE-TRY
                                 
                         
                         ;IGNORE DISK I/O ERROR AND CONTINUE WITH STATUS SET O.K.
                         
-   F302                 FXER:
-   F302    37                   STC                     ;FIX UP CARRY
-   F303    3F                   CMC
-   F304    AF                   XRA     A               ;CLEAR ERROR FLAG
-   F305    C9                   RET
+   F2F5                 FXER:
+   F2F5    37                   STC                     ;FIX UP CARRY
+   F2F6    3F                   CMC
+   F2F7    AF                   XRA     A               ;CLEAR ERROR FLAG
+   F2F8    C9                   RET
                         
                         
                         ;********************************************************
@@ -1680,37 +1676,41 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; BYTE. SAVE BOTH FOR LATER USE.
                         ;********************************************************
                         
-   F306    3A F9E4      SETD3S: LDA     PTRACK          ;GET DESIRED TRACK
-   F309    21 FA2B              LXI     H,OFF
-   F30C    BE                   CMP     M               ;USER TRACK(y/n)
-   F30D    21 FA24              LXI     H,US0N          ;POINT TO USER TRACK BYTES
-   F310    3003                 JRNC    USER
-   F312    21 FA20              LXI     H,SS0N          ;POINT TO SYSTEM TRACK BYTES
+   F2F9    3A FA1A      SETD3S: LDA     PTRACK          ;GET DESIRED TRACK
+   F2FC    21 FA61              LXI     H,OFF
+   F2FF    BE                   CMP     M               ;USER TRACK(y/n)
+   F300    21 FA5A              LXI     H,US0N          ;POINT TO USER TRACK BYTES
+   F303    3003                 JRNC    USER
+   F305    21 FA56              LXI     H,SS0N          ;POINT TO SYSTEM TRACK BYTES
                         
-   F315    3A F9E6      USER:   LDA     PSECT           ;TEST IF ON SIDE 1
-   F318    CB7F                 BIT     7,A
-   F31A    2802                 JRZ     SID0            ;ON SIDE 0
-   F31C    23                   INX     H               ;POINT TO SIDE 1 BYTES
-   F31D    23                   INX     H
+   F308    3A FA1C      USER:   LDA     PSECT           ;TEST IF ON SIDE 1
+   F30B    CB7F                 BIT     7,A
+   F30D    2802                 JRZ     SID0            ;ON SIDE 0
+   F30F    23                   INX     H               ;POINT TO SIDE 1 BYTES
+   F310    23                   INX     H
                         
-   F31E    5E           SID0:   MOV     E,M             ;GET THE NO WAIT BYTE
-   F31F    23                   INX     H
-   F320    56                   MOV     D,M             ;GET THE WAIT BYTE
-   F321    ED53 F9F9            SDED    D3SNO           ;SAVE BOTH
-   F325    7B                   MOV     A,E
-   F326    D353                 OUT     DCMD            ;OUTPUT THE NO WAIT BYTE
-   F328    32 FA02              STA     OD3S
-   F32B    C9                   RET
+   F311    5E           SID0:   MOV     E,M             ;GET THE NO WAIT BYTE
+   F312    23                   INX     H
+   F313    56                   MOV     D,M             ;GET THE WAIT BYTE
+   F314    ED53 FA2F            SDED    D3SNO           ;SAVE BOTH
+   F318    7B                   MOV     A,E
+   F319    D353                 OUT     DCMD            ;OUTPUT THE NO WAIT BYTE
+   F31B    32 FA38              STA             OD3S
+                        
+   F31E    CD F3A8              CALL DELAY
+                        
+   F321                 RDYCHK:
+   F321    DB54                 IN      WSTAT                   ;Drive select delay
+   F323    32 FA36              STA     ISTAT
+   F326    E680                 ANI     80H
+   F328    20F7                 JRNZ    RDYCHK          ;Return when ready
+                        
+   F32A    C9                   RET
                         
                         
                         ;********************************************************
                         ; GET Z3S CONTROL BYTES. CREATE THE EIGHT Z3S CONTROL
                         ; BYTES IN ATABLE. THESE BYTES SET THE DENSITY BIT FOR
-                        ; SYSTEM TRACKS AND USER TRACKS, SELECT SIDE 0 OR SIDE
-                        ; 1, AND ENABLE OR DISABLE THE HARDWARE DATA WAIT.
-                        ; CREATE THE BYTES BY MERGING THE APPROPRIATE HARDWARE
-                        ; CONTROL BITS IN OPRTAB WITH THE CORRECT ADDRESS
-                        ; CONTROL BITS IN ADRTAB.
 
 
 
@@ -1722,42 +1722,47 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ; SYSTEM TRACKS AND USER TRACKS, SELECT SIDE 0 OR SIDE
+                        ; 1, AND ENABLE OR DISABLE THE HARDWARE DATA WAIT.
+                        ; CREATE THE BYTES BY MERGING THE APPROPRIATE HARDWARE
+                        ; CONTROL BITS IN OPRTAB WITH THE CORRECT ADDRESS
+                        ; CONTROL BITS IN ADRTAB.
                         ;********************************************************
                         
-   F32C    3A F9F0      GETD3S: LDA     ADISK           ;GET CURRENT DISK NUMBER
-   F32F    21 EE4B              LXI     H,ADRTAB        ;POINT TO ADDRESS
-   F332    5F                   MOV     E,A             ;CONTROL BITS TABLE
-   F333    1600                 MVI     D,0
-   F335    19                   DAD     D
-   F336    4E                   MOV     C,M             ;SAVE ADDR BITS FOR Z3S BYTES
+   F32B    3A FA26      GETD3S: LDA     ADISK           ;GET CURRENT DISK NUMBER
+   F32E    21 EE4B              LXI     H,ADRTAB        ;POINT TO ADDRESS
+   F331    5F                   MOV     E,A             ;CONTROL BITS TABLE
+   F332    1600                 MVI     D,0
+   F334    19                   DAD     D
+   F335    4E                   MOV     C,M             ;SAVE ADDR BITS FOR Z3S BYTES
                         
-   F337    3A FA2A              LDA     FLAG            ;GET THE FLAG
-   F33A    E614                 ANI     00010100B       ;ISOLATE SYSTEM DENSITY, SIZE
-   F33C    47                   MOV     B,A
-   F33D    0F                   RRC                     ;ALIGN THE DENSITY BIT
-   F33E    B0                   ORA     B               ;COMBINE SIZE AND DENSITY
-   F33F    E60C                 ANI     00001100B       ;DROP UNALIGNED BITS
-   F341    11 FA20              LXI     D,SS0N          ;POINT TO BEGINNING OF DEST
-   F344    CD F34C              CALL    GET             ;GET SYSTEM TRACK Z3S BYTES
+   F336    3A FA60              LDA     FLAG            ;GET THE FLAG
+   F339    E614                 ANI     00010100B       ;ISOLATE SYSTEM DENSITY, SIZE
+   F33B    47                   MOV     B,A
+   F33C    0F                   RRC                     ;ALIGN THE DENSITY BIT
+   F33D    B0                   ORA     B               ;COMBINE SIZE AND DENSITY
+   F33E    E60C                 ANI     00001100B       ;DROP UNALIGNED BITS
+   F340    11 FA56              LXI     D,SS0N          ;POINT TO BEGINNING OF DEST
+   F343    CD F34B              CALL    GET             ;GET SYSTEM TRACK Z3S BYTES
                         
-   F347    3A FA2A              LDA     FLAG            ;GET THE FLAG
-   F34A    E60C                 ANI     00001100B       ;ISOLATE USER DENSITY, SIZE
+   F346    3A FA60              LDA     FLAG            ;GET THE FLAG
+   F349    E60C                 ANI     00001100B       ;ISOLATE USER DENSITY, SIZE
                                                         ;AND GET USER TRACK Z3S BYTES
                         
-   F34C    21 EE3B      GET:    LXI     H,OPRTAB        ;POINT TO CONTROL BITS TABLE
-   F34F    D5                   PUSH    D
-   F350    5F                   MOV     E,A             ;GET CONTROL BITS START ADDRESS
-   F351    1600                 MVI     D,0
-   F353    19                   DAD     D               ;START ADDRESS NOW IN HL
-   F354    D1                   POP     D               ;DESTINATION RESTORED TO DE
-   F355    0604                 MVI     B,4
-   F357    7E           LOOP3:  MOV     A,M             ;GET A BYTE OF CONTROL BITS
-   F358    23                   INX     H
-   F359    B1                   ORA     C               ;COMBINE WITH ADDRESS BITS
-   F35A    12                   STAX    D               ;STORE COMBINED BYTE
-   F35B    13                   INX     D
-   F35C    10F9                 DJNZ    LOOP3           ;DO ALL BYTES
-   F35E    C9                   RET
+   F34B    21 EE3B      GET:    LXI     H,OPRTAB        ;POINT TO CONTROL BITS TABLE
+   F34E    D5                   PUSH    D
+   F34F    5F                   MOV     E,A             ;GET CONTROL BITS START ADDRESS
+   F350    1600                 MVI     D,0
+   F352    19                   DAD     D               ;START ADDRESS NOW IN HL
+   F353    D1                   POP     D               ;DESTINATION RESTORED TO DE
+   F354    0604                 MVI     B,4
+   F356    7E           LOOP3:  MOV     A,M             ;GET A BYTE OF CONTROL BITS
+   F357    23                   INX     H
+   F358    B1                   ORA     C               ;COMBINE WITH ADDRESS BITS
+   F359    12                   STAX    D               ;STORE COMBINED BYTE
+   F35A    13                   INX     D
+   F35B    10F9                 DJNZ    LOOP3           ;DO ALL BYTES
+   F35D    C9                   RET
                         
                         ;********************************************************
                         ; WAIT FOR TRIM ERASE TO END. WAIT ONLY IF THE LAST
@@ -1768,15 +1773,10 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; DESELECTED OR THE HEAD IS MOVED.
                         ;********************************************************
                         
-   F35F    3A F9F3      TRIMWT: LDA     ORWCMD          ;GET LAST READ OR WRITE COMMAND
-   F362    CB6F                 BIT     WBWRIT,A        ;TEST WRITE BIT
-   F364    C8                   RZ                      ;IT WAS A READ, DON'T WAIT
-   F365    0696                 MVI     B,150           ;WAIT
-   F367    10FE                 DJNZ    . 
-   F369    C9                   RET
-                        
-                        
-                        ;********************************************************
+   F35E    3A FA29      TRIMWT: LDA     ORWCMD          ;GET LAST READ OR WRITE COMMAND
+   F361    CB6F                 BIT     WBWRIT,A        ;TEST WRITE BIT
+   F363    C8                   RZ                      ;IT WAS A READ, DON'T WAIT
+   F364    0696                 MVI     B,150           ;WAIT
 
 
 
@@ -1788,6 +1788,11 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F366    10FE                 DJNZ    . 
+   F368    C9                   RET
+                        
+                        
+                        ;********************************************************
                         ;* MULTI-PURPOSE 179X SEEK SUBROUTINE. THE ENTRY
                         ;* POINTS ARE:
                         ;*
@@ -1802,47 +1807,42 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;* MUST WAIT FOR THE COMMAND TO COMPLETE.
                         ;*******************************************************
                         
-   F36A    060C         FHOME:  MVI     B,WHOME         ;SET UP HOME COMMAND
-   F36C    1804                 JMPR    FH
+   F369                 FHOME:  
+   F369    DB54                 IN              WSTAT
+   F36B    E601                 ANI             1
+   F36D    20FA                 JRNZ    FHOME
+   F36F    CD F3C3              CALL    WAITOFF
+   F372    060C                 MVI     B,WHOME         ;SET UP HOME COMMAND
+   F374    180F                 JMPR    FH
                         
-   F36E    D357         FSEEK:  OUT     WDATA           ;OUTPUT SEEK DESTINATION
-   F370    061C                 MVI     B,WSEEK         ;SET UP SEEK, DIFFERENT TRACK
+   F376                 FSEEK:
+   F376    F5                   PUSH PSW
+   F377                 WTSTAT: 
+   F377    DB54                 IN              WSTAT
+   F379    E601                 ANI             1
+   F37B    20FA                 JRNZ    WTSTAT
+   F37D    CD F3C3              CALL    WAITOFF
+   F380    F1                   POP PSW
+   F381    D357                 OUT     WDATA           ;OUTPUT SEEK DESTINATION
+   F383    061C                 MVI     B,WSEEK         ;SET UP SEEK, DIFFERENT TRACK
                         
-   F372    3A FA29      FH:     LDA     SPEED           ;GET SEEK SPEED
-   F375    B0                   ORA     B               ;MERGE WITH SEEK COMMAND
-   F376    D354                 OUT     WCMD            ;OUTPUT TO 179X
-   F378    32 FA03              STA     OCMD
-   F37B    CD F3A1              CALL    FDONE
-   F37E    E698                 ANI     WSSEEK          ;ELIMINATE UNWANTED STATUS BITS
-                        
+   F385    3A FA5F      FH:     LDA     SPEED           ;GET SEEK SPEED
+   F388    B0                   ORA     B                       ;MERGE WITH SEEK COMMAND
+   F389    D354                 OUT     WCMD            ;OUTPUT TO 179X
+   F38B    32 FA39              STA     OCMD
+                                
+   F38E    CD F396              CALL    FDONE
+                                
+   F391    E698                 ANI     WSSEEK          ;ELIMINATE UNWANTED STATUS BITS
+   F393    C8                   RZ                      ;RETURN - SUCCESSFUL 
+   F394    37                   STC
+   F395    C9                   RET                     ;RETURN WITH CARRY SET - ERROR
                         
                         ;********************************************************
                         ;    NOW GO IN A WAIT LOOP FOR HEAD SETTLE TIME
                         ;********************************************************
                         
-   F380    F5           SETL:   PUSH    PSW             ;SAVE FLAGS
-                        
-   F381    3A F9F2              LDA     PCMD
-   F384    CB6F                 BIT     5,A             ;SEE IF READ OR WRITE
-   F386    2807                 JRZ     NDLY
-                                
-   F388    3E14                 MVI     A,20            ;WAIT 20 MS
-   F38A    10FE         SETL1:  DJNZ    SETL1           ;LOOP ON B REG
-   F38C    3D                   DCR     A               ;LOOP ON SETTLE VALUE
-   F38D    20FB                 JRNZ    SETL1
-   F38F                 NDLY:
-   F38F    F1                   POP     PSW             ;GET BACK REGS
-   F390    C8                   RZ                      ;RETURN - SUCCESSFUL 
-   F391    37                   STC
-   F392    C9                   RET                     ;RETURN WITH CARRY SET - ERROR
-                        
-   F393    0610         FUNLD:  MVI     B,WUNLD         ;SET UP UNLOAD COMMAND
-   F395    1802                 JMPR    FU
-                        
-   F397    0618         FLOAD:  MVI     B,WLOAD         ;SET UP LOAD COMMAND
-                        
-   F399    DB55         FU:     IN      WTRACK          ;GET CURRENT TRACK
-   F39B    D357                 OUT     WDATA           ;OUTPUT SEEK DESTINATION
+                        ;SETL:   PUSH   PSW             ;SAVE FLAGS
 
 
 
@@ -1855,9 +1855,31 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
                         
-   F39D    78                   MOV     A,B             ;OUTPUT SEEK COMMAND
-   F39E    D354                 OUT     WCMD
-   F3A0    C9                   RET
+                        ;       LDA     PCMD
+                        ;       BIT     5,A             ;SEE IF READ OR WRITE
+                        ;       JRZ     NDLY
+                                
+                        ;       MVI     A,20            ;WAIT 20 MS
+                        ;SETL1:  DJNZ   SETL1           ;LOOP ON B REG
+                        ;       DCR     A               ;LOOP ON SETTLE VALUE
+                        ;        JRNZ    SETL1
+                        ;NDLY:
+                        ;        POP    PSW             ;GET BACK REGS
+                        ;       RZ                      ;RETURN - SUCCESSFUL 
+                        ;       STC
+                        ;       RET                     ;RETURN WITH CARRY SET - ERROR
+                        
+                        ;FUNLD: MVI     B,WUNLD         ;SET UP UNLOAD COMMAND
+                        ;       JMPR    FU
+                        
+                        ;FLOAD: MVI     B,WLOAD         ;SET UP LOAD COMMAND
+                        
+                        ;FU:    IN      WTRACK          ;GET CURRENT TRACK
+                        ;       OUT     WDATA           ;OUTPUT SEEK DESTINATION
+                        
+                        ;       MOV     A,B             ;OUTPUT SEEK COMMAND
+                        ;       OUT     WCMD
+                        ;       RET
                         
                         
                         ;********************************************************
@@ -1869,46 +1891,24 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; COMMAND COMPLETION. 
                         ;********************************************************
                         
-   F3A1                 FDONE:
+   F396                 FDONE:
+                        
+   F396    CD F3A8              CALL DELAY
+                        
+   F399                 PIODON:
+   F399    DB54                 IN      WSTAT
+   F39B    32 FA36              STA     ISTAT
+   F39E    CB47                 BIT     WBBUSY,A
+   F3A0    20F7                 JRNZ    PIODON
+                        
+   F3A2    F5                   PUSH PSW
+   F3A3    CD F3C3              CALL WAITOFF
+   F3A6    F1                   POP PSW
+   F3A7    C9                   RET     
                                 
-   F3A1    D5                   PUSH D
-   F3A2    E5                   PUSH H
-                        
-   F3A3    3A F9E3              LDA     PDISK
-   F3A6    21 EE33              LXI     H,SPDTAB        ;POINT TO STEP SPEED TABLE
-   F3A9    5F                   MOV     E,A
-   F3AA    1600                 MVI     D,0
-   F3AC    19                   DAD     D
-   F3AD    7E                   MOV     A,M             ;GET SPEED BYTE FOR THIS DISK
-                        
-   F3AE    CB7F                 BIT 7,A         ;8" or 5"
-   F3B0    3E27                 MVI     A,39    ;For 8""
-   F3B2    2802                 JRZ     DELAY1  
-   F3B4    3E3C                 MVI     A,60    ;For 5"
-   F3B6    0600         DELAY1: MVI     B,0
-   F3B8    10FE         M0:     DJNZ    M0
-   F3BA    3D                   DCR             A
-   F3BB    20F9                 JRNZ    DELAY1  
-                        
-   F3BD    E1                   POP H
-   F3BE    D1                   POP D
-                        
-   F3BF                 FQDONE:
-   F3BF                 PIODON:
-   F3BF    DB54                 IN      WSTAT
-   F3C1    32 FA00              STA     ISTAT
-   F3C4    CB47                 BIT     WBBUSY,A
-   F3C6    20F7                 JRNZ    PIODON
-   F3C8    C9                   RET     
-                                
-                        
-                        
-                        ;********************************************************
-                        ; FLOPPY DISK ERROR PRINT SUBROUTINE. ANY NON ZERO BITS
-                        ; IN THE ACCUMULATOR ARE ERRORS. THE FIRST ONE FOUND IS
-                        ; PRINTED OUT.
-                        ;********************************************************
-                        
+                        ;
+                        ; Delay for drive select hardware. Different for 8" and 5" drives
+                        ;
 
 
 
@@ -1920,61 +1920,61 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F3C9    57           EPRINT: MOV     D,A     ;SAVE ERROR BITS
-   F3CA    79                   MOV     A,C     ;STORE CALLING ROUTINE ID
-   F3CB    32 FA01              STA     ACTIVE
-   F3CE    DB55                 IN      WTRACK  ;STORE TRACK REGISTER
-   F3D0    32 F9FE              STA     ITRACK
-   F3D3    DB56                 IN      WSECT   ;STORE SECTOR REGISTER
-   F3D5    32 F9FF              STA     ISECT
+   F3A8                 DELAY:  
                         
-   F3D8    CD F4C2              CALL    MSG
-   F3DB    0D0A                 .BYTE   CR,LF
-   F3DD    457272206F6E         .ASCIS  \Err on \
-   F3E4    3A F9E3              LDA     PDISK
-   F3E7    C641                 ADI     'A'
-   F3E9    4F                   MOV     C,A
-   F3EA    CD EE0C              CALL    BIOOUT
-   F3ED    CD F4C2              CALL    MSG
-   F3F0    3A20A0               .ASCIS  \:  \
+   F3A8    3A FA19              LDA     PDISK
+   F3AB    21 EE33              LXI     H,SPDTAB        ;POINT TO STEP SPEED TABLE
+   F3AE    5F                   MOV     E,A
+   F3AF    1600                 MVI     D,0
+   F3B1    19                   DAD     D
+   F3B2    7E                   MOV     A,M             ;GET SPEED BYTE FOR THIS DISK
                         
-   F3F3    CBCA                 SET     1,D     ;INSURE NON ZERO ERROR BYTE
-   F3F5    0600                 MVI     B,0
-   F3F7    04           ..FIND: INR     B
-   F3F8    CB12                 RALR    D       ;FIND FIRST NON ZERO BIT
-   F3FA    30FB                 JRNC    ..FIND
-   F3FC    21 F423              LXI     H,ERMESS ;POINT TO MESSAGE TABLE
-   F3FF    1805                 JMPR    ..JOIN
-   F401    CB7E         ..MORE: BIT     7,M     ;TEST FOR END OF MESSAGE
-   F403    23                   INX     H
-   F404    28FB                 JRZ     ..MORE  ;KEEP LOOKING FOR END, THIS MSG
-   F406    10F9         ..JOIN: DJNZ    ..MORE  ;KEEP LOOKING FOR CORRECT MSG
-   F408    CD F4C8              CALL    MSGHL   ;PRINT OUT CORRECT MESSAGE
-   F40B    CD F4C2              CALL    MSG
-   F40E    A0                   .ASCIS  \ \
+   F3B3    CB7F                 BIT 7,A         ;8" or 5"
+   F3B5    3E27                 MVI     A,39    ;For 8""
+   F3B7    2802                 JRZ     DELAY1  
+   F3B9    3E3C                 MVI     A,60    ;For 5"
+   F3BB    0600         DELAY1: MVI     B,0
+   F3BD    10FE         M0:     DJNZ    M0
+   F3BF    3D                   DCR             A
+   F3C0    20F9                 JRNZ    DELAY1  
                         
-   F40F    0607                 MVI     B,EILEN ;NUMBER OF ERROR INFO BYTES
-   F411    21 F9FE              LXI     H,EINFO
-   F414    CD F4C2      ..LOOP: CALL    MSG     ;SPACE BETWEEN BYTES
-   F417    A0                   .ASCIS  \ \
-   F418    7E                   MOV     A,M
-   F419    23                   INX     H
-   F41A    CD F452              CALL    LBYTE   ;PRINT NEXT BYTE
-   F41D    10F5                 DJNZ    ..LOOP
+   F3C2    C9                   RET
                         
-   F41F    3E01                 MVI     A,1     ;CP/M ERROR FLAG
-   F421    37                   STC             ;INTERNAL ERROR FLAG
-   F422    C9                   RET
+                        ;       DISABLE WAIT STATES
+   F3C3                 WAITOFF:
+   F3C3    DB53                 IN              DCMD
+   F3C5    F680                 ORI             080H
+   F3C7    D353                 OUT             DCMD
+   F3C9    32 FA38              STA             OD3S
+   F3CC    C9                   RET
+                        ;
+                        ;       ENABLE WAIT STATES
+   F3CD                 WAITON:
+   F3CD    DB53                 IN              DCMD
+   F3CF    E67F                 ANI             07FH
+   F3D1    D353                 OUT             DCMD
+   F3D3    32 FA38              STA             OD3S
+   F3D6    C9                   RET
                         
-                        ; FLOPPY DISK ERROR MESSAGES. USED BY THE EPRINT
-                        ; ROUTINE TO TELL THE USER WHICH 179X ERROR OCCURED.
                         
-   F423    4E6F74205265 ERMESS: .ASCIS  \Not Ready\
-   F42C    577269746520         .ASCIS  \Write Protect\
-   F439    4661756CF4           .ASCIS  \Fault\
-   F43E    524EC6               .ASCIS  \RNF\
-   F441    426164204352         .ASCIS  \Bad CRC\
-   F448    4C6F73742044         .ASCIS  \Lost Data\
+                        ;********************************************************
+                        ; FLOPPY DISK ERROR PRINT SUBROUTINE. ANY NON ZERO BITS
+                        ; IN THE ACCUMULATOR ARE ERRORS. THE FIRST ONE FOUND IS
+                        ; PRINTED OUT.
+                        ;********************************************************
+                        
+   F3D7    57           EPRINT: MOV     D,A     ;SAVE ERROR BITS
+   F3D8    79                   MOV     A,C     ;STORE CALLING ROUTINE ID
+   F3D9    32 FA37              STA     ACTIVE
+   F3DC    DB55                 IN      WTRACK  ;STORE TRACK REGISTER
+   F3DE    32 FA34              STA     ITRACK
+   F3E1    DB56                 IN      WSECT   ;STORE SECTOR REGISTER
+   F3E3    32 FA35              STA     ISECT
+                        
+   F3E6    CD F4F8              CALL    MSG
+   F3E9    0D0A                 .BYTE   CR,LF
+   F3EB    457272206F6E         .ASCIS  \Err on \
+   F3F2    3A FA19              LDA     PDISK
 
 
 
@@ -1986,61 +1986,61 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F451    BF                   .ASCIS  \?\
+   F3F5    C641                 ADI     'A'
+   F3F7    4F                   MOV     C,A
+   F3F8    CD EE0C              CALL    BIOOUT
+   F3FB    CD F4F8              CALL    MSG
+   F3FE    3A20A0               .ASCIS  \:  \
+                        
+   F401    CBCA                 SET     1,D     ;INSURE NON ZERO ERROR BYTE
+   F403    0600                 MVI     B,0
+   F405    04           ..FIND: INR     B
+   F406    CB12                 RALR    D       ;FIND FIRST NON ZERO BIT
+   F408    30FB                 JRNC    ..FIND
+   F40A    21 F431              LXI     H,ERMESS ;POINT TO MESSAGE TABLE
+   F40D    1805                 JMPR    ..JOIN
+   F40F    CB7E         ..MORE: BIT     7,M     ;TEST FOR END OF MESSAGE
+   F411    23                   INX     H
+   F412    28FB                 JRZ     ..MORE  ;KEEP LOOKING FOR END, THIS MSG
+   F414    10F9         ..JOIN: DJNZ    ..MORE  ;KEEP LOOKING FOR CORRECT MSG
+   F416    CD F4FE              CALL    MSGHL   ;PRINT OUT CORRECT MESSAGE
+   F419    CD F4F8              CALL    MSG
+   F41C    A0                   .ASCIS  \ \
+                        
+   F41D    0607                 MVI     B,EILEN ;NUMBER OF ERROR INFO BYTES
+   F41F    21 FA34              LXI     H,EINFO
+   F422    CD F4F8      ..LOOP: CALL    MSG     ;SPACE BETWEEN BYTES
+   F425    A0                   .ASCIS  \ \
+   F426    7E                   MOV     A,M
+   F427    23                   INX     H
+   F428    CD F460              CALL    LBYTE   ;PRINT NEXT BYTE
+   F42B    10F5                 DJNZ    ..LOOP
+                        
+   F42D    3E01                 MVI     A,1     ;CP/M ERROR FLAG
+   F42F    37                   STC             ;INTERNAL ERROR FLAG
+   F430    C9                   RET
+                        
+                        ; FLOPPY DISK ERROR MESSAGES. USED BY THE EPRINT
+                        ; ROUTINE TO TELL THE USER WHICH 179X ERROR OCCURED.
+                        
+   F431    4E6F74205265 ERMESS: .ASCIS  \Not Ready\
+   F43A    577269746520         .ASCIS  \Write Protect\
+   F447    4661756CF4           .ASCIS  \Fault\
+   F44C    524EC6               .ASCIS  \RNF\
+   F44F    426164204352         .ASCIS  \Bad CRC\
+   F456    4C6F73742044         .ASCIS  \Lost Data\
+   F45F    BF                   .ASCIS  \?\
                         
                         
                         ;********************************************************
                         ;            PRINT HEX BYTE ON CONSOLE.
                         ;********************************************************
                         
-   F452    F5           LBYTE:  PUSH    PSW
-   F453    0F                   RRC
-   F454    0F                   RRC
-   F455    0F                   RRC
-   F456    0F                   RRC
-   F457    CD F45B              CALL    P2
-   F45A    F1                   POP     PSW
-   F45B    E60F         P2:     ANI     0FH
-   F45D    C690                 ADI     90H
-   F45F    27                   DAA
-   F460    CE40                 ACI     40H
-   F462    27                   DAA
-   F463    4F                   MOV     C,A
-   F464    C3 EE0C              JMP     BIOOUT
-                        
-                        
-                        ;********************************************************
-                        ; MOVE ATABLE INTO THE CORRECT APB. MOVE THE CORRECT
-                        ; APB INTO ATABLE.
-                        ;********************************************************
-                        
-   F467    3A F9F0      PUTAPB: LDA     ADISK           ;GET CURRENT ATABLE NUMBER
-   F46A    CD F49B              CALL    ASET            ;SET UP FOR MOVE
-   F46D    EDB0                 LDIR                    ;COPY ATABLE INTO APB
-   F46F    C9                   RET
-                        
-   F470    21 F9F0      GETAPB: LXI     H,ADISK         ;POINT TO ATABLE DRIVE NUMBER
-   F473    3A F9E3              LDA     PDISK           ;GET NEW NUMBER
-   F476    BE                   CMP     M               ;THE SAME(y/n)
-   F477    C8                   RZ                      ;YES, ATABLE ALREADY VALID
-   F478    77                   MOV     M,A             ;UPDATE ATABLE NUMBER
-   F479    CD F49B              CALL    ASET            ;SET UP FOR MOVE
-   F47C    EB                   XCHG                    ;APB ADDRESS NOW SOURCE
-   F47D    EDB0                 LDIR                    ;COPY APB INTO ATABLE
-                        
-                        ;NOW GET ALLOCATION SIZE FOR SELECTED DISK
-                        
-   F47F    3A F9E3              LDA     PDISK           ;GET DISK #
-   F482    5F                   MOV     E,A             ;MAKE INDEX
-   F483    1600                 MVI     D,0
-   F485    21 FA05              LXI     H,ALOCSZ        ;POINT TO SAVED BSH TABLE
-   F488    19                   DAD     D
-   F489    7E                   MOV     A,M             ;GET BSH VALUE
-   F48A    21 F496              LXI     H,ALOREC        ;POINT TO RECORDS/ALLOCATION SIZE
-   F48D    D603                 SUI     3               ;SET FOR INDEX
-   F48F    5F                   MOV     E,A             ;MAKE INDEX
-   F490    19                   DAD     D
-   F491    7E                   MOV     A,M             ;GET RECORDS/ALLOCATION
+   F460    F5           LBYTE:  PUSH    PSW
+   F461    0F                   RRC
+   F462    0F                   RRC
+   F463    0F                   RRC
+   F464    0F                   RRC
 
 
 
@@ -2052,61 +2052,61 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F492    32 FA09              STA     ALOCA           ;SAVE # FOR SELECTED DRIVE
+   F465    CD F469              CALL    P2
+   F468    F1                   POP     PSW
+   F469    E60F         P2:     ANI     0FH
+   F46B    C690                 ADI     90H
+   F46D    27                   DAA
+   F46E    CE40                 ACI     40H
+   F470    27                   DAA
+   F471    4F                   MOV     C,A
+   F472    C3 EE0C              JMP     BIOOUT
                         
-   F495    C9                   RET
+                        
+                        ;********************************************************
+                        ; MOVE ATABLE INTO THE CORRECT APB. MOVE THE CORRECT
+                        ; APB INTO ATABLE.
+                        ;********************************************************
+                        
+   F475    3A FA26      PUTAPB: LDA     ADISK           ;GET CURRENT ATABLE NUMBER
+   F478    CD F4A9              CALL    ASET            ;SET UP FOR MOVE
+   F47B    EDB0                 LDIR                    ;COPY ATABLE INTO APB
+   F47D    C9                   RET
+                        
+   F47E    21 FA26      GETAPB: LXI     H,ADISK         ;POINT TO ATABLE DRIVE NUMBER
+   F481    3A FA19              LDA     PDISK           ;GET NEW NUMBER
+   F484    BE                   CMP     M               ;THE SAME(y/n)
+   F485    C8                   RZ                      ;YES, ATABLE ALREADY VALID
+   F486    77                   MOV     M,A             ;UPDATE ATABLE NUMBER
+   F487    CD F4A9              CALL    ASET            ;SET UP FOR MOVE
+   F48A    EB                   XCHG                    ;APB ADDRESS NOW SOURCE
+   F48B    EDB0                 LDIR                    ;COPY APB INTO ATABLE
+                        
+                        ;NOW GET ALLOCATION SIZE FOR SELECTED DISK
+                        
+   F48D    3A FA19              LDA     PDISK           ;GET DISK #
+   F490    5F                   MOV     E,A             ;MAKE INDEX
+   F491    1600                 MVI     D,0
+   F493    21 FA3B              LXI     H,ALOCSZ        ;POINT TO SAVED BSH TABLE
+   F496    19                   DAD     D
+   F497    7E                   MOV     A,M             ;GET BSH VALUE
+   F498    21 F4A4              LXI     H,ALOREC        ;POINT TO RECORDS/ALLOCATION SIZE
+   F49B    D603                 SUI     3               ;SET FOR INDEX
+   F49D    5F                   MOV     E,A             ;MAKE INDEX
+   F49E    19                   DAD     D
+   F49F    7E                   MOV     A,M             ;GET RECORDS/ALLOCATION
+   F4A0    32 FA3F              STA     ALOCA           ;SAVE # FOR SELECTED DRIVE
+                        
+   F4A3    C9                   RET
                         
                         ;TABLE FOR # OF RECORDS FOR ALLOCATION SIZES FROM 1K TO 16K
                         
-   F496                 ALOREC:
-   F496    0810204080           .BYTE   8,16,32,64,128
+   F4A4                 ALOREC:
+   F4A4    0810204080           .BYTE   8,16,32,64,128
                         
                         
-   F49B    6F           ASET:   MOV     L,A             ;GET DISK NUMBER INTO L
-   F49C    CD F4A6              CALL    GETDPH
-   F49F    21 FA20              LXI     H,ATABLE
-   F4A2    01 0011              LXI     B,ALEN
-   F4A5    C9                   RET
-                        
-                        
-                        ;********************************************************
-                        ; GET DPH ADDRESS AND APB ADDRESS. RETURN THE DPH
-                        ; ADDRESS IN HL, THE CORRESPONDING APB ADDRESS IN DE.
-                        ; DISK NUMBER MUST BE IN L AT CALL.
-                        ;********************************************************
-                        
-   F4A6    2600         GETDPH: MVI     H,0
-   F4A8    29                   DAD     H               ;GET NUMBER * 2
-   F4A9    5D                   MOV     E,L
-   F4AA    54                   MOV     D,H
-   F4AB    29                   DAD     H
-   F4AC    29                   DAD     H
-   F4AD    29                   DAD     H               ;GET NUMBER * 16
-   F4AE    19                   DAD     D               ;GET NUMBER * 18
-   F4AF    11 F53D              LXI     D,APBBEG
-   F4B2    19                   DAD     D               ;NOW WE HAVE ADDR OF APB ADDR
-   F4B3    5E                   MOV     E,M             ;GET APB ADDRESS INTO DE
-   F4B4    23                   INX     H
-   F4B5    56                   MOV     D,M
-   F4B6    23                   INX     H               ;HL NOW HAS DPH ADDRESS
-   F4B7    C9                   RET
-                        
-                        
-                        ;********************************************************
-                        ;                  FATAL ERROR.
-                        ;********************************************************
-                        
-   F4B8                 FATERR:
-   F4B8    CD F4C2      QUIT:   CALL    MSG
-   F4BB    205354               .ASCII  ' ST'
-   F4BE    D0                   .BYTE   'P'+80H
-   F4BF    C3 EE6A              JMP     EEXIT           ;GO WARM BOOT
-                        
-                        
-                        ;********************************************************
-                        ; MESSAGE OUTPUT SUBROUTINE. THERE ARE TWO ENTRY
-                        ; POINTS. FOR MSG A MESSAGE FOLLOWS INLINE AFTER THE
-                        ; CALL. FOR MSGHL THE MESSAGE ADDRESS IS IN HL. FOR
+   F4A9    6F           ASET:   MOV     L,A             ;GET DISK NUMBER INTO L
+   F4AA    CD F4B4              CALL    GETDPH
 
 
 
@@ -2118,21 +2118,97 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F4AD    21 FA56              LXI     H,ATABLE
+   F4B0    01 0011              LXI     B,ALEN
+   F4B3    C9                   RET
+                        
+                        
+                        ;********************************************************
+                        ; GET DPH ADDRESS AND APB ADDRESS. RETURN THE DPH
+                        ; ADDRESS IN HL, THE CORRESPONDING APB ADDRESS IN DE.
+                        ; DISK NUMBER MUST BE IN L AT CALL.
+                        ;********************************************************
+                        
+   F4B4    2600         GETDPH: MVI     H,0
+   F4B6    29                   DAD     H               ;GET NUMBER * 2
+   F4B7    5D                   MOV     E,L
+   F4B8    54                   MOV     D,H
+   F4B9    29                   DAD     H
+   F4BA    29                   DAD     H
+   F4BB    29                   DAD     H               ;GET NUMBER * 16
+   F4BC    19                   DAD     D               ;GET NUMBER * 18
+   F4BD    11 F573              LXI     D,APBBEG
+   F4C0    19                   DAD     D               ;NOW WE HAVE ADDR OF APB ADDR
+   F4C1    5E                   MOV     E,M             ;GET APB ADDRESS INTO DE
+   F4C2    23                   INX     H
+   F4C3    56                   MOV     D,M
+   F4C4    23                   INX     H               ;HL NOW HAS DPH ADDRESS
+   F4C5    C9                   RET
+                        
+                        
+                        ;********************************************************
+                        ;                  FATAL ERROR.
+                        ;********************************************************
+                        
+   F4C6                 FATER1:
+   F4C6    CD F4F8              CALL    MSG
+   F4C9    204631               .ASCII  ' F1'
+   F4CC    D0                   .BYTE   'P'+80H
+   F4CD    C3 EE6A              JMP     EEXIT           ;GO WARM BOOT
+                        
+   F4D0                 FATER2:
+   F4D0    CD F4F8              CALL    MSG
+   F4D3    204632               .ASCII  ' F2'
+   F4D6    D0                   .BYTE   'P'+80H
+   F4D7    C3 EE6A              JMP     EEXIT           ;GO WARM BOOT
+                        
+   F4DA                 FATER3:
+   F4DA    CD F4F8              CALL    MSG
+   F4DD    204633               .ASCII  ' F3'
+   F4E0    D0                   .BYTE   'P'+80H
+   F4E1    C3 EE6A              JMP     EEXIT           ;GO WARM BOOT
+                        
+   F4E4                 FATER4:
+   F4E4    CD F4F8              CALL    MSG
+   F4E7    204634               .ASCII  ' F4'
+   F4EA    D0                   .BYTE   'P'+80H
+   F4EB    C3 EE6A              JMP     EEXIT           ;GO WARM BOOT
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 34
+
+
+
+
+                        
+   F4EE    CD F4F8      QUIT1:  CALL    MSG
+   F4F1    205131               .ASCII  ' Q1'
+   F4F4    D0                   .BYTE   'P'+80H
+   F4F5    C3 EE6A              JMP     EEXIT           ;GO WARM BOOT
+                        
+                        ;********************************************************
+                        ; MESSAGE OUTPUT SUBROUTINE. THERE ARE TWO ENTRY
+                        ; POINTS. FOR MSG A MESSAGE FOLLOWS INLINE AFTER THE
+                        ; CALL. FOR MSGHL THE MESSAGE ADDRESS IS IN HL. FOR
                         ; BOTH ENTRY POINTS THE MESSAGE IS PRINTED OUT UP TO
                         ; AND INCLUDING A CHARACTER WITH ITS HI ORDER BIT SET.
                         ;********************************************************
                         
-   F4C2    E3           MSG:    XTHL                    ;GET MESSAGE ADDRESS
-   F4C3    CD F4C8              CALL    MSGHL           ;PRINT THE MESSAGE
-   F4C6    E3                   XTHL                    ;RESTORE NEW RETURN ADDRESS
-   F4C7    C9                   RET
+   F4F8    E3           MSG:    XTHL                    ;GET MESSAGE ADDRESS
+   F4F9    CD F4FE              CALL    MSGHL           ;PRINT THE MESSAGE
+   F4FC    E3                   XTHL                    ;RESTORE NEW RETURN ADDRESS
+   F4FD    C9                   RET
                         
-   F4C8    4E           MSGHL:  MOV     C,M             ;GET NEXT CHAR OF MESSAGE
-   F4C9    23                   INX     H
-   F4CA    CD EE0C              CALL    BIOOUT          ;OUTPUT THE CHAR
-   F4CD    B7                   ORA     A               ;TEST FOR HI BIT SET
-   F4CE    F2 F4C8              JP      MSGHL           ;NOT SET, KEEP GOING
-   F4D1    C9                   RET
+   F4FE    4E           MSGHL:  MOV     C,M             ;GET NEXT CHAR OF MESSAGE
+   F4FF    23                   INX     H
+   F500    CD EE0C              CALL    BIOOUT          ;OUTPUT THE CHAR
+   F503    B7                   ORA     A               ;TEST FOR HI BIT SET
+   F504    F2 F4FE              JP      MSGHL           ;NOT SET, KEEP GOING
+   F507    C9                   RET
                         
                         
                         ;********************************************************
@@ -2149,96 +2225,20 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;    I/O ROUTINES FOR THE TTY PHYSICAL DEVICE.
                         ;********************************************************
                         
-   F4D2    43494F5442           .ASCII  \CIOTB\
+   F508    43494F5442           .ASCII  \CIOTB\
                         
-   F4D7    00           CSTAT:  .BYTE   0
-   F4D8    00           KBSTAT: .BYTE   0
-   F4D9    01           CIO:    .BYTE   1
-   F4DA    01           KBIO:   .BYTE   1
-   F4DB    04           COUT:   .BYTE   4
-   F4DC    02           KIN:    .BYTE   2
+   F50D    00           CSTAT:  .BYTE   0
+   F50E    00           KBSTAT: .BYTE   0
+   F50F    01           CIO:    .BYTE   1
+   F510    01           KBIO:   .BYTE   1
+   F511    04           COUT:   .BYTE   4
+   F512    02           KIN:    .BYTE   2
                         
-   F4DD    4B4953               .ASCII  \KIS\
-   F4E0                 TTYIS:
-   F4E0    3A F4D8              LDA     KBSTAT
-   F4E3    4F                   MOV     C,A
-   F4E4    3A F4DC              LDA     KIN
-   F4E7    5F                   MOV     E,A
-   F4E8    ED78                 INP     A
-   F4EA    00                   NOP
-                        ;       CMA FOR NEGATIVE LOGIC
-   F4EB    00                   NOP
-   F4EC    A3                   ANA     E
-   F4ED    00                   NOP
-   F4EE    00                   NOP
-   F4EF    C8                   RZ                      ;RETURN FALSE IF UNAVAILABLE
-   F4F0    00                   NOP
-
-
-
-
-
-
-TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 34
-
-
-
-
-   F4F1    00                   NOP
-   F4F2    3EFF                 MVI     A,0FFH
-   F4F4    C9                   RET                     ;RETURN TRUE
-                        
-   F4F5    4B49                 .ASCII  \KI\
-                        
-   F4F7    CD F4E0      TTYIN:  CALL    TTYIS           ;GET STATUS
-   F4FA    CA F4F7              JZ      TTYIN           ;WAIT UNTIL DATA AVAILABLE
-   F4FD    3A F4DA              LDA     KBIO
-   F500    4F                   MOV     C,A
-   F501    ED78                 INP     A
-   F503    00                   NOP
-   F504    00                   NOP
-   F505    E67F                 ANI     07FH            ;DROP PARITY
-   F507    C9                   RET
-                        
-   F508    434F53               .ASCII  \COS\
-                        
-   F50B                 TTYOS:
-   F50B    C5                   PUSH    B
-   F50C    3A F4D7              LDA     CSTAT
-   F50F    4F                   MOV     C,A
-   F510    3A F4DB              LDA     COUT
-   F513    5F                   MOV     E,A
-   F514    ED78                 INP     A
-                        ;       CMA FOR NEGATIVE LOGIC
-   F516    00                   NOP
-   F517    00                   NOP
-   F518    A3                   ANA     E
-   F519    C1                   POP     B
-   F51A    C8                   RZ                      ;RETURN FALSE IF NOT EMPTY
-   F51B    00                   NOP
-   F51C    00                   NOP
-   F51D    3EFF                 MVI     A,0FFH
-   F51F    C9                   RET                     ;RETURN TRUE
-                        
-   F520    434F                 .ASCII  \CO\
-   F522                 TTYOUT:
-   F522    CD F50B              CALL    TTYOS           ;GET STATUS
-   F525    CA F522              JZ      TTYOUT          ;WAIT UNTIL BUFFER EMPTY
-   F528    59                   MOV     E,C
-   F529    3A F4D9              LDA     CIO
-   F52C    4F                   MOV     C,A
-   F52D    7B                   MOV     A,E
-   F52E    00                   NOP
-   F52F    00                   NOP
-   F530    ED79                 OUTP    A               ;OUTPUT THE DATA
-   F532    C9                   RET
-                        
-                        
-                        
-                        ;********************************************************
-                        ; Unimplemented I/O Routines
-                        ;********************************************************
-                        
+   F513    4B4953               .ASCII  \KIS\
+   F516                 TTYIS:
+   F516    3A F50E              LDA     KBSTAT
+   F519    4F                   MOV     C,A
+   F51A    3A F512              LDA     KIN
 
 
 
@@ -2250,61 +2250,61 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F533                 CRTIS: 
-   F533                 READER:
-   F533                 CRTIN:  
-   F533                 CRTOS:  
-   F533                 PUNCH:
-   F533                 CRTOUT: 
-   F533                 TUBE:
-   F533                 LISTST:
-   F533                 LIST:
-   F533                 LISTC:
-   F533                 LIST1:
-   F533                 SERP:
-   F533                 SPIN0:
-   F533                 SPIN2:  
-   F533                 CRTOT1:
-   F533                 SPINST: 
-   F533                 CENST:
-   F533                 SERPST:
-   F533    C9                   RET
+   F51D    5F                   MOV     E,A
+   F51E    ED78                 INP     A
+   F520    00                   NOP
+                        ;       CMA FOR NEGATIVE LOGIC
+   F521    00                   NOP
+   F522    A3                   ANA     E
+   F523    00                   NOP
+   F524    00                   NOP
+   F525    C8                   RZ                      ;RETURN FALSE IF UNAVAILABLE
+   F526    00                   NOP
+   F527    00                   NOP
+   F528    3EFF                 MVI     A,0FFH
+   F52A    C9                   RET                     ;RETURN TRUE
                         
+   F52B    4B49                 .ASCII  \KI\
                         
-                        ;********************************************************
-                        ; IO ROUTINES FOR THE OTHER IOBYTE VECTORED DEVICES
-                        ;********************************************************
+   F52D    CD F516      TTYIN:  CALL    TTYIS           ;GET STATUS
+   F530    CA F52D              JZ      TTYIN           ;WAIT UNTIL DATA AVAILABLE
+   F533    3A F510              LDA     KBIO
+   F536    4F                   MOV     C,A
+   F537    ED78                 INP     A
+   F539    00                   NOP
+   F53A    00                   NOP
+   F53B    E67F                 ANI     07FH            ;DROP PARITY
+   F53D    C9                   RET
                         
-   F534                 CONST:  
-   F534    C3 F4E0              JMP     TTYIS   
+   F53E    434F53               .ASCII  \COS\
                         
-   F537                 CONIN:  
-   F537    C3 F4F7              JMP     TTYIN
+   F541                 TTYOS:
+   F541    C5                   PUSH    B
+   F542    3A F50D              LDA     CSTAT
+   F545    4F                   MOV     C,A
+   F546    3A F511              LDA     COUT
+   F549    5F                   MOV     E,A
+   F54A    ED78                 INP     A
+                        ;       CMA FOR NEGATIVE LOGIC
+   F54C    00                   NOP
+   F54D    00                   NOP
+   F54E    A3                   ANA     E
+   F54F    C1                   POP     B
+   F550    C8                   RZ                      ;RETURN FALSE IF NOT EMPTY
+   F551    00                   NOP
+   F552    00                   NOP
+   F553    3EFF                 MVI     A,0FFH
+   F555    C9                   RET                     ;RETURN TRUE
                         
-   F53A                 CONOUT:
-   F53A    C3 F522              JMP     TTYOUT
-                        
-                        
-                        
-                        
-                        ;********************************************************
-                        ; FLOPPY DISK DPH TABLE. FOR THE CONVENIENCE OF THE
-                        ; CBIOS THE APB ADDRESS FOR A DISK PRECEDES THE DPH
-                        ; FOR THE DISK.
-                        ;********************************************************
-                        
-   F53D                 APBBEG:
-   F53D    FA34                 .WORD   APB0
-   F53F    FA54                 .WORD   TRANS0          ;LOGICAL TO PHYSICAL XLATE TAB
-   F541    0000                 .WORD   0               ;SCRATCH
-   F543    0000                 .WORD   0
-   F545    0000                 .WORD   0
-   F547    FC14                 .WORD   DIRBUF          ;DIRECTORY BUFFER
-   F549    FA45                 .WORD   DPB0            ;DISK PARAMETER BLOCK
-   F54B    FD00                 .WORD   CSV0            ;CHECKSUM VECTOR
-   F54D    FC94                 .WORD   ALV0            ;ALLOCATION VECTOR
-                        
-   F54F    FAAC                 .WORD   APB1
+   F556    434F                 .ASCII  \CO\
+   F558                 TTYOUT:
+   F558    CD F541              CALL    TTYOS           ;GET STATUS
+   F55B    CA F558              JZ      TTYOUT          ;WAIT UNTIL BUFFER EMPTY
+   F55E    59                   MOV     E,C
+   F55F    3A F50F              LDA     CIO
+   F562    4F                   MOV     C,A
+   F563    7B                   MOV     A,E
+   F564    00                   NOP
 
 
 
@@ -2316,34 +2316,110 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   F551    FACC                 .WORD   TRANS1
-   F553    0000                 .WORD   0
-   F555    0000                 .WORD   0
-   F557    0000                 .WORD   0
-   F559    FC14                 .WORD   DIRBUF
-   F55B    FABD                 .WORD   DPB1
-   F55D    FDAC                 .WORD   CSV1
-   F55F    FD40                 .WORD   ALV1
+   F565    00                   NOP
+   F566    ED79                 OUTP    A               ;OUTPUT THE DATA
+   F568    C9                   RET
                         
-   F561    FB24                 .WORD   APB2
-   F563    FB44                 .WORD   TRANS2
-   F565    0000                 .WORD   0
-   F567    0000                 .WORD   0
-   F569    0000                 .WORD   0
-   F56B    FC14                 .WORD   DIRBUF
-   F56D    FB35                 .WORD   DPB2
-   F56F    FE58                 .WORD   CSV2
-   F571    FDEC                 .WORD   ALV2
                         
-   F573    FB9C                 .WORD   APB3
-   F575    FBBC                 .WORD   TRANS3
-   F577    0000                 .WORD   0
+                        
+                        ;********************************************************
+                        ; Unimplemented I/O Routines
+                        ;********************************************************
+                        
+   F569                 CRTIS: 
+   F569                 READER:
+   F569                 CRTIN:  
+   F569                 CRTOS:  
+   F569                 PUNCH:
+   F569                 CRTOUT: 
+   F569                 TUBE:
+   F569                 LISTST:
+   F569                 LIST:
+   F569                 LISTC:
+   F569                 LIST1:
+   F569                 SERP:
+   F569                 SPIN0:
+   F569                 SPIN2:  
+   F569                 CRTOT1:
+   F569                 SPINST: 
+   F569                 CENST:
+   F569                 SERPST:
+   F569    C9                   RET
+                        
+                        
+                        ;********************************************************
+                        ; IO ROUTINES FOR THE OTHER IOBYTE VECTORED DEVICES
+                        ;********************************************************
+                        
+   F56A                 CONST:  
+   F56A    C3 F516              JMP     TTYIS   
+                        
+   F56D                 CONIN:  
+   F56D    C3 F52D              JMP     TTYIN
+                        
+   F570                 CONOUT:
+   F570    C3 F558              JMP     TTYOUT
+                        
+                        
+                        
+                        
+                        ;********************************************************
+                        ; FLOPPY DISK DPH TABLE. FOR THE CONVENIENCE OF THE
+                        ; CBIOS THE APB ADDRESS FOR A DISK PRECEDES THE DPH
+                        ; FOR THE DISK.
+                        ;********************************************************
+                        
+   F573                 APBBEG:
+   F573    FA6A                 .WORD   APB0
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 37
+
+
+
+
+   F575    FA8A                 .WORD   TRANS0          ;LOGICAL TO PHYSICAL XLATE TAB
+   F577    0000                 .WORD   0               ;SCRATCH
    F579    0000                 .WORD   0
    F57B    0000                 .WORD   0
-   F57D    FC14                 .WORD   DIRBUF
-   F57F    FBAD                 .WORD   DPB3
-   F581    FF04                 .WORD   CSV3
-   F583    FE98                 .WORD   ALV3
+   F57D    FC4A                 .WORD   DIRBUF          ;DIRECTORY BUFFER
+   F57F    FA7B                 .WORD   DPB0            ;DISK PARAMETER BLOCK
+   F581    FD36                 .WORD   CSV0            ;CHECKSUM VECTOR
+   F583    FCCA                 .WORD   ALV0            ;ALLOCATION VECTOR
+                        
+   F585    FAE2                 .WORD   APB1
+   F587    FB02                 .WORD   TRANS1
+   F589    0000                 .WORD   0
+   F58B    0000                 .WORD   0
+   F58D    0000                 .WORD   0
+   F58F    FC4A                 .WORD   DIRBUF
+   F591    FAF3                 .WORD   DPB1
+   F593    FDE2                 .WORD   CSV1
+   F595    FD76                 .WORD   ALV1
+                        
+   F597    FB5A                 .WORD   APB2
+   F599    FB7A                 .WORD   TRANS2
+   F59B    0000                 .WORD   0
+   F59D    0000                 .WORD   0
+   F59F    0000                 .WORD   0
+   F5A1    FC4A                 .WORD   DIRBUF
+   F5A3    FB6B                 .WORD   DPB2
+   F5A5    FE8E                 .WORD   CSV2
+   F5A7    FE22                 .WORD   ALV2
+                        
+   F5A9    FBD2                 .WORD   APB3
+   F5AB    FBF2                 .WORD   TRANS3
+   F5AD    0000                 .WORD   0
+   F5AF    0000                 .WORD   0
+   F5B1    0000                 .WORD   0
+   F5B3    FC4A                 .WORD   DIRBUF
+   F5B5    FBE3                 .WORD   DPB3
+   F5B7    FF3A                 .WORD   CSV3
+   F5B9    FECE                 .WORD   ALV3
                         
                         
                         ;********************************************************
@@ -2361,82 +2437,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;             8" FLOPPY DISK TABLES.
                         ;********************************************************
                         
-   F585                 STDDDB:
-   F585    01                   .BYTE   00000001B       ;FLAG
-   F586    0002                 .WORD   2               ;OFF
-   F588    00                   .BYTE   0               ;SSLEN
-   F589    1A                   .BYTE   26              ;SLRPS
-   F58A    00                   .BYTE   0               ;USLEN
-   F58B    1A                   .BYTE   26              ;ULRPS
-                        
-   F58C    001A                 .WORD   26              ;STANDARD DPB
-   F58E    030700               .BYTE   3,7,0
-
-
-
-
-
-
-TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 37
-
-
-
-
-   F591    00F2                 .WORD   242
-   F593    003F                 .WORD   63
-   F595    C000                 .BYTE   192,0
-   F597    0010                 .WORD   16
-   F599    0002                 .WORD   2
-                        
-   F59B    01070D131905         .BYTE   1,7,13,19,25,5,11,17,23
-   F5A4    03090F150208         .BYTE   3,9,15,21,2,8,14,20,26
-   F5AD    060C1218040A         .BYTE   6,12,18,24,4,10,16,22
-                        
-                        
-                        
-                        ;********************************************************
-                        ;            5" FLOPPY DISK TABLES.
-                        ;********************************************************
-                        
-                        
-   F5B5    05           ALTDDB: .BYTE   00000101B       ;FLAG
-   F5B6    0003                 .WORD   3               ;OFF
-   F5B8    00                   .BYTE   0               ;SSLEN
-   F5B9    12                   .BYTE   18              ;SLRPS
-   F5BA    00                   .BYTE   0               ;USLEN
-   F5BB    12                   .BYTE   18              ;ULRPS
-                        
-   F5BC    0012                 .WORD   18              ;STANDARD DPB
-   F5BE    030700               .BYTE   3,7,0
-   F5C1    0047                 .WORD   71
-   F5C3    003F                 .WORD   63
-   F5C5    C000                 .BYTE   192,0
-   F5C7    0010                 .WORD   16
-   F5C9    0003                 .WORD   3
-                        
-   F5CB    0105090D1103         .BYTE   1,5,9,13,17,3,7,11,15
-   F5D4    02060A0E1204         .BYTE   2,6,10,14,18,4,8,12,16
-                        
-                        ;********************************************************
-                        ;       SECTOR READ AND WRITE BUFFERS.
-                        ;********************************************************
-                        
-                        ; THE ORIGINAL CBIOS HAD INDEPENDENT READ AND WRITE BUFFERS.
-                        ; BOHDAN COULDN'T WORK WITH THE DRI SINGLE BUFFER ALGORITHM,
-                        ; SO HE LIMITED SECTOR SIZES TO 512 BYTES, AND HAD THESE LOCAL
-                        ; READ AND WRITE BUFFERS. THAT WAY HE COULD IGNORE ANY 
-                        ; ALLOCATION BLOCK-SIZE FLAGGING THAT BDOS PROVIDED.
-                        ; B. JONES IMPLEMENTED THE DRI DEBLOCKING, COMBINED
-                        ; RDBUFF & WRBUFF TO GIVE 1024 BYTE SECTOR SUPPORT.
-                        ; RDBUFF & WRBUFF REFERANCES ARE STILL TO BE FOUND
-                        ; IN THE PHYSICAL R/W CODE. THEY HAVE BEEN KEPT AS
-                        ; FOSILS TO MARK THE ORIGINAL BUFFERING SCHEME.
-                        
-   F5DD                 HSTBUF:
-   F5DD                 RDBUFF:
-   F5DD                 WRBUFF:
-   F5DD                 SYSNIT:
-                        
 
 
 
@@ -2448,27 +2448,103 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F5BB                 STDDDB:
+   F5BB    01                   .BYTE   00000001B       ;FLAG
+   F5BC    0002                 .WORD   2               ;OFF
+   F5BE    00                   .BYTE   0               ;SSLEN
+   F5BF    1A                   .BYTE   26              ;SLRPS
+   F5C0    00                   .BYTE   0               ;USLEN
+   F5C1    1A                   .BYTE   26              ;ULRPS
+                        
+   F5C2    001A                 .WORD   26              ;STANDARD DPB
+   F5C4    030700               .BYTE   3,7,0
+   F5C7    00F2                 .WORD   242
+   F5C9    003F                 .WORD   63
+   F5CB    C000                 .BYTE   192,0
+   F5CD    0010                 .WORD   16
+   F5CF    0002                 .WORD   2
+                        
+   F5D1    01070D131905         .BYTE   1,7,13,19,25,5,11,17,23
+   F5DA    03090F150208         .BYTE   3,9,15,21,2,8,14,20,26
+   F5E3    060C1218040A         .BYTE   6,12,18,24,4,10,16,22
+                        
+                        
+                        
+                        ;********************************************************
+                        ;            5" FLOPPY DISK TABLES.
+                        ;********************************************************
+                        
+                        
+   F5EB    05           ALTDDB: .BYTE   00000101B       ;FLAG
+   F5EC    0003                 .WORD   3               ;OFF
+   F5EE    00                   .BYTE   0               ;SSLEN
+   F5EF    12                   .BYTE   18              ;SLRPS
+   F5F0    00                   .BYTE   0               ;USLEN
+   F5F1    12                   .BYTE   18              ;ULRPS
+                        
+   F5F2    0012                 .WORD   18              ;STANDARD DPB
+   F5F4    030700               .BYTE   3,7,0
+   F5F7    0047                 .WORD   71
+   F5F9    003F                 .WORD   63
+   F5FB    C000                 .BYTE   192,0
+   F5FD    0010                 .WORD   16
+   F5FF    0003                 .WORD   3
+                        
+   F601    0105090D1103         .BYTE   1,5,9,13,17,3,7,11,15
+   F60A    02060A0E1204         .BYTE   2,6,10,14,18,4,8,12,16
+                        
+                        ;********************************************************
+                        ;       SECTOR READ AND WRITE BUFFERS.
+                        ;********************************************************
+                        
+                        ; THE ORIGINAL CBIOS HAD INDEPENDENT READ AND WRITE BUFFERS.
+                        ; BOHDAN COULDN'T WORK WITH THE DRI SINGLE BUFFER ALGORITHM,
+                        ; SO HE LIMITED SECTOR SIZES TO 512 BYTES, AND HAD THESE LOCAL
+                        ; READ AND WRITE BUFFERS. THAT WAY HE COULD IGNORE ANY 
+                        ; ALLOCATION BLOCK-SIZE FLAGGING THAT BDOS PROVIDED.
+                        ; B. JONES IMPLEMENTED THE DRI DEBLOCKING, COMBINED
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 39
+
+
+
+
+                        ; RDBUFF & WRBUFF TO GIVE 1024 BYTE SECTOR SUPPORT.
+                        ; RDBUFF & WRBUFF REFERANCES ARE STILL TO BE FOUND
+                        ; IN THE PHYSICAL R/W CODE. THEY HAVE BEEN KEPT AS
+                        ; FOSILS TO MARK THE ORIGINAL BUFFERING SCHEME.
+                        
+   F613                 HSTBUF:
+   F613                 RDBUFF:
+   F613                 WRBUFF:
+   F613                 SYSNIT:
+                        
                         ; SYSNIT CODE IS DISCARDED AFTER USE.
                         
-   F5DD    CD F4C2      SIGNON: CALL    MSG
-   F5E0    0D0A0A               .BYTE   CR,LF,LF
-   F5E3    446967697461         .ASCII  'Digital Research CP/M 2.2 '
+   F613    CD F4F8      SIGNON: CALL    MSG
+   F616    0D0A0A               .BYTE   CR,LF,LF
+   F619    446967697461         .ASCII  'Digital Research CP/M 2.2 '
                         
-   F5FD    3634                 .BYTE   (MSIZ)/10+'0',(MSIZ) @10+'0'
-   F5FF    4B2F                 .ASCII  'K/'
+   F633    3634                 .BYTE   (MSIZ)/10+'0',(MSIZ) @10+'0'
+   F635    4B2F                 .ASCII  'K/'
                         
-   F601    3536                 .BYTE (((BDOS-6)/1024)/10)+'0',((BDOS-6)/1024) @10+'0'
-   F603    4B20545041           .ASCII  'K TPA'
-   F608    0D0A                 .BYTE   CR,LF
+   F637    3536                 .BYTE (((BDOS-6)/1024)/10)+'0',((BDOS-6)/1024) @10+'0'
+   F639    4B20545041           .ASCII  'K TPA'
+   F63E    0D0A                 .BYTE   CR,LF
                         
-   F60A    566572736146         .ASCII  'VersaFloppy II BIOS'
-   F61D    0D0A80               .BYTE   CR,LF,80H       
+   F640    566572736146         .ASCII  'VersaFloppy II BIOS'
+   F653    0D0A80               .BYTE   CR,LF,80H       
                         
-   F620    C9                   RET
+   F656    C9                   RET
                         
    0044                         NITLEN  ==      .-SYSNIT
                         
-   F621                 BIOEND:
+   F657                 BIOEND:
                         
                         ;********************************************************
                         ;        SHOW HOW MUCH DISK SPACE IS LEFT
@@ -2477,7 +2553,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;TOTAL BYTE NEEDED ON BOOT TRACKS ARE
                         ;FROM CCP TO END OF BIOS CODE PLUS LODER + DDB
                         
-   1F21                 TOTSIZ  ==      ((BIOEND-CCP)+128+128)
+   1F57                 TOTSIZ  ==      ((BIOEND-CCP)+128+128)
                         
                         ;SYSTEM SECTORS USED
                         
@@ -2493,6 +2569,17 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         
                                 .IFG    (.-BIOS)-(NSBIOS*128),[
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 40
+
+
+
+
                                 .PRNTX  \BIOS EXCEEDS DISK SPACE \
                                 ]
                         
@@ -2503,17 +2590,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                                 ]       
                         
                                 .DEFINE TSIZE[XX]=[
-
-
-
-
-
-
-TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 39
-
-
-
-
                                 .PRNTX  /XX BYTES TOTAL BOOT TRACKS SPACE NEEDED /      ]
                         
                         
@@ -2538,7 +2614,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         ; 1024 BYTE HOST BUFFER ENDS HERE       
                         
-   F9DD                         .LOC    HSTBUFF+1024
+   FA13                         .LOC    HSTBUFF+1024
                         
                         ;********************************************************
                         ; CP/M CALL PARAMETER STORAGE. CP/M SETS THE LOGICAL
@@ -2547,10 +2623,10 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; AND USE THE REMAINING VARIABLES.
                         ;********************************************************
                         
-   F9DD                 DMAFLG: .BLKB   1               ;CONTROLLER TYPE FLAG   
-   F9DE                 SEKSEC: .BLKB   2               ;LOGICAL SECTOR TO R/W
-   F9E0                 DMAADD: .BLKB   2               ;LOGICAL & ACTUAL CP/M DMA ADDR
-   F9E2                 CREC:   .BLKB   1               ;CURRENT RECORD WITHIN SECTOR
+   FA13                 DMAFLG: .BLKB   1               ;CONTROLLER TYPE FLAG   
+   FA14                 SEKSEC: .BLKB   2               ;LOGICAL SECTOR TO R/W
+   FA16                 DMAADD: .BLKB   2               ;LOGICAL & ACTUAL CP/M DMA ADDR
+   FA18                 CREC:   .BLKB   1               ;CURRENT RECORD WITHIN SECTOR
                         
                         
                         ;********************************************************
@@ -2558,82 +2634,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; MUST BE SET BEFORE CALLING THE FLOPPY DISK PHYSICAL
                         ; READ OR WRITE ROUTINES.
                         ;********************************************************
-                        
-   F9E3                 PDISK:  .BLKB   1               ;PHYSICAL DISK FOR NEXT I/O
-   F9E4                 PTRACK: .BLKB   2               ;PHYSICAL TRACK FOR NEXT I/O
-   F9E6                 PSECT:  .BLKB   2               ;PHYSICAL SECTOR FOR NEXT I/O
-   F9E8                 PDMA:   .BLKB   2               ;PHYSICAL BUFFER ADDR, NEXT I/O
-                        
-   F9EA                 CTRACK: .BLKB   2
-   F9EC                 CSECT:  .BLKB   2
-                        
-                        
-                        
-
-
-
-
-
-
-TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 40
-
-
-
-
-                        ;********************************************************
-                        ;    GENERAL PURPOSE VARIABLES ARE STORED HERE.
-                        ;********************************************************
-                        
-   F9EE                 RETRY:
-   F9EE                 RMICRO: .BLKB   1               ;MICRO FDC RETRY COUNT
-   F9EF                 RMACRO: .BLKB   1               ;MACRO FDC RETRY COUNT
-   F9F0                 ADISK:  .BLKB   1               ;DISK NUMBER OF DISK AT ATABLE
-   F9F1                 OLDFLO: .BLKB   1               ;OLD FLOPPY DRIVE NUMBER
-   F9F2                 PCMD:   .BLKB   1               ;ACTUAL FLOPPY READ/WRITE CMD
-   F9F3                 ORWCMD: .BLKB   1               ;LAST R/W OUTPUT TO CMD REG
-   F9F4                 DPHADR: .BLKB   2               ;DPH ADDRESS FOR CURRENT DISK
-   F9F6                 APBADR: .BLKB   2               ;APB ADDRESS FOR CURRENT DISK
-   F9F8                 WRTYPE: .BLKB   1               ;TYPE OF WRITE
-   F9F9                 D3SNO:  .BLKB   1               ;CURRENT NO WAIT Z3S BYTE
-   F9FA                 D3SWT:  .BLKB   1               ;CURRENT WAIT Z3S BYTE
-   F9FB                 SAVADR: .BLKB   2               ;STD OR ALT DDB ADDRESS
-   F9FD                 MRML:   .BLKB   1               ;MACRO RETRY MAJOR LOOP
-                        
-                        
-                        ;********************************************************
-                        ; ERROR INFORMATION STORAGE. VARIOUS ROUTINES USE THIS
-                        ; AREA TO STORE KEY VARIABLES RELATING TO THE Z3S
-                        ; CONTROLLER AND THE 179X CHIP. 
-                        ;********************************************************
-                        
-   F9FE                 EINFO:
-   F9FE                 ITRACK: .BLKB   1               ;LAST INPUT FROM TRACK REG
-   F9FF                 ISECT:  .BLKB   1               ;LAST INPUT FROM SECTOR REG
-   FA00                 ISTAT:  .BLKB   1               ;LAST INPUT FROM STATUS REG
-   FA01                 ACTIVE: .BLKB   1               ;SHOWS WHICH ROUTINE HAD ERROR
-   FA02                 OD3S:   .BLKB   1               ;LAST OUTPUT TO Z3S CTRL BYTE
-   FA03                 OCMD:   .BLKB   1               ;LAST OUTPUT TO CMD REG
-   FA04                 SIDEID: .BLKB   1               ;LASE SIDE SELECTED
-                        
-   0007                 EILEN   ==      .-EINFO
-                        
-                        
-                        
-                        ;********************************************************
-                        ;*   ALLOCATION VALUES FOR SELECTED DISKS ARE NEXT
-                        ;********************************************************
-                        
-   FA05                 ALOCSZ: .BLKB   4               ;BSH VALUE FOR 4 DRIVES
-   FA09                 ALOCA:  .BLKB   1               ;RECORDS/BLOCK FOR SELECTED DRIVE
-                        
-                                ;UNALLOCATED PARAMETERS FOLLOW
-                        
-                        
-   FA0A                 UNACNT: .BLKB   1               ;UNALLOCATED RECORD COUNT
-                        
-   FA0B                 UNADSK: .BLKB   1               ;      "     DISK #     
-   FA0C                 UNATRK: .BLKB   2               ;      "     TRACK #
-   FA0E                 UNASEC: .BLKB   2               ;      "     SECTOR #
                         
 
 
@@ -2646,21 +2646,97 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   FA10                 NEWSEC: .BLKB   2               ;CP/M SET SECTOR
+   FA19                 PDISK:  .BLKB   1               ;PHYSICAL DISK FOR NEXT I/O
+   FA1A                 PTRACK: .BLKB   2               ;PHYSICAL TRACK FOR NEXT I/O
+   FA1C                 PSECT:  .BLKB   2               ;PHYSICAL SECTOR FOR NEXT I/O
+   FA1E                 PDMA:   .BLKB   2               ;PHYSICAL BUFFER ADDR, NEXT I/O
                         
-   FA12                 RSFLAG: .BLKB   1               ;READ SECTOR FLAG
-   FA13                 READOP: .BLKB   1               ;READ = 0, WRITE = 1
-   FA14                 HSTACT: .BLKB   1               ;0 = HOST NOT ACTIVE
-   FA15                 HSTWRT: .BLKB   1               ;HOST WRITTEN FLAG
+   FA20                 CTRACK: .BLKB   2
+   FA22                 CSECT:  .BLKB   2
                         
                         
-   FA16                 HSTDSK: .BLKB   1
-   FA17                 HSTTRK: .BLKB   2
-   FA19                 HSTSEC: .BLKB   2
                         
-   FA1B                 SEKDSK: .BLKB   1
-   FA1C                 SEKTRK: .BLKB   2
-   FA1E                 SEKHST: .BLKB   2
+                        ;********************************************************
+                        ;    GENERAL PURPOSE VARIABLES ARE STORED HERE.
+                        ;********************************************************
+                        
+   FA24                 RETRY:
+   FA24                 RMICRO: .BLKB   1               ;MICRO FDC RETRY COUNT
+   FA25                 RMACRO: .BLKB   1               ;MACRO FDC RETRY COUNT
+   FA26                 ADISK:  .BLKB   1               ;DISK NUMBER OF DISK AT ATABLE
+   FA27                 OLDFLO: .BLKB   1               ;OLD FLOPPY DRIVE NUMBER
+   FA28                 PCMD:   .BLKB   1               ;ACTUAL FLOPPY READ/WRITE CMD
+   FA29                 ORWCMD: .BLKB   1               ;LAST R/W OUTPUT TO CMD REG
+   FA2A                 DPHADR: .BLKB   2               ;DPH ADDRESS FOR CURRENT DISK
+   FA2C                 APBADR: .BLKB   2               ;APB ADDRESS FOR CURRENT DISK
+   FA2E                 WRTYPE: .BLKB   1               ;TYPE OF WRITE
+   FA2F                 D3SNO:  .BLKB   1               ;CURRENT NO WAIT Z3S BYTE
+   FA30                 D3SWT:  .BLKB   1               ;CURRENT WAIT Z3S BYTE
+   FA31                 SAVADR: .BLKB   2               ;STD OR ALT DDB ADDRESS
+   FA33                 MRML:   .BLKB   1               ;MACRO RETRY MAJOR LOOP
+                        
+                        
+                        ;********************************************************
+                        ; ERROR INFORMATION STORAGE. VARIOUS ROUTINES USE THIS
+                        ; AREA TO STORE KEY VARIABLES RELATING TO THE Z3S
+                        ; CONTROLLER AND THE 179X CHIP. 
+                        ;********************************************************
+                        
+   FA34                 EINFO:
+   FA34                 ITRACK: .BLKB   1               ;LAST INPUT FROM TRACK REG
+   FA35                 ISECT:  .BLKB   1               ;LAST INPUT FROM SECTOR REG
+   FA36                 ISTAT:  .BLKB   1               ;LAST INPUT FROM STATUS REG
+   FA37                 ACTIVE: .BLKB   1               ;SHOWS WHICH ROUTINE HAD ERROR
+   FA38                 OD3S:   .BLKB   1               ;LAST OUTPUT TO Z3S CTRL BYTE
+   FA39                 OCMD:   .BLKB   1               ;LAST OUTPUT TO CMD REG
+   FA3A                 SIDEID: .BLKB   1               ;LASE SIDE SELECTED
+                        
+   0007                 EILEN   ==      .-EINFO
+                        
+                        
+                        
+                        ;********************************************************
+                        ;*   ALLOCATION VALUES FOR SELECTED DISKS ARE NEXT
+                        ;********************************************************
+                        
+   FA3B                 ALOCSZ: .BLKB   4               ;BSH VALUE FOR 4 DRIVES
+   FA3F                 ALOCA:  .BLKB   1               ;RECORDS/BLOCK FOR SELECTED DRIVE
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 42
+
+
+
+
+                        
+                                ;UNALLOCATED PARAMETERS FOLLOW
+                        
+                        
+   FA40                 UNACNT: .BLKB   1               ;UNALLOCATED RECORD COUNT
+                        
+   FA41                 UNADSK: .BLKB   1               ;      "     DISK #     
+   FA42                 UNATRK: .BLKB   2               ;      "     TRACK #
+   FA44                 UNASEC: .BLKB   2               ;      "     SECTOR #
+                        
+   FA46                 NEWSEC: .BLKB   2               ;CP/M SET SECTOR
+                        
+   FA48                 RSFLAG: .BLKB   1               ;READ SECTOR FLAG
+   FA49                 READOP: .BLKB   1               ;READ = 0, WRITE = 1
+   FA4A                 HSTACT: .BLKB   1               ;0 = HOST NOT ACTIVE
+   FA4B                 HSTWRT: .BLKB   1               ;HOST WRITTEN FLAG
+                        
+                        
+   FA4C                 HSTDSK: .BLKB   1
+   FA4D                 HSTTRK: .BLKB   2
+   FA4F                 HSTSEC: .BLKB   2
+                        
+   FA51                 SEKDSK: .BLKB   1
+   FA52                 SEKTRK: .BLKB   2
+   FA54                 SEKHST: .BLKB   2
                         
    0016                         UNALEN  ==      .-UNACNT
                         
@@ -2673,100 +2749,24 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; THE FLAG BYTE HAS ANY MEANING FOR A HARD DISK.
                         ;********************************************************
                         
-   FA20                 ATABLE:
-   FA20                 SS0N:   .BLKB   1               ;SYSTEM TRACK Z3S CONTROL BYTES
-   FA21                 SS0W:   .BLKB   1
-   FA22                 SS1N:   .BLKB   1
-   FA23                 SS1W:   .BLKB   1
-   FA24                 US0N:   .BLKB   1               ;USER TRACK Z3S CONTROL BYTES
-   FA25                 US0W:   .BLKB   1
-   FA26                 US1N:   .BLKB   1
-   FA27                 US1W:   .BLKB   1
-   FA28                 TRACK:  .BLKB   1               ;CURRENT TRACK
-   FA29                 SPEED:  .BLKB   1               ;DRIVE SEEK SPEED
-   FA2A                 FLAG:   .BLKB   1               ;FLAG BYTE
-   FA2B                 OFF:    .BLKB   2               ;NUMBER OF SYSTEM TRACKS
-   FA2D                 SSLEN:  .BLKB   1               ;SECTOR LENGTH, SYSTEM
-   FA2E                 SLRPS:  .BLKB   1               ;RECORDS PER SIDE, SYS TRACKS
-   FA2F                 USLEN:  .BLKB   1               ;SECTOR LENGTH, USER TRACKS
-   FA30                 ULRPS:  .BLKB   1               ;RECORDS PER SIDE, USER TRACKS
+   FA56                 ATABLE:
+   FA56                 SS0N:   .BLKB   1               ;SYSTEM TRACK Z3S CONTROL BYTES
+   FA57                 SS0W:   .BLKB   1
+   FA58                 SS1N:   .BLKB   1
+   FA59                 SS1W:   .BLKB   1
+   FA5A                 US0N:   .BLKB   1               ;USER TRACK Z3S CONTROL BYTES
+   FA5B                 US0W:   .BLKB   1
+   FA5C                 US1N:   .BLKB   1
+   FA5D                 US1W:   .BLKB   1
+   FA5E                 TRACK:  .BLKB   1               ;CURRENT TRACK
+   FA5F                 SPEED:  .BLKB   1               ;DRIVE SEEK SPEED
+   FA60                 FLAG:   .BLKB   1               ;FLAG BYTE
+   FA61                 OFF:    .BLKB   2               ;NUMBER OF SYSTEM TRACKS
+   FA63                 SSLEN:  .BLKB   1               ;SECTOR LENGTH, SYSTEM
+   FA64                 SLRPS:  .BLKB   1               ;RECORDS PER SIDE, SYS TRACKS
+   FA65                 USLEN:  .BLKB   1               ;SECTOR LENGTH, USER TRACKS
+   FA66                 ULRPS:  .BLKB   1               ;RECORDS PER SIDE, USER TRACKS
                         
-   0011                 ALEN    ==      .-ATABLE        ;ATABLE LENGTH
-                        
-   FA31                 CHKRDS: .BLKB   1               ;READ CHECK RETRIES
-   FA32                 DEDMA:  .BLKB   2               ;DE FOR DMA OP.
-                        
-                        
-                        ;********************************************************
-                        ; FLOPPY DISK APBS, DPBS AND TRANSLATE TABLES. THE APB
-                        ; FOR EACH DRIVE IS HERE, FOLLOWED BY THE DPB, FOLLOWED
-                        ; BY THE TRANSLATE TABLE. EXTERNAL ROUTINES NEEDING TO
-
-
-
-
-
-
-TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 42
-
-
-
-
-                        ; ACCESS THE APB ASSUME THAT IT IMMEDIATELY PRECEDES
-                        ; THE DPB.
-                        ;********************************************************
-                        
-   FA34                 APB0:   .BLKB   ALEN            ;AUXILIARY PARAMETER BLOCK
-   FA45                 DPB0:   .BLKB   15              ;DISK PARAMETER BLOCK
-                        
-   000F                 DPBLEN  ==      .-DPB0
-                        
-   FA54                 TRANS0: .BLKB   88              ;TRANSLATE TABLE
-                        
-   0058                 TRALEN  ==      .-TRANS0
-   0078                 APBDIS  ==      .-APB0
-                        
-                        
-   FAAC                 APB1:   .BLKB   ALEN
-   FABD                 DPB1:   .BLKB   15
-   FACC                 TRANS1: .BLKB   88
-                        
-                        
-   FB24                 APB2:   .BLKB   ALEN
-   FB35                 DPB2:   .BLKB   15
-   FB44                 TRANS2: .BLKB   88
-                        
-                        
-   FB9C                 APB3:   .BLKB   ALEN
-   FBAD                 DPB3:   .BLKB   15
-   FBBC                 TRANS3: .BLKB   88
-                        
-                        
-                        
-                        
-                        ;********************************************************
-                        ; CP/M WORK AREA. USED BY CP/M FOR DIRECTORY
-                        ; OPERATIONS, FLOPPY DISK ALLOCATION VECTORS,
-                        ; AND FLOPPY DISK CHANGED DISK CHECKSUMS.
-                        ;********************************************************
-                        
-   FC14                 DIRBUF: .BLKB   128             ;DIRECTORY OPERATION BUFFER
-                        
-   FC94                 ALV0:   .BLKB   108             ;ALLOCATION VECTOR
-   FD00                 CSV0:   .BLKB   64              ;CHECKSUM VECTOR
-                        
-   FD40                 ALV1:   .BLKB   108
-   FDAC                 CSV1:   .BLKB   64
-                        
-                        
-   FDEC                 ALV2:   .BLKB   108
-   FE58                 CSV2:   .BLKB   64
-                        
-   FE98                 ALV3:   .BLKB   108
-   FF04                 CSV3:   .BLKB   64
-                        
-   FF44                 LASLOC:
-   0967                 WRKSP   ==      .-HSTBUF
 
 
 
@@ -2778,6 +2778,82 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   0011                 ALEN    ==      .-ATABLE        ;ATABLE LENGTH
+                        
+   FA67                 CHKRDS: .BLKB   1               ;READ CHECK RETRIES
+   FA68                 DEDMA:  .BLKB   2               ;DE FOR DMA OP.
+                        
+                        
+                        ;********************************************************
+                        ; FLOPPY DISK APBS, DPBS AND TRANSLATE TABLES. THE APB
+                        ; FOR EACH DRIVE IS HERE, FOLLOWED BY THE DPB, FOLLOWED
+                        ; BY THE TRANSLATE TABLE. EXTERNAL ROUTINES NEEDING TO
+                        ; ACCESS THE APB ASSUME THAT IT IMMEDIATELY PRECEDES
+                        ; THE DPB.
+                        ;********************************************************
+                        
+   FA6A                 APB0:   .BLKB   ALEN            ;AUXILIARY PARAMETER BLOCK
+   FA7B                 DPB0:   .BLKB   15              ;DISK PARAMETER BLOCK
+                        
+   000F                 DPBLEN  ==      .-DPB0
+                        
+   FA8A                 TRANS0: .BLKB   88              ;TRANSLATE TABLE
+                        
+   0058                 TRALEN  ==      .-TRANS0
+   0078                 APBDIS  ==      .-APB0
+                        
+                        
+   FAE2                 APB1:   .BLKB   ALEN
+   FAF3                 DPB1:   .BLKB   15
+   FB02                 TRANS1: .BLKB   88
+                        
+                        
+   FB5A                 APB2:   .BLKB   ALEN
+   FB6B                 DPB2:   .BLKB   15
+   FB7A                 TRANS2: .BLKB   88
+                        
+                        
+   FBD2                 APB3:   .BLKB   ALEN
+   FBE3                 DPB3:   .BLKB   15
+   FBF2                 TRANS3: .BLKB   88
+                        
+                        
+                        
+                        
+                        ;********************************************************
+                        ; CP/M WORK AREA. USED BY CP/M FOR DIRECTORY
+                        ; OPERATIONS, FLOPPY DISK ALLOCATION VECTORS,
+                        ; AND FLOPPY DISK CHANGED DISK CHECKSUMS.
+                        ;********************************************************
+                        
+   FC4A                 DIRBUF: .BLKB   128             ;DIRECTORY OPERATION BUFFER
+                        
+   FCCA                 ALV0:   .BLKB   108             ;ALLOCATION VECTOR
+   FD36                 CSV0:   .BLKB   64              ;CHECKSUM VECTOR
+                        
+   FD76                 ALV1:   .BLKB   108
+   FDE2                 CSV1:   .BLKB   64
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 44
+
+
+
+
+                        
+                        
+   FE22                 ALV2:   .BLKB   108
+   FE8E                 CSV2:   .BLKB   64
+                        
+   FECE                 ALV3:   .BLKB   108
+   FF3A                 CSV3:   .BLKB   64
+                        
+   FF7A                 LASLOC:
+   0967                 WRKSP   ==      .-HSTBUF
                         
                         ; END OF WORK AREA.
                         
@@ -2823,6 +2899,17 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                                 .DEFINE CODEND[XX]=[
                                 .PRNTX  /XX IS LAST BIOS RUNTIME CODE OR STATIC DATA LOCATION /]
                         
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 45
+
+
+
+
                                 .DEFINE WRKEND[XX]=[
                                 .PRNTX  /XX IS END OF DISCARDED INITIALIZATION CODE /   ]
                         
@@ -2833,17 +2920,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                                 BADMEM  \((.-BIOS)-(6*256+BIOSIZ*1024))
                         
-
-
-
-
-
-
-TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 44
-
-
-
-
                                 .RADIX  16
                                 CCPL    \CCP
                                 BDOSL   \BDOS
@@ -2889,6 +2965,17 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         
                         
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 46
+
+
+
+
                                 .END
 
 
@@ -2902,4 +2989,49 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-                                                                         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                    
