@@ -1,0 +1,11 @@
+d tracks[0-7] 254
+attach dsk zsdos.dsk
+attach hdsk i.dsk
+attach hdsk1 j.dsk
+set cpu 64k
+set cpu itrap
+set cpu z80
+set cpu altairrom
+set cpu nonbanked
+reset cpu
+boot dsk

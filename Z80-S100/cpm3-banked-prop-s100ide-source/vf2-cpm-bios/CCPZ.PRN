@@ -1,0 +1,2232 @@
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1
+
+
+                                	TITLE	'CCPZ Version 4.1'
+                                
+                                	.Z80
+  0000'                         	aseg
+                                	org	100h
+                         C      	maclib	MEMCFG.LIB	; define configuration parameters
+  0040                   C      msize	equ	64		; adjust per installed system memory
+                         C      
+                         C      ; configuration parameters for BIOS
+  0C00                   C      bioslen	equ	0c00h		; adjust as bios changes are made (if necessary)
+  0000                   C      nhdisks	equ	0		; total number of hard disks (set to 0
+                         C      				;   if no hard disks desired)
+  0001                   C      needZ80	equ	1		; 0 = 8080 is ok, 1 = Z80 is needed
+  0001                   C      patchOS	equ	1		; 0 = do not patch CCP and BODS
+                         C      					; 1 = patch orignal CCP and original BDOS
+                         C      
+                         C      ; common definitions and derived values - no change should be necessary below
+  0800                   C      ccplen	equ	0800h		; cp/m constant
+  0E00                   C      bdoslen	equ	0e00h		; cp/m constant
+                         C      
+                         C      ; cp/m image size (rounded up to next 1k boundary)
+  0009                   C      cpmlen	equ	(ccplen + bdoslen + bioslen + 03ffh) / 0400h
+                         C      
+  003D                   C      msiz	equ	msize-(bioslen/400H)		;SUBTRACT BIOS SIZE
+  A400                   C      bias	equ (msiz-20)*1024				;THE DRI BIAS FACTOR
+                         C      
+                         C      ;ccpph	equ	(msize - cpmlen) * 1024		; old ccp start address
+  D800                   C      ccpph	equ	3400H+bias					; udpated ccp start address
+  E000                   C      bdosph	equ	ccpph + ccplen				; bdos start address
+  EE00                   C      biosph	equ	ccpph + ccplen + bdoslen	; bios start address
+                         C      
+                                	.phase	ccpph		; CCPLOC not needed, we use ccpph instead
+                                
+                                ;
+                                ;  CP/M CONSOLE COMMAND PROCESSOR (CCP) Revision 4.1
+                                ;  FOR Z80-BASED CP/M 2.X SYSTEMS
+                                ;
+                                ;	ORIGINAL CCP DISASSEMBLED BY ????
+                                ;	ORIGINAL CCP DISASSEMBLED FURTHER BY RLC
+                                ;	ORIGINAL CCP COMMENTED BY RLC
+                                ;	CUSTOMIZED FOR ARIES-II BY RLC
+                                ;	FURTHER MODIFIED BY RGF AS V2.0
+                                ;	FURTHER MODIFIED BY RLC AS V2.1
+                                ;	FURTHER MODIFIED BY KBP AS V2.2
+                                ;	FURTHER MODIFIED BY RLC AS V2.4 (V2.3 skipped)
+                                ;	FURTHER MODIFIED BY RLC AS V2.5
+                                ;	FURTHER MODIFIED BY RLC AS V2.6
+                                ;	FURTHUR MODIFIED BY SBB AS V2.7
+                                ;	FURTHER MODIFIED BY RLC AS V2.8
+                                ;	FURTHER MODIFIED BY RLC AS V2.9
+                                ;	FURTHER MODIFIED BY RLC AS V3.0
+                                ;	FURTHER MODIFIED BY RLC AS V3.1
+                                ;	FURTHER MODIFIED BY RLC AS V4.0
+                                ;		SBB V4.1 11/27/81
+                                ;
+                                ;******** Refer to CCPZ-Vxx.NOT File for Revision History ********
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-1
+
+
+                                ;
+                                ;******** Structure Notes ********
+                                ;
+                                ;	This CCP is divided into a number of major sections.  The following
+                                ; is an outline of these sections and the names of the major routines
+                                ; located therein.
+                                ;
+                                ; Section	Function/Routines
+                                ; -------	-----------------
+                                ;
+                                ;   --		Opening Comments, Equates, and Macro Definitions
+                                ;
+                                ;    0		JMP Table into CCP
+                                ;
+                                ;    1		Buffers
+                                ;
+                                ;    2		CCP Starting Modules
+                                ;			CCP1	CCP	RESTRT	RSTCCP	RCCPNL
+                                ;			PRNNF
+                                ;
+                                ;    3		Utilities
+                                ;			CRLF	CONOUT	CONIN	LCOUT	LSTOUT
+                                ;			READF	READ	BDOSB	PRINTC	PRINT
+                                ;			GETDRV	DEFDMA	DMASET	RESET	BDOSJP
+                                ;			LOGIN	OPENF	OPEN	GRBDOS	CLOSE
+                                ;			SEARF	SEAR1	SEARN	SUBKIL	DELETE
+                                ;			WRITE	CREATE	RESETUSR GETUSR	SETUSR
+                                ;
+                                ;     4		CCP Utilities
+                                ;			SETUD	SETU0D	UCASE	REDBUF	CNVBUF
+                                ;			BREAK	USRNUM	ERROR	SDELM	ADVAN
+                                ;			SBLANK	ADDAH	NUMBER	NUMERR	HEXNUM
+                                ;			DIRPTR	SLOGIN	DLOGIN	COMLOG	SCANER
+                                ;			CMDSER
+                                ;
+                                ;     5		CCP-Resident Commands and Functions
+                                ;     5A		DIR	DIRPR	FILLQ
+                                ;     5B		ERA
+                                ;     5C		LIST
+                                ;     5D		TYPE	PAGER
+                                ;     5E		SAVE
+                                ;     5F		REN
+                                ;     5G		USER
+                                ;     5H		DFU
+                                ;     5I		JUMP
+                                ;     5J		GO
+                                ;     5K		COM	CALLPROG	ERRLOG	ERRJMP
+                                ;     5L		GET	MEMLOAD	PRNLE
+                                ;
+                                ;
+  0000                          FALSE	EQU	0
+  FFFF                          TRUE	EQU	NOT FALSE
+                                ;
+                                ;  CUSTOMIZATION EQUATES
+                                ;
+                                ;  The following equates may be used to customize this CCP for the user's
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-2
+
+
+                                ;    system and integration technique.  The following constants are provided:
+                                ;
+                                ;    REL - TRUE if integration is to be done via MOVCPM
+                                ;        - FALSE if integration is to be done via DDT and SYSGEN
+                                ;
+                                ;    BASE - Base Address of user's CP/M system (normally 0 for DR version)
+                                ;           This equate allows easy modification by non-standard CP/M (eg,H89)
+                                ;
+                                ;    CCPLOC - Base Page Address of CCP; this value can be obtained by running
+                                ;	      the BDOSLOC program on your system, or by setting the
+                                ;	      MSIZE and BIOSEX equates to the system memory size in
+                                ;	      K-bytes and the "extra" memory required by your BIOS
+                                ;	      in K-bytes. BIOSEX is zero if your BIOS is normal size,
+                                ;	      and can be negative if your BIOS is in PROM or in
+                                ;	      non-contiguous memory.
+                                ;
+                                ;    RAS - Remote-Access System; setting this equate to TRUE disables
+                                ;	   certain CCP commands that are considered harmful in a Remote-
+                                ;	   Access environment; use under Remote-Access Systems (RBBS) for
+                                ;	   security purposes
+                                ;
+  0000                          REL	EQU	FALSE		;SET TO TRUE FOR MOVCPM INTEGRATION
+                                ;
+  0000                          BASE	EQU	0		;BASE OF CP/M SYSTEM (SET FOR STANDARD CP/M)
+                                ;
+                                	IF	REL
+                                CCPLOC	EQU	0		;MOVCPM IMAGE
+                                	ELSE
+                                ;
+                                ; If REL is FALSE, the value of CCPLOC may be set in one
+                                ; of two ways.  The first way is to set MSIZE and BIOSEX
+                                ; as described above using the following three lines:
+                                ;
+                                ;MSIZE	EQU	64		;SIZE OF MEM IN K-BYTES
+                                ;BIOSEX	EQU	2		;EXTRA # K-BYTES IN BIOS
+                                ;CCPLOC	EQU	3400H+(MSIZE-20-BIOSEX)*1024;CCP ORIGIN
+                                ;
+                                ; The second way is to obtain the origin of your current
+                                ; CCP using BDSLOC or its equivalent, then merely set CCPLOC
+                                ; to that value as as in the following line:
+                                ;
+                                ;CCPLOC	EQU	0BD00H		;FILL IN WITH BDOSLOC SUPPLIED VALUE
+                                ;
+                                ; Note that you should only use one method or the other.
+                                ; Do NOT define CCPLOC twice!
+                                ;
+                                ; The following gives the required offset to load the CCP into the
+                                ; CP/M SYSGEN Image through DDT (the Roffset command); Note that this
+                                ; value conforms with the standard value presented in the CP/M reference
+                                ; manuals, but it may not necessarily conform with the location of the
+                                ; CCP in YOUR CP/M system; several systems (Morrow Designs, P&T, Heath
+                                ; Org-0 to name a few) have the CCP located at a non-standard address in
+                                ; the SYSGEN Image.
+                                ;
+                                ;CCPR	EQU	0980H-CCPLOC	;DDT LOAD OFFSET
+                                ;CCPR	EQU	1100H-CCPLOC	;DDT LOAD OFFSET FOR MORROW DESIGNS
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-3
+
+
+                                ;CCPR	EQU	0E00H-CCPLOC	;DDT LOAD OFFSET FOR APPLE SOFTCARD 56K
+                                	ENDIF
+                                ;
+  0000                          RAS	EQU	FALSE		;SET TO TRUE IF CCP IS FOR A REMOTE-ACCESS SYSTEM
+                                ;
+                                ;  ***  Note to Apple Softcard Users  ***
+                                ;
+                                ;  In their infinite (?) wisdom (???), Microsoft decided that the way to
+                                ; get a two-column directory display instead of four-column (narrow 40-col
+                                ; screen, remember) was to have their BIOS poke CCP every time it was
+                                ; loaded.  Naturally, that will turn into a random poke on any non-standard
+                                ; CCP, like this one.  The best way to get this CCP up on the Apple is to
+                                ; load it into CPM56.COM, at location 0E00H in the image.  The BIOS code
+                                ; that pokes the CCP can also be modified at that time.  The poke is done
+                                ; by "STA 0C8B2H", found at 24FEH in the CPM56 image.  To eliminate the
+                                ; poke forever, change the "STA" to "LDA" by changing the contents of
+                                ; location 24FEH from 32H to 3AH.  If you want a two-column display, set
+                                ; the TWOCOL switch below to a value of TRUE.
+                                ;
+  0000                          TWOCOL	EQU	FALSE		;TRUE IF TWO COL DIR INSTEAD OF FOUR
+                                ;
+                                ;  The following is presented as an option, but is not generally user-customiz-
+                                ; able.  A basic design choice had to be made in the design of CCPZ concerning
+                                ; the execution of SUBMIT files.  The original CCP had a problem in this sense
+                                ; in that it ALWAYS looked for the SUBMIT file from drive A: and the SUBMIT
+                                ; program itself (SUBMIT.COM) would place the $$$.SUB file on the currently
+                                ; logged-in drive, so when the user was logged into B: and he issued a SUBMIT
+                                ; command, the $$$.SUB was placed on B: and did not execute because the CCP
+                                ; looked for it on A: and never found it.
+                                ;
+                                ;  After much debate it was decided to have CCPZ perform the same type of
+                                ; function as CCP (look for the $$$.SUB file on A:), but the problem with
+                                ; SUBMIT.COM still exists.  Hence, RGF designed SuperSUB and RLC took his
+                                ; SuperSUB and designed SUB from it; both programs are set up to allow the
+                                ; selection at assembly time of creating the $$$.SUB on the logged-in drive
+                                ; or on drive A:.
+                                ;
+                                ;  A final definition of the Indirect Command File ($$$.SUB or SUBMIT
+                                ; File) is presented as follows:
+                                ;
+                                ;		"An Indirect Command File is one which contains
+                                ;		 a series of commands exactly as they would be
+                                ;		 entered from a CP/M Console.  The SUBMIT Command
+                                ;		 (or SUB Command) reads this files and transforms
+                                ;		 it for processing by the CCPZ (the $$$.SUB File).
+                                ;		 CCPZ will then execute the commands indicated
+                                ;		 EXACTLY as if they were typed at the Console."
+                                ;
+                                ;  Hence, to permit this to happen, the $$$.SUB file must always
+                                ; be present on a specific drive, and A: is the choice for said drive.
+                                ; With this facility engaged as such, Indirect Command Files like:
+                                ;
+                                ;		DIR
+                                ;		A:
+                                ;		DIR
+                                ;
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-4
+
+
+                                ; can be executed, even though the currently logged-in drive is changed
+                                ; during execution.  If the $$$.SUB file was present on the currently
+                                ; logged-in drive, the above series of commands would not work since the
+                                ; CCPZ would be looking for $$$.SUB on the logged-in drive, and switching
+                                ; logged-in drives without moving the $$$.SUB file as well would cause
+                                ; processing to abort.
+                                ;
+  FFFF                          SUBA	EQU	TRUE		; Set to TRUE to have $$$.SUB always on A:
+                                				; Set to FALSE to have $$$.SUB on the logged-in drive
+                                ;
+                                ;   The following flag enables extended processing for user-program supplied
+                                ; command lines.  This is for Command Level 3 of CCPZ.  Under the CCPZ Version
+                                ; 4.0 philosophy, three command levels exist:
+                                ;
+                                ;	(1) that command issued by the user from his console at the '>' prompt
+                                ;	(2) that command issued by a $$$.SUB file at the '$' prompt
+                                ;	(3) that command issued by a user program by placing the command into
+                                ;           CIBUFF and setting the character count in CBUFF
+                                ;
+                                ;   Setting CLEVEL3 to TRUE enables extended processing of the third level of
+                                ; CCPZ command.  All the user program need do is to store the command line and
+                                ; set the character count; CCPZ will initialize the pointers properly, store
+                                ; the ending zero properly, and capitalize the command line for processing.
+                                ; Once the command line is properly stored, the user executes the command line
+                                ; by reentering the CCPZ through CCPLOC [NOTE:  The C register MUST contain
+                                ; a valid User/Disk Flag (see location 4) at this time.]
+                                ;
+  FFFF                          CLEVEL3	EQU	TRUE		;ENABLE COMMAND LEVEL 3 PROCESSING
+                                ;
+                                ;
+                                ;*** TERMINAL AND 'TYPE' CUSTOMIZATION EQUATES
+                                ;
+  0018                          NLINES	EQU	24		;NUMBER OF LINES ON CRT SCREEN
+  FFFF                          WIDE	EQU	TRUE		;TRUE IF WIDE DIR DISPLAY
+  007C                          FENCE	EQU	'|'		;SEP CHAR BETWEEN DIR FILES
+                                ;
+  FFFF                          PGDFLT	EQU	TRUE		;SET TO FALSE TO DISABLE PAGING BY DEFAULT
+  0050                          PGDFLG	EQU	'P'		;FOR TYPE COMMAND: PAGE OR NOT (DEP ON PGDFLT)
+                                				;  THIS FLAG REVERSES THE DEFAULT EFFECT
+                                ;
+  000F                          MAXUSR	EQU	15		;MAXIMUM USER NUMBER ACCESSABLE
+                                ;
+  0041                          SYSFLG	EQU	'A'		;FOR DIR COMMAND: LIST $SYS AND $DIR
+                                ;
+  0053                          SOFLG	EQU	'S'		;FOR DIR COMMAND: LIST $SYS FILES ONLY
+                                ;
+  FFFF                          SUPRES	EQU	TRUE		;SUPRESSES USER # REPORT FOR USER 0
+                                ;
+  0000                          DEFUSR	EQU	0		;DEFAULT USER NUMBER FOR COM FILES
+                                ;
+  0024                          SPRMPT	EQU	'$'		;CCP PROMPT INDICATING SUBMIT COMMAND
+  003E                          CPRMPT	EQU	'>'		;CCP PROMPT INDICATING USER COMMAND
+                                ;
+  0048                          NUMBASE	EQU	'H'		;CHARACTER USED TO SWITCH FROM DEFAULT
+                                				; NUMBER BASE
+                                ;
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-5
+
+
+  0053                          SECTFLG	EQU	'S'		;OPTION CHAR FOR SAVE COMMAND TO SAVE SECTORS
+                                ;
+                                ; END OF CUSTOMIZATION SECTION
+                                ;
+  000D                          CR	EQU	0DH
+  000A                          LF	EQU	0AH
+  0009                          TAB	EQU	09H
+                                ;
+  0000                          WBOOT	EQU	BASE+0000H	;CP/M WARM BOOT ADDRESS
+  0004                          UDFLAG	EQU	BASE+0004H	;USER NUM IN HIGH NYBBLE, DISK IN LOW
+  0005                          BDOS	EQU	BASE+0005H	;BDOS FUNCTION CALL ENTRY PT
+  005C                          TFCB	EQU	BASE+005CH	;DEFAULT FCB BUFFER
+  0080                          TBUFF	EQU	BASE+0080H	;DEFAULT DISK I/O BUFFER
+  0100                          TPA	EQU	BASE+0100H	;BASE OF TPA
+                                ;**** Section 0 ****
+                                ;
+                                ;	ORG	CCPLOC
+                                ;
+                                ;  ENTRY POINTS INTO CCPZ
+                                ;
+                                ;    If the CCPZ is entered at location CCPLOC (at the JMP to CCP), then
+                                ; the default command in CIBUFF will be processed.  If the CCPZ is entered
+                                ; at location CCPLOC+3 (at the JMP to CCP1), then the default command in
+                                ; CIBUFF will NOT be processed.
+                                ;
+                                ;    NOTE:  Entry into CCPZ in this way is permitted under CCPZ Version 4.0,
+                                ; but in order for this to work, CIBUFF and CBUFF MUST be initialized properly
+                                ; AND the C register MUST contain a valid User/Disk Flag (see Location 4: the
+                                ; most significant nybble contains the User Number and the least significant
+                                ; nybble contains the Disk Number).
+                                ;
+                                ;    Some user programs (such as SYNONYM3) attempt to use the default
+                                ; command facility.  Under the original CCP, it was necessary to initialize
+                                ; the pointer after the reserved space for the command buffer to point to
+                                ; the first byte of the command buffer.  Under Version 4.x of CCPZ, this is
+                                ; no longer the case.  The CIBPTR (Command Input Buffer PoinTeR) is located
+                                ; to be compatible with such programs (provided they determine the buffer
+                                ; length from the byte at MBUFF [CCPLOC + 6]), but under Version 4.x of CCPZ
+                                ; this is no longer necessary.  CCPZ Version 4.x automatically initializes
+                                ; this buffer pointer in all cases.
+                                ;
+  D800                          ENTRY:
+  D800    C3 D904               	JP	CCP		; Process potential default command
+  D803    C3 D900               	JP	CCP1		; Do NOT process potential default command
+                                ;
+                                ;**** Section 1 ****
+                                ;
+                                ; BUFFERS ET AL
+                                ;
+                                ; INPUT COMMAND LINE AND DEFAULT COMMAND
+                                ;
+                                ;   The command line to be executed is stored here.  This command line
+                                ; is generated in one of three ways:
+                                ;
+                                ;	(1) by the user entering it through the BDOS READLN function at
+                                ;           the du> prompt [user input from keyboard]
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-6
+
+
+                                ;	(2) by the SUBMIT File Facility placing it there from a $$$.SUB
+                                ;           file
+                                ;	(3) by an external program or user placing the required command
+                                ;           into this buffer
+                                ;
+                                ;   In all cases, the command line is placed into the buffer starting at
+                                ; CIBUFF.  This command line is terminated by the last character (NOT Carriage
+                                ; Return), and a character count of all characters in the command line
+                                ; up to and including the last character is placed into location CBUFF
+                                ; (immediately before the command line at CIBUFF).  The placed command line
+                                ; is then parsed, interpreted, and the indicated command is executed.
+                                ; If CLEVEL3 is permitted, a terminating zero is placed after the command
+                                ; (otherwise the user program has to place this zero) and the CIBPTR is
+                                ; properly initialized (otherwise the user program has to init this ptr).
+                                ; If the command is placed by a user program, entering at CCPLOC is enough
+                                ; to have the command processed.  Again, under CCPZ Version 4.x, it is not
+                                ; necessary to store the pointer to CIBUFF in CIBPTR; CCPZ will do this for
+                                ; the calling program if CLEVEL3 is made TRUE.
+                                ;
+                                ;   WARNING:  The command line must NOT exceed BUFLEN characters in length.
+                                ; For user programs which load this command, the value of BUFLEN can be
+                                ; obtained by examining the byte at MBUFF (CCPLOC + 6).
+                                ;
+  0050                          BUFLEN	EQU	80		;MAXIMUM BUFFER LENGTH
+  D806                          MBUFF:
+  D806    50                    	DB	BUFLEN		;MAXIMUM BUFFER LENGTH
+  D807                          CBUFF:
+  D807    00                    	DB	0		;NUMBER OF VALID CHARS IN COMMAND LINE
+  D808                          CIBUFF:
+  D808    20 20 20 20           	DB	'               ';DEFAULT (COLD BOOT) COMMAND
+  D80C    20 20 20 20           
+  D810    20 20 20 20           
+  D814    20 20 20              
+  D817                          CIBUF:
+  D817    00                    	DB	0		;COMMAND STRING TERMINATOR
+  D818    20 20 43 43           	DB	'  CCPZ-V4.1 of 11/27/81  ';FOR DUMP IDENTIFICATION
+  D81C    50 5A 2D 56           
+  D820    34 2E 31 20           
+  D824    6F 66 20 31           
+  D828    31 2F 32 37           
+  D82C    2F 38 31 20           
+  D830    20                    
+  D831                          	DS	BUFLEN-($-CIBUFF)+1;TOTAL IS 'BUFLEN' BYTES
+                                ;
+  D859                          CIBPTR:
+  D859    D808                  	DW	CIBUFF		;POINTER TO COMMAND INPUT BUFFER
+  D85B                          CIPTR:
+  D85B    D817                  	DW	CIBUF		;PTR TO CURR CMD FOR ERROR REPORTING
+                                ;
+  D85D                          	DS	26		;STACK AREA
+  D877                          STACK	EQU	$		;TOP OF STACK
+                                ;
+                                ; FILE TYPE FOR COMMAND
+                                ;
+  D877                          COMMSG:
+  D877    43 4F 4D              	DB	'COM'
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-7
+
+
+                                ;
+                                ; SUBMIT FILE CONTROL BLOCK
+                                ;
+  D87A                          SUBFCB:
+                                	IF	SUBA		;IF $$$.SUB ON A:
+  D87A    01                    	DB	1		;DISK NAME SET TO DEFAULT TO DRIVE A:
+                                	ENDIF
+                                ;
+                                	IF	NOT SUBA	;IF $$$.SUB ON CURRENT DRIVE
+                                	DB	0		;DISK NAME SET TO DEFAULT TO CURRENT DRIVE
+                                	ENDIF
+                                ;
+  D87B    24 24 24              	DB	'$$$'		;FILE NAME
+  D87E    20 20 20 20           	DB	'     '
+  D882    20                    
+  D883    53 55 42              	DB	'SUB'		;FILE TYPE
+  D886    00                    	DB	0		;EXTENT NUMBER
+  D887    00                    	DB	0		;S1
+  D888                          SUBFS2:
+  D888                          	DS	1		;S2
+  D889                          SUBFRC:
+  D889                          	DS	1		;RECORD COUNT
+  D88A                          	DS	16		;DISK GROUP MAP
+  D89A                          SUBFCR:
+  D89A                          	DS	1		;CURRENT RECORD NUMBER
+                                ;
+                                ; COMMAND FILE CONTROL BLOCK
+                                ;
+  D89B                          FCBDN:
+  D89B                          	DS	1		;DISK NAME
+  D89C                          FCBFN:
+  D89C                          	DS	8		;FILE NAME
+  D8A4                          FCBFT:
+  D8A4                          	DS	3		;FILE TYPE
+  D8A7                          	DS	1		;EXTENT NUMBER
+  D8A8                          	DS	2		;S1 AND S2
+  D8AA                          	DS	1		;RECORD COUNT
+  D8AB                          FCBDM:
+  D8AB                          	DS	16		;DISK GROUP MAP
+  D8BB                          FCBCR:
+  D8BB                          	DS	1		;CURRENT RECORD NUMBER
+                                ;
+                                ; OTHER BUFFERS
+                                ;
+  D8BC                          PAGCNT:
+  D8BC    16                    	DB	NLINES-2	;LINES LEFT ON PAGE
+  D8BD                          CHRCNT:
+  D8BD    00                    	DB	0		;CHAR COUNT FOR TYPE
+                                ;
+                                ; CCP BUILT-IN COMMAND TABLE
+                                ;
+  0004                          NCHARS	EQU	4		;NUMBER OF CHARS/COMMAND
+                                ;
+                                ; CCP COMMAND NAME TABLE
+                                ;   EACH TABLE ENTRY IS COMPOSED OF THE 4-BYTE COMMAND AND 2-BYTE ADDRESS
+                                ;
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-8
+
+
+  D8BE                          CMDTBL:
+  D8BE    44 49 52 20           	DB	'DIR '
+  D8C2    DC9B                  	DW	DIR
+  D8C4    4C 49 53 54           	DB	'LIST'
+  D8C8    DD77                  	DW	LIST
+  D8CA    54 59 50 45           	DB	'TYPE'
+  D8CE    DD7B                  	DW	TYPE
+  D8D0    55 53 45 52           	DB	'USER'
+  D8D4    DED2                  	DW	USER
+  D8D6    44 46 55 20           	DB	'DFU '
+  D8DA    DEDC                  	DW	DFU
+                                ;
+                                	IF	NOT RAS		;FOR NON-RAS
+  D8DC    47 4F 20 20           	DB	'GO  '
+  D8E0    DEE9                  	DW	GO
+  D8E2    45 52 41 20           	DB	'ERA '
+  D8E6    DD4C                  	DW	ERA
+  D8E8    53 41 56 45           	DB	'SAVE'
+  D8EC    DE14                  	DW	SAVE
+  D8EE    52 45 4E 20           	DB	'REN '
+  D8F2    DE73                  	DW	REN
+  D8F4    47 45 54 20           	DB	'GET '
+  D8F8    DF87                  	DW	GET
+  D8FA    4A 55 4D 50           	DB	'JUMP'
+  D8FE    DEE4                  	DW	JUMP
+                                	ENDIF
+                                ;
+  000B                          NCMNDS	EQU	($-CMDTBL)/(NCHARS+2)
+                                ;
+                                ;
+                                ;**** Section 2 ****
+                                ; CCP STARTING POINTS
+                                ;
+                                ; START CCP AND DON'T PROCESS DEFAULT COMMAND STORED
+                                ;
+  D900                          CCP1:
+  D900    AF                    	XOR	A		;SET NO DEFAULT COMMAND
+  D901    32 D807               	LD	(CBUFF),A
+                                ;
+                                ; START CCP AND POSSIBLY PROCESS DEFAULT COMMAND
+                                ;
+                                ; NOTE ON MODIFICATION BY RGF: BDOS RETURNS 0FFH IN
+                                ; ACCUMULATOR WHENEVER IT LOGS IN A DIRECTORY, IF ANY
+                                ; FILE NAME CONTAINS A '$' IN IT.  THIS IS NOW USED AS
+                                ; A CLUE TO DETERMINE WHETHER OR NOT TO DO A SEARCH
+                                ; FOR SUBMIT FILE, IN ORDER TO ELIMINATE WASTEFUL SEARCHES.
+                                ;
+  D904                          CCP:
+  D904    31 D877               	LD	SP,STACK	;RESET STACK
+  D907    C5                    	PUSH	BC
+  D908    79                    	LD	A,C		;C=USER/DISK NUMBER (SEE LOC 4)
+  D909    1F                    	RRA			;EXTRACT USER NUMBER
+  D90A    1F                    	RRA
+  D90B    1F                    	RRA
+  D90C    1F                    	RRA
+  D90D    E6 0F                 	AND	0FH
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-9
+
+
+  D90F    5F                    	LD	E,A		;SET USER NUMBER
+  D910    CD DA4C               	CALL	SETUSR
+  D913    CD DA06               	CALL	RESET		;RESET DISK SYSTEM
+  D916    32 D929               	LD	(RNGSUB),A	;SAVE SUBMIT CLUE FROM DRIVE A:
+  D919    C1                    	POP	BC
+  D91A    79                    	LD	A,C		;C=USER/DISK NUMBER (SEE LOC 4)
+  D91B    E6 0F                 	AND	0FH		;EXTRACT DEFAULT DISK DRIVE
+  D91D    32 DA60               	LD	(TDRIVE),A	;SET IT
+  D920    28 03                 	JR	Z,NOLOG		;SKIP IF 0...ALREADY LOGGED
+  D922    CD DA0B               	CALL	LOGIN		;LOG IN DEFAULT DISK
+                                ;
+                                	IF	NOT SUBA	;IF $$$.SUB IS ON CURRENT DRIVE
+                                	LD	(RNGSUB),A	;BDOS '$' CLUE
+                                	ENDIF
+                                ;
+  D925                          NOLOG:
+  D925    11 D87A               	LD	DE,SUBFCB	;CHECK FOR $$$.SUB ON CURRENT DISK
+  D929                          RNGSUB	EQU	$+1		;POINTER FOR IN-THE-CODE MODIFICATION
+  D928    3E 00                 	LD	A,0		;2ND BYTE (IMMEDIATE ARG) IS THE RNGSUB FLAG
+  D92A    B7                    	OR	A		;SET FLAGS ON CLUE
+  D92B    2F                    	CPL			;PREPARE FOR COMING 'CMA'
+  D92C    C4 DA25               	CALL	NZ,SEAR1
+  D92F    2F                    	CPL			;0FFH IS RETURNED IF NO $$$.SUB, SO COMPLEMENT
+  D930    32 D929               	LD	(RNGSUB),A	;SET FLAG (0=NO $$$.SUB)
+  D933    3A D807               	LD	A,(CBUFF)	;EXECUTE DEFAULT COMMAND?
+  D936    B7                    	OR	A		;0=NO
+  D937    20 29                 	JR	NZ,RS1
+                                ;
+                                ; PROMPT USER AND INPUT COMMAND LINE FROM HIM
+                                ;
+  D939                          RESTRT:
+  D939    31 D877               	LD	SP,STACK	;RESET STACK
+                                ;
+                                ; PRINT PROMPT (DU>)
+                                ;
+  D93C    CD D9A9               	CALL	CRLF		;PRINT PROMPT
+  D93F    CD D9FB               	CALL	GETDRV		;CURRENT DRIVE IS PART OF PROMPT
+  D942    C6 41                 	ADD	A,'A'		;CONVERT TO ASCII A-P
+  D944    CD D9B0               	CALL	CONOUT
+  D947    CD DA4A               	CALL	GETUSR		;GET USER NUMBER
+                                ;
+                                	IF	SUPRES		;IF SUPPRESSING USR # REPORT FOR USR 0
+  D94A    B7                    	OR	A
+  D94B    28 12                 	JR	Z,RS000
+                                	ENDIF
+                                ;
+  D94D    FE 0A                 	CP	10		;USER < 10?
+  D94F    38 09                 	JR	C,RS00
+  D951    D6 0A                 	SUB	10		;SUBTRACT 10 FROM IT
+  D953    F5                    	PUSH	AF		;SAVE IT
+  D954    3E 31                 	LD	A,'1'		;OUTPUT 10'S DIGIT
+  D956    CD D9B0               	CALL	CONOUT
+  D959    F1                    	POP	AF
+  D95A                          RS00:
+  D95A    C6 30                 	ADD	A,'0'		;OUTPUT 1'S DIGIT (CONVERT TO ASCII)
+  D95C    CD D9B0               	CALL	CONOUT
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-10
+
+
+                                ;
+                                ; READ INPUT LINE FROM USER OR $$$.SUB
+                                ;
+  D95F                          RS000:
+  D95F    CD DA6E               	CALL	REDBUF		;INPUT COMMAND LINE FROM USER (OR $$$.SUB)
+                                ;
+                                ; PROCESS INPUT LINE
+                                ;
+  D962                          RS1:
+                                ;
+                                	IF	CLEVEL3		;IF THIRD COMMAND LEVEL IS PERMITTED
+  D962    CD DACF               	CALL	CNVBUF		;CAPITALIZE COMMAND LINE, PLACE ENDING 0,
+                                				; AND SET CIBPTR VALUE
+                                	ENDIF
+                                ;
+  D965    CD D9FF               	CALL	DEFDMA		;SET TBUFF TO DMA ADDRESS
+  D968    CD D9FB               	CALL	GETDRV		;GET DEFAULT DRIVE NUMBER
+  D96B    32 DA60               	LD	(TDRIVE),A	;SET IT
+  D96E    CD DBE7               	CALL	SCANER		;PARSE COMMAND NAME FROM COMMAND LINE
+  D971    C4 DAF6               	CALL	NZ,ERROR	;ERROR IF COMMAND NAME CONTAINS A '?'
+  D974    11 D98A               	LD	DE,RSTCCP	;PUT RETURN ADDRESS OF COMMAND
+  D977    D5                    	PUSH	DE		;ON THE STACK
+  D978    3A DBDE               	LD	A,(TEMPDR)	;IS COMMAND OF FORM 'D:COMMAND'?
+  D97B    B7                    	OR	A		;NZ=YES
+  D97C    C2 DEEE               	JP	NZ,COM		; IMMEDIATELY
+  D97F    CD DC79               	CALL	CMDSER		;SCAN FOR CCP-RESIDENT COMMAND
+  D982    C2 DEEE               	JP	NZ,COM		;NOT CCP-RESIDENT
+  D985    7E                    	LD	A,(HL)		;FOUND IT:  GET LOW-ORDER PART
+  D986    23                    	INC	HL		;GET HIGH-ORDER PART
+  D987    66                    	LD	H,(HL)		;STORE HIGH
+  D988    6F                    	LD	L,A		;STORE LOW
+  D989    E9                    	JP	(HL)		;EXECUTE CCP ROUTINE
+                                ;
+                                ; ENTRY POINT FOR RESTARTING CCP AND LOGGING IN DEFAULT DRIVE
+                                ;
+  D98A                          RSTCCP:
+  D98A    CD DBD3               	CALL	DLOGIN		;LOG IN DEFAULT DRIVE
+                                ;
+                                ; ENTRY POINT FOR RESTARTING CCP WITHOUT LOGGING IN DEFAULT DRIVE
+                                ;
+  D98D                          RCCPNL:
+  D98D    CD DBE7               	CALL	SCANER		;EXTRACT NEXT TOKEN FROM COMMAND LINE
+  D990    3A D89C               	LD	A,(FCBFN)	;GET FIRST CHAR OF TOKEN
+  D993    D6 20                 	SUB	' '		;ANY CHAR?
+  D995    21 DBDE               	LD	HL,TEMPDR
+  D998    B6                    	OR	(HL)
+  D999    C2 DAF6               	JP	NZ,ERROR
+  D99C    18 9B                 	JR	RESTRT
+                                ;
+                                ; No File Error Message
+                                ;
+  D99E                          PRNNF:
+  D99E    CD D9E3               	CALL	PRINTC		;NO FILE MESSAGE
+  D9A1    4E 6F 20 46           	DB	'No Fil','e'+80H
+  D9A5    69 6C E5              
+  D9A8    C9                    	RET
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-11
+
+
+                                ;
+                                ;**** Section 3 ****
+                                ; I/O UTILITIES
+                                ;
+                                ; OUTPUT CHAR IN REG A TO CONSOLE AND DON'T CHANGE BC
+                                ;
+                                ;
+                                ; OUTPUT <CRLF>
+                                ;
+  D9A9                          CRLF:
+  D9A9    3E 0D                 	LD	A,CR
+  D9AB    CD D9B0               	CALL	CONOUT
+  D9AE    3E 0A                 	LD	A,LF		;FALL THRU TO CONOUT
+                                ;
+  D9B0                          CONOUT:
+  D9B0    C5                    	PUSH	BC
+  D9B1    0E 02                 	LD	C,02H
+  D9B3                          OUTPUT:
+  D9B3    5F                    	LD	E,A
+  D9B4    E5                    	PUSH	HL
+  D9B5    CD 0005               	CALL	BDOS
+  D9B8    E1                    	POP	HL
+  D9B9    C1                    	POP	BC
+  D9BA    C9                    	RET
+                                ;
+  D9BB                          CONIN:
+  D9BB    0E 01                 	LD	C,01H		;GET CHAR FROM CON: WITH ECHO
+  D9BD    18 1D                 	JR	BDOSB
+                                ;
+  D9BF                          LCOUT:
+  D9BF    F5                    	PUSH	AF		;OUTPUT CHAR TO CON: OR LST: DEP ON PRFLG
+  D9C1                          PRFLG	EQU	$+1		;POINTER FOR IN-THE-CODE MODIFICATION
+  D9C0    3E 00                 	LD	A,0		;2ND BYTE (IMMEDIATE ARG) IS THE PRINT FLAG
+  D9C2    B7                    	OR	A		;0=TYPE
+  D9C3    28 06                 	JR	Z,LC1
+  D9C5    F1                    	POP	AF		;GET CHAR
+                                ;
+                                ; OUTPUT CHAR IN REG A TO LIST DEVICE
+                                ;
+  D9C6                          LSTOUT:
+  D9C6    C5                    	PUSH	BC
+  D9C7    0E 05                 	LD	C,05H
+  D9C9    18 E8                 	JR	OUTPUT
+  D9CB                          LC1:
+  D9CB    F1                    	POP	AF		;GET CHAR
+  D9CC    F5                    	PUSH	AF
+  D9CD    CD D9B0               	CALL	CONOUT		;OUTPUT TO CON:
+  D9D0    F1                    	POP	AF
+  D9D1    FE 0A                 	CP	LF		;CHECK FOR PAGING
+  D9D3    CA DDFB               	JP	Z ,PAGER
+  D9D6    C9                    	RET
+                                ;
+  D9D7                          READF:
+  D9D7    11 D89B               	LD	DE,FCBDN	;FALL THRU TO READ
+  D9DA                          READ:
+  D9DA    0E 14                 	LD	C,14H		;FALL THRU TO BDOSB
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-12
+
+
+                                ;
+                                ; CALL BDOS AND SAVE BC
+                                ;
+  D9DC                          BDOSB:
+  D9DC    C5                    	PUSH	BC
+  D9DD    CD 0005               	CALL	BDOS
+  D9E0    C1                    	POP	BC
+  D9E1    B7                    	OR	A
+  D9E2    C9                    	RET
+                                ;
+                                ; PRINT STRING (ENDING IN 0) PTED TO BY RET ADR;START WITH <CRLF>
+                                ;
+  D9E3                          PRINTC:
+  D9E3    F5                    	PUSH	AF		;SAVE FLAGS
+  D9E4    CD D9A9               	CALL	CRLF		;NEW LINE
+  D9E7    F1                    	POP	AF
+                                ;
+  D9E8                          PRINT:
+  D9E8    E3                    	EX	(SP),HL		;GET PTR TO STRING
+  D9E9    F5                    	PUSH	AF		;SAVE FLAGS
+  D9EA    CD D9F0               	CALL	PRIN1		;PRINT STRING
+  D9ED    F1                    	POP	AF		;GET FLAGS
+  D9EE    E3                    	EX	(SP),HL		;RESTORE HL AND RET ADR
+  D9EF    C9                    	RET
+                                ;
+                                ; PRINT STRING (ENDING IN 0) PTED TO BY HL
+                                ;
+  D9F0                          PRIN1:
+  D9F0    7E                    	LD	A,(HL)		;GET NEXT BYTE
+  D9F1    CD D9B0               	CALL	CONOUT		;PRINT CHAR
+  D9F4    7E                    	LD	A,(HL)		;GET NEXT BYTE AGAIN FOR TEST
+  D9F5    23                    	INC	HL		;PT TO NEXT BYTE
+  D9F6    B7                    	OR	A		;SET FLAGS
+  D9F7    C8                    	RET	Z 		;DONE IF ZERO
+  D9F8    F8                    	RET	M 		;DONE IF MSB SET
+  D9F9    18 F5                 	JR	PRIN1
+                                ;
+                                ; BDOS FUNCTION ROUTINES
+                                ;
+                                ;
+                                ; RETURN NUMBER OF CURRENT DISK IN A
+                                ;
+  D9FB                          GETDRV:
+  D9FB    0E 19                 	LD	C,19H
+  D9FD    18 09                 	JR	BDOSJP
+                                ;
+                                ; SET 80H AS DMA ADDRESS
+                                ;
+  D9FF                          DEFDMA:
+  D9FF    11 0080               	LD	DE,TBUFF	;80H=TBUFF
+  DA02                          DMASET:
+  DA02    0E 1A                 	LD	C,1AH
+  DA04    18 02                 	JR	BDOSJP
+                                ;
+  DA06                          RESET:
+  DA06    0E 0D                 	LD	C,0DH
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-13
+
+
+  DA08                          BDOSJP:
+  DA08    C3 0005               	JP	BDOS
+                                ;
+  DA0B                          LOGIN:
+  DA0B    5F                    	LD	E,A
+  DA0C    0E 0E                 	LD	C,0EH
+  DA0E    18 F8                 	JR	BDOSJP		;SAVE SOME CODE SPACE
+                                ;
+  DA10                          OPENF:
+  DA10    AF                    	XOR	A
+  DA11    32 D8BB               	LD	(FCBCR),A
+  DA14    11 D89B               	LD	DE,FCBDN	;FALL THRU TO OPEN
+                                ;
+  DA17                          OPEN:
+  DA17    0E 0F                 	LD	C,0FH		;FALL THRU TO GRBDOS
+                                ;
+  DA19                          GRBDOS:
+  DA19    CD 0005               	CALL	BDOS
+  DA1C    3C                    	INC	A		;SET ZERO FLAG FOR ERROR RETURN
+  DA1D    C9                    	RET
+                                ;
+  DA1E                          CLOSE:
+  DA1E    0E 10                 	LD	C,10H
+  DA20    18 F7                 	JR	GRBDOS
+                                ;
+  DA22                          SEARF:
+  DA22    11 D89B               	LD	DE,FCBDN	;SPECIFY FCB
+  DA25                          SEAR1:
+  DA25    0E 11                 	LD	C,11H
+  DA27    18 F0                 	JR	GRBDOS
+                                ;
+  DA29                          SEARN:
+  DA29    0E 12                 	LD	C,12H
+  DA2B    18 EC                 	JR	GRBDOS
+                                ;
+                                ; CHECK FOR SUBMIT FILE IN EXECUTION AND ABORT IT IF SO
+                                ;
+  DA2D                          SUBKIL:
+  DA2D    21 D929               	LD	HL,RNGSUB	;CHECK FOR SUBMIT FILE IN EXECUTION
+  DA30    7E                    	LD	A,(HL)
+  DA31    B7                    	OR	A		;0=NO
+  DA32    C8                    	RET	Z 
+  DA33    36 00                 	LD	(HL),0		;ABORT SUBMIT FILE
+  DA35    11 D87A               	LD	DE,SUBFCB	;DELETE $$$.SUB
+                                ;
+  DA38                          DELETE:
+  DA38    0E 13                 	LD	C,13H
+  DA3A    18 CC                 	JR	BDOSJP		;SAVE MORE SPACE
+                                ;
+  DA3C                          WRITE:
+  DA3C    0E 15                 	LD	C,15H
+  DA3E    C3 D9DC               	JP	BDOSB
+                                ;
+  DA41                          CREATE:
+  DA41    0E 16                 	LD	C,16H
+  DA43    18 D4                 	JR	GRBDOS
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-14
+
+
+                                ;
+                                ; RESET USER NUMBER IF CHANGED
+                                ;
+  DA45                          RESETUSR:
+  DA46                          TMPUSR	EQU	$+1		;POINTER FOR IN-THE-CODE MODIFICATION
+  DA45    3E 00                 	LD	A,0		;2ND BYTE (IMMEDIATE ARG) IS TMPUSR
+  DA47    5F                    	LD	E,A		;PLACE IN E
+  DA48    18 02                 	JR	SETUSR		;THEN GO SET USER
+  DA4A                          GETUSR:
+  DA4A    1E FF                 	LD	E,0FFH		;GET CURRENT USER NUMBER
+  DA4C                          SETUSR:
+  DA4C    0E 20                 	LD	C,20H		;SET USER NUMBER TO VALUE IN E (GET IF E=FFH)
+  DA4E    18 B8                 	JR	BDOSJP		;MORE SPACE SAVING
+                                ;
+                                ; END OF BDOS FUNCTIONS
+                                ;
+                                ;
+                                ;**** Section 4 ****
+                                ; CCP UTILITIES
+                                ;
+                                ; SET USER/DISK FLAG TO CURRENT USER AND DEFAULT DISK
+                                ;
+  DA50                          SETUD:
+  DA50    CD DA4A               	CALL	GETUSR		;GET NUMBER OF CURRENT USER
+  DA53    87                    	ADD	A,A		;PLACE IT IN HIGH NYBBLE
+  DA54    87                    	ADD	A,A
+  DA55    87                    	ADD	A,A
+  DA56    87                    	ADD	A,A
+  DA57    21 DA60               	LD	HL,TDRIVE	;MASK IN DEFAULT DRIVE NUMBER (LOW NYBBLE)
+  DA5A    B6                    	OR	(HL)		;MASK IN
+  DA5B    32 0004               	LD	(UDFLAG),A	;SET USER/DISK NUMBER
+  DA5E    C9                    	RET
+                                ;
+                                ; SET USER/DISK FLAG TO USER 0 AND DEFAULT DISK
+                                ;
+  DA5F                          SETU0D:
+  DA60                          TDRIVE	EQU	$+1		;POINTER FOR IN-THE-CODE MODIFICATION
+  DA5F    3E 00                 	LD	A,0		;2ND BYTE (IMMEDIATE ARG) IS TDRIVE
+  DA61    32 0004               	LD	(UDFLAG),A	;SET USER/DISK NUMBER
+  DA64    C9                    	RET
+                                ;
+                                ; CONVERT CHAR IN A TO UPPER CASE
+                                ;
+  DA65                          UCASE:
+  DA65    FE 61                 	CP	61H		;LOWER-CASE A
+  DA67    D8                    	RET	C 
+  DA68    FE 7B                 	CP	7BH		;GREATER THAN LOWER-CASE Z?
+  DA6A    D0                    	RET	NC
+  DA6B    E6 5F                 	AND	5FH		;CAPITALIZE
+  DA6D    C9                    	RET
+                                ;
+                                ; INPUT NEXT COMMAND TO CCP
+                                ;	This routine determines if a SUBMIT file is being processed
+                                ; and extracts the command line from it if so or from the user's console
+                                ;
+  DA6E                          REDBUF:
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-15
+
+
+  DA6E    3A D929               	LD	A,(RNGSUB)	;SUBMIT FILE CURRENTLY IN EXECUTION?
+  DA71    B7                    	OR	A		;0=NO
+  DA72    28 45                 	JR	Z,RB1		;GET LINE FROM CONSOLE IF NOT
+  DA74    11 D87A               	LD	DE,SUBFCB	;OPEN $$$.SUB
+  DA77    D5                    	PUSH	DE		;SAVE DE
+  DA78    CD DA17               	CALL	OPEN
+  DA7B    D1                    	POP	DE		;RESTORE DE
+  DA7C    28 3B                 	JR	Z,RB1		;ERASE $$$.SUB IF END OF FILE AND GET CMND
+  DA7E    3A D889               	LD	A,(SUBFRC)	;GET VALUE OF LAST RECORD IN FILE
+  DA81    3D                    	DEC	A		;PT TO NEXT TO LAST RECORD
+  DA82    32 D89A               	LD	(SUBFCR),A	;SAVE NEW VALUE OF LAST RECORD IN $$$.SUB
+  DA85    CD D9DA               	CALL	READ		;DE=SUBFCB
+  DA88    20 2F                 	JR	NZ,RB1		;ABORT $$$.SUB IF ERROR IN READING LAST REC
+  DA8A    11 D807               	LD	DE,CBUFF	;COPY LAST RECORD (NEXT SUBMIT CMND) TO CBUFF
+  DA8D    21 0080               	LD	HL,TBUFF	;  FROM TBUFF
+  DA90    01 0050               	LD	BC,BUFLEN	;NUMBER OF BYTES
+  DA93    ED B0                 	LDIR
+  DA95    21 D888               	LD	HL,SUBFS2	;PT TO S2 OF $$$.SUB FCB
+  DA98    36 00                 	LD	(HL),0		;SET S2 TO ZERO
+  DA9A    23                    	INC	HL		;PT TO RECORD COUNT
+  DA9B    35                    	DEC	(HL)		;DECREMENT RECORD COUNT OF $$$.SUB
+  DA9C    11 D87A               	LD	DE,SUBFCB	;CLOSE $$$.SUB
+  DA9F    CD DA1E               	CALL	CLOSE
+  DAA2    28 15                 	JR	Z,RB1		;ABORT $$$.SUB IF ERROR
+  DAA4    3E 24                 	LD	A,SPRMPT	;PRINT SUBMIT PROMPT
+  DAA6    CD D9B0               	CALL	CONOUT
+  DAA9    21 D808               	LD	HL,CIBUFF	;PRINT COMMAND LINE FROM $$$.SUB
+  DAAC    CD D9F0               	CALL	PRIN1
+  DAAF    CD DAE5               	CALL	BREAK		;CHECK FOR ABORT (ANY CHAR)
+                                ;
+                                	IF	CLEVEL3		;IF THIRD COMMAND LEVEL IS PERMITTED
+  DAB2    C8                    	RET	Z 		;IF <NULL> (NO ABORT), RETURN TO CALLER AND RUN
+                                	ENDIF
+                                ;
+                                	IF	NOT CLEVEL3	;IF THIRD COMMAND LEVEL IS NOT PERMITTED
+                                	JR	Z,CNVBUF	;IF <NULL> (NO ABORT), CAPITALIZE COMMAND
+                                	ENDIF
+                                ;
+  DAB3    CD DA2D               	CALL	SUBKIL		;KILL $$$.SUB IF ABORT
+  DAB6    C3 D939               	JP	RESTRT		;RESTART CCP
+                                ;
+                                ; INPUT COMMAND LINE FROM USER CONSOLE
+                                ;
+  DAB9                          RB1:
+  DAB9    CD DA2D               	CALL	SUBKIL		;ERASE $$$.SUB IF PRESENT
+  DABC    CD DA50               	CALL	SETUD		;SET USER AND DISK
+  DABF    3E 3E                 	LD	A,CPRMPT	;PRINT PROMPT
+  DAC1    CD D9B0               	CALL	CONOUT
+  DAC4    0E 0A                 	LD	C,0AH		;READ COMMAND LINE FROM USER
+  DAC6    11 D806               	LD	DE,MBUFF
+  DAC9    CD 0005               	CALL	BDOS
+                                ;
+                                	IF	CLEVEL3		;IF THIRD COMMAND LEVEL IS PERMITTED
+  DACC    C3 DA5F               	JP	SETU0D		;SET CURRENT DISK NUMBER IN LOWER PARAMS
+                                	ENDIF
+                                ;
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-16
+
+
+                                	IF	NOT CLEVEL3	;IF THIRD COMMAND LEVEL IS NOT PERMITTED
+                                	CALL	SETU0D		;SET CURRENT DISK NUMBER IF LOWER PARAMS
+                                				; AND FALL THRU TO CNVBUF
+                                	ENDIF
+                                ;
+                                ; CAPITALIZE STRING (ENDING IN 0) IN CBUFF AND SET PTR FOR PARSING
+                                ;
+  DACF                          CNVBUF:
+  DACF    21 D807               	LD	HL,CBUFF	;PT TO USER'S COMMAND
+  DAD2    46                    	LD	B,(HL)		;CHAR COUNT IN B
+  DAD3    04                    	INC	B		;ADD 1 IN CASE OF ZERO
+  DAD4                          CB1:
+  DAD4    23                    	INC	HL		;PT TO 1ST VALID CHAR
+  DAD5    7E                    	LD	A,(HL)		;CAPITALIZE COMMAND CHAR
+  DAD6    CD DA65               	CALL	UCASE
+  DAD9    77                    	LD	(HL),A
+  DADA    10 F8                 	DJNZ	CB1		;CONTINUE TO END OF COMMAND LINE
+  DADC                          CB2:
+  DADC    36 00                 	LD	(HL),0		;STORE ENDING <NULL>
+  DADE    21 D808               	LD	HL,CIBUFF	;SET COMMAND LINE PTR TO 1ST CHAR
+  DAE1    22 D859               	LD	(CIBPTR),HL
+  DAE4    C9                    	RET
+                                ;
+                                ; CHECK FOR ANY CHAR FROM USER CONSOLE;RET W/ZERO SET IF NONE
+                                ;
+  DAE5                          BREAK:
+  DAE5    D5                    	PUSH	DE		;SAVE DE
+  DAE6    0E 0B                 	LD	C,11		;CSTS CHECK
+  DAE8    CD D9DC               	CALL	BDOSB
+  DAEB    C4 D9BB               	CALL	NZ,CONIN	;GET INPUT CHAR
+  DAEE                          BRKBK:
+  DAEE    D1                    	POP	DE
+  DAEF    C9                    	RET
+                                ;
+                                ; GET THE REQUESTED USER NUMBER FROM THE COMMAND LINE AND VALIDATE IT.
+                                ;
+  DAF0                          USRNUM:
+  DAF0    CD DB42               	CALL	NUMBER
+  DAF3    FE 10                 	CP	MAXUSR+1
+  DAF5    D8                    	RET	C 
+                                ;
+                                ; INVALID COMMAND -- PRINT IT
+                                ;
+  DAF6                          ERROR:
+  DAF6    CD D9A9               	CALL	CRLF		;NEW LINE
+  DAF9    2A D85B               	LD	HL,(CIPTR)	;PT TO BEGINNING OF COMMAND LINE
+  DAFC                          ERR2:
+  DAFC    7E                    	LD	A,(HL)		;GET CHAR
+  DAFD    FE 21                 	CP	' '+1		;SIMPLE '?' IF <SP> OR LESS
+  DAFF    38 08                 	JR	C,ERR1
+  DB01    E5                    	PUSH	HL		;SAVE PTR TO ERROR COMMAND CHAR
+  DB02    CD D9B0               	CALL	CONOUT		;PRINT COMMAND CHAR
+  DB05    E1                    	POP	HL		;GET PTR
+  DB06    23                    	INC	HL		;PT TO NEXT
+  DB07    18 F3                 	JR	ERR2		;CONTINUE
+  DB09                          ERR1:
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-17
+
+
+  DB09    CD D9E8               	CALL	PRINT		;PRINT '?'
+  DB0C    BF                    	DB	'?'+80H
+  DB0D    CD DA2D               	CALL	SUBKIL		;TERMINATE ACTIVE $$$.SUB IF ANY
+  DB10    C3 D939               	JP	RESTRT		;RESTART CCP
+                                ;
+                                ; CHECK TO SEE IF DE PTS TO DELIMITER; IF SO, RET W/ZERO FLAG SET
+                                ;
+  DB13                          SDELM:
+  DB13    1A                    	LD	A,(DE)
+  DB14    B7                    	OR	A		;0=DELIMITER
+  DB15    C8                    	RET	Z 
+  DB16    FE 20                 	CP	' '		;ERROR IF < <SP>
+  DB18    38 DC                 	JR	C,ERROR
+  DB1A    C8                    	RET	Z 		;<SP>=DELIMITER
+  DB1B    FE 3D                 	CP	'='		;'='=DELIMITER
+  DB1D    C8                    	RET	Z 
+  DB1E    FE 5F                 	CP	5FH		;UNDERSCORE=DELIMITER
+  DB20    C8                    	RET	Z 
+  DB21    FE 2E                 	CP	'.'		;'.'=DELIMITER
+  DB23    C8                    	RET	Z 
+  DB24    FE 3A                 	CP	':'		;':'=DELIMITER
+  DB26    C8                    	RET	Z 
+  DB27    FE 3B                 	CP	';'		;';'=DELIMITER
+  DB29    C8                    	RET	Z 
+  DB2A    FE 3C                 	CP	'<'		;'<'=DELIMITER
+  DB2C    C8                    	RET	Z 
+  DB2D    FE 3E                 	CP	'>'		;'>'=DELIMITER
+  DB2F    C9                    	RET
+                                ;
+                                ; ADVANCE INPUT PTR TO FIRST NON-BLANK AND FALL THROUGH TO SBLANK
+                                ;
+  DB30                          ADVAN:
+  DB30    ED 5B D859            	LD	DE,(CIBPTR)
+                                ;
+                                ; SKIP STRING PTED TO BY DE (STRING ENDS IN 0) UNTIL END OF STRING
+                                ;   OR NON-BLANK ENCOUNTERED (BEGINNING OF TOKEN)
+                                ;
+  DB34                          SBLANK:
+  DB34    1A                    	LD	A,(DE)
+  DB35    B7                    	OR	A
+  DB36    C8                    	RET	Z 
+  DB37    FE 20                 	CP	' '
+  DB39    C0                    	RET	NZ
+  DB3A    13                    	INC	DE
+  DB3B    18 F7                 	JR	SBLANK
+                                ;
+                                ; ADD A TO HL (HL=HL+A)
+                                ;
+  DB3D                          ADDAH:
+  DB3D    85                    	ADD	A,L
+  DB3E    6F                    	LD	L,A
+  DB3F    D0                    	RET	NC
+  DB40    24                    	INC	H
+  DB41    C9                    	RET
+                                ;
+                                ; EXTRACT DECIMAL NUMBER FROM COMMAND LINE
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-18
+
+
+                                ;   RETURN WITH VALUE IN REG A;ALL REGISTERS MAY BE AFFECTED
+                                ;
+  DB42                          NUMBER:
+  DB42    CD DBE7               	CALL	SCANER		;PARSE NUMBER AND PLACE IN FCBFN
+  DB45    21 D8A6               	LD	HL,FCBFN+10	;PT TO END OF TOKEN FOR CONVERSION
+  DB48    06 0B                 	LD	B,11		;11 CHARS MAX
+                                ;
+                                ; CHECK FOR SUFFIX FOR HEXADECIMAL NUMBER
+                                ;
+  DB4A                          NUMS:
+  DB4A    7E                    	LD	A,(HL)		;GET CHARS FROM END, SEARCHING FOR SUFFIX
+  DB4B    2B                    	DEC	HL		;BACK UP
+  DB4C    FE 20                 	CP	' '		;SPACE?
+  DB4E    20 04                 	JR	NZ,NUMS1	;CHECK FOR SUFFIX
+  DB50    10 F8                 	DJNZ	NUMS		;COUNT DOWN
+  DB52    18 04                 	JR	NUM0		;BY DEFAULT, PROCESS
+  DB54                          NUMS1:
+  DB54    FE 48                 	CP	NUMBASE		;CHECK AGAINST BASE SWITCH FLAG
+  DB56    28 2B                 	JR	Z,HNUM0
+                                ;
+                                ; PROCESS DECIMAL NUMBER
+                                ;
+  DB58                          NUM0:
+  DB58    21 D89C               	LD	HL,FCBFN	;PT TO BEGINNING OF TOKEN
+  DB5B    01 1100               	LD	BC,1100H	;C=ACCUMULATED VALUE, B=CHAR COUNT
+                                				; (C=0, B=11)
+  DB5E                          NUM1:
+  DB5E    7E                    	LD	A,(HL)		;GET CHAR
+  DB5F    FE 20                 	CP	' '		;DONE IF <SP>
+  DB61    28 18                 	JR	Z,NUM2
+  DB63    23                    	INC	HL		;PT TO NEXT CHAR
+  DB64    D6 30                 	SUB	'0'		;CONVERT TO BINARY (ASCII 0-9 TO BINARY)
+  DB66    FE 0A                 	CP	10		;ERROR IF >= 10
+  DB68    30 13                 	JR	NC,NUMERR
+  DB6A    57                    	LD	D,A		;DIGIT IN D
+  DB6B    79                    	LD	A,C		;NEW VALUE = OLD VALUE * 10
+  DB6C    07                    	RLCA
+  DB6D    07                    	RLCA
+  DB6E    07                    	RLCA
+  DB6F    81                    	ADD	A,C		;CHECK FOR RANGE ERROR
+  DB70    38 0B                 	JR	C,NUMERR
+  DB72    81                    	ADD	A,C		;CHECK FOR RANGE ERROR
+  DB73    38 08                 	JR	C,NUMERR
+  DB75    82                    	ADD	A,D		;NEW VALUE = OLD VALUE * 10 + DIGIT
+  DB76    38 05                 	JR	C,NUMERR	;CHECK FOR RANGE ERROR
+  DB78    4F                    	LD	C,A		;SET NEW VALUE
+  DB79    10 E3                 	DJNZ	NUM1		;COUNT DOWN
+                                ;
+                                ; RETURN FROM NUMBER
+                                ;
+  DB7B                          NUM2:
+  DB7B    79                    	LD	A,C		;GET ACCUMULATED VALUE
+  DB7C    C9                    	RET
+                                ;
+                                ; NUMBER ERROR ROUTINE FOR SPACE CONSERVATION
+                                ;
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-19
+
+
+  DB7D                          NUMERR:
+  DB7D    C3 DAF6               	JP	ERROR		;USE ERROR ROUTINE - THIS IS RELATIVE PT
+                                ;
+                                ; EXTRACT HEXADECIMAL NUMBER FROM COMMAND LINE
+                                ;   RETURN WITH VALUE IN REG A; ALL REGISTERS MAY BE AFFECTED
+                                ;
+  DB80                          HEXNUM:
+  DB80    CD DBE7               	CALL	SCANER		;PARSE NUMBER AND PLACE IN FCBFN
+  DB83                          HNUM0:
+  DB83    21 D89C               	LD	HL,FCBFN	;PT TO TOKEN FOR CONVERSION
+  DB86    11 0000               	LD	DE,0		;DE=ACCUMULATED VALUE
+  DB89    06 0B                 	LD	B,11		;B=CHAR COUNT
+  DB8B                          HNUM1:
+  DB8B    7E                    	LD	A,(HL)		;GET CHAR
+  DB8C    FE 20                 	CP	' '		;DONE?
+  DB8E    28 2D                 	JR	Z,HNUM3		;RETURN IF SO
+  DB90    FE 48                 	CP	'H'		;DONE IF H SUFFIX
+  DB92    28 29                 	JR	Z,HNUM3
+  DB94    D6 30                 	SUB	'0'		;CONVERT TO BINARY
+  DB96    38 E5                 	JR	C,NUMERR	;RETURN AND DONE IF ERROR
+  DB98    FE 0A                 	CP	10		;0-9?
+  DB9A    38 06                 	JR	C,HNUM2
+  DB9C    D6 07                 	SUB	7		;A-F?
+  DB9E    FE 10                 	CP	10H		;ERROR?
+  DBA0    30 DB                 	JR	NC,NUMERR
+  DBA2                          HNUM2:
+  DBA2    23                    	INC	HL		;PT TO NEXT CHAR
+  DBA3    4F                    	LD	C,A		;DIGIT IN C
+  DBA4    7A                    	LD	A,D		;GET ACCUMULATED VALUE
+  DBA5    07                    	RLCA			;EXCHANGE NYBBLES
+  DBA6    07                    	RLCA
+  DBA7    07                    	RLCA
+  DBA8    07                    	RLCA
+  DBA9    E6 F0                 	AND	0F0H		;MASK OUT LOW NYBBLE
+  DBAB    57                    	LD	D,A
+  DBAC    7B                    	LD	A,E		;SWITCH LOW-ORDER NYBBLES
+  DBAD    07                    	RLCA
+  DBAE    07                    	RLCA
+  DBAF    07                    	RLCA
+  DBB0    07                    	RLCA
+  DBB1    5F                    	LD	E,A		;HIGH NYBBLE OF E=NEW HIGH OF E,
+                                				;  LOW NYBBLE OF E=NEW LOW OF D
+  DBB2    E6 0F                 	AND	0FH		;GET NEW LOW OF D
+  DBB4    B2                    	OR	D		;MASK IN HIGH OF D
+  DBB5    57                    	LD	D,A		;NEW HIGH BYTE IN D
+  DBB6    7B                    	LD	A,E
+  DBB7    E6 F0                 	AND	0F0H		;MASK OUT LOW OF E
+  DBB9    B1                    	OR	C		;MASK IN NEW LOW
+  DBBA    5F                    	LD	E,A		;NEW LOW BYTE IN E
+  DBBB    10 CE                 	DJNZ	HNUM1		;COUNT DOWN
+                                ;
+                                ; RETURN FROM HEXNUM
+                                ;
+  DBBD                          HNUM3:
+  DBBD    EB                    	EX	DE,HL		;RETURNED VALUE IN HL
+  DBBE    7D                    	LD	A,L		;LOW-ORDER BYTE IN A
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-20
+
+
+  DBBF    C9                    	RET
+                                ;
+                                ; PT TO DIRECTORY ENTRY IN TBUFF WHOSE OFFSET IS SPECIFIED BY A AND C
+                                ;
+  DBC0                          DIRPTR:
+  DBC0    21 0080               	LD	HL,TBUFF	;PT TO TEMP BUFFER
+  DBC3    81                    	ADD	A,C		;PT TO 1ST BYTE OF DIR ENTRY
+  DBC4    CD DB3D               	CALL	ADDAH		;PT TO DESIRED BYTE IN DIR ENTRY
+  DBC7    7E                    	LD	A,(HL)		;GET DESIRED BYTE
+  DBC8    C9                    	RET
+                                ;
+                                ; CHECK FOR SPECIFIED DRIVE AND LOG IT IN IF NOT DEFAULT
+                                ;
+  DBC9                          SLOGIN:
+  DBC9    AF                    	XOR	A		;SET FCBDN FOR DEFAULT DRIVE
+  DBCA    32 D89B               	LD	(FCBDN),A
+  DBCD    CD DBDD               	CALL	COMLOG		;CHECK DRIVE
+  DBD0    C8                    	RET	Z 
+  DBD1    18 07                 	JR	DLOG5		;DO LOGIN OTHERWISE
+                                ;
+                                ; CHECK FOR SPECIFIED DRIVE AND LOG IN DEFAULT DRIVE IF SPECIFIED<>DEFAULT
+                                ;
+  DBD3                          DLOGIN:
+  DBD3    CD DBDD               	CALL	COMLOG		;CHECK DRIVE
+  DBD6    C8                    	RET	Z 		;ABORT IF SAME
+  DBD7    3A DA60               	LD	A,(TDRIVE)	;LOG IN DEFAULT DRIVE
+                                ;
+  DBDA    C3 DA0B               DLOG5:	JP	LOGIN
+                                ;
+                                ; ROUTINE COMMON TO BOTH LOGIN ROUTINES; ON EXIT, Z SET MEANS ABORT
+                                ;
+  DBDD                          COMLOG:
+  DBDE                          TEMPDR	EQU	$+1		;POINTER FOR IN-THE-CODE MODIFICATION
+  DBDD    3E 00                 	LD	A,0		;2ND BYTE (IMMEDIATE ARG) IS TEMPDR
+  DBDF    B7                    	OR	A		;0=NO
+  DBE0    C8                    	RET	Z 
+  DBE1    3D                    	DEC	A		;COMPARE IT AGAINST DEFAULT
+  DBE2    21 DA60               	LD	HL,TDRIVE
+  DBE5    BE                    	CP	(HL)
+  DBE6    C9                    	RET			;ABORT IF SAME
+                                ;
+                                ; EXTRACT TOKEN FROM COMMAND LINE AND PLACE IT INTO FCBDN;
+                                ;   FORMAT FCBDN FCB IF TOKEN RESEMBLES FILE NAME AND TYPE (FILENAME.TYP);
+                                ;   ON INPUT, CIBPTR PTS TO CHAR AT WHICH TO START SCAN;
+                                ;   ON OUTPUT, CIBPTR PTS TO CHAR AT WHICH TO CONTINUE AND ZERO FLAG IS RESET
+                                ;     IF '?' IS IN TOKEN
+                                ;
+  DBE7                          SCANER:
+  DBE7    AF                    	XOR	A		;A=0 TO START AT DRIVE SPECIFICATION BYTE
+  DBE8                          SCAN1:
+  DBE8    21 D89B               	LD	HL,FCBDN	;POINT TO FCBDN
+  DBEB    CD DB3D               	CALL	ADDAH		;OFFSET INTO FCB
+  DBEE    E5                    	PUSH	HL
+  DBEF    E5                    	PUSH	HL
+  DBF0    AF                    	XOR	A		;SET TEMPORARY DRIVE NUMBER TO DEFAULT
+  DBF1    32 DBDE               	LD	(TEMPDR),A
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-21
+
+
+  DBF4    CD DB30               	CALL	ADVAN		;SKIP TO NON-BLANK OR END OF LINE
+  DBF7    ED 53 D85B            	LD	(CIPTR),DE	;SET PTR TO NON-BLANK OR END OF LINE
+  DBFB    E1                    	POP	HL		;GET PTR TO NEXT BYTE IN FCBDN
+  DBFC    1A                    	LD	A,(DE)		;END OF LINE?
+  DBFD    B7                    	OR	A		;0=YES
+  DBFE    28 0A                 	JR	Z,SCAN2
+  DC00    DE 40                 	SBC	A,'A'-1		;CONVERT POSSIBLE DRIVE SPEC TO NUMBER
+  DC02    47                    	LD	B,A		;STORE NUMBER (A:=0, B:=1, ETC) IN B
+  DC03    13                    	INC	DE		;PT TO NEXT CHAR
+  DC04    1A                    	LD	A,(DE)		;SEE IF IT IS A COLON (:)
+  DC05    FE 3A                 	CP	':'
+  DC07    28 07                 	JR	Z,SCAN3		;YES, WE HAVE A DRIVE SPEC
+  DC09    1B                    	DEC	DE		;NO, BACK UP PTR TO FIRST NON-BLANK CHAR
+  DC0A                          SCAN2:
+  DC0A    3A DA60               	LD	A,(TDRIVE)	;SET 1ST BYTE OF FCBDN AS DEFAULT DRIVE
+  DC0D    77                    	LD	(HL),A
+  DC0E    18 06                 	JR	SCAN4
+  DC10                          SCAN3:
+  DC10    78                    	LD	A,B		;WE HAVE A DRIVE SPEC
+  DC11    32 DBDE               	LD	(TEMPDR),A	;SET TEMPORARY DRIVE
+  DC14    70                    	LD	(HL),B		;SET 1ST BYTE OF FCBDN AS SPECIFIED DRIVE
+  DC15    13                    	INC	DE		;PT TO BYTE AFTER ':'
+                                ;
+                                ; EXTRACT FILENAME FROM POSSIBLE FILENAME.TYP
+                                ;
+  DC16                          SCAN4:
+  DC16    06 08                 	LD	B,8		;MAX OF 8 CHARS IN FILE NAME
+  DC18                          SCAN5:
+  DC18    CD DB13               	CALL	SDELM		;DONE IF DELIMITER ENCOUNTERED - <SP> FILL
+  DC1B    28 15                 	JR	Z,SCAN9
+  DC1D    23                    	INC	HL		;PT TO NEXT BYTE IN FCBDN
+  DC1E    FE 2A                 	CP	'*'		;IS (DE) A WILD CARD?
+  DC20    20 04                 	JR	NZ,SCAN6	;CONTINUE IF NOT
+  DC22    36 3F                 	LD	(HL),'?'	;PLACE '?' IN FCBDN AND DON'T ADVANCE DE IF SO
+  DC24    18 02                 	JR	SCAN7
+  DC26                          SCAN6:
+  DC26    77                    	LD	(HL),A		;STORE FILENAME CHAR IN FCBDN
+  DC27    13                    	INC	DE		;PT TO NEXT CHAR IN COMMAND LINE
+  DC28                          SCAN7:
+  DC28    10 EE                 	DJNZ	SCAN5		;DECREMENT CHAR COUNT UNTIL 8 ELAPSED
+  DC2A                          SCAN8:
+  DC2A    CD DB13               	CALL	SDELM		;8 CHARS OR MORE - SKIP UNTIL DELIMITER
+  DC2D    28 08                 	JR	Z,SCAN10	;ZERO FLAG SET IF DELIMITER FOUND
+  DC2F    13                    	INC	DE		;PT TO NEXT CHAR IN COMMAND LINE
+  DC30    18 F8                 	JR	SCAN8
+  DC32                          SCAN9:
+  DC32    23                    	INC	HL		;PT TO NEXT BYTE IN FCBDN
+  DC33    36 20                 	LD	(HL),' '	;FILL FILENAME PART WITH <SP>
+  DC35    10 FB                 	DJNZ	SCAN9
+                                ;
+                                ; EXTRACT FILE TYPE FROM POSSIBLE FILENAME.TYP
+                                ;
+  DC37                          SCAN10:
+  DC37    06 03                 	LD	B,3		;PREPARE TO EXTRACT TYPE
+  DC39    FE 2E                 	CP	'.'		;IF (DE) DELIMITER IS A '.', WE HAVE A TYPE
+  DC3B    20 1B                 	JR	NZ,SCAN15	;FILL FILE TYPE BYTES WITH <SP>
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-22
+
+
+  DC3D    13                    	INC	DE		;PT TO CHAR IN COMMAND LINE AFTER '.'
+  DC3E                          SCAN11:
+  DC3E    CD DB13               	CALL	SDELM		;CHECK FOR DELIMITER
+  DC41    28 15                 	JR	Z,SCAN15	;FILL REST OF TYPE IF IT IS A DELIMITER
+  DC43    23                    	INC	HL		;PT TO NEXT BYTE IN FCBDN
+  DC44    FE 2A                 	CP	'*'		;WILD?
+  DC46    20 04                 	JR	NZ,SCAN12	;STORE CHAR IF NOT WILD
+  DC48    36 3F                 	LD	(HL),'?'	;STORE '?' AND DON'T ADVANCE COMMAND LINE PTR
+  DC4A    18 02                 	JR	SCAN13
+  DC4C                          SCAN12:
+  DC4C    77                    	LD	(HL),A		;STORE CHAR IN FCBDN
+  DC4D    13                    	INC	DE		;PT TO NEXT CHAR IN COMMAND LINE
+  DC4E                          SCAN13:
+  DC4E    10 EE                 	DJNZ	SCAN11		;COUNT DOWN CHARS IN FILE TYPE (3 MAX)
+  DC50                          SCAN14:
+  DC50    CD DB13               	CALL	SDELM		;SKIP REST OF CHARS AFTER 3-CHAR TYPE TO
+  DC53    28 08                 	JR	Z,SCAN16	;  DELIMITER
+  DC55    13                    	INC	DE
+  DC56    18 F8                 	JR	SCAN14
+  DC58                          SCAN15:
+  DC58    23                    	INC	HL		;FILL IN REST OF TYP WITH <SP>
+  DC59    36 20                 	LD	(HL),' '
+  DC5B    10 FB                 	DJNZ	SCAN15
+                                ;
+                                ; FILL IN EX, S1, S2, AND RC WITH ZEROES
+                                ;
+  DC5D                          SCAN16:
+  DC5D    06 04                 	LD	B,4		;4 BYTES
+  DC5F                          SCAN17:
+  DC5F    23                    	INC	HL		;PT TO NEXT BYTE IN FCBDN
+  DC60    36 00                 	LD	(HL),0
+  DC62    10 FB                 	DJNZ	SCAN17
+                                ;
+                                ; SCAN COMPLETE -- DE PTS TO DELIMITER BYTE AFTER TOKEN
+                                ;
+  DC64    ED 53 D859            	LD	(CIBPTR),DE
+                                ;
+                                ; SET ZERO FLAG TO INDICATE PRESENCE OF '?' IN FILENAME.TYP
+                                ;
+  DC68    E1                    	POP	HL		;GET PTR TO FCBDN IN HL
+  DC69    01 000B               	LD	BC,11		;SCAN FOR '?' IN FILENAME.TYP (C=11 BYTES)
+  DC6C                          SCAN18:
+  DC6C    23                    	INC	HL		;PT TO NEXT BYTE IN FCBDN
+  DC6D    7E                    	LD	A,(HL)
+  DC6E    FE 3F                 	CP	'?'
+  DC70    20 01                 	JR	NZ,SCAN19
+  DC72    04                    	INC	B		;B<>0 TO INDICATE '?' ENCOUNTERED
+  DC73                          SCAN19:
+  DC73    0D                    	DEC	C		;COUNT DOWN
+  DC74    20 F6                 	JR	NZ,SCAN18
+  DC76    78                    	LD	A,B		;A=B=NUMBER OF '?' IN FILENAME.TYP
+  DC77    B7                    	OR	A		;SET ZERO FLAG TO INDICATE ANY '?'
+  DC78    C9                    	RET
+                                ;
+                                ; CMDTBL (COMMAND TABLE) SCANNER
+                                ;   ON RETURN, HL PTS TO ADDRESS OF COMMAND IF CCP-RESIDENT
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-23
+
+
+                                ;   ON RETURN, ZERO FLAG SET MEANS CCP-RESIDENT COMMAND
+                                ;
+  DC79                          CMDSER:
+  DC79    21 D8BE               	LD	HL,CMDTBL	;PT TO COMMAND TABLE
+  DC7C    0E 0B                 	LD	C,NCMNDS	;SET COMMAND COUNTER
+  DC7E                          CMS1:
+  DC7E    11 D89C               	LD	DE,FCBFN	;PT TO STORED COMMAND NAME
+  DC81    06 04                 	LD	B,NCHARS	;NUMBER OF CHARS/COMMAND (8 MAX)
+  DC83                          CMS2:
+  DC83    1A                    	LD	A,(DE)		;COMPARE AGAINST TABLE ENTRY
+  DC84    BE                    	CP	(HL)
+  DC85    20 0A                 	JR	NZ,CMS3		;NO MATCH
+  DC87    13                    	INC	DE		;PT TO NEXT CHAR
+  DC88    23                    	INC	HL
+  DC89    10 F8                 	DJNZ	CMS2		;COUNT DOWN
+  DC8B    1A                    	LD	A,(DE)		;NEXT CHAR IN INPUT COMMAND MUST BE <SP>
+  DC8C    FE 20                 	CP	' '
+  DC8E    20 04                 	JR	NZ,CMS4
+  DC90    C9                    	RET			;COMMAND IS CCP-RESIDENT (ZERO FLAG SET)
+  DC91                          CMS3:
+  DC91    23                    	INC	HL		;SKIP TO NEXT COMMAND TABLE ENTRY
+  DC92    10 FD                 	DJNZ	CMS3
+  DC94                          CMS4:
+  DC94    23                    	INC	HL		;SKIP ADDRESS
+  DC95    23                    	INC	HL
+  DC96    0D                    	DEC	C		;DECREMENT TABLE ENTRY NUMBER
+  DC97    20 E5                 	JR	NZ,CMS1
+  DC99    0C                    	INC	C		;CLEAR ZERO FLAG
+  DC9A    C9                    	RET			;COMMAND IS DISK-RESIDENT (ZERO FLAG CLEAR)
+                                ;
+                                ;**** Section 5 ****
+                                ; CCP-Resident Commands
+                                ;
+                                ;
+                                ;Section 5A
+                                ;Command: DIR
+                                ;Function:  To display a directory of the files on disk
+                                ;Forms:
+                                ;	DIR <afn>	Displays the DIR files
+                                ;	DIR <afn> S	Displays the SYS files
+                                ;	DIR <afn> A	Display both DIR and SYS files
+                                ;
+  DC9B                          DIR:
+  DC9B    3E 80                 	LD	A,80H		;SET SYSTEM BIT EXAMINATION
+  DC9D    F5                    	PUSH	AF
+  DC9E    CD DBE7               	CALL	SCANER		;EXTRACT POSSIBLE D:FILENAME.TYP TOKEN
+  DCA1    CD DBC9               	CALL	SLOGIN		;LOG IN DRIVE IF NECESSARY
+  DCA4    21 D89C               	LD	HL,FCBFN	;MAKE FCB WILD (ALL '?') IF NO FILENAME.TYP
+  DCA7    7E                    	LD	A,(HL)		;GET FIRST CHAR OF FILENAME.TYP
+  DCA8    FE 20                 	CP	' '		;IF <SP>, ALL WILD
+  DCAA    CC DD44               	CALL	Z ,FILLQ
+  DCAD    CD DB30               	CALL	ADVAN		;LOOK AT NEXT INPUT CHAR
+  DCB0    06 00                 	LD	B,0		;SYS TOKEN DEFAULT
+  DCB2    28 16                 	JR	Z,DIR2		;JUMP; THERE ISN'T ONE
+  DCB4    FE 41                 	CP	SYSFLG		;SYSTEM FLAG SPECIFIER?
+  DCB6    28 06                 	JR	Z,GOTSYS	;GOT SYSTEM SPECIFIER
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-24
+
+
+  DCB8    FE 53                 	CP	SOFLG		;SYS ONLY?
+  DCBA    20 0E                 	JR	NZ,DIR2
+  DCBC    06 80                 	LD	B,80H		;FLAG SYS ONLY
+  DCBE                          GOTSYS:
+  DCBE    13                    	INC	DE
+  DCBF    ED 53 D859            	LD	(CIBPTR),DE
+  DCC3    FE 53                 	CP	SOFLG		;SYS ONLY SPEC?
+  DCC5    28 03                 	JR	Z,DIR2		;THEN LEAVE BIT SPEC UNCHAGNED
+  DCC7    F1                    	POP	AF		;GET FLAG
+  DCC8    AF                    	XOR	A		;SET NO SYSTEM BIT EXAMINATION
+  DCC9    F5                    	PUSH	AF
+  DCCA                          DIR2:
+  DCCA    F1                    	POP	AF		;GET FLAG
+  DCCB                          DIR2A:
+                                				;DROP INTO DIRPR TO PRINT DIRECTORY
+                                				; THEN RESTART CCP
+                                ;
+                                ; DIRECTORY PRINT ROUTINE; ON ENTRY, MSB OF A IS 1 (80H) IF SYSTEM FILES EXCL
+                                ;
+  DCCB                          DIRPR:
+  DCCB    57                    	LD	D,A		;STORE SYSTEM FLAG IN D
+  DCCC    1E 00                 	LD	E,0		;SET COLUMN COUNTER TO ZERO
+  DCCE    D5                    	PUSH	DE		;SAVE COLUMN COUNTER (E) AND SYSTEM FLAG (D)
+  DCCF    78                    	LD	A,B		;SYS ONLY SPECIFIER
+  DCD0    32 DCEB               	LD	(SYSTST),A
+  DCD3    CD DA22               	CALL	SEARF		;SEARCH FOR SPECIFIED FILE (FIRST OCCURRANCE)
+  DCD6    CC D99E               	CALL	Z ,PRNNF		;PRINT NO FILE MSG;REG A NOT CHANGED
+                                ;
+                                ; ENTRY SELECTION LOOP; ON ENTRY, A=OFFSET FROM SEARF OR SEARN
+                                ;
+  DCD9                          DIR3:
+  DCD9    28 67                 	JR	Z,DIR11		;DONE IF ZERO FLAG SET
+  DCDB    3D                    	DEC	A		;ADJUST TO RETURNED VALUE
+  DCDC    0F                    	RRCA			;CONVERT NUMBER TO OFFSET INTO TBUFF
+  DCDD    0F                    	RRCA
+  DCDE    0F                    	RRCA
+  DCDF    E6 60                 	AND	60H
+  DCE1    4F                    	LD	C,A		;OFFSET INTO TBUFF IN C (C=OFFSET TO ENTRY)
+  DCE2    3E 0A                 	LD	A,10		;ADD 10 TO PT TO SYSTEM FILE ATTRIBUTE BIT
+  DCE4    CD DBC0               	CALL	DIRPTR
+  DCE7    D1                    	POP	DE		;GET SYSTEM BIT MASK FROM D
+  DCE8    D5                    	PUSH	DE
+  DCE9    A2                    	AND	D		;MASK FOR SYSTEM BIT
+  DCEB                          SYSTST	EQU	$+1		;POINTER TO IN-THE-CODE BUFFER SYSTST
+  DCEA    FE 00                 	CP	0
+  DCEC    20 4A                 	JR	NZ,DIR10
+  DCEE    D1                    	POP	DE		;GET ENTRY COUNT (=<CR> COUNTER)
+  DCEF    7B                    	LD	A,E		;ADD 1 TO IT
+  DCF0    1C                    	INC	E
+  DCF1    D5                    	PUSH	DE		;SAVE IT
+                                ;
+                                	IF	TWOCOL
+                                	AND	01H		;OUTPUT <CR><LF> IF 2 ENTRIES PRINTED IN LINE
+                                	ENDIF
+                                ;
+                                	IF	NOT TWOCOL
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-25
+
+
+  DCF2    E6 03                 	AND	03H		;OUTPUT <CR><LF> IF 4 ENTRIES PRINTED IN LINE
+                                	ENDIF
+                                ;
+  DCF4    F5                    	PUSH	AF
+  DCF5    20 05                 	JR	NZ,DIR4
+  DCF7    CD D9A9               	CALL	CRLF		;NEW LINE
+  DCFA    18 08                 	JR	DIR5
+  DCFC                          DIR4:
+  DCFC    CD D9E8               	CALL	PRINT
+                                ;
+                                	IF	WIDE
+  DCFF    20 20                 	DB	'  '		;2 SPACES
+  DD01    7C                    	DB	FENCE		;THEN FENCE CHAR
+  DD02    20 A0                 	DB	' ',' '+80H	;THEN 2 MORE SPACES
+                                	ENDIF
+                                ;
+                                	IF	NOT WIDE
+                                	DB	' '		;SPACE
+                                	DB	FENCE		;THEN FENCE CHAR
+                                	DB	' '+80H		;THEN SPACE
+                                	ENDIF
+                                ;
+  DD04                          DIR5:
+  DD04    06 01                 	LD	B,01H		;PT TO 1ST BYTE OF FILE NAME
+  DD06                          DIR6:
+  DD06    78                    	LD	A,B		;A=OFFSET
+  DD07    CD DBC0               	CALL	DIRPTR		;HL NOW PTS TO 1ST BYTE OF FILE NAME
+  DD0A    E6 7F                 	AND	7FH		;MASK OUT MSB
+  DD0C    FE 20                 	CP	' '		;NO FILE NAME?
+  DD0E    20 13                 	JR	NZ,DIR8		;PRINT FILE NAME IF PRESENT
+  DD10    F1                    	POP	AF
+  DD11    F5                    	PUSH	AF
+  DD12    FE 03                 	CP	03H
+  DD14    20 0B                 	JR	NZ,DIR7
+  DD16    3E 09                 	LD	A,09H		;PT TO 1ST BYTE OF FILE TYPE
+  DD18    CD DBC0               	CALL	DIRPTR		;HL NOW PTS TO 1ST BYTE OF FILE TYPE
+  DD1B    E6 7F                 	AND	7FH		;MASK OUT MSB
+  DD1D    FE 20                 	CP	' '		;NO FILE TYPE?
+  DD1F    28 16                 	JR	Z,DIR9		;CONTINUE IF SO
+  DD21                          DIR7:
+  DD21    3E 20                 	LD	A,' '		;OUTPUT <SP>
+  DD23                          DIR8:
+  DD23    CD D9B0               	CALL	CONOUT		;PRINT CHAR
+  DD26    04                    	INC	B		;INCR CHAR COUNT
+  DD27    78                    	LD	A,B
+  DD28    FE 0C                 	CP	12		;END OF FILENAME.TYP?
+  DD2A    30 0B                 	JR	NC,DIR9		;CONTINUE IF SO
+  DD2C    FE 09                 	CP	09H		;END IF FILENAME ONLY?
+  DD2E    20 D6                 	JR	NZ,DIR6		;PRINT TYP IF SO
+  DD30    3E 2E                 	LD	A,'.'		;PRINT DOT BETWEEN FILE NAME AND TYPE
+  DD32    CD D9B0               	CALL	CONOUT
+  DD35    18 CF                 	JR	DIR6
+  DD37                          DIR9:
+  DD37    F1                    	POP	AF
+  DD38                          DIR10:
+  DD38    CD DAE5               	CALL	BREAK		;CHECK FOR ABORT
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-26
+
+
+  DD3B    20 05                 	JR	NZ,DIR11
+  DD3D    CD DA29               	CALL	SEARN		;SEARCH FOR NEXT FILE
+  DD40    18 97                 	JR	DIR3		;CONTINUE
+  DD42                          DIR11:
+  DD42    D1                    	POP	DE		;RESTORE STACK
+  DD43    C9                    	RET
+                                ;
+                                ; FILL FCB @HL WITH '?'
+                                ;
+  DD44                          FILLQ:
+  DD44    06 0B                 	LD	B,11		;NUMBER OF CHARS IN FN & FT
+  DD46                          FQLP:
+  DD46    36 3F                 	LD	(HL),'?'	;STORE '?'
+  DD48    23                    	INC	HL
+  DD49    10 FB                 	DJNZ	FQLP
+  DD4B    C9                    	RET
+                                ;
+                                ;Section 5B
+                                ;Command: ERA
+                                ;Function:  Erase files
+                                ;Forms:
+                                ;	ERA <afn>	Erase Specified files and print their names
+                                ;
+                                	IF	NOT RAS		;NOT FOR REMOTE-ACCESS SYSTEM
+                                ;
+  DD4C                          ERA:
+  DD4C    CD DBE7               	CALL	SCANER		;PARSE FILE SPECIFICATION
+  DD4F    FE 0B                 	CP	11		;ALL WILD (ALL FILES = 11 '?')?
+  DD51    20 15                 	JR	NZ,ERA1		;IF NOT, THEN DO ERASES
+  DD53    CD D9E3               	CALL	PRINTC
+  DD56    41 6C 6C BF           	DB	'All','?'+80H
+  DD5A    CD D9BB               	CALL	CONIN		;GET REPLY
+  DD5D    CD DA65               	CALL	UCASE		;CAPITALIZE
+  DD60    FE 59                 	CP	'Y'		;YES?
+  DD62    C2 D939               	JP	NZ,RESTRT	;RESTART CCP IF NOT
+  DD65    CD D9A9               	CALL	CRLF		;NEW LINE
+  DD68                          ERA1:
+  DD68    CD DBC9               	CALL	SLOGIN		;LOG IN SELECTED DISK IF ANY
+  DD6B    AF                    	XOR	A		;PRINT ALL FILES (EXAMINE SYSTEM BIT)
+  DD6C    47                    	LD	B,A		;NO SYS-ONLY OPT TO DIRPR
+  DD6D    CD DCCB               	CALL	DIRPR		;PRINT DIRECTORY OF ERASED FILES
+  DD70    11 D89B               	LD	DE,FCBDN	;DELETE FILE SPECIFIED
+  DD73    CD DA38               	CALL	DELETE
+  DD76    C9                    	RET			;REENTER CCP
+                                ;
+                                	ENDIF			;RAS
+                                ;
+                                ;Section 5C
+                                ;Command: LIST
+                                ;Function:  Print out specified file on the LST: Device
+                                ;Forms:
+                                ;	LIST <ufn>	Print file (NO Paging)
+                                ;
+  DD77                          LIST:
+  DD77    3E FF                 	LD	A,0FFH		;TURN ON PRINTER FLAG
+  DD79    18 01                 	JR	TYPE0
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-27
+
+
+                                ;
+                                ;Section 5D
+                                ;Command: TYPE
+                                ;Function:  Print out specified file on the CON: Device
+                                ;Forms:
+                                ;	TYPE <ufn>	Print file
+                                ;	TYPE <ufn> P	Print file with paging flag
+                                ;
+  DD7B                          TYPE:
+  DD7B    AF                    	XOR	A		;TURN OFF PRINTER FLAG
+                                ;
+                                ; ENTRY POINT FOR CCP LIST FUNCTION (LIST)
+                                ;
+  DD7C                          TYPE0:
+  DD7C    32 D9C1               	LD	(PRFLG),A	;SET FLAG
+  DD7F    CD DBE7               	CALL	SCANER		;EXTRACT FILENAME.TYP TOKEN
+  DD82    C2 DAF6               	JP	NZ,ERROR	;ERROR IF ANY QUESTION MARKS
+  DD85    CD DB30               	CALL	ADVAN		;GET PGDFLG IF IT'S THERE
+  DD88    32 DE05               	LD	(PGFLG),A	;SAVE IT AS A FLAG
+  DD8B    28 05                 	JR	Z,NOSLAS	;JUMP IF INPUT ENDED
+  DD8D    13                    	INC	DE		;PUT NEW BUF POINTER
+  DD8E    EB                    	EX	DE,HL
+  DD8F    22 D859               	LD	(CIBPTR),HL
+  DD92                          NOSLAS:
+  DD92    CD DBC9               	CALL	SLOGIN		;LOG IN SELECTED DISK IF ANY
+  DD95    CD DA10               	CALL	OPENF		;OPEN SELECTED FILE
+  DD98    CA DDF8               	JP	Z ,TYPE4		;ABORT IF ERROR
+  DD9B    CD D9A9               	CALL	CRLF		;NEW LINE
+  DD9E    3E 17                 	LD	A,NLINES-1	;SET LINE COUNT
+  DDA0    32 D8BC               	LD	(PAGCNT),A
+  DDA3    21 D8BD               	LD	HL,CHRCNT	;SET CHAR POSITION/COUNT
+  DDA6    36 FF                 	LD	(HL),0FFH	;EMPTY LINE
+  DDA8    06 00                 	LD	B,0		;SET TAB CHAR COUNTER
+  DDAA                          TYPE1:
+  DDAA    21 D8BD               	LD	HL,CHRCNT	;PT TO CHAR POSITION/COUNT
+  DDAD    7E                    	LD	A,(HL)		;END OF BUFFER?
+  DDAE    FE 80                 	CP	80H
+  DDB0    38 09                 	JR	C,TYPE2
+  DDB2    E5                    	PUSH	HL		;READ NEXT BLOCK
+  DDB3    CD D9D7               	CALL	READF
+  DDB6    E1                    	POP	HL
+  DDB7    20 3D                 	JR	NZ,TYPE3	;ERROR?
+  DDB9    AF                    	XOR	A		;RESET COUNT
+  DDBA    77                    	LD	(HL),A
+  DDBB                          TYPE2:
+  DDBB    34                    	INC	(HL)		;INCREMENT CHAR COUNT
+  DDBC    21 0080               	LD	HL,TBUFF	;PT TO BUFFER
+  DDBF    CD DB3D               	CALL	ADDAH		;COMPUTE ADDRESS OF NEXT CHAR FROM OFFSET
+  DDC2    7E                    	LD	A,(HL)		;GET NEXT CHAR
+  DDC3    E6 7F                 	AND	7FH		;MASK OUT MSB
+  DDC5    FE 1A                 	CP	1AH		;END OF FILE (^Z)?
+  DDC7    C8                    	RET	Z 		;RESTART CCP IF SO
+                                ;
+                                ; OUTPUT CHAR TO CON: OR LST: DEVICE WITH TABULATION
+                                ;
+  DDC8    FE 0D                 	CP	CR		;RESET TAB COUNT?
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-28
+
+
+  DDCA    28 0E                 	JR	Z,TABRST
+  DDCC    FE 0A                 	CP	LF		;RESET TAB COUNT?
+  DDCE    28 0A                 	JR	Z,TABRST
+  DDD0    FE 09                 	CP	TAB		;TAB?
+  DDD2    28 0D                 	JR	Z,LTAB
+  DDD4    CD D9BF               	CALL	LCOUT		;OUTPUT CHAR
+  DDD7    04                    	INC	B		;INCREMENT CHAR COUNT
+  DDD8    18 12                 	JR	TYPE2L
+  DDDA                          TABRST:
+  DDDA    CD D9BF               	CALL	LCOUT		;OUTPUT <CR> OR <LF>
+  DDDD    06 00                 	LD	B,0		;RESET TAB COUNTER
+  DDDF    18 0B                 	JR	TYPE2L
+  DDE1                          LTAB:
+  DDE1    3E 20                 	LD	A,' '		;<SP>
+  DDE3    CD D9BF               	CALL	LCOUT
+  DDE6    04                    	INC	B		;INCR POS COUNT
+  DDE7    78                    	LD	A,B
+  DDE8    E6 07                 	AND	7
+  DDEA    20 F5                 	JR	NZ,LTAB
+                                ;
+                                ; CONTINUE PROCESSING
+                                ;
+  DDEC                          TYPE2L:
+  DDEC    CD DAE5               	CALL	BREAK		;CHECK FOR ABORT
+  DDEF    28 B9                 	JR	Z,TYPE1		;CONTINUE IF NO CHAR
+  DDF1    FE 03                 	CP	'C'-'@'		;^C?
+  DDF3    C8                    	RET	Z 		;RESTART IF SO
+  DDF4    18 B4                 	JR	TYPE1
+  DDF6                          TYPE3:
+  DDF6    3D                    	DEC	A		;NO ERROR?
+  DDF7    C8                    	RET	Z 		;RESTART CCP
+  DDF8                          TYPE4:
+  DDF8    C3 DFE9               	JP	ERRLOG
+                                ;
+                                ; PAGING ROUTINES
+                                ;   PAGER COUNTS DOWN LINES AND PAUSES FOR INPUT (DIRECT) IF COUNT EXPIRES
+                                ;   PAGSET SETS LINES/PAGE COUNT
+                                ;
+  DDFB                          PAGER:
+  DDFB    E5                    	PUSH	HL
+  DDFC    21 D8BC               	LD	HL,PAGCNT	;COUNT DOWN
+  DDFF    35                    	DEC	(HL)
+  DE00    20 10                 	JR	NZ,PGBAK	;JUMP IF NOT END OF PAGE
+  DE02    36 16                 	LD	(HL),NLINES-2	;REFILL COUNTER
+                                ;
+  DE05                          PGFLG	EQU	$+1		;POINTER TO IN-THE-CODE BUFFER PGFLG
+  DE04    3E 00                 	LD	A,0		;0 MAY BE CHANGED BY PGFLG EQUATE
+  DE06    FE 50                 	CP	PGDFLG		;PAGE DEFAULT OVERRIDE OPTION WANTED?
+                                ;
+                                	IF	PGDFLT		;IF PAGING IS DEFAULT
+  DE08    28 08                 	JR	Z,PGBAK		;  PGDFLG MEANS NO PAGING, PLEASE
+                                	ELSE			;IF PAGING NOT DEFAULT
+                                	JR	NZ,PGBAK	;  PGDFLG MEANS PLEASE PAGINATE
+                                	ENDIF
+                                ;
+  DE0A    CD D9BB               	CALL	CONIN		;GET CHAR TO CONTINUE
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-29
+
+
+  DE0D    FE 03                 	CP	'C'-'@'		;^C
+  DE0F    CA D98A               	JP	Z ,RSTCCP	;RESTART CCP
+  DE12                          PGBAK:
+  DE12    E1                    	POP	HL		;RESTORE HL
+  DE13    C9                    	RET
+                                ;
+                                ;Section 5E
+                                ;Command: SAVE
+                                ;Function:  To save the contents of the TPA onto disk as a file
+                                ;Forms:
+                                ;	SAVE <Number of Pages> <ufn>
+                                ;				Save specified number of pages (start at 100H)
+                                ;				from TPA into specified file; <Number of
+                                ;				Pages> is in DEC
+                                ;	SAVE <Number of Sectors> <ufn> S
+                                ;				Like SAVE above, but numeric argument specifies
+                                ;				number of sectors rather than pages
+                                ;
+                                	IF	NOT RAS		;NOT FOR REMOTE-ACCESS SYSTEM
+                                ;
+  DE14                          SAVE:
+  DE14    CD DB42               	CALL	NUMBER		;EXTRACT NUMBER FROM COMMAND LINE
+  DE17    F5                    	PUSH	AF		;SAVE IT
+  DE18    CD DBE7               	CALL	SCANER		;EXTRACT FILENAME.TYPE
+  DE1B    C2 DAF6               	JP	NZ,ERROR	;MUST BE NO '?' IN IT
+  DE1E    CD DBC9               	CALL	SLOGIN		;LOG IN SELECTED DISK
+  DE21    11 D89B               	LD	DE,FCBDN	;DELETE FILE IN CASE IT ALREADY EXISTS
+  DE24    D5                    	PUSH	DE
+  DE25    CD DA38               	CALL	DELETE
+  DE28    D1                    	POP	DE
+  DE29    CD DA41               	CALL	CREATE		;MAKE NEW FILE
+  DE2C    28 3E                 	JR	Z,SAVE3		;ERROR?
+  DE2E    AF                    	XOR	A		;SET RECORD COUNT FIELD OF NEW FILE'S FCB
+  DE2F    32 D8BB               	LD	(FCBCR),A
+  DE32    F1                    	POP	AF		;GET PAGE COUNT
+  DE33    6F                    	LD	L,A		;HL=PAGE COUNT
+  DE34    26 00                 	LD	H,0
+  DE36    E5                    	PUSH	HL
+  DE37    CD DB30               	CALL	ADVAN		;LOOK FOR 'S' FOR SECTOR OPTION
+  DE3A    13                    	INC	DE		;PT TO AFTER 'S' TOKEN
+  DE3B    E1                    	POP	HL
+  DE3C    FE 53                 	CP	SECTFLG
+  DE3E    28 02                 	JR	Z,SAVE0
+  DE40    1B                    	DEC	DE		;NO 'S' TOKEN, SO BACK UP
+  DE41    29                    	ADD	HL,HL		;DOUBLE IT FOR HL=SECTOR (128 BYTES) COUNT
+  DE42                          SAVE0:
+  DE42    ED 53 D859            	LD	(CIBPTR),DE	;SET PTR TO BAD TOKEN OR AFTER GOOD TOKEN
+  DE46    11 0100               	LD	DE,TPA		;PT TO START OF SAVE AREA (TPA)
+  DE49                          SAVE1:
+  DE49    7C                    	LD	A,H		;DONE WITH SAVE?
+  DE4A    B5                    	OR	L		;HL=0 IF SO
+  DE4B    28 16                 	JR	Z,SAVE2
+  DE4D    2B                    	DEC	HL		;COUNT DOWN ON SECTORS
+  DE4E    E5                    	PUSH	HL		;SAVE PTR TO BLOCK TO SAVE
+  DE4F    21 0080               	LD	HL,128		;128 BYTES PER SECTOR
+  DE52    19                    	ADD	HL,DE		;PT TO NEXT SECTOR
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-30
+
+
+  DE53    E5                    	PUSH	HL		;SAVE ON STACK
+  DE54    CD DA02               	CALL	DMASET		;SET DMA ADDRESS FOR WRITE (ADDRESS IN DE)
+  DE57    11 D89B               	LD	DE,FCBDN	;WRITE SECTOR
+  DE5A    CD DA3C               	CALL	WRITE
+  DE5D    D1                    	POP	DE		;GET PTR TO NEXT SECTOR IN DE
+  DE5E    E1                    	POP	HL		;GET SECTOR COUNT
+  DE5F    20 0B                 	JR	NZ,SAVE3	;WRITE ERROR?
+  DE61    18 E6                 	JR	SAVE1		;CONTINUE
+  DE63                          SAVE2:
+  DE63    11 D89B               	LD	DE,FCBDN	;CLOSE SAVED FILE
+  DE66    CD DA1E               	CALL	CLOSE
+  DE69    3C                    	INC	A		;ERROR?
+  DE6A    20 03                 	JR	NZ,SAVE4
+  DE6C                          SAVE3:
+  DE6C    CD DFDF               	CALL	PRNLE		;PRINT 'NO SPACE' ERROR
+  DE6F                          SAVE4:
+  DE6F    CD D9FF               	CALL	DEFDMA		;SET DMA TO 0080
+  DE72    C9                    	RET			;RESTART CCP
+                                ;
+                                	ENDIF			;RAS
+                                ;
+                                ;Section 5F
+                                ;Command: REN
+                                ;Function:  To change the name of an existing file
+                                ;Forms:
+                                ;	REN <New ufn>=<Old ufn>	Perform function
+                                ;
+                                	IF	NOT RAS		;NOT FOR REMOTE-ACCESS SYSTEM
+                                ;
+  DE73                          REN:
+  DE73    CD DBE7               	CALL	SCANER		;EXTRACT FILE NAME
+  DE76    C2 DAF6               	JP	NZ,ERROR	;ERROR IF ANY '?' IN IT
+  DE79    3A DBDE               	LD	A,(TEMPDR)	;SAVE CURRENT DEFAULT DISK
+  DE7C    F5                    	PUSH	AF
+  DE7D    CD DBC9               	CALL	SLOGIN		;LOG IN SELECTED DISK
+  DE80    CD DA22               	CALL	SEARF		;LOOK FOR SPECIFIED FILE
+  DE83    28 10                 	JR	Z,REN0		;CONTINUE IF NOT FOUND
+  DE85    CD D9E3               	CALL	PRINTC
+  DE88    46 69 6C 65           	DB	'File Exist','s'+80H
+  DE8C    20 45 78 69           
+  DE90    73 74 F3              
+  DE93    F1                    	POP	AF		;CLEAR STACK
+  DE94    C9                    	RET			;RESTART CCP
+  DE95                          REN0:
+  DE95    21 D89B               	LD	HL,FCBDN	;SAVE NEW FILE NAME
+  DE98    11 D8AB               	LD	DE,FCBDM
+  DE9B    01 0010               	LD	BC,16		;16 BYTES
+  DE9E    ED B0                 	LDIR
+  DEA0    CD DB30               	CALL	ADVAN		;ADVANCE CIBPTR
+  DEA3    FE 3D                 	CP	'='		;'=' OK
+  DEA5    20 28                 	JR	NZ,REN4
+  DEA7                          REN1:
+  DEA7    EB                    	EX	DE,HL		;PT TO CHAR AFTER '=' IN HL
+  DEA8    23                    	INC	HL
+  DEA9    22 D859               	LD	(CIBPTR),HL	;SAVE PTR TO OLD FILE NAME
+  DEAC    CD DBE7               	CALL	SCANER		;EXTRACT FILENAME.TYP TOKEN
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-31
+
+
+  DEAF    20 1E                 	JR	NZ,REN4		;ERROR IF ANY '?'
+  DEB1    F1                    	POP	AF		;GET OLD DEFAULT DRIVE
+  DEB2    47                    	LD	B,A		;SAVE IT
+  DEB3    21 DBDE               	LD	HL,TEMPDR	;COMPARE IT AGAINST CURRENT DEFAULT DRIVE
+  DEB6    7E                    	LD	A,(HL)		;MATCH?
+  DEB7    B7                    	OR	A
+  DEB8    28 04                 	JR	Z,REN2
+  DEBA    B8                    	CP	B		;CHECK FOR DRIVE ERROR
+  DEBB    70                    	LD	(HL),B
+  DEBC    20 11                 	JR	NZ,REN4
+  DEBE                          REN2:
+  DEBE    70                    	LD	(HL),B
+  DEBF    AF                    	XOR	A
+  DEC0    32 D89B               	LD	(FCBDN),A	;SET DEFAULT DRIVE
+  DEC3    11 D89B               	LD	DE,FCBDN	;RENAME FILE
+  DEC6    0E 17                 	LD	C,17H		;BDOS RENAME FCT
+  DEC8    CD DA19               	CALL	GRBDOS
+  DECB    C0                    	RET	NZ
+  DECC                          REN3:
+  DECC    CD D99E               	CALL	PRNNF		;PRINT NO FILE MSG
+  DECF                          REN4:
+  DECF    C3 DFE9               	JP	ERRLOG
+                                ;
+                                	ENDIF			;RAS
+                                ;
+                                ;Section 5G
+                                ;Command: USER
+                                ;Function:  Change current USER number
+                                ;Forms:
+                                ;	USER <unum>	Select specified user number;<unum> is in DEC
+                                ;
+  DED2                          USER:
+  DED2    CD DAF0               	CALL	USRNUM		;EXTRACT USER NUMBER FROM COMMAND LINE
+  DED5    5F                    	LD	E,A		;PLACE USER NUMBER IN E
+  DED6    CD DA4C               	CALL	SETUSR		;SET SPECIFIED USER
+  DED9                          RSTJMP:
+  DED9    C3 D98D               	JP	RCCPNL		;RESTART CCP
+                                ;
+                                ;Section 5H
+                                ;Command: DFU
+                                ;Function:  Set the Default User Number for the command/file scanner
+                                ;	     (MEMLOAD)
+                                ;Forms:
+                                ;	DFU <unum>	Select Default User Number;<unum> is in DEC
+                                ;
+  DEDC                          DFU:
+  DEDC    CD DAF0               	CALL	USRNUM		;GET USER NUMBER
+  DEDF    32 DFA6               	LD	(DFUSR),A	;PUT IT AWAY
+  DEE2    18 F5                 	JR	RSTJMP		;RESTART CCP (NO DEFAULT LOGIN)
+                                ;
+                                ;Section 5I
+                                ;Command: JUMP
+                                ;Function:  To Call the program (subroutine) at the specified address
+                                ;	     without loading from disk
+                                ;Forms:
+                                ;	JUMP <adr>		Call at <adr>;<adr> is in HEX
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-32
+
+
+                                ;
+                                	IF	NOT RAS		;NOT FOR REMOTE-ACCESS SYSTEM
+                                ;
+  DEE4                          JUMP:
+  DEE4    CD DB80               	CALL	HEXNUM		;GET LOAD ADDRESS IN HL
+  DEE7    18 3B                 	JR	CALLPROG	;PERFORM CALL
+                                ;
+                                	ENDIF			;RAS
+                                ;
+                                ;Section 5J
+                                ;Command: GO
+                                ;Function:  To Call the program in the TPA without loading
+                                ;	     loading from disk. Same as JUMP 100H, but much
+                                ;	     more convenient, especially when used with
+                                ;	     parameters for programs like STAT. Also can be
+                                ;	     allowed on remote-access systems with no problems.
+                                ;
+                                ;Form:
+                                ;	GO <parameters like for COMMAND>
+                                ;
+                                	IF	NOT RAS		;ONLY IF RAS
+                                ;
+  DEE9    21 0100               GO:	LD	HL,TPA		;Always to TPA
+  DEEC    18 36                 	JR	CALLPROG	;Perform call
+                                ;
+                                	ENDIF			;END OF GO FOR RAS
+                                ;
+                                ;Section 5K
+                                ;Command: COM file processing
+                                ;Function:  To load the specified COM file from disk and execute it
+                                ;Forms:
+                                ;	<command>
+                                ;
+  DEEE                          COM:
+  DEEE    3A D89C               	LD	A,(FCBFN)	;ANY COMMAND?
+  DEF1    FE 20                 	CP	' '		;' ' MEANS COMMAND WAS 'D:' TO SWITCH
+  DEF3    20 14                 	JR	NZ,COM1		;NOT <SP>, SO MUST BE TRANSIENT OR ERROR
+  DEF5    3A DBDE               	LD	A,(TEMPDR)	;LOOK FOR DRIVE SPEC
+  DEF8    B7                    	OR	A		;IF ZERO, JUST BLANK
+  DEF9    CA D98D               	JP	Z ,RCCPNL
+  DEFC    3D                    	DEC	A		;ADJUST FOR LOG IN
+  DEFD    32 DA60               	LD	(TDRIVE),A	;SET DEFAULT DRIVE
+  DF00    CD DA5F               	CALL	SETU0D		;SET DRIVE WITH USER 0
+  DF03    CD DA0B               	CALL	LOGIN		;LOG IN DRIVE
+  DF06    C3 D98D               	JP	RCCPNL		;RESTART CCP
+  DF09                          COM1:
+  DF09    3A D8A4               	LD	A,(FCBFT)	;FILE TYPE MUST BE BLANK
+  DF0C    FE 20                 	CP	' '
+  DF0E    C2 DAF6               	JP	NZ,ERROR
+  DF11    21 D877               	LD	HL,COMMSG	;PLACE DEFAULT FILE TYPE (COM) INTO FCB
+  DF14    11 D8A4               	LD	DE,FCBFT	;COPY INTO FILE TYPE
+  DF17    01 0003               	LD	BC,3		;3 BYTES
+  DF1A    ED B0                 	LDIR
+  DF1C    21 0100               	LD	HL,TPA		;SET EXECUTION/LOAD ADDRESS
+  DF1F    E5                    	PUSH	HL		;SAVE FOR EXECUTION
+  DF20    CD DF91               	CALL	MEMLOAD		;LOAD MEMORY WITH FILE SPECIFIED IN CMD LINE
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-33
+
+
+                                				;(NO RETURN IF ERROR OR TOO BIG)
+  DF23    E1                    	POP	HL		;GET EXECUTION ADDRESS
+                                ;
+                                ; CALLPROG IS THE ENTRY POINT FOR THE EXECUTION OF THE LOADED
+                                ;   PROGRAM;ON ENTRY TO THIS ROUTINE, HL MUST CONTAIN THE EXECUTION
+                                ;   ADDRESS OF THE PROGRAM (SUBROUTINE) TO EXECUTE
+                                ;
+  DF24                          CALLPROG:
+  DF24    22 DF79               	LD	(EXECADR),HL	;PERFORM IN-LINE CODE MODIFICATION
+  DF27    CD DBD3               	CALL	DLOGIN		;LOG IN DEFAULT DRIVE
+  DF2A    CD DBE7               	CALL	SCANER		;SEARCH COMMAND LINE FOR NEXT TOKEN
+  DF2D    21 DBDE               	LD	HL,TEMPDR	;SAVE PTR TO DRIVE SPEC
+  DF30    E5                    	PUSH	HL
+  DF31    7E                    	LD	A,(HL)		;SET DRIVE SPEC
+  DF32    32 D89B               	LD	(FCBDN),A
+  DF35    3E 10                 	LD	A,10H		;OFFSET FOR 2ND FILE SPEC
+  DF37    CD DBE8               	CALL	SCAN1		;SCAN FOR IT AND LOAD IT INTO FCBDN+16
+  DF3A    E1                    	POP	HL		;SET UP DRIVE SPECS
+  DF3B    7E                    	LD	A,(HL)
+  DF3C    32 D8AB               	LD	(FCBDM),A
+  DF3F    AF                    	XOR	A
+  DF40    32 D8BB               	LD	(FCBCR),A
+  DF43    11 005C               	LD	DE,TFCB		;COPY TO DEFAULT FCB
+  DF46    21 D89B               	LD	HL,FCBDN	;FROM FCBDN
+  DF49    01 0021               	LD	BC,33		;SET UP DEFAULT FCB
+  DF4C    ED B0                 	LDIR
+  DF4E    21 D808               	LD	HL,CIBUFF
+  DF51                          COM4:
+  DF51    7E                    	LD	A,(HL)		;SKIP TO END OF 2ND FILE NAME
+  DF52    B7                    	OR	A		;END OF LINE?
+  DF53    28 07                 	JR	Z,COM5
+  DF55    FE 20                 	CP	' '		;END OF TOKEN?
+  DF57    28 03                 	JR	Z,COM5
+  DF59    23                    	INC	HL
+  DF5A    18 F5                 	JR	COM4
+                                ;
+                                ; LOAD COMMAND LINE INTO TBUFF
+                                ;
+  DF5C                          COM5:
+  DF5C    06 00                 	LD	B,0		;SET CHAR COUNT
+  DF5E    11 0081               	LD	DE,TBUFF+1	;PT TO CHAR POS
+  DF61                          COM6:
+  DF61    7E                    	LD	A,(HL)		;COPY COMMAND LINE TO TBUFF
+  DF62    12                    	LD	(DE),A
+  DF63    B7                    	OR	A		;DONE IF ZERO
+  DF64    28 05                 	JR	Z,COM7
+  DF66    04                    	INC	B		;INCR CHAR COUNT
+  DF67    23                    	INC	HL		;PT TO NEXT
+  DF68    13                    	INC	DE
+  DF69    18 F6                 	JR	COM6
+                                ;
+                                ; RUN LOADED TRANSIENT PROGRAM
+                                ;
+  DF6B                          COM7:
+  DF6B    78                    	LD	A,B		;SAVE CHAR COUNT
+  DF6C    32 0080               	LD	(TBUFF),A
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-34
+
+
+  DF6F    CD D9A9               	CALL	CRLF		;NEW LINE
+  DF72    CD D9FF               	CALL	DEFDMA		;SET DMA TO 0080
+  DF75    CD DA50               	CALL	SETUD		;SET USER/DISK
+                                ;
+                                ; EXECUTION (CALL) OF PROGRAM (SUBROUTINE) OCCURS HERE
+                                ;
+  DF79                          EXECADR	EQU	$+1	;CHANGE ADDRESS FOR IN-LINE CODE MODIFICATION
+  DF78    CD 0100               	CALL	TPA		;CALL TRANSIENT
+  DF7B    CD D9FF               	CALL	DEFDMA		;SET DMA TO 0080, IN CASE
+                                				;PROG CHANGED IT ON US
+  DF7E    CD DA5F               	CALL	SETU0D		;SET USER 0/DISK
+  DF81    CD DA0B               	CALL	LOGIN		;LOGIN DISK
+  DF84    C3 D939               	JP	RESTRT		;RESTART CCP
+                                ;
+                                ;Section 5L
+                                ;Command: GET
+                                ;Function:  To load the specified file from disk to the specified address
+                                ;Forms:
+                                ;	GET <adr> <ufn>	Load the specified file at the specified page;
+                                ;			<adr> is in HEX
+                                ;
+                                	IF	NOT RAS		;NOT FOR REMOTE-ACCESS SYSTEM
+                                ;
+  DF87                          GET:
+  DF87    CD DB80               	CALL	HEXNUM		;GET LOAD ADDRESS IN HL
+  DF8A    E5                    	PUSH	HL		;SAVE ADDRESS
+  DF8B    CD DBE7               	CALL	SCANER		;GET FILE NAME
+  DF8E    E1                    	POP	HL		;RESTORE ADDRESS
+  DF8F    20 5B                 	JR	NZ,ERRJMP	;MUST BE UNAMBIGUOUS
+                                ;
+                                ; FALL THRU TO MEMLOAD
+                                ;
+                                	ENDIF			;RAS
+                                ;
+                                ; LOAD MEMORY WITH THE FILE WHOSE NAME IS SPECIFIED IN THE COMMAND LINE
+                                ;   ON INPUT, HL CONTAINS STARTING ADDRESS TO LOAD
+                                ;
+                                ;   EXIT BACK TO CALLER IF NO ERROR.  IF COM FILE TOO BIG OR MEMORY
+                                ; FULL, EXIT TO MLERR.
+                                ;
+  DF91                          MEMLOAD:
+  DF91    22 DFC0               	LD	(LOADADR),HL	;SET LOAD ADDRESS
+  DF94    CD DA4A               	CALL	GETUSR		;GET CURRENT USER NUMBER
+  DF97    32 DA46               	LD	(TMPUSR),A	;SAVE IT FOR LATER
+  DF9A    32 DFA8               	LD	(TSELUSR),A	;TEMP USER TO SELECT
+                                ;
+                                ;   MLA is a reentry point for a non-standard CP/M Modification
+                                ; This is the return point for when the .COM (or GET) file is not found the
+                                ; first time, Drive A: is selected for a second attempt.
+                                ;
+  DF9D                          MLA:
+  DF9D    CD DBC9               	CALL	SLOGIN		;LOG IN SPECIFIED DRIVE IF ANY
+  DFA0    CD DA10               	CALL	OPENF		;OPEN COMMAND.COM FILE
+  DFA3    20 1A                 	JR	NZ,MLA1		;FILE FOUND - LOAD IT
+                                ;
+                                ; ERROR ROUTINE TO SELECT USER 0 IF ALL ELSE FAILS
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-35
+
+
+                                ;
+  DFA6                          DFUSR	EQU	$+1		;MARK IN-THE-CODE VARIABLE
+  DFA5    3E 00                 	LD	A,DEFUSR	;GET DEFAULT USER
+  DFA8                          TSELUSR	EQU	$+1		;MARK IN-THE-CODE VARIABLE
+  DFA7    FE 00                 	CP	DEFUSR		;SAME?
+  DFA9    28 09                 	JR	Z,MLA0		;JUMP IF SO
+  DFAB    32 DFA8               	LD	(TSELUSR),A	;ELSE PUT DOWN NEW ONE
+  DFAE    5F                    	LD	E,A
+  DFAF    CD DA4C               	CALL	SETUSR		;GO SET NEW USER NUMBER
+  DFB2    18 E9                 	JR	MLA		;AND TRY AGAIN
+                                ;
+                                ; ERROR ROUTINE TO SELECT DRIVE A: IF DEFAULT WAS ORIGINALLY SELECTED
+                                ;
+  DFB4                          MLA0:
+  DFB4    21 DBDE               	LD	HL,TEMPDR	;GET DRIVE FROM CURRENT COMMAND
+  DFB7    AF                    	XOR	A		;A=0
+  DFB8    B6                    	OR	(HL)
+  DFB9    20 2B                 	JR	NZ,MLERR	;ERROR IF ALREADY DISK A:
+  DFBB    36 01                 	LD	(HL),1		;SELECT DRIVE A:
+  DFBD    18 DE                 	JR	MLA
+                                ;
+                                ; FILE FOUND -- PROCEED WITH LOAD
+                                ;
+  DFBF                          MLA1:
+  DFC0                          LOADADR	EQU	$+1		;MEMORY LOAD ADDRESS (IN-LINE CODE MOD)
+  DFBF    21 0100               	LD	HL,TPA		;SET START ADDRESS OF MEMORY LOAD
+  DFC2                          ML2:
+  DFC2    3E D7                 	LD	A,ENTRY/256-1	;GET HIGH-ORDER ADR OF JUST BELOW CCP
+  DFC4    BC                    	CP	H		;ARE WE GOING TO OVERWRITE THE CCP?
+  DFC5    38 18                 	JR	C,PRNLE		;ERROR IF SO
+  DFC7    E5                    	PUSH	HL		;SAVE ADDRESS OF NEXT SECTOR
+  DFC8    EB                    	EX	DE,HL		;... IN DE
+  DFC9    CD DA02               	CALL	DMASET		;SET DMA ADDRESS FOR LOAD
+  DFCC    11 D89B               	LD	DE,FCBDN	;READ NEXT SECTOR
+  DFCF    CD D9DA               	CALL	READ
+  DFD2    E1                    	POP	HL		;GET ADDRESS OF NEXT SECTOR
+  DFD3    20 06                 	JR	NZ,ML3		;READ ERROR OR EOF?
+  DFD5    11 0080               	LD	DE,128		;MOVE 128 BYTES PER SECTOR
+  DFD8    19                    	ADD	HL,DE		;PT TO NEXT SECTOR IN HL
+  DFD9    18 E7                 	JR	ML2
+                                ;
+  DFDB                          ML3:
+  DFDB    3D                    	DEC	A		;LOAD COMPLETE
+  DFDC    CA DA45               	JP	Z ,RESETUSR	;IF ZERO, OK, GO RESET CORRECT USER
+                                				;# ON WAY OUT, ELSE FALL THROUGH TO PRNLE
+                                ;
+                                ; LOAD ERROR
+                                ;
+  DFDF                          PRNLE:
+  DFDF    CD D9E3               	CALL	PRINTC
+  DFE2    46 75 6C EC           	DB	'Ful','l'+80H
+                                ;
+                                ; TRANSIENT LOAD ERROR
+                                ;
+  DFE6                          MLERR:
+  DFE6    CD DA45               	CALL	RESETUSR	;RESET CURRENT USER NUMBER
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	1-36
+
+
+                                				;  RESET MUST BE DONE BEFORE LOGIN
+  DFE9                          ERRLOG:
+  DFE9    CD DBD3               	CALL	DLOGIN		;LOG IN DEFAULT DISK
+  DFEC                          ERRJMP:
+  DFEC    C3 DAF6               	JP	ERROR
+                                ;
+                                	END
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	S
+
+
+Macros:
+
+Symbols:
+DB3D 	ADDAH           DB30 	ADVAN           0000 	BASE            
+0005 	BDOS            D9DC 	BDOSB           DA08 	BDOSJP          
+0E00 	BDOSLEN         E000 	BDOSPH          A400 	BIAS            
+0C00 	BIOSLEN         EE00 	BIOSPH          DAE5 	BREAK           
+DAEE 	BRKBK           0050 	BUFLEN          DF24 	CALLPROG        
+DAD4 	CB1             DADC 	CB2             D807 	CBUFF           
+D904 	CCP             D900 	CCP1            0800 	CCPLEN          
+D800 	CCPPH           D8BD 	CHRCNT          D859 	CIBPTR          
+D817 	CIBUF           D808 	CIBUFF          D85B 	CIPTR           
+FFFF 	CLEVEL3         DA1E 	CLOSE           DC79 	CMDSER          
+D8BE 	CMDTBL          DC7E 	CMS1            DC83 	CMS2            
+DC91 	CMS3            DC94 	CMS4            DACF 	CNVBUF          
+DEEE 	COM             DF09 	COM1            DF51 	COM4            
+DF5C 	COM5            DF61 	COM6            DF6B 	COM7            
+DBDD 	COMLOG          D877 	COMMSG          D9BB 	CONIN           
+D9B0 	CONOUT          0009 	CPMLEN          003E 	CPRMPT          
+000D 	CR              DA41 	CREATE          D9A9 	CRLF            
+D9FF 	DEFDMA          0000 	DEFUSR          DA38 	DELETE          
+DEDC 	DFU             DFA6 	DFUSR           DC9B 	DIR             
+DD38 	DIR10           DD42 	DIR11           DCCA 	DIR2            
+DCCB 	DIR2A           DCD9 	DIR3            DCFC 	DIR4            
+DD04 	DIR5            DD06 	DIR6            DD21 	DIR7            
+DD23 	DIR8            DD37 	DIR9            DCCB 	DIRPR           
+DBC0 	DIRPTR          DBDA 	DLOG5           DBD3 	DLOGIN          
+DA02 	DMASET          D800 	ENTRY           DD4C 	ERA             
+DD68 	ERA1            DB09 	ERR1            DAFC 	ERR2            
+DFEC 	ERRJMP          DFE9 	ERRLOG          DAF6 	ERROR           
+DF79 	EXECADR         0000 	FALSE           D8BB 	FCBCR           
+D8AB 	FCBDM           D89B 	FCBDN           D89C 	FCBFN           
+D8A4 	FCBFT           007C 	FENCE           DD44 	FILLQ           
+DD46 	FQLP            DF87 	GET             D9FB 	GETDRV          
+DA4A 	GETUSR          DEE9 	GO              DCBE 	GOTSYS          
+DA19 	GRBDOS          DB80 	HEXNUM          DB83 	HNUM0           
+DB8B 	HNUM1           DBA2 	HNUM2           DBBD 	HNUM3           
+DEE4 	JUMP            D9CB 	LC1             D9BF 	LCOUT           
+000A 	LF              DD77 	LIST            DFC0 	LOADADR         
+DA0B 	LOGIN           D9C6 	LSTOUT          DDE1 	LTAB            
+000F 	MAXUSR          D806 	MBUFF           DF91 	MEMLOAD         
+DFC2 	ML2             DFDB 	ML3             DF9D 	MLA             
+DFB4 	MLA0            DFBF 	MLA1            DFE6 	MLERR           
+003D 	MSIZ            0040 	MSIZE           0004 	NCHARS          
+000B 	NCMNDS          0001 	NEEDZ80         0000 	NHDISKS         
+0018 	NLINES          D925 	NOLOG           DD92 	NOSLAS          
+DB58 	NUM0            DB5E 	NUM1            DB7B 	NUM2            
+0048 	NUMBASE         DB42 	NUMBER          DB7D 	NUMERR          
+DB4A 	NUMS            DB54 	NUMS1           DA17 	OPEN            
+DA10 	OPENF           D9B3 	OUTPUT          D8BC 	PAGCNT          
+DDFB 	PAGER           0001 	PATCHOS         DE12 	PGBAK           
+0050 	PGDFLG          FFFF 	PGDFLT          DE05 	PGFLG           
+D9C1 	PRFLG           D9F0 	PRIN1           D9E8 	PRINT           
+D9E3 	PRINTC          DFDF 	PRNLE           D99E 	PRNNF           
+0000 	RAS             DAB9 	RB1             D98D 	RCCPNL          
+'CCPZ Version 4.1'	MACRO-80 3.44	09-Dec-81	PAGE	S-1
+
+
+D9DA 	READ            D9D7 	READF           DA6E 	REDBUF          
+0000 	REL             DE73 	REN             DE95 	REN0            
+DEA7 	REN1            DEBE 	REN2            DECC 	REN3            
+DECF 	REN4            DA06 	RESET           DA45 	RESETUSR        
+D939 	RESTRT          D929 	RNGSUB          D95A 	RS00            
+D95F 	RS000           D962 	RS1             D98A 	RSTCCP          
+DED9 	RSTJMP          DE14 	SAVE            DE42 	SAVE0           
+DE49 	SAVE1           DE63 	SAVE2           DE6C 	SAVE3           
+DE6F 	SAVE4           DB34 	SBLANK          DBE8 	SCAN1           
+DC37 	SCAN10          DC3E 	SCAN11          DC4C 	SCAN12          
+DC4E 	SCAN13          DC50 	SCAN14          DC58 	SCAN15          
+DC5D 	SCAN16          DC5F 	SCAN17          DC6C 	SCAN18          
+DC73 	SCAN19          DC0A 	SCAN2           DC10 	SCAN3           
+DC16 	SCAN4           DC18 	SCAN5           DC26 	SCAN6           
+DC28 	SCAN7           DC2A 	SCAN8           DC32 	SCAN9           
+DBE7 	SCANER          DB13 	SDELM           DA25 	SEAR1           
+DA22 	SEARF           DA29 	SEARN           0053 	SECTFLG         
+DA5F 	SETU0D          DA50 	SETUD           DA4C 	SETUSR          
+DBC9 	SLOGIN          0053 	SOFLG           0024 	SPRMPT          
+D877 	STACK           FFFF 	SUBA            D87A 	SUBFCB          
+D89A 	SUBFCR          D889 	SUBFRC          D888 	SUBFS2          
+DA2D 	SUBKIL          FFFF 	SUPRES          0041 	SYSFLG          
+DCEB 	SYSTST          0009 	TAB             DDDA 	TABRST          
+0080 	TBUFF           DA60 	TDRIVE          DBDE 	TEMPDR          
+005C 	TFCB            DA46 	TMPUSR          0100 	TPA             
+FFFF 	TRUE            DFA8 	TSELUSR         0000 	TWOCOL          
+DD7B 	TYPE            DD7C 	TYPE0           DDAA 	TYPE1           
+DDBB 	TYPE2           DDEC 	TYPE2L          DDF6 	TYPE3           
+DDF8 	TYPE4           DA65 	UCASE           0004 	UDFLAG          
+DED2 	USER            DAF0 	USRNUM          0000 	WBOOT           
+FFFF 	WIDE            DA3C 	WRITE           
+
+
+
+No Fatal error(s)
+
+
