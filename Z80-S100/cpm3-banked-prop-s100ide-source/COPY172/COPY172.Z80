@@ -125,7 +125,6 @@ OPTS	EQU	0000H		; Skippable option table value
 ;------------------------------------------------------------------
 ; External ZCPR3 Environment Descriptor
 
-	HALT
 	JP	START
 
 	DEFB	'Z3ENV'		; This is a ZCPR3 utility
@@ -732,7 +731,7 @@ MCPY25:	ADD	HL,DE		; Pt to next
 	LD	A,L		; Otherwise use PLIM (why PLIM?)
 PAGOK:	ADD	A,A		; Convert to # records
 	JR	NC,PAGOK0	; ..jump if less than 256 records
-	LD	A,0FFH		; Else set to 255 record limit
+	LD	A,0ffH		; Else set to 255 record limit
 PAGOK0:	LD	(PAGLIM),A	; Set page limit
 	POP	BC		; Restore ptrs
 	POP	HL
