@@ -215,50 +215,50 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         ; FOR S100Computers Z80 CPU
                         
-   0000    3E01                 MVI A,01H
-   0002    D3D2                 OUT 0D2H
-   0004    3E11                 MVI     A,11H
-   0006    D3D3                 OUT 0D3H
+   0000    3E00                 MVI             A,0H                    ;SETUP MEMORY MANAGEMENT TO OVERLAP WITH 
+   0002    D3D2                 OUT             0D2H                    ;CURRENT RAM in 64K Space & Disable ROM at F000
+O  0004    00000000             LD              ?A,05H
+   0008    D3D3                 OUT             0D3H    
                         
                         ;DISK LOADER FUNCTION
                         
-   0008                 RETRY:
+   000A                 RETRY:
                         
-   0008                 ..HOME:
-   0008    3E0B                 MVI     A,0BH   ;RESTORE THE DISC DRIVE
-   000A    D354                 OUT     WCMD
-   000C    CD 0055              CALL    WAITNB
+   000A                 ..HOME:
+   000A    3E0B                 MVI     A,0BH   ;RESTORE THE DISC DRIVE
+   000C    D354                 OUT     WCMD
+   000E    CD 0057              CALL    WAITNB
                         
-   000F    3E01                 MVI     A,1     ;START WITH SECTOR 1
-   0011    D356                 OUT     WSECT
-   0013    21 D780              LXI     H,CCP-128;LOAD LOWER IN MEMORY TO
+   0011    3E01                 MVI     A,1     ;START WITH SECTOR 1
+   0013    D356                 OUT     WSECT
+   0015    21 D780              LXI     H,CCP-128;LOAD LOWER IN MEMORY TO
                                                  ;SKIP BEGINNING OF SECTOR 1
-   0016                 TRACK:
-   0016                 SECTOR:
-   0016    3E80                 MVI     A,80H   ;READ SECTOR
-   0018    D354                 OUT     WCMD
-   001A    01 0057              LXI     B,WDATA
-   001D    EDB2                 INIR
+   0018                 TRACK:
+   0018                 SECTOR:
+   0018    3E80                 MVI     A,80H   ;READ SECTOR
+   001A    D354                 OUT     WCMD
+   001C    01 0057              LXI     B,WDATA
    001F    EDB2                 INIR
-   0021    CD 0055              CALL    WAITNB
-   0024    E69D                 ANI     9DH     ;WAS READ SUCCESSFUL?
-   0026    20E0                 JRNZ    RETRY   ;NO, RETRY ENTIRE BOOT
-   0028    DB56                 IN      WSECT   ;UPDATE SECTOR REG IN 179X
-   002A    3C                   INR     A
-   002B    D356                 OUT     WSECT
+   0021    EDB2                 INIR
+   0023    CD 0057              CALL    WAITNB
+   0026    E69D                 ANI     9DH     ;WAS READ SUCCESSFUL?
+   0028    20E0                 JRNZ    RETRY   ;NO, RETRY ENTIRE BOOT
+   002A    DB56                 IN      WSECT   ;UPDATE SECTOR REG IN 179X
+   002C    3C                   INR     A
+   002D    D356                 OUT     WSECT
                         
-   002D                 TSTSEC:
-   002D    FE09                 CPI     9       ;SEE IF SECTOR 9 NEXT   
-   002F    2009                 JRNZ    GOON    ;IF NOT SKIP NEXT TEST
-   0031    DB55                 IN      WTRACK  ;GET CURRENT TRACK
-   0033    B7                   ORA     A       ;SEE IF STILL 0
-   0034    2004                 JRNZ    GOON    ;IF NOT SKIP NEXT TO GET LAST SECTOR
-   0036    11 FF80              LXI     D,-128  ;ELSE ADJUST LOAD ADDRESS FOR DDB
-   0039    19                   DAD     D       ;FIX IT
+   002F                 TSTSEC:
+   002F    FE09                 CPI     9       ;SEE IF SECTOR 9 NEXT   
+   0031    2009                 JRNZ    GOON    ;IF NOT SKIP NEXT TEST
+   0033    DB55                 IN      WTRACK  ;GET CURRENT TRACK
+   0035    B7                   ORA     A       ;SEE IF STILL 0
+   0036    2004                 JRNZ    GOON    ;IF NOT SKIP NEXT TO GET LAST SECTOR
+   0038    11 FF80              LXI     D,-128  ;ELSE ADJUST LOAD ADDRESS FOR DDB
+   003B    19                   DAD     D       ;FIX IT
                         
-   003A                 GOON:
-   003A    FE0A                 CPI     9+1     ;ENTIRE TRACK READ?
-   003C    20D8                 JRNZ    SECTOR  ;NO
+   003C                 GOON:
+   003C    FE0A                 CPI     9+1     ;ENTIRE TRACK READ?
+   003E    20D8                 JRNZ    SECTOR  ;NO
 
 
 
@@ -270,32 +270,32 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   003E    DB55                 IN      WTRACK  ;ALREADY READ TRACK 1?
-   0040    B7                   ORA     A
-   0041    C2 EE00              JNZ     BOOT    ;YES
+   0040    DB55                 IN      WTRACK  ;ALREADY READ TRACK 1?
+   0042    B7                   ORA     A
+   0043    C2 EE00              JNZ     BOOT    ;YES
                         
-   0044    3E01                 MVI     A,1     ;START TRACK 1 WITH SECTOR 1
-   0046    D356                 OUT     WSECT
-   0048    3E5B                 MVI     A,5BH   ;STEP IN TO TRACK 1
-   004A    D354                 OUT     WCMD
-   004C    CD 0055              CALL    WAITNB
-   004F    E69C                 ANI     9CH     ;STEP IN SUCCESSFUL?
-   0051    20B5                 JRNZ    RETRY   ;NO, RETRY ENTIRE BOOT
-   0053    18C1                 JMPR    TRACK   ;GO READ TRACK 1
+   0046    3E01                 MVI     A,1     ;START TRACK 1 WITH SECTOR 1
+   0048    D356                 OUT     WSECT
+   004A    3E5B                 MVI     A,5BH   ;STEP IN TO TRACK 1
+   004C    D354                 OUT     WCMD
+   004E    CD 0057              CALL    WAITNB
+   0051    E69C                 ANI     9CH     ;STEP IN SUCCESSFUL?
+   0053    20B5                 JRNZ    RETRY   ;NO, RETRY ENTIRE BOOT
+   0055    18C1                 JMPR    TRACK   ;GO READ TRACK 1
                         
                         ;SUBROUTINE TO WAIT UNTIL THE 179X INDICATES THAT IT
                         ;IS NOT BUSY. AT THAT TIME STATUS IS RETURNED TO THE CALLING PROGRAM
                         
-   0055    06C8         WAITNB: MVI     B,200   ;DELAY TILL VALID STATUS
-   0057    10FE         ..WAIT: DJNZ    ..WAIT
+   0057    06C8         WAITNB: MVI     B,200   ;DELAY TILL VALID STATUS
+   0059    10FE         ..WAIT: DJNZ    ..WAIT
                         
                         
-   0059    DB54         QUIKNB: IN      WSTAT   ;GET STATUS
-   005B    CB47                 BIT     0,A     ;BUSY ?
-   005D    20FA                 JRNZ    QUIKNB  ;YES,KEEP WAITING
-   005F    C9                   RET
+   005B    DB54         QUIKNB: IN      WSTAT   ;GET STATUS
+   005D    CB47                 BIT     0,A     ;BUSY ?
+   005F    20FA                 JRNZ    QUIKNB  ;YES,KEEP WAITING
+   0061    C9                   RET
                         
-   0060                 FINI:
+   0062                 FINI:
                         
                         ;//PRINT MEMORY STRUCTURES.
                         
@@ -366,7 +366,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                                 .IFG    FINI-80H,[
                                 BADMEM  \(FINI-80H)
                                 ][
-                                OKMEM \(80H-FINI)[.PRNTX        \32 BYTES LEFT IN THE LOADER\
+                                OKMEM \(80H-FINI)[.PRNTX        \30 BYTES LEFT IN THE LOADER\
                        +        ]
                                 ]
                                 ]
@@ -403,13 +403,14 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 BDOS   E006         BIAS   A400         BIOS   EE00         BIOSIZ 0003         BOOT   EE00         CCP    D800      
-DCNTL  0053         FINI   0060         GOON   003A         MOVECP F406         MOVEIT 003D         MSIZ   0040      
-MSIZE  003D         NSBIOS 001A         NSECTS 002C         OFFST  3180         QUIKNB 0059         RETRY  0008      
-SECTOR 0016         TRACK  0016         TSTSEC 002D         WAITNB 0055         WCMD   0054         WDATA  0057      
+DCNTL  0053         FINI   0062         GOON   003C         MOVECP F406         MOVEIT 003D         MSIZ   0040      
+MSIZE  003D         NSBIOS 001A         NSECTS 002C         OFFST  3180         QUIKNB 005B         RETRY  000A      
+SECTOR 0018         TRACK  0018         TSTSEC 002F         WAITNB 0057         WCMD   0054         WDATA  0057      
 WDC    0054         WSECT  0056         WSTAT  0054         WTRACK 0055         
 
 
 
+1 ERRORS WERE DETECTED *****
 
 
 
@@ -460,4 +461,4 @@ WDC    0054         WSECT  0056         WSTAT  0054         WTRACK 0055
 
 
 
-                             
+                                                                               
