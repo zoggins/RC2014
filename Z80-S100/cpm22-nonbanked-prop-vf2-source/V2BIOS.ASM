@@ -127,6 +127,15 @@ CIO			==	1
 KBIO		==	1
 COUT		==	4
 KIN			==	2
+
+; Serial Device is S100Computers Serial Board v4.2
+
+CRTSTAT		==	0A1H
+KEYSTAT		==	0A1H
+KEYIN		==	0A3H
+KEYOUT		==	0A3H
+
+HIOBYTE	==	0EFH		;IOBYTE on S100Computers SMB
 CMSK	==	00000011B 	;IOBYTE MASK FOR CONSOLE
 LMSK	==	11000000B 	;IOBYTE MASK FOR LIST
 
@@ -313,6 +322,10 @@ CBOOT:
 	LXI	SP,80H			;VALIDATE THE STACK POINTER
 	LHLD	INITIO		;SET INITIAL I/O BYTE
 	SHLD	IOBYTE
+
+	IN	HIOBYTE
+	ANI 020H
+	CZ CRTINIT		
 
 	CALL	SYSNIT		;ROUTINE IN HOST BUFFER SPACE
 						;IS DISCARDED AFTER THIS CALL
@@ -1699,7 +1712,6 @@ MSGHL:	MOV	C,M		;GET CURRENT CHAR OF MESSAGE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 UC1IS:				;NOT IMPLEMENTED
 BATIS:				;NOT IMPLEMENTED
-CRTIS:				;NOT IMPLEMENTED
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;TTYIS -- TTY Status Routine
@@ -1727,6 +1739,20 @@ TTYIS:
 	RET			;RETURN TRUE
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;CRTIS -- Serial Device Status Routine
+;
+;pre: serial device is initialized
+;post: return with 0 in A if no char available
+;post: return with 0xFF in A if char available
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CRTIS:				
+	IN	KEYSTAT
+	ANI	01H
+	RZ			;RETURN WITH 0 IN [A] IF NOTHING THERE
+	MVI	A,0FFH
+	RET			;RETURN WITH 0FFH IN [A] IF SOMETHING
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Unimplemented input routines
 ;
 ;pre: I/O devices are already initialized
@@ -1734,7 +1760,6 @@ TTYIS:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 UC1IN:				;NOT IMPLEMENTED
 BATIN:				;NOT IMPLEMENTED
-CRTIN:				;NOT IMPLEMENTED
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;TTYIN -- Get a character from the TTY device
@@ -1751,6 +1776,21 @@ TTYIN:	CALL	TTYIS		;GET STATUS
 	NOP
 	NOP
 	ANI	07FH		;DROP PARITY
+	RET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;CRTIN -- Get a character from the Serial device
+;
+;pre: Serial device is initialized
+;post: return with character from device in A register,
+;      strips parity
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CRTIN:				
+	IN	KEYSTAT
+	ANI	01H
+	JZ	CRTIN
+	IN	KEYIN
+	ANI	7FH
 	RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1779,6 +1819,38 @@ TTYOS:
 	RET			;RETURN TRUE
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;CRTINIT -- Init serial devices
+;
+;post: serial device will be initialized
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CRTINIT:
+		LXI     H,SCCINIT
+        MVI     C,0A1H
+        MVI     B,0EH
+        OUTIR
+		RET
+
+SCCINIT:
+        .BYTE      04H
+        .BYTE      044H
+        .BYTE      03H
+        .BYTE      0C1H
+        .BYTE      05H
+        .BYTE      0EAH
+        .BYTE      0BH
+        .BYTE      056H
+        .BYTE      0CH
+        .BYTE      02H
+        .BYTE      0DH
+        .BYTE      00H
+        .BYTE      0EH
+        .BYTE      01H
+        .BYTE      0FH
+        .BYTE      00H
+        .BYTE      00H
+        .BYTE      00H
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Unimplemented output routines
 ;
 ;pre: I/O devices are already initialized
@@ -1786,7 +1858,6 @@ TTYOS:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 UC1OUT:				;NOT IMPLEMENTED
 BATOUT:				;NOT IMPLEMENTED
-CRTOUT:				;NOT IMPLEMENTED
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;TTYOUT -- output character to TTY
@@ -1806,6 +1877,20 @@ TTYOUT:
 	OUTP	A		;OUTPUT THE DATA
 	RET
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;CRTOUT -- output character to serial device
+;
+;pre: I/O devices are already initialized
+;post: character in C output to serial device
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CRTOUT:
+	IN	CRTSTAT
+	ANI	04H
+	JZ	CRTOUT
+	MOV	A,C
+	OUT	KEYOUT
+	RET
+
 ;********************************************************
 ; I/O Routines for IOBYTE Vectored Devices
 ;
@@ -1822,11 +1907,14 @@ LISTST:				;NOT IMPLEMENTED
 ;         device
 ;
 ;pre: I/O devices are already initialized
-;pre: IOBYTE is at 0x0003 and initialized
+;pre: HIOBYTE is at port 0xEF and initialized
 ;post: status check is handed off to selected device
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CONST:	
-	JMP	TTYIS	
+	IN	HIOBYTE
+	ANI	020H
+	JZ	CRTIS
+	JMP	TTYIS
 
 
 READER:				;NOT IMPLEMENTED
@@ -1836,24 +1924,30 @@ READER:				;NOT IMPLEMENTED
 ;         the current IOBYTE
 ;
 ;pre: I/O devices are already initialized
-;pre: IOBYTE is at 0x0003 and initialized
+;pre: HIOBYTE is at port 0xEF and initialized
 ;post: data request is handed off to selected device
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CONIN:	
+	IN	HIOBYTE
+	ANI	020H
+	JZ	CRTIN
 	JMP	TTYIN
 
 LIST:				;NOT IMPLEMENTED
 PUNCH:				;NOT IMPLEMENTED
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;CONIN -- Send a byte from the console device selected by
-;         the current IOBYTE
+;CONOUT -- Send a byte from the console device selected by
+;          the current IOBYTE
 ;
 ;pre: I/O devices are already initialized
-;pre: IOBYTE is at 0x0003 and initialized
+;pre: HIOBYTE is at port 0xEF and initialized
 ;post: data request is handed off to selected device
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CONOUT:
+	IN	HIOBYTE
+	ANI	020H
+	JZ	CRTOUT
 	JMP	TTYOUT
 
 ;********************************************************
@@ -1997,6 +2091,8 @@ SIGNON:	CALL	MSG
 
 	.BYTE   CR,LF
 	.ASCII  'A: & B: = 8" SDSS Floppies, C: = 5" DDDS Floppy'
+	.BYTE   CR,LF
+	.ASCII	'Serial Ports at A2 & A3'
 	.BYTE   CR,LF
 	.ASCII  'Using a VersaFloppy II Board with a WD FD1791.'
 	.BYTE   CR,LF
