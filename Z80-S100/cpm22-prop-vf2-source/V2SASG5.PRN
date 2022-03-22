@@ -159,12 +159,14 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    0153                 SECTOR:
    0153    DB56                 IN      WSECT   ;UPDATE SECTOR REG IN 179X
    0155    3C                   INR     A
-   0156    D356                 OUT     WSECT   ; THIS IS SUPER TACKY, BUT IT
-   0158    D356                 OUT WSECT   ; APPEARS THAT THAT THERE NEEDS TO BE
-   015A    D356                 OUT WSECT       ; A DELAY BETWEEN OUT WSECT & IN WSECT.
-                                                        ; SO USING DUPLICATE OUT CALLS TO ACT
-                                                        ; AS DELAY
-   015C    FE08                 CPI     8               ;SEE IF DDB SECTOR
+   0156    D356                 OUT     WSECT
+                                
+   0158    C5                   PUSH    B
+   0159    06FF                 MVI             B,0FFH          ;Slight delay for hardware
+   015B                 DELYS:  
+   015B    10FE                 DJNZ DELYS
+   015D    C1                   POP             B
+                                
    015E    C2 017F              JNZ     TSTSEC
    0161    DB55                 IN      WTRACK
    0163    FE00                 CPI     0               ;LAST TRACK?
@@ -191,8 +193,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    0186    DB55                 IN      WTRACK  ;ALREADY READ TRACK 1?
    0188    B7                   ORA     A
    0189    C2 020E              JNZ     BOOT    ;YES
-                        
-   018C    3E01                 MVI     A,1     ;START TRACK 1 WITH SECTOR 1
 
 
 
@@ -204,6 +204,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   018C    3E01                 MVI     A,1     ;START TRACK 1 WITH SECTOR 1
    018E    D356                 OUT     WSECT
    0190    3E5B                 MVI     A,5BH   ;STEP IN TO TRACK 1
    0192    D354                 OUT     WCMD
@@ -257,8 +259,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    01EE    32 03F4              STA     RECNT
    01F1    C2 01D6              JNZ     WRITE0  ;NO, RETRY
    01F4    C3 0224              JMP     WRBAD
-                        
-   01F7                 HOMEIT:
 
 
 
@@ -270,6 +270,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   01F7                 HOMEIT:
    01F7    3E0B                 MVI     A,0BH   ;RESTORE THE DISC DRIVE
    01F9    D354                 OUT     WCMD
    01FB                 ..1LOP:
@@ -323,8 +325,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;****************************************************
                         ; THE CCIR Z80 INSTRUCTION CHECKS ALL ACCEPTABLE
                         ; CHARACTERS FROM THE TABLE POINTED TO BY HL
-                        ; A BAD INPUT CAUSES A BELL, PLUS A BACKSPACE
-                        ; BLANK-OVER AND BACKSPACE TO ERASE THE WRONG
 
 
 
@@ -336,6 +336,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ; A BAD INPUT CAUSES A BELL, PLUS A BACKSPACE
+                        ; BLANK-OVER AND BACKSPACE TO ERASE THE WRONG
                         ; INPUT ON CONSOLE, THEN THE ROUTINE IS RE-ENTERED
                         ;====================================================
                         
@@ -389,8 +391,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    027A    CD 0005              CALL    BDOS    ;OUTPUT THE CHARACTER
    027D    E1                   POP     H
    027E    D1                   POP     D
-   027F    C1                   POP     B
-   0280    79                   MOV     A,C     ;FIX UP ACC
 
 
 
@@ -402,6 +402,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   027F    C1                   POP     B
+   0280    79                   MOV     A,C     ;FIX UP ACC
    0281    C9                   RET
                         
    0282                 GOBAK:
@@ -461,25 +463,23 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-
-
 TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 8
 
 +++++ SYMBOL TABLE +++++
 
 
 BDOS   0005         BELL   0007         BOOT   020E         CI     0265         CLEAR  001A         CO     0271      
-CR     000D         DCNTL  0053         DRIVE  03F3         FINI   020E         GETDRV 0134         GETOK  023D      
-GOBAK  0282         GOON   017F         HOMEIT 01F7         ISVFII 010B         LF     000A         MESS1  02DE      
-MESS2  0393         MESS3  03A7         MESS4  03CA         MESSA  02AC         NXTSEC 019F         OKDRIV 03EE      
-PRINTS 0009         QUIKNB 0207         QUITER 028D         READ0  01AD         READER 01A5         RECNT  03F4      
-REDBAD 0219         RETRY  0136         SEC08  2E02         SECTOR 0153         TEXIT  022C         TRACK  0153      
-TRACK1 017F         TSTSEC 017F         VFA    0128         VFB    012D         VFC    0132         WAITNB 0203      
-WBBUSY 0000         WBDEL  0002         WBRNF  0004         WBSID1 0001         WBWRIT 0005         WCMD   0054      
-WDATA  0057         WDC    0054         WFCINT 00D0         WHOME  0008         WLOAD  0018         WRBAD  0224      
-WREAD  0080         WRITE0 01D6         WRITER 01CE         WSECT  0056         WSEEK  0018         WSREAD 009C      
-WSSEEK 0098         WSTAT  0054         WSWRIT 00FC         WTRACK 0055         WUNLD  0010         WWRITE 00A0      
-XFERAD 2E00         
+CR     000D         DCNTL  0053         DELYS  015B         DRIVE  03F3         FINI   020E         GETDRV 0134      
+GETOK  023D         GOBAK  0282         GOON   017F         HOMEIT 01F7         ISVFII 010B         LF     000A      
+MESS1  02DE         MESS2  0393         MESS3  03A7         MESS4  03CA         MESSA  02AC         NXTSEC 019F      
+OKDRIV 03EE         PRINTS 0009         QUIKNB 0207         QUITER 028D         READ0  01AD         READER 01A5      
+RECNT  03F4         REDBAD 0219         RETRY  0136         SEC08  2E02         SECTOR 0153         TEXIT  022C      
+TRACK  0153         TRACK1 017F         TSTSEC 017F         VFA    0128         VFB    012D         VFC    0132      
+WAITNB 0203         WBBUSY 0000         WBDEL  0002         WBRNF  0004         WBSID1 0001         WBWRIT 0005      
+WCMD   0054         WDATA  0057         WDC    0054         WFCINT 00D0         WHOME  0008         WLOAD  0018      
+WRBAD  0224         WREAD  0080         WRITE0 01D6         WRITER 01CE         WSECT  0056         WSEEK  0018      
+WSREAD 009C         WSSEEK 0098         WSTAT  0054         WSWRIT 00FC         WTRACK 0055         WUNLD  0010      
+WWRITE 00A0         XFERAD 2E00         
 
 
 
@@ -526,4 +526,4 @@ XFERAD 2E00
 
 
 
-                                   
+  

@@ -43,8 +43,11 @@
 ; - REMOVED Z80 DMA SUPPORT, THIS VERSION
 ; - REMOVED FDC E.O.O. INTERRUPT SUPPORT, THIS VERSION
 ; - REMOVED 'FOREIGN' FORMAT SUPPORT, THIS VERSION
-; - ADDED Z3S & VF II TEST & CONFIGURE AT STARTUP  
-
+; - ADDED Z3S & VF II TEST & CONFIGURE AT STARTUP 
+;
+; C. MALLERY MAR. 2022
+; - Changed to use FD1791 instead of FD1795
+; - Merged in some of Glitch Works Cleanup
 
 	.PABS
 	.PHEX
@@ -56,15 +59,14 @@ CPVERS	==	22H		;CP/M VERSION NUMBER
 BIVERS	==	0H		;BIOS VERSION NUMBER
 TRUE	==	-1		;TRUE AND FALSE VALUES
 FALSE	==	#TRUE
-Z3S	==	TRUE		;THIS VERSION FOR PIO
+VF2	==	TRUE		;THIS VERSION FOR PIO
 
 ;********************************************************
-;          CP/M SYSTEM SIZE ETC. NEXT
+; CP/M System Sizes and Options
 ;********************************************************
 ; DISK DRIVE OPTIONS FIRST
 
 NODSK	==	3		;NUMBER OF DISKS ALLOWED
-STEP	==	TRUE 	;OLD STEP RATE SWITCH, MAY USE AGAIN
 STEPS   ==	0		;8" STEP RATE 0=3MS STEP RATE FOR DRIVES
 STEPR	==	080H	;5" STEP RATE 
 					;LOOK AT THE STEP SPEED TABLE FURTHER ON
@@ -107,12 +109,13 @@ NSBIOS	==	70-NSECTS	;MAX SECTORS FOR CBIOS & CP/M
 CPMDSK	==	0004H		;CURRENT DISK NUMBER ADDR
 IOBYTE	==	0003H		;INTEL I/O BYTE ADDR
 
-; USE SOME CONTROL CHARACTERS
+;********************************************************
+; Control Character Equates
+;********************************************************
 
 CR	==	13
 LF	==	10
 BELL	==	7
-CLEAR	==	26	;ZEUS80 CLEAR SCREEN
 
 
 ;********************************************************
@@ -123,51 +126,23 @@ CLEAR	==	26	;ZEUS80 CLEAR SCREEN
 
 ; MAIN CONSOLE IS SD SYSTEMS VDB-8024
 
-TTYI	==	1		;TTY INPUT PORT ADDRESS
-TTYO	==	1		;TTY OUTPUT PORT ADDRESS
-TTYS	==	0		;TTY I/O STATUS PORT ADDRESS
-TTYDA	==	2		;TTY DATA AVAILABLE MASK
-TTYBE	==	4		;TTY XMIT BUFFER EMPTY MASK
+CSTAT	==	0
+KBSTAT	==	0
+CIO		==	1
+KBIO	==	1
+COUT	==	4
+KIN		==	2
 
-;                   MODEM PORT
-
-CRTI	==	5		;CRT INPUT PORT ADDRESS (MODEM)
-CRTO	==	5		;CRT OUTPUT PORT ADDRESS (MODEM)
-CRTS	==	4		;CRT I/O STATUS PORT ADDRESS
-CRTDA	==	1		;CRT DATA AVAILABLE MASK
-CRTBE	==	80H		;CRT XMIT BUFFER EMPTY MASK
-
-
-
-;    PRINTER PORTS FOLLOW , PARALLEL PRINTER			
-; WE HAVE TWO PORTS, WITH A COMMON DATA BUFFER
-; BUT INDIVIDUAL STATUS AND STOBE BITS
-
-LSTST	==	6		;LIST DEVICE STATUS PORT
-LSTDAT	==	7		;LIST DEVICE DATA PORT
-CEN	==	9		;TURN ON CENTRONICS PORT
-SPIN	==	8		;TURN ON SPINWRITER PORT
-
-
-;          SERIAL PRINTER PORT NEXT
-; DEVICE OUTPUT READY MASK IS SAME AS MODEM PORT = CRTBE
-; INPUT DATA AVAILABLE MASK IS SAME AS MODEM = CRTDA
-
-SERST	==	2		;SERIAL PRINTER STATUS
-SERDT	==	3		;SERIAL PRINTER DATA PORT
-		
-CMSK	==	00000011B 	;IOBYTE MASK FOR CONSOLE
-LMSK	==	11000000B 	;IOBYTE MASK FOR LIST
 
 ;********************************************************
-;                 FLOPPY DISK EQUATES.
+; Floppy Disk Equates
 ;********************************************************
 ;********************************************************
 ;              PIO CONTROLLER PORTS
 ;********************************************************
 
 DCMD	==	53H		;Z3S COMMAND/CONTROL PORT
-W	==	54H		;WDC 179X ADDRESS
+W		==	54H		;WDC 179X ADDRESS
 WCMD	==	W+0		;COMMAND PORT
 WSTAT	==	W+0		;STATUS PORT
 WTRACK	==	W+1		;TRACK REG
@@ -211,10 +186,12 @@ WFCINT	==	11010000B 	;FORCE INTERRUPT COMMAND
 
 
 	JMP	CBOOT		;COLD BOOT
-WBOOTE:	JMP	WBOOT		;WARM BOOT
+WBOOTE:	
+	JMP	WBOOT		;WARM BOOT
 	JMP	CONST		;CONSOLE STATUS
 	JMP	CONIN		;CONSOLE CHARACTER IN
-BIOOUT:	JMP	CONOUT		;CONSOLE CHARACTER OUT,
+BIOOUT:	
+	JMP	CONOUT		;CONSOLE CHARACTER OUT,
 	JMP	LIST		;LIST CHARACTER OUT
 	JMP	PUNCH		;PUNCH CHARACTER OUT
 	JMP	READER		;READER CHARACTER IN
@@ -250,8 +227,8 @@ BIOOUT:	JMP	CONOUT		;CONSOLE CHARACTER OUT,
 ;		  1=5 INCH DISK AT THIS ADDRESS.
 
 SPDTAB:
-	.BYTE	STEPS   	;DRIVE A
-    .BYTE	STEPS		;DRIVE B
+	.BYTE	STEPS		;DRIVE A
+	.BYTE	STEPS		;DRIVE B
 	.BYTE	STEPR		;DRIVE C
 	.BYTE	STEPR		;DRIVE D
 
@@ -265,23 +242,13 @@ HOMER:	.BYTE	4		;ALLOW 3 USER DISK FIXES
 RETRYIT:.BYTE	10		;RETRY 10 TIMES EACH
 
 ;********************************************************
-; Z3S OPERATING CONTROL TABLE. THIS TABLE CONTAINS
-; THOSE BITS IN THE Z3S CONTROL BYTE WHICH SELECT THE
-; OPERATING MODE. THESE BITS ARE COMBINED WITH ADDRESS
-; CONTROL BITS TO FORM A COMPLETE Z3S CONTROL BYTE. THE
-; BITS ARE DEFINED AS FOLLOWS:
-;
-;                      NOTE
-;
-; THIS BIOS IS CODED FOR THE VERSAFLOPPY II.
-; REFERANCES TO Z3S OR Z4S FUNCTIONALITY THROUGHOUT
-; THE SOURCE ARE IN FACT FOR VF-II, AS THE OPERATING
-; TABLE BELOW SETS ALL SUCH FUNCTIONALITY FOR
-; VERSAFLOPPY II USE ONLY.
+; VersaFloppy II control table: this table contains those
+; bits in the VF2 control by te which select the
+; operating mode. These bits are combined with address
+; control bits to form a complete VF2 control byte. The
+; bits are defined as follows:
 ;********************************************************
 
-; VF-II VERSION OF TABLE
-;
 ;	1111 0000
 ;	^^^^ ^
 ;	:::: +- THESE BITS IN ADDRESS CONTROL TABLE
@@ -297,7 +264,7 @@ OPRTAB:
 ; SIZE &	 
 ; DENSITY	 
 
-C8S:
+C8S:	
 	.BYTE	11110000B	;SIDE 0, NO WAIT
 	.BYTE	01110000B	;SIDE 0, WAIT
 	.BYTE	11100000B	;SIDE 1, NO WAIT
@@ -322,10 +289,10 @@ C5D:
 	.BYTE	00000000B
 
 ;********************************************************
-; Z3S ADDRESS CONTROL TABLE. THIS TABLE CONTAINS THSOE
-; BITS IN THE Z3S BYTE WHICH SELECT THE ACTIVE DISK.
-; THESE BITS ARE COMBINED WITH OPERATING CONTROL BITS
-; TO FORM A COMPLETE Z3S CONTROL BYTE.
+; VersaFloppy II address control table. This table
+; contains those bits in the VF2 byte which select the
+; active disk. These bits are combined with operating
+; control bits to form a complete VF2 control byte.
 ;********************************************************
 
 ADRTAB:	
@@ -335,7 +302,7 @@ ADRTAB:
 	.BYTE	0111B		;DRIVE D
 
 ;********************************************************
-; THE SYSTEM CONFIGURATION OPTION BYTES FOLLOW
+; System Configuration Option Bytes
 ;********************************************************
 
 CFGOPT:
@@ -349,16 +316,16 @@ CFGOPT:
 ; SHOULD NOT BE CHANGED.
 ;********************************************************
 
-CBOOT:
+CBOOT:	
 
 	LXI	SP,80H			;VALIDATE THE STACK POINTER
-	LHLD	INITIO		;SET INITIAL I/O BYTE, DISK
+	LHLD	INITIO		;SET INITIAL I/O BYTE
 	SHLD	IOBYTE
 
 	CALL	SYSNIT		;ROUTINE IN HOST BUFFER SPACE
 						;IS DISCARDED AFTER THIS CALL
-    
-	CALL	BCOMM		;DO COMMON STUFF
+
+	CALL	BCOMM		;Common setup steps
 	JMPR	GOCPM		;PREPARE TO GO TO CCP
 
 ;********************************************************
@@ -384,12 +351,12 @@ CBOOT:
 ; DISK IS USED FOR THE SYSTEM.
 ;********************************************************
 
-WBOOT:
+WBOOT:	
 	DI
 	LXI	SP,80H		;VALIDATE THE STACK POINTER
 	CALL	CLOSE
-EEXIT:
-	CALL	BCOMN		;DO COMMON STUFF
+EEXIT:	
+	CALL	BCOMM	;Common setup steps
 
 ..JOG	==	CCP+(30*128)	;LAST GOOD ADDRESS
 				;= 32 -(LOADER + DDB)
@@ -440,15 +407,15 @@ EEXIT:
 	STA	CCP+7		;STORE A CHAR. COUNTER LOCATION
 
 ;********************************************************
-;       COMMON CODE BEFORE ENTERING CP/M.
+; Common code before entering CP/M
 ;********************************************************
 
-GOCPM:
+GOCPM:	
 	MVI	A,JMP		;PATCH WARM START JUMP
 	STA	0
 	LXI	H,WBOOTE
 	SHLD	1
-	
+
 	STA	5		;PATCH JUMP TO BDOS
 	LXI	H,BDOS
 	SHLD	6
@@ -486,13 +453,7 @@ LOOP:	PUSH	B		;SAVE COUNT, SECTOR
 ; BOOT COMMON ROUTINE. USED BY COLD BOOT AND WARM BOOT.
 ;********************************************************
 
-BCOMM:
-
-; KEEP BOTH BCOMM & BCOMN FOR NOW
-; AT ONE TIME BCOMM HAD ADDITIONAL FUCTIONS, THEN
-; IT FELL THROUGH TO BCOMN. MAY DO THAT AGAIN
-
-BCOMN:
+BCOMM:	
 	CALL	DSKRST		;RESET DISK SYSTEM
 	MVI	C,0		;SELECT DISK 0, GET DDB
 	CALL	SELDSK
@@ -569,7 +530,7 @@ SELDSK:
 	ORA	A		;DDB PROCESSED(y/n)
 	JNZ	OK		;YES
 
-FRST:
+FRST:	
 	CALL	CLOSE		;ELSE CLEAR ANY PENDING WRITE
 				;AND READ DDB FROM DISK
 
@@ -616,7 +577,7 @@ EIG:	STA	FLAG
 	LXI	H,2+32 < 8 	;512 BYTE SECTOR & 32 LOGICAL SECTORS
 	SHLD	SSLEN
 
-	CALL	GETD3S		;GET Z3S CTRL BYTES INTO ATABLE
+	CALL	GETD3S		;GET VF2 CTRL BYTES INTO ATABLE
 	CALL	PREAD		;GET THE DDB
 	JRNC	YUP		;WE GOT SOMETHING
 
@@ -634,10 +595,10 @@ EIG:	STA	FLAG
 ;    SET UP FOR STANDARD 8" S.S.S.D.  DISK HERE
 ;********************************************************
 
-NOV:
+NOV:	
 	CALL	MSG	;WARN THE USER AND
 	.BYTE	CR,LF	;   HOPE FOR THE BEST
-	.ASCIS	\STD Disk?\
+	.ASCIZ	\STD Disk?\
 	LHLD	SAVADR	;POINT TO STANDARD DDB
 	LXI	B,128-10
 	LXI	D,RDBUFF+384+10
@@ -676,7 +637,7 @@ COMP:	CALL	PUTAPB		;UPDATE TRACK, SPEED IN APB
 ;* GET THE ALLOCATION SIZE FROM THE DSM VALUE IN THE DPB
 ;********************************************************
 
-GALV:
+GALV:	
 	LDA	RDBUFF+384+19	;GET DSM
 	MOV	C,A		;SAVE VALUE
 	LDA	SEKDSK
@@ -689,7 +650,7 @@ GALV:
 	MVI	A,0FFH		;UPDATE ATABLE FROM APB
 	STA	ADISK
 	CALL	GETAPB
-	CALL	GETD3S		;PUT VALID Z3S BYTES IN ATABLE
+	CALL	GETD3S		;PUT VALID VF2 BYTES IN ATABLE
 	CALL	PUTAPB		;UPDATE APB FROM FULLY VALID ATABLE
 
 OK:	LHLD	DPHADR		;RETURN DPH ADDRESS
@@ -711,13 +672,13 @@ BAD:	XRA	A		;DESELECT INVALID DRIVE
 ; DISKS.
 ;********************************************************
 
-HOME:
+HOME:	
 	CALL	CLOSE
 	LDA	HSTWRT		;TEST FOR PENDING WRITE
 	ORA	A
 	JRNZ	HOMED
 	STA	HSTACT		;CLEAR HOST ACTIVE FLAG
-HOMED:
+HOMED:	
 	LXI	B,0		;DROP THRU TO SET TRACK TO 0
 
 ;********************************************************
@@ -753,9 +714,9 @@ SETDMA:	SBCD	DMAADD
 ; TRANSLATION.
 ;********************************************************
 
-SECTRA:
-
-YUP1:	XCHG			;HL GETS TRANS TABLE ADDRESS
+SECTRA:	
+	
+	XCHG			;HL GETS TRANS TABLE ADDRESS
 				;CP/M PASSED IT IN DE
 	MOV	A,C		;GET SECTOR #
 	SBCD	NEWSEC		;SAVE FOR UNALLOC TEST
@@ -773,7 +734,7 @@ YUP1:	XCHG			;HL GETS TRANS TABLE ADDRESS
 ; CALLING PROGRAM ON REQUEST.
 ;********************************************************
 
-READ:
+READ:	
 
 	XRA	A
 	STA	UNACNT		;UNACNT=0, WE WON'T WRITE WITHOUT
@@ -798,7 +759,7 @@ READ:
 ;********************************************************
 
 
-WRITE:
+WRITE:	
 
 	XRA	A
 	STA	READOP		;SET TO WRITE
@@ -874,7 +835,7 @@ CKUN:				;SEE IF UNALLOCATED RECORDS REMAIN
 
 ;WRITE PARAMETERS MATCH, DON'T PRE-READ
 
-NOVR:
+NOVR:	
 	XRA	A
 	STA	RSFLAG		;SHOW WE DON'T READ A SECTOR
 	JMPR	RWOPER
@@ -882,7 +843,7 @@ NOVR:
 
 ;NOT AN UNALLOCATED RECORD, DO A PRE-READ
 
-ALOC:
+ALOC:	
 	XRA	A
 	STA	UNACNT		;SET UNALLOCATED = 0
 	INR	A
@@ -891,7 +852,7 @@ ALOC:
 
 ;DO READ OR WRITE OPERATION NEXT
 
-RWOPER:
+RWOPER:	
 
 	CALL	GETTRK		;COMPUTE PHYSICAL TRACK & SECTOR
 
@@ -935,7 +896,7 @@ RWOPER:
 ;HOST PARAMETERS DO NOT MATCH CURRENT R/W PARAMETERS
 ;SEE IF WE HAVE TO FLUSH THE HOST BUFFER
 
-NOMAT:
+NOMAT:	
 	LDA	HSTWRT		;SEE IF HOST BUFFER WAS WRITTEN
 	ORA	A
 	CNZ	FLUSH		;WRITE OUT THE BUFFER IF NOT
@@ -944,7 +905,7 @@ NOMAT:
 ;MAY HAVE TO FILL HOST BUFFER
 ;SEET UP NEW PARAMETERS
 
-FILHST:
+FILHST:	
 
 	LDA	SEKDSK
 	STA	HSTDSK
@@ -961,7 +922,7 @@ FILHST:
 
 ;WE HAVE CORRECT SECTOR SO COPY DATA TO/FROM DMA BUFFER
 
-MATCH:
+MATCH:	
 
 	LDA	CREC		;GET RECORD #
 	MOV	B,A		;COMPUTE RECORD IN HOST BUFFER
@@ -980,10 +941,10 @@ MATCH:
 	XCHG			;DE IS NOW DESTINATION,= HOST ON WRITE
 	LHLD	DMAADD		;HL IS SOURCE, = USER AREA TO GET	
 
-RWMOVE:
-	
-	LDIR			;MOVE DATA
+RWMOVE:	
 
+	LDIR			;MOVE DATA
+	
 
 ;NOW CHECK WRITE TYPE FOR DIRECTORY UPDATE
 
@@ -1009,7 +970,7 @@ GOODOP:
 	XRA	A		;ELSE SET AS O.K.
 	RET			;SHOW BDOS SUCCESSFUL READ/WRITE
 
-CLOSE:
+CLOSE:	
 	LDA	HSTWRT		;SEE IF WE HAVE A PENDING WRITE
 	ORA	A
 	RZ			;IF NOT RETURN NOW
@@ -1017,7 +978,7 @@ CLOSE:
 ;WRITE FROM THE HOST BUFFER
 
 FLUSH:
-WRTHST:
+WRTHST:	
 	LDA	HSTDSK		;GET ACTUAL WRITE DISK
 	STA	PDISK		;MAKE IT THE PHYSICAL DISK
 	CALL	GETAPB		;GET APB FOR THE DISK
@@ -1031,7 +992,7 @@ WRTHST:
 	CALL	PWRITE		;WRITE BACK THE COMBINED SECTOR
 	RET
 
-RDHST:
+RDHST:	
 	LDA	HSTDSK
 	STA	PDISK
 	LXI	H,RDBUFF 	;POINT TO READ BUFFER
@@ -1047,7 +1008,7 @@ RDHST:
 
 ;GET ACTUAL TRACK TO SEEK
 
-GETTRK:
+GETTRK:	
 	LDA	SEKTRK		;GET CP/M TRACK NUMBER
 	LXI	H,OFF		;GET NUMBER OF SYSTEM TRACKS
 	MOV	E,M
@@ -1062,13 +1023,13 @@ GETTRK:
 	SRLR	A		;COMPUTE PHYSICAL TRACK NUMBER
 	RARR	C		;GET SIDE NUMBER BIT
 SING:	LXI	H,USLEN
-SYST:
+SYST:	
 	STA	CTRACK		;SAVE ACTUAL TRACK NUMBER
 		
 
 ;GET ACTUAL SECTOR TO READ/WRITE
 
-PYSEC:
+PYSEC:	
 	MOV	A,M		;GET LENGTH BYTE
 	MOV	B,A
 	CPI	3
@@ -1126,36 +1087,22 @@ PCOM:	STA	PCMD		;REMEMBER WHETHER READ OR WRITE
 
 	MOV	M,A		;NO, UPDATE OLD NUMBER TO NEW
 	CALL	TRIMWT		;WAIT FOR TRIM ERASE TO END
-	CALL	SETD3S		;SET Z3S CONTROL BYTE
-
-; FOLLOWING IS AN OBSOLETE OPERATION, NO LONGER USED,
-; BUT THE ORIGINAL CODE IS SHOWN FOR INTEREST.
-; HEAD UNLOADING WAS USED FROM TIME TO TIME TO
-; REDUCE DISK WEAR, HOWEVER IT WOULD SLOW DOWN
-; ACCESS TIMES, AND IMPROVED DISK HEAD DESIGN
-; AND MEDIA DURABILITY MADE IT REDUNDANT.
-
-;	LDA	HLOPT		;SEE IF DUAL HEAD LOAD
-;	ORA	A
-;	JRNZ	SADS		;DON'T UNLOAD HEAD
-;	CALL	FUNLD		;UNLOAD HEAD
-;	CALL	FDONE		;INSURE FDC IS DONE
-
+	CALL	SETD3S		;SET VF2 CONTROL BYTE
 
 ;********************************************************
-;	INITIALIZE RETRY LIMITS. INSURE Z3S BYTE IS
+;	INITIALIZE RETRY LIMITS. INSURE VF2 BYTE IS
 ;	SET. SEEK TO CORRECT TRACK.
 ;********************************************************
 
-SADS:
+SADS:	
 	LDA	HOMER		;NUMBER OF HOME OPERATIONS
 	STA	MRML
 	STA	KBIT
-MAC:
+MAC:	
 	LDA	RETRYIT 	;RETRIES BETWEEN HOME OPERATIONS
 	STA	RMACRO
 
-	CALL	SETD3S		;SET Z3S CONTROL BYTE
+	CALL	SETD3S		;SET VF2 CONTROL BYTE
 	LXI	H,TRACK 	;GET OLD TRACK NUMBER
 	MOV	A,M
 	OUT	WTRACK		;UPDATE 179X TRACK REG
@@ -1179,7 +1126,7 @@ NOZE:	CALL	FSEEK		;NORMAL SEEK TO DESIRED TRACK
 ENDS:	CALL	PUTAPB		;UPDATE APB FROM ATABLE
 	LDA	PCMD		;GET READ/WRITE COMMAND
 	SET	WBDEL,A		;INSURE HEAD IS SETTLED
-NOMIL:
+NOMIL:	
 	STA	PCMD		;BY SETTING DELAY BIT IN CMD
 
 
@@ -1189,7 +1136,7 @@ NOMIL:
 ;********************************************************
 
 SATR:
-MIC:
+MIC:	
 	LDA	PSECT		;GET DESIRED SECTOR NUMBER
 	MOV	B,A		;SAVE SIDE BIT
 	BIT	7,A		;TEST SIDE BIT
@@ -1220,7 +1167,7 @@ SSECTOR:
 	MOV	A,B			;GET BACK SECTOR
 	ANI	07FH		;DROP SIDE BIT
 	OUT	WSECT		;UPDATE 179X SECTOR REGISTER
-
+	
 	LDA	PCMD		;GET READ OR WRITE COMMAND
 	SET	WBSID1,A	;UPDATE SSO BIT TO 1
 	BIT	7,B			;ARE WE ON SIDE 1(y/n)
@@ -1228,13 +1175,13 @@ SSECTOR:
 	SET	WBSIDE,A
 
 
-SID01:
+SID01:	
 	OUT	WCMD		;FOR PIO 179X COMMAND
 SID2:	STA	OCMD
 	STA	ORWCMD		;SAVE LAST READ OR WRITE CMD
 	MOV	D,A		;SAVE THE COMMAND
 
-	LDA	D3SWT		;GET WAIT ACTIVE Z3S BYTE
+	LDA	D3SWT		;GET WAIT ACTIVE VF2 BYTE
 	OUT     DCMD	
 
 	STA	OD3S
@@ -1256,7 +1203,7 @@ ULEN:	LHLD	PDMA		;GET DMA ADDRESS
 ;	              READ THE SECTOR.
 ;********************************************************
 
-PIRD:
+PIRD:	
 	ORA	A
 	JRZ	PR12
 	MVI	B,0H
@@ -1270,7 +1217,7 @@ PR51:	INIR
 PR25:
 PR12:	INIR
 	
-RDFN:
+RDFN:	
 
 	MVI	C,WSREAD 	;STATUS BITS TO TEST
 	JMPR	CHEK
@@ -1280,7 +1227,7 @@ RDFN:
 ;	            WRITE THE SECTOR.
 ;********************************************************
 
-WRIT:
+WRIT:	
 	ORA	A
 	JRZ	PW12
 	MVI	B,0H
@@ -1295,7 +1242,7 @@ PW51:	OUTIR
 PW25:
 PW12:	OUTIR
 			
-WRFN:
+WRFN:	
 	MVI	C,WSWRIT 	;STATUS BITS TO TEST
 
 
@@ -1305,7 +1252,7 @@ WRFN:
 ;********************************************************
 
 CHEK:	
-	LDA	D3SNO		;GET NO WAIT Z3S BYTE
+	LDA	D3SNO		;GET NO WAIT VF2 BYTE
 	OUT     DCMD
 	STA	OD3S
 	CALL	FQDONE		;WAIT FOR 179X DONE
@@ -1317,7 +1264,7 @@ CHEK:
 ;	    RETRY THE I/O IF AN ERROR OCCURED.
 ;********************************************************
 
-NOPRNT:
+NOPRNT:	
 	LXI	H,RMACRO 	;POINT TO MACRO RETRY COUNT
 	DCR	M		;DECREMENT IT
 	JNZ	MIC		;RE-DO READ/WRITE
@@ -1335,20 +1282,20 @@ NOPRNT:
 
 ;	IF WE CAME HERE IT IS TIME TO RE-CALIBRATE THE DRIVE
 
-KEYIT:
+KEYIT:	
 	MVI	A,4
 	STA	KBIT
 	LDA	ISTAT		;GET BACK LAST STATUS
 	ANA	C
 	CALL	EPRINT
 
-NORE:
 
 ;********************************************************
 ;THE FOLLOWING ROUTINE WAITS FOR USER
 ;TO RETRY OPERATION ON DRIVE WITH ERROR
 ;********************************************************
 
+NORE:	
 	CALL	FHOME
 	JC	FATERR
 	XRA	A
@@ -1362,7 +1309,7 @@ NORE:
 ;   'BAD' DATA AND CONTINUE ON WITHOUT A 'BDOS BAD SECTOR' MESSAGE
 ; - <RETURN> TO RETRY THE OPERATION ANOTHER 12 TIMES
 
-CRIN:
+CRIN:	
 	CALL	CONST		;SEE IF KEY PRESSED
 	JRZ	CRIN		;IF NOT KEEP RINGING
 	CALL	CONIN		;GET CHAR
@@ -1377,11 +1324,11 @@ CRIN:
 	STC
 	RZ
 	JMP	MAC		;DO ANOTHER RE-TRY
-	
+
 
 ;IGNORE DISK I/O ERROR AND CONTINUE WITH STATUS SET O.K.
 
-FXER:
+FXER:	
 	STC			;FIX UP CARRY
 	CMC
 	XRA	A		;CLEAR ERROR FLAG
@@ -1389,7 +1336,7 @@ FXER:
 
 
 ;********************************************************
-; SET Z3S CONTROL BYTE. GET 2 Z3S CONTROL BYTES, ONE
+; SET VF2 CONTROL BYTE. GET 2 VF2 CONTROL BYTES, ONE
 ; WITH THE HARDWARE WAIT BIT ACTIVE AND ONE WITHOUT,
 ; FROM THE 8 POSSIBLE CONTROL BYTES. OUTPUT THE NO WAIT
 ; BYTE. SAVE BOTH FOR LATER USE.
@@ -1419,7 +1366,7 @@ SID0:	MOV	E,M		;GET THE NO WAIT BYTE
 
 
 ;********************************************************
-; GET Z3S CONTROL BYTES. CREATE THE EIGHT Z3S CONTROL
+; GET VF2 CONTROL BYTES. CREATE THE EIGHT VF2 CONTROL
 ; BYTES IN ATABLE. THESE BYTES SET THE DENSITY BIT FOR
 ; SYSTEM TRACKS AND USER TRACKS, SELECT SIDE 0 OR SIDE
 ; 1, AND ENABLE OR DISABLE THE HARDWARE DATA WAIT.
@@ -1433,7 +1380,7 @@ GETD3S:	LDA	ADISK		;GET CURRENT DISK NUMBER
 	MOV	E,A		;CONTROL BITS TABLE
 	MVI	D,0
 	DAD	D
-	MOV	C,M		;SAVE ADDR BITS FOR Z3S BYTES
+	MOV	C,M		;SAVE ADDR BITS FOR VF2 BYTES
 
 	LDA	FLAG		;GET THE FLAG
 	ANI	00010100B 	;ISOLATE SYSTEM DENSITY, SIZE
@@ -1442,11 +1389,11 @@ GETD3S:	LDA	ADISK		;GET CURRENT DISK NUMBER
 	ORA	B		;COMBINE SIZE AND DENSITY
 	ANI	00001100B 	;DROP UNALIGNED BITS
 	LXI	D,SS0N		;POINT TO BEGINNING OF DEST
-	CALL	GET		;GET SYSTEM TRACK Z3S BYTES
+	CALL	GET		;GET SYSTEM TRACK VF2 BYTES
 
 	LDA	FLAG		;GET THE FLAG
 	ANI	00001100B 	;ISOLATE USER DENSITY, SIZE
-				;AND GET USER TRACK Z3S BYTES
+				;AND GET USER TRACK VF2 BYTES
 
 GET:	LXI	H,OPRTAB 	;POINT TO CONTROL BITS TABLE
 	PUSH	D
@@ -1551,12 +1498,12 @@ FU:	IN	WTRACK		;GET CURRENT TRACK
 ; COMMAND COMPLETION. 
 ;********************************************************
 
-FDONE:
+FDONE:	
 
 	MVI	B,10		;DELAY
 	DJNZ	.
 FQDONE:
-PIODON:
+PIODON:	
 	IN	WSTAT
 	STA	ISTAT
 	BIT	WBBUSY,A
@@ -1581,33 +1528,34 @@ EPRINT:	MOV	D,A	;SAVE ERROR BITS
 
 	CALL	MSG
 	.BYTE	CR,LF
-	.ASCIS	\Err on \
+	.ASCIZ	\Err on \
 	LDA	PDISK
 	ADI	'A'
 	MOV	C,A
 	CALL	BIOOUT
 	CALL	MSG
-	.ASCIS	\:  \
+	.ASCIZ	\:  \
 
-	SET	1,D	;INSURE NON ZERO ERROR BYTE
+	SET	1,D	;ENSURE NON ZERO ERROR BYTE
 	MVI	B,0
 ..FIND:	INR	B
 	RALR	D	;FIND FIRST NON ZERO BIT
 	JRNC	..FIND
 	LXI	H,ERMESS ;POINT TO MESSAGE TABLE
 	JMPR	..JOIN
-..MORE:	BIT	7,M	;TEST FOR END OF MESSAGE
+..MORE:	MOV	A,M	;PUT MESSAGE CHAR IN A
+	ANA	A	;SET FLAG BITS
 	INX	H
-	JRZ	..MORE	;KEEP LOOKING FOR END, THIS MSG
+	JRNZ	..MORE	;KEEP LOOKING FOR NULL TERMINATOR, THIS MSG
 ..JOIN:	DJNZ	..MORE	;KEEP LOOKING FOR CORRECT MSG
 	CALL	MSGHL	;PRINT OUT CORRECT MESSAGE
 	CALL	MSG
-	.ASCIS	\ \
+	.ASCIZ	\ \
 
 	MVI	B,EILEN ;NUMBER OF ERROR INFO BYTES
 	LXI	H,EINFO
 ..LOOP:	CALL	MSG	;SPACE BETWEEN BYTES
-	.ASCIS	\ \
+	.ASCIZ	\ \
 	MOV	A,M
 	INX	H
 	CALL	LBYTE	;PRINT NEXT BYTE
@@ -1620,13 +1568,13 @@ EPRINT:	MOV	D,A	;SAVE ERROR BITS
 ; FLOPPY DISK ERROR MESSAGES. USED BY THE EPRINT
 ; ROUTINE TO TELL THE USER WHICH 179X ERROR OCCURED.
 
-ERMESS:	.ASCIS	\Not Ready\
-	.ASCIS	\Write Protect\
-	.ASCIS	\Fault\
-	.ASCIS	\RNF\
-	.ASCIS	\Bad CRC\
-	.ASCIS	\Lost Data\
-	.ASCIS	\?\
+ERMESS:	.ASCIZ	\Not Ready\
+	.ASCIZ	\Write Protect\
+	.ASCIZ	\Fault\
+	.ASCIZ	\RNF\
+	.ASCIZ	\Bad CRC\
+	.ASCIZ	\Lost Data\
+	.ASCIZ	\?\
 
 
 ;********************************************************
@@ -1687,7 +1635,7 @@ GETAPB:	LXI	H,ADISK		;POINT TO ATABLE DRIVE NUMBER
 
 ;TABLE FOR # OF RECORDS FOR ALLOCATION SIZES FROM 1K TO 16K
 
-ALOREC:
+ALOREC:	
 	.BYTE	8,16,32,64,128
 
 
@@ -1727,17 +1675,15 @@ GETDPH:	MVI	H,0
 
 FATERR:
 QUIT:	CALL	MSG
-	.ASCII	' ST'
-	.BYTE	'P'+80H
+	.ASCIZ	' STP'
 	JMP	EEXIT		;GO WARM BOOT
-
 
 ;********************************************************
 ; MESSAGE OUTPUT SUBROUTINE. THERE ARE TWO ENTRY
 ; POINTS. FOR MSG A MESSAGE FOLLOWS INLINE AFTER THE
 ; CALL. FOR MSGHL THE MESSAGE ADDRESS IS IN HL. FOR
-; BOTH ENTRY POINTS THE MESSAGE IS PRINTED OUT UP TO
-; AND INCLUDING A CHARACTER WITH ITS HI ORDER BIT SET.
+; BOTH ENTRY POINTS THE MESSAGE IS PRINTED OUT UNTIL A
+; NULL TERMINATOR.
 ;********************************************************
 
 MSG:	XTHL			;GET MESSAGE ADDRESS
@@ -1745,42 +1691,45 @@ MSG:	XTHL			;GET MESSAGE ADDRESS
 	XTHL			;RESTORE NEW RETURN ADDRESS
 	RET
 
-MSGHL:	MOV	C,M		;GET NEXT CHAR OF MESSAGE
-	INX	H
+MSGHL:	MOV	C,M		;GET CURRENT CHAR OF MESSAGE
+	MOV	A,C
+	ANA	A
+	RZ			;NULL TERMINATOR, RETURN
 	CALL	BIOOUT		;OUTPUT THE CHAR
-	ORA	A		;TEST FOR HI BIT SET
-	JP	MSGHL		;NOT SET, KEEP GOING
-	RET
-
+	INX	H		;POINT TO NEXT CHAR
+	JMPR	MSGHL		;KEEP GOING
 
 ;********************************************************
-; I/O VECTORING ROUTINES. THESE ROUTINES USE THE IOBYTE
-; TO SELECT THE PHYSICAL DEVICE WHICH WILL CORRESPOND
-; TO THE CONSOLE OR TO THE LIST OUTPUT. THE JUMPS TO
-; THE PHYSICAL DEVICES SHOULD BE CHANGED HERE TO USE
-; EXTERNAL I/O. THIS RETAINS IOBYTE CONTROL OVER THE
-; ROUTINES.
+; I/O Routines: these routines implement the various
+; destinations selectable through the IOBYTE. By default,
+; only TTY is implemented, everything else falls through
+; to TTY. Expand and implement for custom IOBYTE options.
 ;********************************************************
 
 
-;********************************************************
-;    I/O ROUTINES FOR THE TTY PHYSICAL DEVICE.
-;********************************************************
 
-	.ASCII	\CIOTB\
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Unimplemented status routines
+;
+;pre: I/O devices are already initialized
+;post: return with 0 in A if no char available
+;post: return with 0xFF in A if char available
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+UC1IS:				;NOT IMPLEMENTED
+BATIS:				;NOT IMPLEMENTED
+CRTIS:				;NOT IMPLEMENTED
 
-CSTAT:	.BYTE	0
-KBSTAT:	.BYTE	0
-CIO:	.BYTE	1
-KBIO:	.BYTE	1
-COUT:	.BYTE	4
-KIN:	.BYTE	2
-
-	.ASCII	\KIS\
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;TTYIS -- TTY Status Routine
+;
+;pre: TTY device is initialized
+;post: return with 0 in A if no char available
+;post: return with 0xFF in A if char available
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 TTYIS:
-	LDA	KBSTAT
+	MVI	A,KBSTAT
 	MOV	C,A
-	LDA	KIN
+	MVI	A,KIN
 	MOV	E,A
 	INP	A
 	NOP
@@ -1795,11 +1744,26 @@ TTYIS:
 	MVI	A,0FFH
 	RET			;RETURN TRUE
 
-	.ASCII	\KI\
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Unimplemented input routines
+;
+;pre: I/O devices are already initialized
+;post: return with character from device in A register
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+UC1IN:				;NOT IMPLEMENTED
+BATIN:				;NOT IMPLEMENTED
+CRTIN:				;NOT IMPLEMENTED
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;TTYIN -- Get a character from the TTY device
+;
+;pre: TTY device is initialized
+;post: return with character from device in A register,
+;      strips parity
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 TTYIN:	CALL	TTYIS		;GET STATUS
 	JZ	TTYIN		;WAIT UNTIL DATA AVAILABLE
-	LDA	KBIO
+	MVI	A,KBIO
 	MOV	C,A
 	INP	A
 	NOP
@@ -1807,13 +1771,18 @@ TTYIN:	CALL	TTYIS		;GET STATUS
 	ANI	07FH		;DROP PARITY
 	RET
 
-	.ASCII	\COS\
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;TTYOS -- TTY output status
+;
+;pre: TTY device is initialized
+;post: return with 0 in A if not ready to transmit
+;post: return with 0xFF in A if ready to transmit
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 TTYOS:
 	PUSH	B
-	LDA	CSTAT
+	MVI	A,CSTAT
 	MOV	C,A
-	LDA	COUT
+	MVI A,COUT
 	MOV	E,A
 	INP	A
 ;	CMA FOR NEGATIVE LOGIC
@@ -1827,12 +1796,27 @@ TTYOS:
 	MVI	A,0FFH
 	RET			;RETURN TRUE
 
-	.ASCII	\CO\
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Unimplemented output routines
+;
+;pre: I/O devices are already initialized
+;post: character in C output to device
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+UC1OUT:				;NOT IMPLEMENTED
+BATOUT:				;NOT IMPLEMENTED
+CRTOUT:				;NOT IMPLEMENTED
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;TTYOUT -- output character to TTY
+;
+;pre: I/O devices are already initialized
+;post: character in C output to TTY
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 TTYOUT:
 	CALL	TTYOS		;GET STATUS
 	JZ	TTYOUT		;WAIT UNTIL BUFFER EMPTY
 	MOV	E,C
-	LDA	CIO
+	MVI	A,CIO
 	MOV	C,A
 	MOV	A,E
 	NOP
@@ -1840,43 +1824,52 @@ TTYOUT:
 	OUTP	A		;OUTPUT THE DATA
 	RET
 
-
-
 ;********************************************************
-; Unimplemented I/O Routines
-;********************************************************
-
-CRTIS: 
-READER:
-CRTIN:	
-CRTOS:	
-PUNCH:
-CRTOUT:	
-TUBE:
-LISTST:
-LIST:
-LISTC:
-LIST1:
-SERP:
-SPIN0:
-SPIN2:	
-CRTOT1:
-SPINST:	
-CENST:
-SERPST:
-	RET
-
-
-;********************************************************
-; IO ROUTINES FOR THE OTHER IOBYTE VECTORED DEVICES
+; I/O Routines for IOBYTE Vectored Devices
+;
+; These routines deal with IOBYTE vectored devices. By
+; default, these are not implemented and fall through
+; to the console routines. With the default IOBYTE
+; implementation, everything uses the TTY.
 ;********************************************************
 
+LISTST:				;NOT IMPLEMENTED
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;CONST -- Get the console status for the selected IOBYTE
+;         device
+;
+;pre: I/O devices are already initialized
+;pre: IOBYTE is at 0x0003 and initialized
+;post: status check is handed off to selected device
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CONST:	
-	JMP	TTYIS	
+	JMP	TTYIS
 
+READER:				;NOT IMPLEMENTED
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;CONIN -- Get a byte from the console device selected by
+;         the current IOBYTE
+;
+;pre: I/O devices are already initialized
+;pre: IOBYTE is at 0x0003 and initialized
+;post: data request is handed off to selected device
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CONIN:	
 	JMP	TTYIN
 
+LIST:				;NOT IMPLEMENTED
+PUNCH:				;NOT IMPLEMENTED
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;CONOUT -- Send a byte from the console device selected by
+;         the current IOBYTE
+;
+;pre: I/O devices are already initialized
+;pre: IOBYTE is at 0x0003 and initialized
+;post: data request is handed off to selected device
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CONOUT:
 	JMP	TTYOUT
 
@@ -1889,7 +1882,7 @@ CONOUT:
 ; FOR THE DISK.
 ;********************************************************
 
-APBBEG:
+APBBEG:	
 	.WORD	APB0
 	.WORD	TRANS0		;LOGICAL TO PHYSICAL XLATE TAB
 	.WORD	0		;SCRATCH
@@ -1946,7 +1939,7 @@ APBBEG:
 ;             8" FLOPPY DISK TABLES.
 ;********************************************************
 
-STDDDB:
+STDDDB:	
 	.BYTE	00000001B 	;FLAG
 	.WORD	2		;OFF
 	.BYTE	0		;SSLEN
@@ -2022,10 +2015,13 @@ SIGNON:	CALL	MSG
 
 	.BYTE (((BDOS-6)/1024)/10)+'0',((BDOS-6)/1024) @10+'0'
 	.ASCII	'K TPA'
-	.BYTE	CR,LF
 
-	.ASCII	'VersaFloppy II BIOS'
-	.BYTE	CR,LF,80H	
+	.BYTE	CR,LF
+	.ASCII	'A: & B: = 8" SDSS Floppies, C: = 5" DDDS Floppy'
+	.BYTE	CR,LF
+	.ASCII  'Using a VersaFloppy II Board with a WD FD1791.'
+	.BYTE	CR,LF
+	.BYTE	CR,LF,00H
 
 	RET
 
@@ -2135,15 +2131,15 @@ ORWCMD:	.BLKB	1		;LAST R/W OUTPUT TO CMD REG
 DPHADR:	.BLKB	2		;DPH ADDRESS FOR CURRENT DISK
 APBADR:	.BLKB	2		;APB ADDRESS FOR CURRENT DISK
 WRTYPE:	.BLKB	1		;TYPE OF WRITE
-D3SNO:	.BLKB	1		;CURRENT NO WAIT Z3S BYTE
-D3SWT:	.BLKB	1		;CURRENT WAIT Z3S BYTE
+D3SNO:	.BLKB	1		;CURRENT NO WAIT VF2 BYTE
+D3SWT:	.BLKB	1		;CURRENT WAIT VF2 BYTE
 SAVADR:	.BLKB	2		;STD OR ALT DDB ADDRESS
 MRML:	.BLKB	1		;MACRO RETRY MAJOR LOOP
 
 
 ;********************************************************
 ; ERROR INFORMATION STORAGE. VARIOUS ROUTINES USE THIS
-; AREA TO STORE KEY VARIABLES RELATING TO THE Z3S
+; AREA TO STORE KEY VARIABLES RELATING TO THE VF2
 ; CONTROLLER AND THE 179X CHIP. 
 ;********************************************************
 
@@ -2152,9 +2148,9 @@ ITRACK:	.BLKB	1		;LAST INPUT FROM TRACK REG
 ISECT:	.BLKB	1		;LAST INPUT FROM SECTOR REG
 ISTAT:	.BLKB	1		;LAST INPUT FROM STATUS REG
 ACTIVE:	.BLKB	1		;SHOWS WHICH ROUTINE HAD ERROR
-OD3S:	.BLKB	1		;LAST OUTPUT TO Z3S CTRL BYTE
+OD3S:	.BLKB	1		;LAST OUTPUT TO VF2 CTRL BYTE
 OCMD:	.BLKB	1		;LAST OUTPUT TO CMD REG
-SIDEID:	.BLKB	1		;LASE SIDE SELECTED
+SIDEID:	.BLKB	1		;LAST SIDE SELECTED
 
 EILEN	==	.-EINFO
 
@@ -2204,11 +2200,11 @@ SEKHST:	.BLKB	2
 ;********************************************************
 
 ATABLE:
-SS0N:	.BLKB	1		;SYSTEM TRACK Z3S CONTROL BYTES
+SS0N:	.BLKB	1		;SYSTEM TRACK VF2 CONTROL BYTES
 SS0W:	.BLKB	1
 SS1N:	.BLKB	1
 SS1W:	.BLKB	1
-US0N:	.BLKB	1		;USER TRACK Z3S CONTROL BYTES
+US0N:	.BLKB	1		;USER TRACK VF2 CONTROL BYTES
 US0W:	.BLKB	1
 US1N:	.BLKB	1
 US1W:	.BLKB	1
@@ -2291,11 +2287,19 @@ WRKSP	==	.-HSTBUF
 
 OFFST	==	1F80H -BIOS
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;The following assembler directives give important
+;information about the size and location of the BIOS
+;after assembly. In particular, the printout will warn if
+;the BIOS Is too large for the allocated space (default 
+;3K). You will need the BIOS OFFSET and MOVCPM VALUE.
+;
+;The biggest change from the original is that we no 
+;longer have a console I/O parameters table, so there is
+;no need to print its location.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	.IF1,[
-
-;//MODIFIED TO PRINT HOW FAR OUT YOU ARE.
 
 	.DEFINE BADMEM[XX]=[
 	.PRNTX	/ !! ** BIOS EXCEEDS MEMORY SIZE BY XX BYTES, SET 'BIOSIZ' LARGER ** !!/	]
@@ -2334,8 +2338,6 @@ OFFST	==	1F80H -BIOS
 	.DEFINE WRKEND[XX]=[
 	.PRNTX	/XX IS END OF DISCARDED INITIALIZATION CODE /	]
 
-	.DEFINE CIOLOC[XX]=[
-	.PRNTX	/XX IS CIOTB START IN SYSGENABLE MEMORY IMAGE/	]
 
 	.IFG	(.-BIOS)-(6*256+BIOSIZ*1024),[
 
@@ -2347,7 +2349,6 @@ OFFST	==	1F80H -BIOS
 	SBIOS	\BIOS
 	CODEND	\HSTBUF-1
 	WRKEND	\BIOEND
-	CIOLOC	\(CSTAT+OFFST)
 	.RADIX	10
 	WORKSP	\WRKSP
 	.RADIX	16
@@ -2368,7 +2369,6 @@ OFFST	==	1F80H -BIOS
 	SBIOS	\BIOS
 	CODEND	\HSTBUF-1
 	WRKEND	\BIOEND
-	CIOLOC	\(CSTAT+OFFST)
 	.RADIX	10
 	WORKSP	\WRKSP
 	.RADIX	16
@@ -2388,4 +2388,4 @@ OFFST	==	1F80H -BIOS
 
 	.END
 
-
+	

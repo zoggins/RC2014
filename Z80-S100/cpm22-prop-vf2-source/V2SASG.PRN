@@ -97,14 +97,14 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    2E02                 SEC08   ==      XFERAD+2        ;SECTOR 8 HERE
                         
    0100    31 0100              LXI     SP,100H
-   0103    11 0345              LXI     D,MESS1
+   0103    11 02E4              LXI     D,MESS1
    0106    0E09                 MVI     C,PRINTS
    0108    CD 0005              CALL    BDOS
                         
    010B                 ISVFII:
-   010B    21 0429              LXI     H,OKDRIV
-   010E    CD 0255              CALL    GETOK
-   0111    32 042E              STA     DRIVE
+   010B    21 03C8              LXI     H,OKDRIV
+   010E    CD 0243              CALL    GETOK
+   0111    32 03CD              STA     DRIVE
    0114    FE41                 CPI     'A'
    0116    CA 0128              JZ      VFA
    0119    FE42                 CPI     'B'
@@ -126,7 +126,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; FIRST GET SECTOR 8 FOR DDB MERGE
                         
    0136                 RETRY:
-   0136    CD 020F              CALL    HOMEIT
+   0136    CD 01FD              CALL    HOMEIT
 
 
 
@@ -153,18 +153,20 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    014A    1E01                 MVI     E,1             ;START AT SECTOR 1
    014C    3E01                 MVI     A,1
    014E    D356                 OUT     WSECT
-   0150    CD 01DA              CALL    WRITER
+   0150    CD 01D1              CALL    WRITER
                         
    0153                 TRACK:
    0153                 SECTOR:
    0153    DB56                 IN      WSECT   ;UPDATE SECTOR REG IN 179X
    0155    3C                   INR     A
-   0156    D356                 OUT     WSECT   ; THIS IS SUPER TACKY, BUT IT
-   0158    D356                 OUT WSECT   ; APPEARS THAT THAT THERE NEEDS TO BE
-   015A    D356                 OUT WSECT       ; A DELAY BETWEEN OUT WSECT & IN WSECT.
-                                                        ; SO USING DUPLICATE OUT CALLS TO ACT
-                                                        ; AS DELAY
-   015C    FE08                 CPI     8               ;SEE IF DDB SECTOR
+   0156    D356                 OUT     WSECT
+                        
+   0158    C5                   PUSH    B
+   0159    06FF                 MVI             B,0FFH          ;Slight delay for hardware
+   015B                 DELYS:  
+   015B    10FE                 DJNZ DELYS
+   015D    C1                   POP             B
+                        
    015E    C2 017F              JNZ     TSTSEC
    0161    DB55                 IN      WTRACK
    0163    FE00                 CPI     0               ;LAST TRACK?
@@ -176,7 +178,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    016F    EDB0                 LDIR                    ;SET IN PLACE
                                 
    0171    21 2E02              LXI     H,SEC08
-   0174    CD 01DA              CALL    WRITER
+   0174    CD 01D1              CALL    WRITER
    0177    E1                   POP     H
    0178    11 0180              LXI     D,(128*3)
    017B    19                   DAD     D               ;MAKE NEXT LOC
@@ -190,9 +192,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    0183    C2 019F              JNZ     NXTSEC  ;NO
    0186    DB55                 IN      WTRACK  ;ALREADY READ TRACK 1?
    0188    B7                   ORA     A
-   0189    C2 0226              JNZ     BOOT    ;YES
-                        
-   018C    3E01                 MVI     A,1     ;START TRACK 1 WITH SECTOR 1
+   0189    C2 0214              JNZ     BOOT    ;YES
 
 
 
@@ -204,61 +204,61 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   018C    3E01                 MVI     A,1     ;START TRACK 1 WITH SECTOR 1
    018E    D356                 OUT     WSECT
    0190    3E5B                 MVI     A,5BH   ;STEP IN TO TRACK 1
    0192    D354                 OUT     WCMD
-   0194    CD 021B              CALL    WAITNB
+   0194    CD 0209              CALL    WAITNB
    0197    E69C                 ANI     9CH     ;STEP IN SUCCESSFUL?
    0199    C2 0136              JNZ     RETRY   ;NO, RETRY ENTIRE BOOT
    019C    C3 017F              JMP     TRACK1  ;GO READ TRACK 1
                         
    019F                 NXTSEC:
-   019F    CD 01DA              CALL    WRITER
+   019F    CD 01D1              CALL    WRITER
    01A2    C3 0153              JMP     SECTOR
                         
    01A5                 READER:
    01A5    3E0A                         MVI     A,10
-   01A7    32 042F                      STA     RECNT
+   01A7    32 03CE                      STA     RECNT
    01AA    22 2E00                      SHLD    XFERAD
    01AD                 READ0:
    01AD    2A 2E00                      LHLD    XFERAD
-   01B0    CD 02A7                      CALL    PRR
-   01B3    3E80                         MVI             A,WREAD ;ISSUE READ SECTOR COMMAND
-   01B5    D354                         OUT             WCMD
-   01B7    01 0057                      LXI             B,WDATA
-   01BA    EDB2                         INIR
-   01BC    EDB2                         INIR
+   01B0    3E80                         MVI             A,WREAD ;ISSUE READ SECTOR COMMAND
+   01B2    D354                         OUT             WCMD
+   01B4    01 0057                      LXI             B,WDATA
+   01B7    EDB2                         INIR
+   01B9    EDB2                         INIR
                                 
-   01BE    CD 021B                      CALL    WAITNB
-   01C1    E69D                         ANI             WSREAD+1        ;WAS READ SUCCESSFUL?
-   01C3    C2 01CA                      JNZ             RERR
-   01C6    CD 029A                      CALL    PRF
-   01C9    C9                           RET
-   01CA                 RERR:   
-   01CA    CD 029A                      CALL    PRF
-   01CD    3A 042F                      LDA             RECNT
-   01D0    3D                           DCR             A
-   01D1    32 042F                      STA             RECNT
-   01D4    C2 01AD                      JNZ             READ0           ;NO, RETRY
-   01D7    C3 0231                      JMP             REDBAD
+   01BB    CD 0209                      CALL    WAITNB
+   01BE    E69D                         ANI             WSREAD+1        ;WAS READ SUCCESSFUL?
+   01C0    C2 01C4                      JNZ             RERR
+   01C3    C9                           RET
+   01C4                 RERR:   
+   01C4    3A 03CE                      LDA             RECNT
+   01C7    3D                           DCR             A
+   01C8    32 03CE                      STA             RECNT
+   01CB    C2 01AD                      JNZ             READ0           ;NO, RETRY
+   01CE    C3 021F                      JMP             REDBAD
                         
-   01DA                 WRITER:
-   01DA    22 2E00                      SHLD    XFERAD
-   01DD    3E0A                         MVI             A,10
-   01DF    32 042F                      STA             RECNT
-   01E2                 WRITE0:
-   01E2    2A 2E00                      LHLD    XFERAD
-   01E5    CD 02AF                      CALL    PRW
-   01E8    3EA0                         MVI             A,WWRITE        ;ISSUE WRITE SECTOR COMMAND
-   01EA    D354                         OUT             WCMD
-   01EC    01 0057                      LXI             B,WDATA
-   01EF    EDB3                         OUTIR
-   01F1    EDB3                         OUTIR
+   01D1                 WRITER:
+   01D1    22 2E00                      SHLD    XFERAD
+   01D4    3E0A                         MVI             A,10
+   01D6    32 03CE                      STA             RECNT
+   01D9                 WRITE0:
+   01D9    2A 2E00                      LHLD    XFERAD
+   01DC    3EA0                         MVI             A,WWRITE        ;ISSUE WRITE SECTOR COMMAND
+   01DE    D354                         OUT             WCMD
+   01E0    01 0057                      LXI             B,WDATA
+   01E3    EDB3                         OUTIR
+   01E5    EDB3                         OUTIR
                                 
-   01F3    CD 021B                      CALL    WAITNB
-   01F6    E6FD                         ANI             WSWRIT+1        ;WAS WRITE SUCCESSFUL?
-   01F8    C2 01FF                      JNZ             WERR
-   01FB    CD 029A                      CALL    PRF
+   01E7    CD 0209                      CALL    WAITNB
+   01EA    E6FD                         ANI             WSWRIT+1        ;WAS WRITE SUCCESSFUL?
+   01EC    C2 01F0                      JNZ             WERR
+   01EF    C9                           RET
+   01F0                 WERR:   
+   01F0    3A 03CE                      LDA             RECNT
 
 
 
@@ -270,61 +270,61 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   01FE    C9                           RET
-   01FF                 WERR:   
-   01FF    CD 029A                      CALL    PRF
-   0202    3A 042F                      LDA             RECNT
-   0205    3D                           DCR             A
-   0206    32 042F                      STA             RECNT
-   0209    C2 01E2                      JNZ             WRITE0  ;NO, RETRY
-   020C    C3 023C                      JMP             WRBAD
+   01F3    3D                           DCR             A
+   01F4    32 03CE                      STA             RECNT
+   01F7    C2 01D9                      JNZ             WRITE0  ;NO, RETRY
+   01FA    C3 022A                      JMP             WRBAD
                         
-   020F                 HOMEIT:
-   020F    3E0B                 MVI     A,0BH   ;RESTORE THE DISC DRIVE
-   0211    D354                 OUT     WCMD
-   0213                 ..1LOP:
-   0213    3C                   INR     A
-   0214    C2 0213              JNZ     ..1LOP
+   01FD                 HOMEIT:
+   01FD    3E0B                 MVI     A,0BH   ;RESTORE THE DISC DRIVE
+   01FF    D354                 OUT     WCMD
+   0201                 ..1LOP:
+   0201    3C                   INR     A
+   0202    C2 0201              JNZ     ..1LOP
                         
-   0217    CD 021B              CALL    WAITNB
+   0205    CD 0209              CALL    WAITNB
                         
-   021A    C9                   RET
+   0208    C9                   RET
                         
                         ;SUBROUTINE TO WAIT UNTIL THE 179X INDICATES THAT IT
                         ;IS NOT BUSY. AT THAT TIME STATUS IS RETURNED TO THE CALLING PROGRAM
                         
-   021B    06C8         WAITNB: MVI     B,200   ;DELAY TILL VALID STATUS
-   021D    10FE         ..WAIT: DJNZ    ..WAIT
+   0209    06C8         WAITNB: MVI     B,200   ;DELAY TILL VALID STATUS
+   020B    10FE         ..WAIT: DJNZ    ..WAIT
                         
-   021F                 QUIKNB:
-   021F    DB54                 IN      WSTAT   ;GET STATUS
-   0221    CB47                 BIT     0,A     ;BUSY ?
-   0223    20FA                 JRNZ    QUIKNB  ;YES,KEEP WAITING
-   0225    C9                   RET
+   020D                 QUIKNB:
+   020D    DB54                 IN      WSTAT   ;GET STATUS
+   020F    CB47                 BIT     0,A     ;BUSY ?
+   0211    20FA                 JRNZ    QUIKNB  ;YES,KEEP WAITING
+   0213    C9                   RET
                         
-   0226                 FINI:
-   0226                 BOOT:
-   0226    11 03CE              LXI     D,MESS2
-   0229    0E09                 MVI     C,PRINTS
-   022B    CD 0005              CALL    BDOS
-   022E    C3 0244              JMP     TEXIT
-   0231                 REDBAD:
-   0231    11 03E2              LXI     D,MESS3
-   0234    0E09                 MVI     C,PRINTS
-   0236    CD 0005              CALL    BDOS
-   0239    C3 0244              JMP     TEXIT
-   023C                 WRBAD:
-   023C    11 0405              LXI     D,MESS4
-   023F    0E09                 MVI     C,PRINTS
-   0241    CD 0005              CALL    BDOS
-   0244                 TEXIT:
-   0244    3A 042E              LDA     DRIVE
-   0247    FE41                 CPI     'A'
-   0249    C2 0000              JNZ     0
-   024C    11 0313              LXI     D,MESSA
-   024F    0E09                 MVI     C,PRINTS
-   0251    CD 0005              CALL    BDOS
-   0254    76                   HLT
+   0214                 FINI:
+   0214                 BOOT:
+   0214    11 036D              LXI     D,MESS2
+   0217    0E09                 MVI     C,PRINTS
+   0219    CD 0005              CALL    BDOS
+   021C    C3 0232              JMP     TEXIT
+   021F                 REDBAD:
+   021F    11 0381              LXI     D,MESS3
+   0222    0E09                 MVI     C,PRINTS
+   0224    CD 0005              CALL    BDOS
+   0227    C3 0232              JMP     TEXIT
+   022A                 WRBAD:
+   022A    11 03A4              LXI     D,MESS4
+   022D    0E09                 MVI     C,PRINTS
+   022F    CD 0005              CALL    BDOS
+   0232                 TEXIT:
+   0232    3A 03CD              LDA     DRIVE
+   0235    FE41                 CPI     'A'
+   0237    C2 0000              JNZ     0
+   023A    11 02B2              LXI     D,MESSA
+   023D    0E09                 MVI     C,PRINTS
+   023F    CD 0005              CALL    BDOS
+   0242    76                   HLT
+                        
+                        ;****************************************************
+                        ; GET A CHARACTER FROM THE CONSOLE. IF THE CHARACTER
+                        ; IS UNACCEPTABLE, BEEP AND WAIT FOR ANOTHER. RETURN
 
 
 
@@ -336,10 +336,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-                        
-                        ;****************************************************
-                        ; GET A CHARACTER FROM THE CONSOLE. IF THE CHARACTER
-                        ; IS UNACCEPTABLE, BEEP AND WAIT FOR ANOTHER. RETURN
                         ; TO CP/M IF ^C IS ENTERED. (BDOS DOES RETURN ON ^C)
                         ;****************************************************
                         ; THE CCIR Z80 INSTRUCTION CHECKS ALL ACCEPTABLE
@@ -349,48 +345,52 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; INPUT ON CONSOLE, THEN THE ROUTINE IS RE-ENTERED
                         ;====================================================
                         
-   0255                 GETOK:  
-   0255    E5           ..RTRY: PUSH    H       ;SAVE OK TABLE ADDR
-   0256    4E                   MOV     C,M     ;GET COUNT
-   0257    23                   INX     H
-   0258    0600                 MVI     B,0
-   025A    CD 027D              CALL    CI      ;GET A CHAR
-   025D    FE51                 CPI     'Q'     ;IS IT QUIT 
-   025F    CA 02E9              JZ      GOBAK   ;YES, GO BACK TO CP/M
-   0262    EDB1                 CCIR            ;IS IT OKAY
-   0264    E1                   POP     H
-   0265    C8                   RZ              ;YES, RETURN IT
+   0243                 GETOK:  
+   0243    E5           ..RTRY: PUSH    H       ;SAVE OK TABLE ADDR
+   0244    4E                   MOV     C,M     ;GET COUNT
+   0245    23                   INX     H
+   0246    0600                 MVI     B,0
+   0248    CD 026B              CALL    CI      ;GET A CHAR
+   024B    FE51                 CPI     'Q'     ;IS IT QUIT 
+   024D    CA 0288              JZ      GOBAK   ;YES, GO BACK TO CP/M
+   0250    EDB1                 CCIR            ;IS IT OKAY
+   0252    E1                   POP     H
+   0253    C8                   RZ              ;YES, RETURN IT
                         
-   0266    0E07                 MVI     C,BELL  ;NO, RING BELL
-   0268    CD 0289              CALL    CO
-   026B    0E08                 MVI     C,8     ;BACK SPACE
-   026D    CD 0289              CALL    CO
-   0270    0E20                 MVI     C,' '
-   0272    CD 0289              CALL    CO
-   0275    0E08                 MVI     C,8
-   0277    CD 0289              CALL    CO
-   027A    C3 0255              JMP     ..RTRY  ;KEEP TRYING
+   0254    0E07                 MVI     C,BELL  ;NO, RING BELL
+   0256    CD 0277              CALL    CO
+   0259    0E08                 MVI     C,8     ;BACK SPACE
+   025B    CD 0277              CALL    CO
+   025E    0E20                 MVI     C,' '
+   0260    CD 0277              CALL    CO
+   0263    0E08                 MVI     C,8
+   0265    CD 0277              CALL    CO
+   0268    C3 0243              JMP     ..RTRY  ;KEEP TRYING
                         
                         ;***************************************************
                         ;       GET A CHARACTER FROM THE CONSOLE.
                         ;***************************************************
                         
-   027D    C5           CI:     PUSH    B
-   027E    D5                   PUSH    D
-   027F    E5                   PUSH    H
-   0280    0E01                 MVI     C,1     ;CONSOLE INPUT
-   0282    CD 0005              CALL    BDOS    ;GET THE CHARACTER
-   0285    E1                   POP     H
-   0286    D1                   POP     D
-   0287    C1                   POP     B
-   0288    C9                   RET
+   026B    C5           CI:     PUSH    B
+   026C    D5                   PUSH    D
+   026D    E5                   PUSH    H
+   026E    0E01                 MVI     C,1     ;CONSOLE INPUT
+   0270    CD 0005              CALL    BDOS    ;GET THE CHARACTER
+   0273    E1                   POP     H
+   0274    D1                   POP     D
+   0275    C1                   POP     B
+   0276    C9                   RET
                         
                         ;**************************************************
                         ;      WRITE A CHARACTER TO THE CONSOLE.
                         ;**************************************************
                         
-   0289    C5           CO:     PUSH    B
-   028A    D5                   PUSH    D
+   0277    C5           CO:     PUSH    B
+   0278    D5                   PUSH    D
+   0279    E5                   PUSH    H
+   027A    79                   MOV     A,C
+   027B    E67F                 ANI     7FH
+   027D    5F                   MOV     E,A     ;MOVE CHARACTER TO E
 
 
 
@@ -402,143 +402,49 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-   028B    E5                   PUSH    H
-   028C    79                   MOV     A,C
-   028D    E67F                 ANI     7FH
-   028F    5F                   MOV     E,A     ;MOVE CHARACTER TO E
-   0290    0E02                 MVI     C,2     ;CONSOLE OUTPUT
-   0292    CD 0005              CALL    BDOS    ;OUTPUT THE CHARACTER
-   0295    E1                   POP     H
-   0296    D1                   POP     D
-   0297    C1                   POP     B
-   0298    79                   MOV     A,C     ;FIX UP ACC
-   0299    C9                   RET
+   027E    0E02                 MVI     C,2     ;CONSOLE OUTPUT
+   0280    CD 0005              CALL    BDOS    ;OUTPUT THE CHARACTER
+   0283    E1                   POP     H
+   0284    D1                   POP     D
+   0285    C1                   POP     B
+   0286    79                   MOV     A,C     ;FIX UP ACC
+   0287    C9                   RET
                         
-   029A    C5           PRF:            PUSH    B
-   029B    F5                                   PUSH    PSW
-   029C    0E46                                 MVI             C, 'F'
-   029E    CD 0289                              CALL    CO
-   02A1    F1                                   POP             PSW
-   02A2    CD 02C1                              CALL    PRB
-                        ;                       MVI             C, CR
-                        ;                       CALL    CO
-                        ;                       MVI             C, LF
-                        ;                       CALL    CO
-                        ;                       MVI             C, LF
-                        ;                       CALL    CO               
-   02A5    C1                                   POP             B
-   02A6    C9                                   RET
+   0288                 GOBAK:
+   0288    11 0293              LXI     D,QUITER
+   028B    0E09                 MVI     C,PRINTS
+   028D    CD 0005              CALL    BDOS
+   0290    C3 0000              JMP     0
                         
-   02A7    C5           PRR:            PUSH    B
-   02A8    0E52                                 MVI             C, 'R'
-   02AA    CD 0289                              CALL    CO
-                        ;                       IN              WTRACK
-                        ;                       CALL    PRB
-                        ;                       MVI             C, '&'
-                        ;                       CALL    CO
-                        ;                       IN              WSECT
-                        ;                       CALL    PRB
-                        ;                       MVI             C, '!'
-                        ;                       CALL    CO
-   02AD    C1                                   POP             B
-   02AE    C9                                   RET
-                        
-   02AF    C5           PRW:            PUSH    B
-   02B0    0E57                                 MVI             C, 'W'
-   02B2    CD 0289                              CALL    CO
-   02B5    DB55                                 IN              WTRACK
-   02B7    CD 02C1                              CALL    PRB
-                        ;                       MVI             C, '+'
-                        ;                       CALL    CO
-   02BA    DB56                                 IN              WSECT
-   02BC    CD 02C1                              CALL    PRB
-                        ;                       MVI             C, '-'
-                        ;                       CALL    CO
-   02BF    C1                                   POP             B
-   02C0    C9                                   RET
-                        
-
-
-
-
-
-
-TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 8
-
-
-
-
-   02C1    C5           PRB:            PUSH    B
-   02C2    47                                   MOV             B, A
-   02C3    E6F0                                 ANI             0F0H
-   02C5    0F                                   RRC
-   02C6    0F                                   RRC
-   02C7    0F                                   RRC
-   02C8    0F                                   RRC
-   02C9    C630                                 ADI             030H
-   02CB    FE3A                                 CPI             ':'        ; Compare with '9'+1 = ':'
-   02CD    C2 02D2                              JNZ             PRH
-   02D0    C607                                 ADI             7
-   02D2    4F           PRH:            MOV             C, A
-   02D3    CD 0289                              CALL    CO
-   02D6    78                                   MOV             A, B
-   02D7    E60F                                 ANI             00FH
-   02D9    C630                                 ADI             030H
-   02DB    FE3A                                 CPI             ':'        ; Compare with '9'+1 = ':'
-   02DD    C2 02E2                              JNZ             PRL
-   02E0    C607                                 ADI             7
-   02E2    4F           PRL:            MOV             C, A
-   02E3    CD 0289                              CALL    CO
-   02E6    78                                   MOV             A, B
-   02E7    C1                                   POP             B
-   02E8    C9                                   RET
-                        
-   02E9                 GOBAK:
-   02E9    11 02F4              LXI     D,QUITER
-   02EC    0E09                 MVI     C,PRINTS
-   02EE    CD 0005              CALL    BDOS
-   02F1    C3 0000              JMP     0
-                        
-   02F4                 QUITER:
-   02F4    0D0A0A0A             .BYTE   CR,LF,LF,LF
-   02F8    45584954494E         .ASCII  \EXITING TO COMMAND PROMPT $\
+   0293                 QUITER:
+   0293    0D0A0A0A             .BYTE   CR,LF,LF,LF
+   0297    45584954494E         .ASCII  \EXITING TO COMMAND PROMPT $\
                         
                         
-   0313                 MESSA:
-   0313    0D0A0A               .BYTE   CR,LF,LF
-   0316    445249564520         .ASCII  \DRIVE "A" WAS UPDATED - HALTING FOR A REBOOT :$\
+   02B2                 MESSA:
+   02B2    0D0A0A               .BYTE   CR,LF,LF
+   02B5    445249564520         .ASCII  \DRIVE "A" WAS UPDATED - HALTING FOR A REBOOT :$\
                         
-   0345    1A0D0A0A     MESS1:  .BYTE   CLEAR,CR,LF,LF
-   0349    424520535552         .ASCII  \BE SURE A DISK IS ALREADY IN PLACE\
-   036B    0D0A0A               .BYTE   CR,LF,LF
-   036E    415320544845         .ASCII  \AS THE SYSGEN STARTS ONCE THE DRIVE IS TYPED IN\
-   039D    0D0A0A               .BYTE   CR,LF,LF
-   03A0    53595347454E         .ASCII  \SYSGEN TO DRIVE A, B, C OR D ENTER CHOICE => $\
+   02E4    1A0D0A0A     MESS1:  .BYTE   CLEAR,CR,LF,LF
+   02E8    424520535552         .ASCII  \BE SURE A DISK IS ALREADY IN PLACE\
+   030A    0D0A0A               .BYTE   CR,LF,LF
+   030D    415320544845         .ASCII  \AS THE SYSGEN STARTS ONCE THE DRIVE IS TYPED IN\
+   033C    0D0A0A               .BYTE   CR,LF,LF
+   033F    53595347454E         .ASCII  \SYSGEN TO DRIVE A, B, C OR D ENTER CHOICE => $\
                         
-   03CE    0D0A0A       MESS2:  .BYTE   CR,LF,LF
-   03D1    53595347454E         .ASCII  \SYSGEN COMPLETE $\
+   036D    0D0A0A       MESS2:  .BYTE   CR,LF,LF
+   0370    53595347454E         .ASCII  \SYSGEN COMPLETE $\
                         
-   03E2    0D0A0A       MESS3:  .BYTE   CR,LF,LF
-   03E5    4641494C4544         .ASCII  \FAILED ON SECTOR READ, QUITING $\
+   0381    0D0A0A       MESS3:  .BYTE   CR,LF,LF
+   0384    4641494C4544         .ASCII  \FAILED ON SECTOR READ, QUITING $\
                         
-   0405    0D0A0A       MESS4:  .BYTE   CR,LF,LF
-   0408    4641494C4544         .ASCII  \FAILED ON SECTOR WRITE, QUITING $\
-
-
-
-
-
-
-TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 9
-
-
-
-
+   03A4    0D0A0A       MESS4:  .BYTE   CR,LF,LF
+   03A7    4641494C4544         .ASCII  \FAILED ON SECTOR WRITE, QUITING $\
                         
-   0429    0441424344   OKDRIV: .BYTE   4,'A','B','C','D'
+   03C8    0441424344   OKDRIV: .BYTE   4,'A','B','C','D'
                         
-   042E                 DRIVE:  .BLKB   1
-   042F    0A           RECNT:  .BYTE   10
+   03CD                 DRIVE:  .BLKB   1
+   03CE    0A           RECNT:  .BYTE   10
                                 
                         
                         
@@ -557,62 +463,23 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 10
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 8
 
 +++++ SYMBOL TABLE +++++
 
 
-BDOS   0005         BELL   0007         BOOT   0226         CI     027D         CLEAR  001A         CO     0289      
-CR     000D         DCNTL  0053         DRIVE  042E         FINI   0226         GETDRV 0134         GETOK  0255      
-GOBAK  02E9         GOON   017F         HOMEIT 020F         ISVFII 010B         LF     000A         MESS1  0345      
-MESS2  03CE         MESS3  03E2         MESS4  0405         MESSA  0313         NXTSEC 019F         OKDRIV 0429      
-PRB    02C1         PRF    029A         PRH    02D2         PRINTS 0009         PRL    02E2         PRR    02A7      
-PRW    02AF         QUIKNB 021F         QUITER 02F4         READ0  01AD         READER 01A5         RECNT  042F      
-REDBAD 0231         RERR   01CA         RETRY  0136         SEC08  2E02         SECTOR 0153         TEXIT  0244      
-TRACK  0153         TRACK1 017F         TSTSEC 017F         VFA    0128         VFB    012D         VFC    0132      
-WAITNB 021B         WBBUSY 0000         WBDEL  0002         WBRNF  0004         WBSID1 0001         WBWRIT 0005      
-WCMD   0054         WDATA  0057         WDC    0054         WERR   01FF         WFCINT 00D0         WHOME  0008      
-WLOAD  0018         WRBAD  023C         WREAD  0080         WRITE0 01E2         WRITER 01DA         WSECT  0056      
-WSEEK  0018         WSREAD 009C         WSSEEK 0098         WSTAT  0054         WSWRIT 00FC         WTRACK 0055      
-WUNLD  0010         WWRITE 00A0         XFERAD 2E00         
+BDOS   0005         BELL   0007         BOOT   0214         CI     026B         CLEAR  001A         CO     0277      
+CR     000D         DCNTL  0053         DELYS  015B         DRIVE  03CD         FINI   0214         GETDRV 0134      
+GETOK  0243         GOBAK  0288         GOON   017F         HOMEIT 01FD         ISVFII 010B         LF     000A      
+MESS1  02E4         MESS2  036D         MESS3  0381         MESS4  03A4         MESSA  02B2         NXTSEC 019F      
+OKDRIV 03C8         PRINTS 0009         QUIKNB 020D         QUITER 0293         READ0  01AD         READER 01A5      
+RECNT  03CE         REDBAD 021F         RERR   01C4         RETRY  0136         SEC08  2E02         SECTOR 0153      
+TEXIT  0232         TRACK  0153         TRACK1 017F         TSTSEC 017F         VFA    0128         VFB    012D      
+VFC    0132         WAITNB 0209         WBBUSY 0000         WBDEL  0002         WBRNF  0004         WBSID1 0001      
+WBWRIT 0005         WCMD   0054         WDATA  0057         WDC    0054         WERR   01F0         WFCINT 00D0      
+WHOME  0008         WLOAD  0018         WRBAD  022A         WREAD  0080         WRITE0 01D9         WRITER 01D1      
+WSECT  0056         WSEEK  0018         WSREAD 009C         WSSEEK 0098         WSTAT  0054         WSWRIT 00FC      
+WTRACK 0055         WUNLD  0010         WWRITE 00A0         XFERAD 2E00         
 
 
 
@@ -658,4 +525,5 @@ WUNLD  0010         WWRITE 00A0         XFERAD 2E00
 
 
 
-                                                                         
+
+           
