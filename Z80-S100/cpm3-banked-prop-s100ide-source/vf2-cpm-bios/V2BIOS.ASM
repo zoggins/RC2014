@@ -44,7 +44,10 @@
 ; - REMOVED FDC E.O.O. INTERRUPT SUPPORT, THIS VERSION
 ; - REMOVED 'FOREIGN' FORMAT SUPPORT, THIS VERSION
 ; - ADDED Z3S & VF II TEST & CONFIGURE AT STARTUP  
-
+;
+; C. MALLERY MAR. 2022
+; - Changed to use FD1791 instead of FD1795
+; - Merged in some of Glitch Works Cleanup
 
 	.PABS
 	.PHEX
@@ -2024,8 +2027,12 @@ SIGNON:	CALL	MSG
 	.ASCII	'K TPA'
 	.BYTE	CR,LF
 
-	.ASCII	'VersaFloppy II BIOS'
-	.BYTE	CR,LF,80H	
+	.BYTE   CR,LF
+	.ASCII  'A: & B: = 8" SDSS Floppies, C: = 5" DDDS Floppy'
+	.BYTE   CR,LF
+	.ASCII  'Using a VersaFloppy II Board with a WD FD1791.'
+	.BYTE   CR,LF
+	.BYTE   CR,LF,80H
 
 	RET
 

@@ -52,15 +52,15 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; - REMOVED FDC E.O.O. INTERRUPT SUPPORT, THIS VERSION
                         ; - REMOVED 'FOREIGN' FORMAT SUPPORT, THIS VERSION
                         ; - ADDED Z3S & VF II TEST & CONFIGURE AT STARTUP  
-                        
+                        ;
+                        ; C. MALLERY MAR. 2022
+                        ; - Changed to use FD1791 instead of FD1795
+                        ; - Merged in some of Glitch Works Cleanup
                         
                                 .PABS
                                 .PHEX
                                 .XLINK
                                 .Z80
-                        
-   0022                 CPVERS  ==      22H             ;CP/M VERSION NUMBER
-   0000                 BIVERS  ==      0H              ;BIOS VERSION NUMBER
 
 
 
@@ -72,6 +72,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   0022                 CPVERS  ==      22H             ;CP/M VERSION NUMBER
+   0000                 BIVERS  ==      0H              ;BIOS VERSION NUMBER
    FFFF                 TRUE    ==      -1              ;TRUE AND FALSE VALUES
    0000                 FALSE   ==      #TRUE
    FFFF                 Z3S     ==      TRUE            ;THIS VERSION FOR PIO
@@ -124,9 +127,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                                                         ;70 ARE AVAILABLE FOR CP/M & BIOS
    0004                 CPMDSK  ==      0004H           ;CURRENT DISK NUMBER ADDR
    0003                 IOBYTE  ==      0003H           ;INTEL I/O BYTE ADDR
-                        
-                        ; USE SOME CONTROL CHARACTERS
-                        
 
 
 
@@ -138,6 +138,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+                        ; USE SOME CONTROL CHARACTERS
+                        
    000D                 CR      ==      13
    000A                 LF      ==      10
    0007                 BELL    ==      7
@@ -190,9 +193,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         ;********************************************************
                         ;                 FLOPPY DISK EQUATES.
-                        ;********************************************************
-                        ;********************************************************
-                        ;              PIO CONTROLLER PORTS
 
 
 
@@ -204,6 +204,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ;********************************************************
+                        ;********************************************************
+                        ;              PIO CONTROLLER PORTS
                         ;********************************************************
                         
    0053                 DCMD    ==      53H             ;Z3S COMMAND/CONTROL PORT
@@ -256,9 +259,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    EE09    C3 F518              JMP     CONIN           ;CONSOLE CHARACTER IN
    EE0C    C3 F51B      BIOOUT: JMP     CONOUT          ;CONSOLE CHARACTER OUT,
    EE0F    C3 F514              JMP     LIST            ;LIST CHARACTER OUT
-   EE12    C3 F514              JMP     PUNCH           ;PUNCH CHARACTER OUT
-   EE15    C3 F514              JMP     READER          ;READER CHARACTER IN
-   EE18    C3 EFFE              JMP     HOME            ;MOVE HEAD TO HOME POSITION
 
 
 
@@ -270,6 +270,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   EE12    C3 F514              JMP     PUNCH           ;PUNCH CHARACTER OUT
+   EE15    C3 F514              JMP     READER          ;READER CHARACTER IN
+   EE18    C3 EFFE              JMP     HOME            ;MOVE HEAD TO HOME POSITION
    EE1B    C3 EF11              JMP     SELDSK          ;SELECT DISK
    EE1E    C3 F00D              JMP     SETTRK          ;SET TRACK NUMBER
    EE21    C3 F012              JMP     SETSEC          ;SET SECTOR NUMBER
@@ -322,9 +325,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; CONTROL BITS TO FORM A COMPLETE Z3S CONTROL BYTE. THE
                         ; BITS ARE DEFINED AS FOLLOWS:
                         ;
-                        ;                      NOTE
-                        ;
-                        ; THIS BIOS IS CODED FOR THE VERSAFLOPPY II.
 
 
 
@@ -336,6 +336,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ;                      NOTE
+                        ;
+                        ; THIS BIOS IS CODED FOR THE VERSAFLOPPY II.
                         ; REFERANCES TO Z3S OR Z4S FUNCTIONALITY THROUGHOUT
                         ; THE SOURCE ARE IN FACT FOR VF-II, AS THE OPERATING
                         ; TABLE BELOW SETS ALL SUCH FUNCTIONALITY FOR
@@ -388,9 +391,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; BITS IN THE Z3S BYTE WHICH SELECT THE ACTIVE DISK.
                         ; THESE BITS ARE COMBINED WITH OPERATING CONTROL BITS
                         ; TO FORM A COMPLETE Z3S CONTROL BYTE.
-                        ;********************************************************
-                        
-   EE4B                 ADRTAB: 
 
 
 
@@ -402,6 +402,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ;********************************************************
+                        
+   EE4B                 ADRTAB: 
    EE4B    0E                   .BYTE   1110B           ;DRIVE A
    EE4C    0D                   .BYTE   1101B           ;DRIVE B
    EE4D    0B                   .BYTE   1011B           ;DRIVE C
@@ -454,9 +457,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; THE SYSTEM TRACKS ON 8" DISKS ARE RECORDED IN SINGLE
                         ; DENSITY, WHILE THE SYSTEM TRACKS ON 5" DISKS ARE
                         ; RECORDED IN DOUBLE DENSITY. ONLY SIDE 0 OF A 
-                        ; DISK IS USED FOR THE SYSTEM.
-                        ;********************************************************
-                        
 
 
 
@@ -468,6 +468,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ; DISK IS USED FOR THE SYSTEM.
+                        ;********************************************************
+                        
    EE63                 WBOOT:
    EE63    F3                   DI
    EE64    31 0080              LXI     SP,80H          ;VALIDATE THE STACK POINTER
@@ -520,9 +523,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;TO KILL AUTO-START ROUTINES
                         ;********************************************************
                         
-   EEA3    AF                   XRA     A               ;CLEAR ACC.
-   EEA4    32 D807              STA     CCP+7           ;STORE A CHAR. COUNTER LOCATION
-                        
 
 
 
@@ -534,6 +534,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   EEA3    AF                   XRA     A               ;CLEAR ACC.
+   EEA4    32 D807              STA     CCP+7           ;STORE A CHAR. COUNTER LOCATION
+                        
                         ;********************************************************
                         ;       COMMON CODE BEFORE ENTERING CP/M.
                         ;********************************************************
@@ -586,9 +589,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; KEEP BOTH BCOMM & BCOMN FOR NOW
                         ; AT ONE TIME BCOMM HAD ADDITIONAL FUCTIONS, THEN
                         ; IT FELL THROUGH TO BCOMN. MAY DO THAT AGAIN
-                        
-   EEE2                 BCOMN:
-   EEE2    CD EEF0              CALL    DSKRST          ;RESET DISK SYSTEM
 
 
 
@@ -600,6 +600,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   EEE2                 BCOMN:
+   EEE2    CD EEF0              CALL    DSKRST          ;RESET DISK SYSTEM
    EEE5    0E00                 MVI     C,0             ;SELECT DISK 0, GET DDB
    EEE7    CD EF11              CALL    SELDSK
    EEEA    7C                   MOV     A,H             ;TEST FOR SUCCESSFUL SELECT
@@ -652,9 +655,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         
    EF11                 SELDSK:
-   EF11    79                   MOV     A,C
-   EF12    21 EE4F              LXI     H,ACTDSK        ;POINT TO ACTUAL DISK #
-   EF15    BE                   CMP     M               ;IN RANGE(y/n)
 
 
 
@@ -666,6 +666,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   EF11    79                   MOV     A,C
+   EF12    21 EE4F              LXI     H,ACTDSK        ;POINT TO ACTUAL DISK #
+   EF15    BE                   CMP     M               ;IN RANGE(y/n)
    EF16    D2 EFF7              JNC     BAD             ;NO
    EF19    32 F9FC              STA     SEKDSK          ;D.R. HOST DISK
    EF1C    32 F9C4              STA     PDISK
@@ -718,9 +721,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    EF62    21 F566              LXI     H,STDDDB        ;STANDARD 8" DDB ADDRESS
                         
                         
-                        ;TEST IF 5" OR 8" DISK IN SPEED TABLE
-                        
-   EF65    CB78                 BIT     7,B             ;8" DISK(y/n)
 
 
 
@@ -732,6 +732,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ;TEST IF 5" OR 8" DISK IN SPEED TABLE
+                        
+   EF65    CB78                 BIT     7,B             ;8" DISK(y/n)
    EF67    2805                 JRZ     EIG             ;IF YES GO DO 8"
    EF69    3E15                 MVI     A,00010101B     ;INITIAL 5" FLAG
    EF6B    21 F596              LXI     H,ALTDDB
@@ -784,9 +787,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    EFB9    3A F742              LDA     RDBUFF+384+4    ;TEST FOR COMPATIBILITY
    EFBC    E6FE                 ANI     11111110B
    EFBE    2037                 JRNZ    BAD             ;GIVE UP ON THIS DISK
-                        
-   EFC0    CD F448      COMP:   CALL    PUTAPB          ;UPDATE TRACK, SPEED IN APB
-                        
 
 
 
@@ -798,6 +798,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   EFC0    CD F448      COMP:   CALL    PUTAPB          ;UPDATE TRACK, SPEED IN APB
+                        
    EFC3    2A F9D7              LHLD    APBADR          ;GET APB ADDR FOR THIS DISK
    EFC6    11 000A              LXI     D,FLAG-ATABLE   ;POINT TO WHERE FLAG GOES
    EFC9    19                   DAD     D
@@ -850,9 +853,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; DISKS.
                         ;********************************************************
                         
-   EFFE                 HOME:
-   EFFE    CD F12C              CALL    CLOSE
-   F001    3A F9F6              LDA     HSTWRT          ;TEST FOR PENDING WRITE
 
 
 
@@ -864,6 +864,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   EFFE                 HOME:
+   EFFE    CD F12C              CALL    CLOSE
+   F001    3A F9F6              LDA     HSTWRT          ;TEST FOR PENDING WRITE
    F004    B7                   ORA     A
    F005    2003                 JRNZ    HOMED
    F007    32 F9F5              STA     HSTACT          ;CLEAR HOST ACTIVE FLAG
@@ -916,9 +919,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F026    C9                   RET
                         
                         ;********************************************************
-                        ; CP/M ENTRY POINT FOR SECTOR READS. BUFFERED SECTOR
-                        ; READS ARE DONE HERE. BUFFERED READ OPERATIONS REQUIRE
-                        ; READING THE SECTOR FROM DISK INTO THE READ BUFFER,
 
 
 
@@ -930,6 +930,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ; CP/M ENTRY POINT FOR SECTOR READS. BUFFERED SECTOR
+                        ; READS ARE DONE HERE. BUFFERED READ OPERATIONS REQUIRE
+                        ; READING THE SECTOR FROM DISK INTO THE READ BUFFER,
                         ; AND THEN PROVIDING 128 BYTE LOGICAL SECTORS TO THE
                         ; CALLING PROGRAM ON REQUEST.
                         ;********************************************************
@@ -982,9 +985,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F05E                 CKUN:                           ;SEE IF UNALLOCATED RECORDS REMAIN
                         
    F05E    3A F9EB              LDA     UNACNT          ;GET UNALLOCATED RECORDS LEFT
-   F061    B7                   ORA     A
-   F062    CA F09B              JZ      ALOC            ;NO UNALLOCATED LEFT
-                        
 
 
 
@@ -996,6 +996,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F061    B7                   ORA     A
+   F062    CA F09B              JZ      ALOC            ;NO UNALLOCATED LEFT
+                        
                         
                         ;WE STILL HAVE UNALLOCATED RECORDS LEFT
                         
@@ -1048,9 +1051,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
    F095                 NOVR:
    F095    AF                   XRA     A
-   F096    32 F9F3              STA     RSFLAG          ;SHOW WE DON'T READ A SECTOR
-   F099    1808                 JMPR    RWOPER
-                        
 
 
 
@@ -1062,6 +1062,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F096    32 F9F3              STA     RSFLAG          ;SHOW WE DON'T READ A SECTOR
+   F099    1808                 JMPR    RWOPER
+                        
                         
                         ;NOT AN UNALLOCATED RECORD, DO A PRE-READ
                         
@@ -1114,9 +1117,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F0C8    BE                   CMP     M
    F0C9    2824                 JRZ     MATCH
                         
-                        
-                        ;HOST PARAMETERS DO NOT MATCH CURRENT R/W PARAMETERS
-                        ;SEE IF WE HAVE TO FLUSH THE HOST BUFFER
 
 
 
@@ -1128,6 +1128,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+                        ;HOST PARAMETERS DO NOT MATCH CURRENT R/W PARAMETERS
+                        ;SEE IF WE HAVE TO FLUSH THE HOST BUFFER
                         
    F0CB                 NOMAT:
    F0CB    3A F9F6              LDA     HSTWRT          ;SEE IF HOST BUFFER WAS WRITTEN
@@ -1180,9 +1183,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         
                         ;NOW CHECK WRITE TYPE FOR DIRECTORY UPDATE
-                        
-   F115    3A F9D9              LDA     WRTYPE          ;GET TYPE OF WRITE
-   F118    3D                   DCR     A               ;IS IT TO THE DIRECTORY
 
 
 
@@ -1194,6 +1194,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   F115    3A F9D9              LDA     WRTYPE          ;GET TYPE OF WRITE
+   F118    3D                   DCR     A               ;IS IT TO THE DIRECTORY
    F119    2802                 JRZ     WRITIT          ;IF SO WRITE IT OUT
                         
    F11B    1806                 JMPR    GOODOP          ;IF NOT SHOW A SUCCESSFUL R/W OPERATION 
@@ -1246,9 +1249,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F162    3A F9CD              LDA     CSECT
    F165    32 F9C7              STA     PSECT
                         
-   F168    CD F1BB              CALL    PREAD           ;READ SECTOR INTO READ BUFFER
-   F16B    C9                   RET
-                        
 
 
 
@@ -1260,6 +1260,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F168    CD F1BB              CALL    PREAD           ;READ SECTOR INTO READ BUFFER
+   F16B    C9                   RET
+                        
                         
                         ;GET ACTUAL TRACK TO SEEK
                         
@@ -1312,9 +1315,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F1B3    32 F9C3              STA     CREC            ;SAVE RECORD NUMBER
    F1B6    C9                   RET
                         
-                        
-                        ;********************************************************
-                        ; FLOPPY DISK PHYSICAL READ AND WRITE ROUTINE. ALL
 
 
 
@@ -1326,6 +1326,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+                        ;********************************************************
+                        ; FLOPPY DISK PHYSICAL READ AND WRITE ROUTINE. ALL
                         ; FLOPPY DISK I/O IS PERFORMED BY CALLS TO THIS
                         ; ROUTINE. ON ENTRY PDISK, PTRACK, PSECT, AND PDMA
                         ; MUST BE VALID.
@@ -1378,9 +1381,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F1D3    3A EE39              LDA     HOMER           ;NUMBER OF HOME OPERATIONS
    F1D6    32 F9DE              STA     MRML
    F1D9    32 EE51              STA     KBIT
-   F1DC                 MAC:
-   F1DC    3A EE3A              LDA     RETRYIT         ;RETRIES BETWEEN HOME OPERATIONS
-   F1DF    32 F9D0              STA     RMACRO
 
 
 
@@ -1392,6 +1392,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F1DC                 MAC:
+   F1DC    3A EE3A              LDA     RETRYIT         ;RETRIES BETWEEN HOME OPERATIONS
+   F1DF    32 F9D0              STA     RMACRO
                         
    F1E2    CD F301              CALL    SETD3S          ;SET Z3S CONTROL BYTE
    F1E5    21 FA09              LXI     H,TRACK         ;GET OLD TRACK NUMBER
@@ -1444,9 +1447,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F22C    D353                 OUT             DCMD
    F22E    C3 F237              JMP             SETSIDE
    F231                 SSIDEA:
-   F231    DB53                 IN              DCMD            ; SET SIDE FOR 1791
-   F233    CBE7                 SET             4,A                     ; SET SIDE A
-   F235    D353                 OUT             DCMD
 
 
 
@@ -1458,6 +1458,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F231    DB53                 IN              DCMD            ; SET SIDE FOR 1791
+   F233    CBE7                 SET             4,A                     ; SET SIDE A
+   F235    D353                 OUT             DCMD
                         
    F237                 SETSIDE:
    F237    C5                   PUSH    B
@@ -1510,9 +1513,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F278    280E                 JRZ     PR12
    F27A    0600                 MVI     B,0H
    F27C    3D                   DCR     A
-   F27D    2809                 JRZ     PR25
-   F27F    3D                   DCR     A
-   F280    2804                 JRZ     PR51
 
 
 
@@ -1524,6 +1524,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F27D    2809                 JRZ     PR25
+   F27F    3D                   DCR     A
+   F280    2804                 JRZ     PR51
    F282    EDB2                 INIR
    F284    EDB2                 INIR
    F286    EDB2         PR51:   INIR
@@ -1576,9 +1579,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         ;           RETRY THE I/O IF AN ERROR OCCURED.
                         ;********************************************************
-                        
-   F2B0                 NOPRNT:
-   F2B0    21 F9D0              LXI     H,RMACRO        ;POINT TO MACRO RETRY COUNT
 
 
 
@@ -1590,6 +1590,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   F2B0                 NOPRNT:
+   F2B0    21 F9D0              LXI     H,RMACRO        ;POINT TO MACRO RETRY COUNT
    F2B3    35                   DCR     M               ;DECREMENT IT
    F2B4    C2 F214              JNZ     MIC             ;RE-DO READ/WRITE
                         
@@ -1642,9 +1645,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F2EC    FE04                 CPI     4               ;A ^D (y/n)
    F2EE    280D                 JRZ     FXER            ;IGNORE ERROR
    F2F0    FE0D                 CPI     13              ;SEE IF 'CR'
-   F2F2    20EB                 JRNZ    CRIN            ;IF NOT TRY AGAIN
-   F2F4    21 F9DE              LXI     H,MRML
-   F2F7    35                   DCR     M
 
 
 
@@ -1656,6 +1656,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F2F2    20EB                 JRNZ    CRIN            ;IF NOT TRY AGAIN
+   F2F4    21 F9DE              LXI     H,MRML
+   F2F7    35                   DCR     M
    F2F8    37                   STC
    F2F9    C8                   RZ
    F2FA    C3 F1DC              JMP     MAC             ;DO ANOTHER RE-TRY
@@ -1708,9 +1711,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ; CREATE THE BYTES BY MERGING THE APPROPRIATE HARDWARE
                         ; CONTROL BITS IN OPRTAB WITH THE CORRECT ADDRESS
                         ; CONTROL BITS IN ADRTAB.
-                        ;********************************************************
-                        
-   F327    3A F9D1      GETD3S: LDA     ADISK           ;GET CURRENT DISK NUMBER
 
 
 
@@ -1722,6 +1722,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ;********************************************************
+                        
+   F327    3A F9D1      GETD3S: LDA     ADISK           ;GET CURRENT DISK NUMBER
    F32A    21 EE4B              LXI     H,ADRTAB        ;POINT TO ADDRESS
    F32D    5F                   MOV     E,A             ;CONTROL BITS TABLE
    F32E    1600                 MVI     D,0
@@ -1774,9 +1777,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         
                         ;********************************************************
-                        ;* MULTI-PURPOSE 179X SEEK SUBROUTINE. THE ENTRY
-                        ;* POINTS ARE:
-                        ;*
 
 
 
@@ -1788,6 +1788,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ;* MULTI-PURPOSE 179X SEEK SUBROUTINE. THE ENTRY
+                        ;* POINTS ARE:
+                        ;*
                         ;*      FHOME - RESTORE HEAD TO TRACK 0 POSITION
                         ;*      FSEEK - SEEK WITH HEAD LOAD TO DEST. IN ACC
                         ;*
@@ -1840,9 +1843,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
    F394    DB55         FU:     IN      WTRACK          ;GET CURRENT TRACK
    F396    D357                 OUT     WDATA           ;OUTPUT SEEK DESTINATION
-                        
-   F398    78                   MOV     A,B             ;OUTPUT SEEK COMMAND
-   F399    D354                 OUT     WCMD
 
 
 
@@ -1854,6 +1854,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   F398    78                   MOV     A,B             ;OUTPUT SEEK COMMAND
+   F399    D354                 OUT     WCMD
    F39B    C9                   RET
                         
                         
@@ -1906,9 +1909,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
    F3D4    CBCA                 SET     1,D     ;INSURE NON ZERO ERROR BYTE
    F3D6    0600                 MVI     B,0
-   F3D8    04           ..FIND: INR     B
-   F3D9    CB12                 RALR    D       ;FIND FIRST NON ZERO BIT
-   F3DB    30FB                 JRNC    ..FIND
 
 
 
@@ -1920,6 +1920,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F3D8    04           ..FIND: INR     B
+   F3D9    CB12                 RALR    D       ;FIND FIRST NON ZERO BIT
+   F3DB    30FB                 JRNC    ..FIND
    F3DD    21 F404              LXI     H,ERMESS ;POINT TO MESSAGE TABLE
    F3E0    1805                 JMPR    ..JOIN
    F3E2    CB7E         ..MORE: BIT     7,M     ;TEST FOR END OF MESSAGE
@@ -1972,9 +1975,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F441    CE40                 ACI     40H
    F443    27                   DAA
    F444    4F                   MOV     C,A
-   F445    C3 EE0C              JMP     BIOOUT
-                        
-                        
 
 
 
@@ -1986,6 +1986,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F445    C3 EE0C              JMP     BIOOUT
+                        
+                        
                         ;********************************************************
                         ; MOVE ATABLE INTO THE CORRECT APB. MOVE THE CORRECT
                         ; APB INTO ATABLE.
@@ -2038,9 +2041,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         ; GET DPH ADDRESS AND APB ADDRESS. RETURN THE DPH
                         ; ADDRESS IN HL, THE CORRESPONDING APB ADDRESS IN DE.
-                        ; DISK NUMBER MUST BE IN L AT CALL.
-                        ;********************************************************
-                        
 
 
 
@@ -2052,6 +2052,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ; DISK NUMBER MUST BE IN L AT CALL.
+                        ;********************************************************
+                        
    F487    2600         GETDPH: MVI     H,0
    F489    29                   DAD     H               ;GET NUMBER * 2
    F48A    5D                   MOV     E,L
@@ -2104,9 +2107,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;********************************************************
                         ; I/O VECTORING ROUTINES. THESE ROUTINES USE THE IOBYTE
                         ; TO SELECT THE PHYSICAL DEVICE WHICH WILL CORRESPOND
-                        ; TO THE CONSOLE OR TO THE LIST OUTPUT. THE JUMPS TO
-                        ; THE PHYSICAL DEVICES SHOULD BE CHANGED HERE TO USE
-                        ; EXTERNAL I/O. THIS RETAINS IOBYTE CONTROL OVER THE
 
 
 
@@ -2118,6 +2118,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ; TO THE CONSOLE OR TO THE LIST OUTPUT. THE JUMPS TO
+                        ; THE PHYSICAL DEVICES SHOULD BE CHANGED HERE TO USE
+                        ; EXTERNAL I/O. THIS RETAINS IOBYTE CONTROL OVER THE
                         ; ROUTINES.
                         ;********************************************************
                         
@@ -2170,9 +2173,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
    F4EC                 TTYOS:
    F4EC    C5                   PUSH    B
-   F4ED    3A F4B8              LDA     CSTAT
-   F4F0    4F                   MOV     C,A
-   F4F1    3A F4BC              LDA     COUT
 
 
 
@@ -2184,6 +2184,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F4ED    3A F4B8              LDA     CSTAT
+   F4F0    4F                   MOV     C,A
+   F4F1    3A F4BC              LDA     COUT
    F4F4    5F                   MOV     E,A
    F4F5    ED78                 INP     A
                         ;       CMA FOR NEGATIVE LOGIC
@@ -2236,9 +2239,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F514                 SERPST:
    F514    C9                   RET
                         
-                        
-                        ;********************************************************
-                        ; IO ROUTINES FOR THE OTHER IOBYTE VECTORED DEVICES
 
 
 
@@ -2250,6 +2250,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+                        ;********************************************************
+                        ; IO ROUTINES FOR THE OTHER IOBYTE VECTORED DEVICES
                         ;********************************************************
                         
    F515                 CONST:  
@@ -2302,9 +2305,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F552    FDCD                 .WORD   ALV2
                         
    F554    FB7D                 .WORD   APB3
-   F556    FB9D                 .WORD   TRANS3
-   F558    0000                 .WORD   0
-   F55A    0000                 .WORD   0
 
 
 
@@ -2316,6 +2316,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F556    FB9D                 .WORD   TRANS3
+   F558    0000                 .WORD   0
+   F55A    0000                 .WORD   0
    F55C    0000                 .WORD   0
    F55E    FBF5                 .WORD   DIRBUF
    F560    FB8E                 .WORD   DPB3
@@ -2368,9 +2371,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F596    05           ALTDDB: .BYTE   00000101B       ;FLAG
    F597    0003                 .WORD   3               ;OFF
    F599    00                   .BYTE   0               ;SSLEN
-   F59A    12                   .BYTE   18              ;SLRPS
-   F59B    00                   .BYTE   0               ;USLEN
-   F59C    12                   .BYTE   18              ;ULRPS
 
 
 
@@ -2382,6 +2382,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F59A    12                   .BYTE   18              ;SLRPS
+   F59B    00                   .BYTE   0               ;USLEN
+   F59C    12                   .BYTE   18              ;ULRPS
                         
    F59D    0012                 .WORD   18              ;STANDARD DPB
    F59F    030700               .BYTE   3,7,0
@@ -2427,16 +2430,13 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F5E4    4B20545041           .ASCII  'K TPA'
    F5E9    0D0A                 .BYTE   CR,LF
                         
-   F5EB    566572736146         .ASCII  'VersaFloppy II BIOS'
-   F5FE    0D0A80               .BYTE   CR,LF,80H       
+   F5EB    0D0A                 .BYTE   CR,LF
+   F5ED    413A20262042         .ASCII  'A: & B: = 8" SDSS Floppies, C: = 5" DDDS Floppy'
+   F61C    0D0A                 .BYTE   CR,LF
+   F61E    5573696E6720         .ASCII  'Using a VersaFloppy II Board with a WD FD1791.'
+   F64C    0D0A                 .BYTE   CR,LF
+   F64E    0D0A80               .BYTE   CR,LF,80H
                         
-   F601    C9                   RET
-                        
-   0044                         NITLEN  ==      .-SYSNIT
-                        
-   F602                 BIOEND:
-                        
-                        ;********************************************************
 
 
 
@@ -2448,13 +2448,20 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F651    C9                   RET
+                        
+   0094                         NITLEN  ==      .-SYSNIT
+                        
+   F652                 BIOEND:
+                        
+                        ;********************************************************
                         ;        SHOW HOW MUCH DISK SPACE IS LEFT
                         ;********************************************************
                         
                         ;TOTAL BYTE NEEDED ON BOOT TRACKS ARE
                         ;FROM CCP TO END OF BIOS CODE PLUS LODER + DDB
                         
-   1F02                 TOTSIZ  ==      ((BIOEND-CCP)+128+128)
+   1F52                 TOTSIZ  ==      ((BIOEND-CCP)+128+128)
                         
                         ;SYSTEM SECTORS USED
                         
@@ -2496,13 +2503,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                                 SBOD    \(.-BIOS)-(NSBIOS*128)
                                 ]
                                 ]
-                        
-                        ;********************************************************
-                        ; END OF BIOS INSTRUCTIONS AND CONSTANTS. BEGINNING
-                        ; OF WORK AREA.
-                        ;********************************************************
-                        
-                        ; 1024 BYTE HOST BUFFER ENDS HERE       
 
 
 
@@ -2514,6 +2514,13 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+                        ;********************************************************
+                        ; END OF BIOS INSTRUCTIONS AND CONSTANTS. BEGINNING
+                        ; OF WORK AREA.
+                        ;********************************************************
+                        
+                        ; 1024 BYTE HOST BUFFER ENDS HERE       
                         
    F9BE                         .LOC    HSTBUFF+1024
                         
@@ -2562,13 +2569,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F9D9                 WRTYPE: .BLKB   1               ;TYPE OF WRITE
    F9DA                 D3SNO:  .BLKB   1               ;CURRENT NO WAIT Z3S BYTE
    F9DB                 D3SWT:  .BLKB   1               ;CURRENT WAIT Z3S BYTE
-   F9DC                 SAVADR: .BLKB   2               ;STD OR ALT DDB ADDRESS
-   F9DE                 MRML:   .BLKB   1               ;MACRO RETRY MAJOR LOOP
-                        
-                        
-                        ;********************************************************
-                        ; ERROR INFORMATION STORAGE. VARIOUS ROUTINES USE THIS
-                        ; AREA TO STORE KEY VARIABLES RELATING TO THE Z3S
 
 
 
@@ -2580,6 +2580,13 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   F9DC                 SAVADR: .BLKB   2               ;STD OR ALT DDB ADDRESS
+   F9DE                 MRML:   .BLKB   1               ;MACRO RETRY MAJOR LOOP
+                        
+                        
+                        ;********************************************************
+                        ; ERROR INFORMATION STORAGE. VARIOUS ROUTINES USE THIS
+                        ; AREA TO STORE KEY VARIABLES RELATING TO THE Z3S
                         ; CONTROLLER AND THE 179X CHIP. 
                         ;********************************************************
                         
@@ -2628,13 +2635,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F9FD                 SEKTRK: .BLKB   2
    F9FF                 SEKHST: .BLKB   2
                         
-   0016                         UNALEN  ==      .-UNACNT
-                        
-                        
-                        ;********************************************************
-                        ; APB COPY FOR CURRENT DISK. THE APB CONTAINS SEVERAL
-                        ; IMPORTANT BYTES NEEDED TO CONTROL THE ACTIVE DISK
-                        ; DRIVE. THE EXACT LENGTH AND ORDERING OF THESE ENTRIES
 
 
 
@@ -2646,6 +2646,13 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   0016                         UNALEN  ==      .-UNACNT
+                        
+                        
+                        ;********************************************************
+                        ; APB COPY FOR CURRENT DISK. THE APB CONTAINS SEVERAL
+                        ; IMPORTANT BYTES NEEDED TO CONTROL THE ACTIVE DISK
+                        ; DRIVE. THE EXACT LENGTH AND ORDERING OF THESE ENTRIES
                         ; IS CRITICAL, SO CHANGES MUST BE MADE WITH CARE. ONLY
                         ; THE FLAG BYTE HAS ANY MEANING FOR A HARD DISK.
                         ;********************************************************
@@ -2694,13 +2701,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         
    FA8D                 APB1:   .BLKB   ALEN
-   FA9E                 DPB1:   .BLKB   15
-   FAAD                 TRANS1: .BLKB   88
-                        
-                        
-   FB05                 APB2:   .BLKB   ALEN
-   FB16                 DPB2:   .BLKB   15
-   FB25                 TRANS2: .BLKB   88
 
 
 
@@ -2712,6 +2712,13 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   FA9E                 DPB1:   .BLKB   15
+   FAAD                 TRANS1: .BLKB   88
+                        
+                        
+   FB05                 APB2:   .BLKB   ALEN
+   FB16                 DPB2:   .BLKB   15
+   FB25                 TRANS2: .BLKB   88
                         
                         
    FB7D                 APB3:   .BLKB   ALEN
@@ -2760,13 +2767,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                                 .DEFINE OKMEM[XX]=[
                                 .PRNTX  /XX   BYTES OF MEMORY LEFT BY BIOS/     ]
-                        
-                                .DEFINE SBIOS[XX]=[
-                                .PRNTX  /XX IS START OF BIOS/                   ]
-                        
-                                .DEFINE LASTM[XX]=[
-                                .PRNTX  /XX IS LAST LOCATION USED/              ]
-                        
 
 
 
@@ -2778,6 +2778,13 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+                                .DEFINE SBIOS[XX]=[
+                                .PRNTX  /XX IS START OF BIOS/                   ]
+                        
+                                .DEFINE LASTM[XX]=[
+                                .PRNTX  /XX IS LAST LOCATION USED/              ]
+                        
                                 .DEFINE BDOSL[XX]=[
                                 .PRNTX  /XX IS START OF BDOS/                   ]
                         
@@ -2826,13 +2833,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                                 .RADIX  10
                                 MOVCPM  \MOVEIT
                         
-                                        ][
-                        
-                                OKMEM   \ (MSIZ*1024)-LASLOC
-                        
-                        
-                                .RADIX  16
-                                CCPL    \CCP
 
 
 
@@ -2844,6 +2844,13 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                                        ][
+                        
+                                OKMEM   \ (MSIZ*1024)-LASLOC
+                        
+                        
+                                .RADIX  16
+                                CCPL    \CCP
                                 BDOSL   \BDOS
                                 SBIOS   \BIOS
                                 CODEND  \HSTBUF-1
@@ -2895,11 +2902,4 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-
-
-
-
-
-
-
-                                                                                                                             
+                                                                                     
