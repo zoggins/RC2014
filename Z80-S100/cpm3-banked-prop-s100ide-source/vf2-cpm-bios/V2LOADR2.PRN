@@ -215,9 +215,9 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         ; FOR S100Computers Z80 CPU
                         
-   0000    3E01                 MVI A,01H
+   0000    3E00                 MVI A,00H
    0002    D3D2                 OUT 0D2H
-   0004    3E11                 MVI     A,11H
+   0004    3E05                 MVI     A,05H
    0006    D3D3                 OUT 0D3H
                         
                         ;DISK LOADER FUNCTION
