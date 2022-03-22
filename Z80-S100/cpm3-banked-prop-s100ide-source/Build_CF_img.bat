@@ -13,12 +13,10 @@ Rem *** Copy VF from build folder ***
 del S100-TOOLS\VF.COM
 copy tools-src\VF.COM S100-TOOLS\
 
-del S100-TOOLS\V2FORMAT.COM
-del S100-TOOLS\V2BOOT1.COM
-del S100-TOOLS\CPMSYS64.COM
-copy vf2-cpm-bios\V2FORMAT.COM S100-TOOLS\
-copy vf2-cpm-bios\V2BOOT1.COM S100-TOOLS\
-copy vf2-cpm-bios\CPMSYS64.COM S100-TOOLS\
+copy ..\cpm22-nonbanked-prop-vf2-source\V2FORMAT.COM S100-TOOLS\
+copy ..\cpm22-nonbanked-prop-vf2-source\V2BOOT1.COM S100-TOOLS\
+copy ..\cpm22-nonbanked-prop-vf2-source\CPMSYS64.COM S100-TOOLS\
+copy ..\cpm22-nonbanked-prop-vf2-source\V2COPY.COM S100-TOOLS\
 
 Rem *** Make new file system image ***
 

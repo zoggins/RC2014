@@ -1,0 +1,463 @@
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 1
+
+
+
+
+                        ;********************************************************
+                        ;*                CP/M COLD BOOT LOADER                 *
+                        ;*                FOR SYSTEMS DOS 9.133R                *
+                        ;*                      BRUCE JONES                     *
+                        ;*                       JUNE 21, 1985                  *
+                        ;********************************************************
+                        ;*
+                        ;* THIS "HARD-CODED" LOADER WORKS AS FOLLOWS
+                        ;* 1:
+                        ;* A BOOTSTRAP LOADER HAS READ THE FIRST 512 BYTE SECTOR
+                        ;* TO LOCATION 0000H, THIS LOADER IS WITHIN THE FIRST
+                        ;* 128 BYTES. THE BOOTSTRAP JUMPS TO LOCATION 0000H
+                        ;* 2:
+                        ;* THIS LOADER NEXT ADJUSTS THE LOAD POINT FOR THE
+                        ;* CCP, AND SETS IT 128 BYTES LOWER TO SKIP OVER THE
+                        ;* LOADER. 
+                        ;* 3:
+                        ;* NOW THE LOADER READS IN THIS SECTOR AGAIN, INTO
+                        ;* THE CORRECT STARTING POINT FOR THE CCP + OFFSET
+                        ;* 4:
+                        ;* WHEN SECTOR #8 HAS BEEN READ IN, A SECOND 128 BYTE
+                        ;* BIAS IS ADDED, TO SKIP OVER THE 128 BYTE DDB FOR
+                        ;* THE DISK FORMAT DESCRIPTOR.
+                        ;* 5:
+                        ;* SECTOR #9 IS THEN READ IN
+                        ;* 6:
+                        ;* THE LOADER NOW STEPS IN TO TRACK 1 AND THE LOAD
+                        ;* CONTINUES UNTIL ALL SECTORS ARE IN PLACE
+                        ;* 7:
+                        ;* THE BIOS COLD BOOT LOCATION IS BRANCHED TO AND THAT
+                        ;* BRINGS UP THE SYSTEM
+                        
+                        
+                                .XLINK
+                                .Z80            ;Z80 OPCODES USED
+                                .PHEX
+                                .PABS
+   0000                         .LOC    0       ;LOADER BEGINS HERE
+                        
+                        ; THE COLD START LOADER IS LOADED FROM THE FIRST 128
+                        ; BYTES OF TRACK 0, SECTOR 1 BY THE BOOTSTRAP.
+                        ; THE LOADER READS IN THE REST OF THE CP/M SYSTEM.
+                        
+                        ; THE FIRST TWO TRACKS OF ANY SYSTEM DISK MUST HAVE AT
+                        ; LEAST 9 SECTORS OF 512 BYTES EACH. THE INFORMATION
+                        ; ON THESE SECTORS MUST BE:
+                        
+                        ;   TRACK 0, SECTOR 1, BYTES 0 THRU 127 - LOADER
+                        ;   TRACK 0, SECTOR 1, BYTES 128 THRU 511 - CP/M
+                        ;   TRACK 0, SECTOR 2 THRU SECTOR 7 - CP/M
+                        ;   TRACK 0, SECTOR 8, BYTES 0 THRU 383 - CP/M
+                        ;   TRACK 0, SECTOR 8, BYTES 384 THRU 511 - DDB
+                        ;   TRACK 0, SECTOR 9, BYTES 0 THRU 511 - CP/M
+                        ;   TRACK 1, SECTOR 1 THRU SECTOR 9 - CP/M, FOLLOWED
+                        ;       BY THE CBIOS
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 2
+
+
+
+
+                        
+                        ; THE LOADER EXTRACTS THE CP/M SECTORS FROM TRACK 0,
+                        ; SKIPPING OVER THE NON CP/M BYTES.
+                        ; THE LAYOUT OF THE SYSTEM TRACKS
+                        ; IS IDENTICAL FOR BOTH 5" AND 8" DISKETTES. THE SYSTEM
+                        ; TRACKS ON 5" DISKETTES ARE RECORDED IN DOUBLE DENSITY
+                        ; IN ORDER TO FIT ALL THE REQUIRED SECTORS.
+                        
+                        ; SINCE THE SYSTEM TRACK LAYOUT IS IDENTICAL, THIS ONE
+                        ; LOADER CAN BOOT FROM BOTH SIZES OF DISKS ONCE THE D3S
+                        ; OR D4S CONTROL BYTE HAS BEEN PROPERLY SET.
+                        
+                        
+                        ; FDC PORT ADDRESSES.
+                        
+   0053                 DCNTL   ==      053H    ;CONTROL PORT
+   0054                 WDC     ==      054H    ;WDC 179X BASE ADDRESS
+   0054                 WCMD    ==      WDC+0   ;COMMAND REGISTER
+   0054                 WSTAT   ==      WDC+0   ;STATUS REGISTER
+   0055                 WTRACK  ==      WDC+1   ;TRACK REGISTER
+   0056                 WSECT   ==      WDC+2   ;SECTOR REGISTER
+   0057                 WDATA   ==      WDC+3   ;DATA REGISTER
+                        
+                        
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 3
+
+
+
+
+                        ; EQUATES TO ALLOW LOADING CP/M
+                        ; AT THE CORRECT LOCATION IN MEMORY:
+                        
+                        ;BIOS SIZE FUNCTION (* 1024 BYTES)  NEXT
+                        
+   0003                 BIOSIZ  =\      \ENTER THE KILOBYTE SIZE OF BIOS EG: 3 FOR STANDARD VFBIOS \
+                        
+                        ;IF YOU ENLARGE THE BIOS, YOU WILL INCREASE
+                        ;BIOSIZ BY 1 FOR EACH ADDITIONAL KILOBYTE, OR
+                        ;PART THEREOF.
+                        
+   0040                 MSIZ    =\      \ENTER TOTAL MEMORY SIZE IN KILOBYTES EG: 48 OR 64 \
+                        
+   003D                 MSIZE   ==      MSIZ-BIOSIZ     ;SUBTRACT BIOS SIZE
+   A400                 BIAS    ==      (MSIZE-20)*1024 ;THE DRI BIAS FACTOR
+   D800                 CCP     ==      3400H+BIAS      ;BASE OF CCP
+   E006                 BDOS    ==      CCP+806H        ;BASE OF BDOS
+   EE00                 BIOS    ==      CCP+1600H       ;BASE OF BIOS
+   F406                 MOVECP  ==      BDOS+1400H      ;MOVECPM ADJUST
+   003D                 MOVEIT  ==      MOVECP/1024
+   002C                 NSECTS  ==      (BIOS-CCP)/128  ;WARM START SECTOR CNT, 128 BYTES SECTORS
+   001A                 NSBIOS  ==      70-NSECTS       ;MAX SECTORS FOR CBIOS & CP/M
+   EE00                 BOOT    ==      BIOS
+                        
+                        ; LOADER BEGINS HERE.
+                        
+                        ;THE FOLLOWING FUNCTION IS OPTIONAL
+                        ;
+                        ; - CASE EXAMPLES -
+                        ;
+                        ; RAM/ROM DISABLE NOT REQUIRED IF:
+                        ;
+                        ;(1) - YOUR BOOTSTRAP HAS LOADED ITSELF INTO MEMORY BELOW ANY
+                        ;      ONBAORD RAM/ROM AND HAS TURNED ANY RAM/ROM OFF
+                        ;      BEFORE READING THE LOADER FROM DISK
+                        ;
+                        ;(2) - YOUR CP/M SYSTEM FITS BELOW ANY ONBOARD RAM/ROM
+                        ;
+                        ; RAM/ROM DISABLE REQUIRED IF:
+                        ;
+                        ;(1) YOUR CP/M SYSTEM WILL OVERLAY ONBOARD RAM/ROM
+                        ;
+                        ;
+                        
+                        ; PLACE ANY ONBOARD RAM/ROM DISABLE CODE HERE TO CONFORM WITH
+                        ; THE FUNCTIONALITY OF YOUR CPU BOARD
+                        ; - YOU CAN ADD LIVE CODE FOR MULTIPLE CPU TYPES, AS LONG
+                        ;   AS THE FUNCTIONALITY DOES NOT INTERFERE WITH THE
+                        ;   SELECTED CPU OPERATION AT BOOT TIME
+                        ; - ALSO DO NOT EXCEED LOADER LENGTH OF 128 BYTES
+                        
+                        
+                        ;SAMPLE RAM/ROM SWITCH-OUT CODE NEXT
+                        ;REMOVE ; TO ACTIVATE IF YOU HAVE THE CORRECT CPU CARD
+                        
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 4
+
+
+
+
+                        ; FOR SD SYSTEMS SBC-200
+                        
+                        ;       MVI     A,2     ;SBC-200 RAM/ROM BIT
+                        ;       OUT     7FH     ;TURN OFF ONBOARD RAM/ROM
+                        
+                        ; FOR ZEUS80
+                        
+                        ;       OUT     0AH     ;TURN OFF ONBOARD RAM/ROM
+                        
+                        ; FOR S100Computers Z80 CPU
+                        
+   0000    3E00                 MVI A,00H
+   0002    D3D2                 OUT 0D2H
+   0004    3E05                 MVI     A,05H
+   0006    D3D3                 OUT 0D3H
+                        
+                        ;DISK LOADER FUNCTION
+                        
+   0008                 RETRY:
+                        
+   0008                 ..HOME:
+   0008    3E0B                 MVI     A,0BH   ;RESTORE THE DISC DRIVE
+   000A    D354                 OUT     WCMD
+   000C    CD 0055              CALL    WAITNB
+                        
+   000F    3E01                 MVI     A,1     ;START WITH SECTOR 1
+   0011    D356                 OUT     WSECT
+   0013    21 D780              LXI     H,CCP-128;LOAD LOWER IN MEMORY TO
+                                                 ;SKIP BEGINNING OF SECTOR 1
+   0016                 TRACK:
+   0016                 SECTOR:
+   0016    3E80                 MVI     A,80H   ;READ SECTOR
+   0018    D354                 OUT     WCMD
+   001A    01 0057              LXI     B,WDATA
+   001D    EDB2                 INIR
+   001F    EDB2                 INIR
+   0021    CD 0055              CALL    WAITNB
+   0024    E69D                 ANI     9DH     ;WAS READ SUCCESSFUL?
+   0026    20E0                 JRNZ    RETRY   ;NO, RETRY ENTIRE BOOT
+   0028    DB56                 IN      WSECT   ;UPDATE SECTOR REG IN 179X
+   002A    3C                   INR     A
+   002B    D356                 OUT     WSECT
+                        
+   002D                 TSTSEC:
+   002D    FE09                 CPI     9       ;SEE IF SECTOR 9 NEXT   
+   002F    2009                 JRNZ    GOON    ;IF NOT SKIP NEXT TEST
+   0031    DB55                 IN      WTRACK  ;GET CURRENT TRACK
+   0033    B7                   ORA     A       ;SEE IF STILL 0
+   0034    2004                 JRNZ    GOON    ;IF NOT SKIP NEXT TO GET LAST SECTOR
+   0036    11 FF80              LXI     D,-128  ;ELSE ADJUST LOAD ADDRESS FOR DDB
+   0039    19                   DAD     D       ;FIX IT
+                        
+   003A                 GOON:
+   003A    FE0A                 CPI     9+1     ;ENTIRE TRACK READ?
+   003C    20D8                 JRNZ    SECTOR  ;NO
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 5
+
+
+
+
+   003E    DB55                 IN      WTRACK  ;ALREADY READ TRACK 1?
+   0040    B7                   ORA     A
+   0041    C2 EE00              JNZ     BOOT    ;YES
+                        
+   0044    3E01                 MVI     A,1     ;START TRACK 1 WITH SECTOR 1
+   0046    D356                 OUT     WSECT
+   0048    3E5B                 MVI     A,5BH   ;STEP IN TO TRACK 1
+   004A    D354                 OUT     WCMD
+   004C    CD 0055              CALL    WAITNB
+   004F    E69C                 ANI     9CH     ;STEP IN SUCCESSFUL?
+   0051    20B5                 JRNZ    RETRY   ;NO, RETRY ENTIRE BOOT
+   0053    18C1                 JMPR    TRACK   ;GO READ TRACK 1
+                        
+                        ;SUBROUTINE TO WAIT UNTIL THE 179X INDICATES THAT IT
+                        ;IS NOT BUSY. AT THAT TIME STATUS IS RETURNED TO THE CALLING PROGRAM
+                        
+   0055    06C8         WAITNB: MVI     B,200   ;DELAY TILL VALID STATUS
+   0057    10FE         ..WAIT: DJNZ    ..WAIT
+                        
+                        
+   0059    DB54         QUIKNB: IN      WSTAT   ;GET STATUS
+   005B    CB47                 BIT     0,A     ;BUSY ?
+   005D    20FA                 JRNZ    QUIKNB  ;YES,KEEP WAITING
+   005F    C9                   RET
+                        
+   0060                 FINI:
+                        
+                        ;//PRINT MEMORY STRUCTURES.
+                        
+   3180                 OFFST   ==      1F80H -BIOS
+                        
+                                .IF1,[
+                        
+                                .DEFINE SBIOS[XX]=[
+                                .PRNTX  /XX IS START OF BIOS/                   ]
+                        
+                                .DEFINE BDOSL[XX]=[
+                                .PRNTX  /XX IS START OF BDOS/                   ]
+                        
+                                .DEFINE CCPL[XX]=[
+                                .PRNTX  /XX IS START OF CCP/                    ]
+                        
+                                .DEFINE OFFSET[XX]=[
+                                .PRNTX  /XX IS BIOS OFFSET /                    ]
+                        
+                        
+                                .DEFINE MOVCPM[XX]=[
+                                .PRNTX  /XX IS MOVECPM VALUE /                  ]
+                        
+                                .IFG    (.-BIOS)-(6*256+BIOSIZ*1024),[
+                        
+                        
+                                .RADIX  16
+                                SBIOS   \BIOS
+                                BDOSL   \BDOS
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 6
+
+
+
+
+                                CCPL    \CCP
+                                OFFSET  \OFFST
+                                .RADIX  10
+                                MOVCPM  \MOVEIT
+                        
+                                        ][
+                        
+                                .RADIX  16
+                                SBIOS   \BIOS
+                                BDOSL   \BDOS
+                                CCPL    \CCP
+                                OFFSET  \OFFST
+                                .RADIX  10
+                                MOVCPM  \MOVEIT
+                                        ]
+                                        ]
+                        
+                        ;SHOW SYSTEM LOADER STATS
+                        
+                                .DEFINE BADMEM[XX]=
+                                [.PRNTX \LOADER IS TOO BIG BY XX BYTES\
+                                ]
+                                .DEFINE OKMEM[XX]=
+                                [.PRNTX \XX BYTES LEFT IN THE LOADER\
+                                ]
+                        
+                                .IF2,[
+                                .IFG    FINI-80H,[
+                                BADMEM  \(FINI-80H)
+                                ][
+                                OKMEM \(80H-FINI)[.PRNTX        \32 BYTES LEFT IN THE LOADER\
+                       +        ]
+                                ]
+                                ]
+                        
+                        
+                                .END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 7
+
++++++ SYMBOL TABLE +++++
+
+
+BDOS   E006         BIAS   A400         BIOS   EE00         BIOSIZ 0003         BOOT   EE00         CCP    D800      
+DCNTL  0053         FINI   0060         GOON   003A         MOVECP F406         MOVEIT 003D         MSIZ   0040      
+MSIZE  003D         NSBIOS 001A         NSECTS 002C         OFFST  3180         QUIKNB 0059         RETRY  0008      
+SECTOR 0016         TRACK  0016         TSTSEC 002D         WAITNB 0055         WCMD   0054         WDATA  0057      
+WDC    0054         WSECT  0056         WSTAT  0054         WTRACK 0055         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                             
