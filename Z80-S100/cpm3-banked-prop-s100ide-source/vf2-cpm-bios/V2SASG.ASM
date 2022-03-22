@@ -184,7 +184,6 @@ READER:
 		SHLD	XFERAD
 READ0:
 		LHLD	XFERAD
-		CALL	PRR
 		MVI		A,WREAD	;ISSUE READ SECTOR COMMAND
 		OUT		WCMD
 		LXI		B,WDATA
@@ -194,10 +193,8 @@ READ0:
 		CALL	WAITNB
 		ANI		WSREAD+1	;WAS READ SUCCESSFUL?
 		JNZ		RERR
-		CALL	PRF
 		RET
 RERR:	
-		CALL	PRF
 		LDA		RECNT
 		DCR		A
 		STA		RECNT
@@ -210,7 +207,6 @@ WRITER:
 		STA		RECNT
 WRITE0:
 		LHLD	XFERAD
-		CALL	PRW
 		MVI		A,WWRITE	;ISSUE WRITE SECTOR COMMAND
 		OUT		WCMD
 		LXI		B,WDATA
@@ -220,10 +216,8 @@ WRITE0:
 		CALL	WAITNB
 		ANI		WSWRIT+1	;WAS WRITE SUCCESSFUL?
 		JNZ		WERR
-		CALL	PRF
 		RET
 WERR:	
-		CALL	PRF
 		LDA		RECNT
 		DCR		A
 		STA		RECNT
@@ -342,74 +336,6 @@ CO:	PUSH	B
 	POP	B
 	MOV	A,C	;FIX UP ACC
 	RET
-
-PRF:		PUSH	B
-			PUSH	PSW
-			MVI		C, 'F'
-			CALL	CO
-			POP		PSW
-			CALL	PRB
-;			MVI		C, CR
-;			CALL	CO
-;			MVI		C, LF
-;			CALL	CO
-;			MVI		C, LF
-;			CALL	CO		 
-			POP		B
-			RET
-
-PRR:		PUSH	B
-			MVI		C, 'R'
-			CALL	CO
-;			IN		WTRACK
-;			CALL	PRB
-;			MVI		C, '&'
-;			CALL	CO
-;			IN		WSECT
-;			CALL	PRB
-;			MVI		C, '!'
-;			CALL	CO
-			POP		B
-			RET
-
-PRW:		PUSH	B
-			MVI		C, 'W'
-			CALL	CO
-			IN		WTRACK
-			CALL	PRB
-;			MVI		C, '+'
-;			CALL	CO
-			IN		WSECT
-			CALL	PRB
-;			MVI		C, '-'
-;			CALL	CO
-			POP		B
-			RET
-
-PRB:		PUSH	B
-			MOV		B, A
-			ANI		0F0H
-			RRC
-			RRC
-			RRC
-			RRC
-			ADI		030H
-			CPI		':'        ; Compare with '9'+1 = ':'
-			JNZ		PRH
-			ADI		7
-PRH:		MOV		C, A
-			CALL	CO
-			MOV		A, B
-			ANI		00FH
-			ADI		030H
-			CPI		':'        ; Compare with '9'+1 = ':'
-			JNZ		PRL
-			ADI		7
-PRL:		MOV		C, A
-			CALL	CO
-			MOV		A, B
-			POP		B
-			RET
 
 GOBAK:
 	LXI	D,QUITER
