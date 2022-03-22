@@ -11,6 +11,11 @@ Rem *** Copy VF from build folder ***
 del S100-TOOLS\VF.COM
 copy tools-src\VF.COM S100-TOOLS\
 
+copy ..\cpm22-prop-vf2-source\CPMSYS64.COM S100-TOOLS\
+copy ..\cpm22-prop-vf2-source\V2BOOT1.COM S100-TOOLS\
+copy ..\cpm22-prop-vf2-source\V2FORMAT.COM S100-TOOLS\
+copy ..\cpm22-prop-vf2-source\V2COPY.COM S100-TOOLS\
+
 Rem *** Make new file system image ***
 
 mkfs.cpm -f s100ide -b LBA0.COM -b CPMLDR.COM -t cpm3-banked-prop.img
