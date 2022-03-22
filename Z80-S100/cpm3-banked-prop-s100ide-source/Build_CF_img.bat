@@ -2,8 +2,6 @@ Rem *** Delete previous image ***
 
 del cpm3-banked-prop.img
 
-
-
 Rem *** Copy system files from build folder ***
 
 copy cpm3-banked-prop\CPMLDR.COM CPMLDR.COM
@@ -13,26 +11,15 @@ Rem *** Copy VF from build folder ***
 del S100-TOOLS\VF.COM
 copy tools-src\VF.COM S100-TOOLS\
 
-del S100-TOOLS\V2FORMAT.COM
-del S100-TOOLS\V2BOOT1.COM
-del S100-TOOLS\CPMSYS64.COM
-copy vf2-cpm-bios\V2FORMAT.COM S100-TOOLS\
-copy vf2-cpm-bios\V2BOOT1.COM S100-TOOLS\
-copy vf2-cpm-bios\CPMSYS64.COM S100-TOOLS\
-
 Rem *** Make new file system image ***
 
 mkfs.cpm -f s100ide -b LBA0.COM -b CPMLDR.COM -t cpm3-banked-prop.img
-
-
 
 Rem *** Copy system files ***
 
 cpmcp -f s100ide cpm3-banked-prop.img cpm3.sys 0:
 cpmcp -f s100ide cpm3-banked-prop.img ccp.com 0:
 cpmchattr -f s100ide cpm3-banked-prop.img s ccp.com 0:
-
-
 
 Rem *** Copy user files ***
 
@@ -43,7 +30,6 @@ cpmcp -f s100ide cpm3-banked-prop.img ./BASIC-FILES/*.* 3:
 cpmcp -f s100ide cpm3-banked-prop.img ./GAMES/*.* 4:
 
 pause
-
 
 Rem *** Clean up ***
 

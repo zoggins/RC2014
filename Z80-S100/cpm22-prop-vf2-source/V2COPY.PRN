@@ -1,0 +1,1255 @@
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 1
+
+
+
+
+                        ;**********************************************
+                        ;*                DSKCPY.ASM                  * 
+                        ;*          PI/O OR DMA CONTROLLER            * 
+                        ;*           BRUCE JONES MAY 23, 1986         *
+                        ;**********************************************
+                        
+                        
+                                .Z80
+                                .PABS
+                                .PHEX
+                                .XLINK
+   0100                         .LOC    100H
+                        
+   FFFF                         TRUE    ==      0FFFFH
+   0000                         FALSE   ==      #TRUE
+                        
+                        
+                        
+                        ;BDOS FUNCTIONS
+                        
+   0001                         GCON    ==      1       ;GET CONSOL
+   0002                         WCON    ==      2       ;OUTPUT CONSOL
+   0009                         PRINT   ==      9       ;PRINT STRING
+   000A                         GBUF    ==      10      ;GET CONSOL BUFFER
+   000D                         RESET   ==      13
+   000E                         SLDSK   ==      14
+   0001                         MRECS   ==      1       ;JUST ONE RECORD NEEDED
+   0005                         BDOS    ==      5
+                        
+                        
+   000D                         CR      ==      13
+   000A                         LF      ==      10
+   0007                         BELL    ==      7
+                        
+                        ;*****************************************************
+                        ;*         GET CURRENT DRIVE STATUS & SAVE
+                        ;*****************************************************
+                        
+   0100                 INIT:
+                        
+                        ; MAKE BIOS ENTRY FOR TESTING
+                        
+   0100    2A 0001              LHLD    1               ;GET WARM BOOT
+   0103    2E00                 MVI     L,0
+   0105    11 0018              LXI     D,24
+   0108    19                   DAD     D
+   0109    22 09C1              SHLD    HOME+1
+   010C    11 0003              LXI     D,3
+   010F    19                   DAD     D
+   0110    22 09C5              SHLD    SELDSK+1
+   0113    19                   DAD     D
+   0114    22 09C9              SHLD    SETTRK+1
+   0117    19                   DAD     D
+   0118    22 09CD              SHLD    SETSEC+1
+   011B    19                   DAD     D
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 2
+
+
+
+
+   011C    22 09D1              SHLD    SETDMA+1
+   011F    19                   DAD     D
+   0120    22 09D5              SHLD    READ+1
+   0123    19                   DAD     D
+   0124    22 09D9              SHLD    WRITE+1
+   0127    19                   DAD     D
+   0128    19                   DAD     D
+   0129    22 09DD              SHLD    SECTRA+1
+   012C                 ENTRE0:
+   012C                 OVER:
+   012C                 SIGON:
+   012C                 SIGON1:
+                        
+   012C                 HUH:
+   012C    31 0100              LXI     SP,100H
+   012F    11 07BD              LXI     D,MESS1
+   0132    0E09                 MVI     C,PRINT
+   0134    CD 0005              CALL    BDOS
+   0137    21 06F9              LXI     H,OKMES1
+   013A    CD 06AD              CALL    GETOK
+                        
+   013D    32 01D3              STA     INCON
+   0140    FE03                 CPI     3
+   0142    CA 0000              JZ      0
+   0145                 GOHERE:
+   0145    3A 01D3              LDA     INCON
+   0148    FE51                 CPI     'Q'
+   014A    CA 0000              JZ      0
+                        
+   014D    FE0D                 CPI     CR
+   014F    CA 015A              JZ      YESAB
+   0152    FE44                 CPI     'D'
+   0154    CA 0182              JZ      GETDRV
+   0157    C3 012C              JMP     HUH
+                        
+                        
+   015A                 YESAB:
+   015A    AF                   XRA     A
+   015B    32 01D4              STA     FROM
+   015E    3C                   INR     A
+   015F    32 01D5              STA     TO
+                        
+   0162    11 0920              LXI     D,ATOBOK
+   0165    0E09                 MVI     C,PRINT
+   0167    CD 0005              CALL    BDOS
+                        
+   016A    21 06FE              LXI     H,OKYES
+   016D    CD 06AD              CALL    GETOK
+   0170    FE03                 CPI     3
+   0172    CA 0000              JZ      0
+                        
+   0175    FE4E                 CPI     'N'
+   0177    CA 012C              JZ      HUH
+   017A    FE59                 CPI     'Y'
+   017C    CA 024E              JZ      FILTAB
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 3
+
+
+
+
+   017F    C3 012C              JMP     HUH
+                        
+   0182                 GETDRV:
+   0182    11 01D6              LXI     D,FROMMS
+   0185    0E09                 MVI     C,PRINT
+   0187    CD 0005              CALL    BDOS
+                        
+   018A    21 06F2              LXI     H,OKDISK
+   018D    CD 06AD              CALL    GETOK
+                        
+   0190    FE03                 CPI     3
+   0192    CA 0000              JZ      0
+   0195                 UPRF:
+   0195    32 0220              STA     FMSCK
+   0198    D641                 SUI     'A'
+   019A    32 01D4              STA     FROM
+   019D    11 01F3              LXI     D,TOMES
+   01A0    0E09                 MVI     C,PRINT
+   01A2    CD 0005              CALL    BDOS
+   01A5    21 06F2              LXI     H,OKDISK
+   01A8    CD 06AD              CALL    GETOK
+                        
+   01AB    FE03                 CPI     3
+   01AD    CA 0000              JZ      0
+   01B0    32 022C              STA     TMSCK
+   01B3    D641                 SUI     'A'
+   01B5    32 01D5              STA     TO
+                        
+   01B8    11 020D              LXI     D,CHKER
+   01BB    0E09                 MVI     C,PRINT
+   01BD    CD 0005              CALL    BDOS
+   01C0    21 0703              LXI     H,OKR
+   01C3    CD 06AD              CALL    GETOK
+   01C6    FE03                 CPI     3
+   01C8    CA 0000              JZ      0
+   01CB    FE0D                 CPI     CR
+   01CD    C2 0182              JNZ     GETDRV
+   01D0    C3 024E              JMP     FILTAB
+                        
+                        
+   01D3    00           INCON:  .BYTE   0
+   01D4    00           FROM:   .BYTE   0
+   01D5    00           TO:     .BYTE   0
+                        
+   01D6                 FROMMS:
+   01D6    0D0A0A               .BYTE   CR,LF,LF
+   01D9    456E74657220         .ASCII  \Enter drive to copy from $\
+                        
+   01F3                 TOMES:  
+   01F3    0D0A                 .BYTE   CR,LF
+   01F5    456E74657220         .ASCII  \Enter drive to copy to $\
+                        
+   020D                 CHKER:
+   020D    0D0A0A               .BYTE   CR,LF,LF
+   0210    436F70792066         .ASCII  \Copy from drive \
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 4
+
+
+
+
+   0220    41           FMSCK:  .BYTE   'A'
+   0221    2020746F2064         .ASCII  \  to drive \
+   022C    42           TMSCK:  .BYTE   'B'
+   022D    20203C43523E         .ASCII  \  <CR> if O.K. or R to re-enter $\
+                        
+                        
+                        ;FILL THE SECTOR TABLE FIRST ( CLEARS AN 88 BYTE AREA FOR THE 
+                        ;SEQUENCE OF SECTORS ON THE USER TRACKS TO BE FOUND IN THE
+                        ;DDB READ ROUTINE DONE LATER)
+                        
+   024E                 FILTAB:
+                        
+   024E    21 09E0              LXI     H,SKEWTB        ;POINT TO TABLE
+   0251    AF                   XRA     A               ;CLEAR ACC.
+   0252    0E58                 MVI     C,88            ;POSSIBLE SECTORS
+   0254    77           FLOP:   MOV     M,A             ;CLEAR BYTE
+   0255    23                   INX     H
+   0256    0D                   DCR     C
+   0257    20FB                 JRNZ    FLOP
+                                
+                        
+                        ;             HOME THE DRIVES NOW & GET THEIR DDB.
+                        ;           PUT # OF SECTORS PER USER TRACK AT 'NDSR'
+                        ;           PUT # OF SECTORS PER SYSTEM TRACK AT SYSSEC
+                         
+   0259                 GETDDB:
+                        
+                        ;               FIRST GET DRIVE A PARAMETERES
+                        
+   0259    CD 05D8              CALL    DSKNIT  
+                        
+   025C    3A 01D4              LDA     FROM            ;GET SOURCE DRIVE
+   025F    32 0A6A              STA     CURDRV          ;SAVE IT IN CURRENT DRIVE BYTE
+   0262    CD 0604              CALL    DDBIN           ;GET THE DDB
+   0265    21 0A79              LXI     H,DDBB          ;POINT TO DDB
+   0268    11 0AF9              LXI     D,DDB1          ;POINT TO SAVE BLOCK
+   026B    01 0080              LXI     B,128           ;BYTES TO MOVE
+   026E    EDB0                 LDIR                    ;MOVE IT
+   0270    3A 0A69              LDA     NDSR            ;GET # OF SECTORS
+   0273    32 0A6B              STA     NDSR1           ;SAVE FOR A:
+   0276    2A 0A65              LHLD    TLENS           ;GET TRACK LENGTH
+   0279    22 0A6C              SHLD    TLENS1          ;SAVE HERE
+                        
+                        
+                        ;             NOW GET DRIVE B PARAMETERS
+                        
+   027C                 BPARMS:
+                        
+   027C    3A 01D5              LDA     TO              ;GET TO DESTINATION DRIVE
+   027F    32 0A6A              STA     CURDRV          ;SAVE IT IN CURRENT DRIVE BYTE
+   0282    CD 0604              CALL    DDBIN           ;GET THE DDB
+   0285    21 0A79              LXI     H,DDBB          ;POINT TO DDB
+   0288    11 0BF9              LXI     D,DDB2          ;POINT TO SAVE BLOCK
+   028B    01 0080              LXI     B,128           ;BYTES TO MOVE
+   028E    EDB0                 LDIR                    ;MOVE IT
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 5
+
+
+
+
+                        
+                        
+                        ;       NOW CHECK TO SEE THAT BOTH DDBs ARE THE SAME
+                        
+   0290    21 0AF9              LXI     H,DDB1          ;POINT TO DIVE A: DDB
+   0293    11 0BF9              LXI     D,DDB2          ;POINT TO DRIVE B: DDB
+   0296    0E80                 MVI     C,128           ;TEST THIS MUCH
+   0298    1A           TESTDB: LDAX    D               ;GET DDB2
+   0299    BE                   CMP     M               ;TEST WITH DDB1
+   029A    C2 0708              JNZ     BADDDB          ;TELL THEM ITS BAD
+   029D    23                   INX     H               ;SET POINTERS TO NEXT BYTE
+   029E    13                   INX     D
+   029F    0D                   DCR     C               ;COUNT DOWN
+   02A0    20F6                 JRNZ    TESTDB          ;DO NEXT
+                                
+                        
+   02A2    CD 09AD      NOWSKW: CALL    MAKSKW          ;ELSE GO MAKE SECTOR TABLE
+   02A5    CD 02AB              CALL    CRLF2
+                        
+   02A8    C3 02B9              JMP     KOPY            ;ALL O.K. SO GO COPY DISKS
+                        
+   02AB                 CRLF2:
+                        
+   02AB    11 02B4              LXI     D,CRLF1
+   02AE    0E09                 MVI     C,PRINT
+   02B0    CD 0005              CALL    BDOS
+   02B3    C9                   RET
+                        
+   02B4    0A0D0A0D24   CRLF1:  .BYTE   LF,CR,LF,CR,24H
+                        
+   02B9                 KOPY:
+   02B9    3A 01D4              LDA     FROM
+   02BC    01 0000              LXI     B,0             ;SELECT DRIVE 0 
+   02BF    4F                   MOV     C,A
+   02C0    1E00                 MVI     E,0
+   02C2    CD 09C4              CALL    SELDSK
+   02C5    01 0DF9              LXI     B,RDMADD        ;INITIALIZE READ DMA XFER
+   02C8    ED43 0A76            SBCD    RTADD           ;REMEMBER READ XFER ADDRESS
+   02CC    CD 09D0              CALL    SETDMA          ;SET THE DMA LOCATION
+   02CF    3A 01D4              LDA     FROM
+   02D2    32 0A6A              STA     CURDRV
+   02D5    CD 05E2              CALL    PHOME           ;HOME DRIVE 0
+                        
+   02D8    3A 01D5              LDA     TO              ;SET DRIVE 1
+   02DB    32 0A6A              STA     CURDRV
+   02DE    CD 05E2              CALL    PHOME           ;HOME DRIVE 1
+                        
+   02E1    3A 01D4              LDA     FROM            ;RE-SELECT SOURCE DRIVE
+   02E4    32 0A6A              STA     CURDRV
+   02E7    01 0000              LXI     B,0
+   02EA    4F                   MOV     C,A
+   02EB    1EFF                 MVI     E,0FFH
+   02ED    CD 09C4              CALL    SELDSK
+                        
+                        
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 6
+
+
+
+
+                        ;          DISK COPY READ / WRITES  FIRST DO SYSTEM TRACKS
+                        
+   02F0                 SCOP:
+   02F0    3A 0A78              LDA     SYSSEC          ;GET # SYSTEM SECTORS
+   02F3    FE24                 CPI     36              ;SEE IF NEW
+   02F5    2806                 JRZ     SCOPI
+   02F7    21 09A8              LXI     H,SYSSKW+32     ;SET FOR 32 LOGICAL SECTORS
+   02FA    AF                   XRA     A
+   02FB    2F                   CMA
+   02FC    77                   MOV     M,A             ;& SET IT
+                        
+   02FD                 SCOPI:
+   02FD    01 0000              LXI     B,0             ;FOR TRACK 0
+   0300    11 0988              LXI     D,SYSSKW        ;USE SYSTEM SKEW TABLE  
+   0303    ED53 0A59            SDED    SKWPTR          ;PUT IN POINTER
+   0307    ED43 0A55            SBCD    CURTRK          ;SET CURRENT TRACK
+   030B    CD 09C8              CALL    SETTRK          ;SET IT
+   030E    CD 0343              CALL    RLOOP           ;READ/WRITE  IT
+   0311    ED4B 0A55            LBCD    CURTRK          ;GET CURRENT
+   0315    03                   INX     B               ;POINT NEXT
+   0316    ED43 0A55            SBCD    CURTRK          ;SAVE IT        
+   031A    CD 0666              CALL    HEX
+   031D    CD 09C8              CALL    SETTRK          ;SET IT
+   0320    CD 0343              CALL    RLOOP           ;READ/WRITE IT
+   0323    11 09E0              LXI     D,SKEWTB        ;POINT TO USER SKEW TABLE
+   0326    ED53 0A59            SDED    SKWPTR          ;PUT IN POINTER
+                        
+                        
+                        
+                        ;                NOW DO DATA TRACKS
+                        
+                        
+   032A    ED4B 0A55    CLOOP:  LBCD    CURTRK          ;GET CURRENT TRACK
+   032E    03                   INX     B               ;UPDATE IT
+   032F    ED43 0A55            SBCD    CURTRK          ;SAVE IT
+   0333    3A 0A72              LDA     TRKS            ;GET TOTAL TRACKS
+   0336    B9                   CMP     C               ;SEE IF DONE
+   0337    DA 0504              JC      ENDIT           ;IF SO END
+   033A    CD 09C8              CALL    SETTRK          ;ELSE SET TRACK
+   033D    CD 0343              CALL    RLOOP           ;READ/WRITE IT
+   0340    C3 032A              JMP     CLOOP           ;DO NEXT
+                         
+   0343                 RLOOP:
+                                
+   0343    3E05                 MVI     A,5
+   0345    32 0A39              STA     RETRY5
+                        ;       CALL    CRLF2   
+   0348    ED4B 0A55            LBCD    CURTRK
+   034C    CD 0666              CALL    HEX
+                        
+   034F                 RLOOP3:
+                        
+   034F    3A 01D4              LDA     FROM
+   0352    01 0000              LXI     B,0             ;SET TO DISK 0
+   0355    4F                   MOV     C,A
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 7
+
+
+
+
+   0356    1EFF                 MVI     E,0FFH
+   0358    CD 09C4              CALL    SELDSK          ;LET BDOS DO IT
+   035B    3E00                 MVI     A,0             ;SET FIRST SECTOR
+   035D    32 0A5F              STA     SCOUNT          ;ZERO SECTOR COUNT
+   0360    01 0DF9              LXI     B,RDMADD        ;POINT TO START OF TRACK DMA
+   0363    ED43 0A61            SBCD    TADD            ;PUT IN DMA POINTER
+   0367    CD 09D0              CALL    SETDMA          ;SET STARTING DMA
+   036A    ED5B 0A59            LDED    SKWPTR          ;POINT TO SKEW TABLE    
+   036E    ED53 0A5B            SDED    NXTSEC
+                        
+   0372                 RLOOP1:
+   0372    01 0000              LXI     B,0
+   0375    ED5B 0A5B            LDED    NXTSEC
+   0379    1A                   LDAX    D               ;GET SECTOR
+   037A    FEFF                 CPI     0FFH            ;SEE IF END OF TABLE    
+   037C    CA 03A7              JZ      WRITER
+   037F    4F                   MOV     C,A             ;O.K. PUT IN C
+                        ;       CALL    PHEX
+   0380    13                   INX     D
+   0381    ED53 0A5B            SDED    NXTSEC
+   0385    3A 0A55              LDA     CURTRK
+   0388    FE02                 CPI     2
+   038A    3803                 JRC     ..NSKW
+   038C    CD 065C              CALL    GETSKW
+   038F    CD 09CC       ..NSKW:CALL    SETSEC          ;AND SET IT
+   0392    CD 09D4              CALL    READ            ;NOW GO READ CURRENT SECTOR
+   0395    2A 0A61              LHLD    TADD            ;GET LAST DMA ADD.
+   0398    11 0080              LXI     D,128           ;PUT RECORD LENGTH IN DE
+   039B    19                   DAD     D               ;UPDATE OLD DMA ADDRESS
+   039C    22 0A61              SHLD    TADD            ;AND SAVE IT
+   039F    E5                   PUSH    H               ;PUT ON STACK
+   03A0    C1                   POP     B               ;FOR BC TO GET
+   03A1    CD 09D0              CALL    SETDMA          ;AND GO SET NEW DMA ADD.
+   03A4    C3 0372              JMP     RLOOP1          ;DO NEXT SECTOR
+                        
+                        
+                        ;          THE TRACK WRITER POINTS BACK TO DATA READ IN
+                        ;          AND STORES IT ON THE DESTINATION DRIVE TRACKS
+                        
+   03A7                 WRITER:
+                        
+                        ;       CALL    CRLF2
+   03A7    3A 01D5              LDA     TO
+   03AA    01 0000              LXI     B,0
+   03AD    4F                   MOV     C,A
+   03AE    1EFF                 MVI     E,0FFH
+   03B0    CD 09C4              CALL    SELDSK          ;SELECT DRIVE B:        
+   03B3    01 0DF9              LXI     B,RDMADD        ;INITIALIZE DMA XFER
+   03B6    ED43 0A61            SBCD    TADD            ;REMEMBER XFER ADDRESS
+   03BA    CD 09D0              CALL    SETDMA          ;SET DMA ADDRESS
+   03BD    ED5B 0A59            LDED    SKWPTR          ;POINT TO START
+   03C1    ED53 0A5B            SDED    NXTSEC
+                        
+                        
+                        ;               WE NEXT WRITE THE TRACK
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 8
+
+
+
+
+                        
+   03C5                 WLOOP:
+                        
+   03C5    01 0000              LXI     B,0
+   03C8    ED5B 0A5B            LDED    NXTSEC
+   03CC    1A                   LDAX    D
+   03CD    FEFF                 CPI     0FFH
+   03CF    CA 03FA              JZ      VLOOP           ;DO TRACK DATA CHECK
+   03D2    4F                   MOV     C,A
+                        ;       CALL    PHEX
+   03D3    13                   INX     D
+   03D4    ED53 0A5B            SDED    NXTSEC
+   03D8    3A 0A55              LDA     CURTRK
+   03DB    FE02                 CPI     2
+   03DD    3803                 JRC     ..NSKW
+   03DF    CD 065C              CALL    GETSKW
+   03E2    CD 09CC       ..NSKW:CALL    SETSEC
+   03E5    CD 09D8              CALL    WRITE
+   03E8    2A 0A61              LHLD    TADD            ;GET LAST DMA ADD.
+   03EB    11 0080              LXI     D,128
+   03EE    19                   DAD     D               ;UPDATE IT
+   03EF    22 0A61              SHLD    TADD
+   03F2    E5                   PUSH    H
+   03F3    C1                   POP     B               ;MAKE BC NEW ADDRESS
+   03F4    CD 09D0              CALL    SETDMA
+   03F7    C3 03C5              JMP     WLOOP
+                        
+                        
+   03FA                 VLOOP:
+                        ;       CALL    CRLF2
+   03FA    3E00                 MVI     A,0             ;SET FIRST SECTOR
+   03FC    32 0A5F              STA     SCOUNT          ;ZERO SECTOR COUNT
+   03FF    01 38F1              LXI     B,VDMADD        ;POINT TO START OF TRACK DMA
+   0402    ED43 0A61            SBCD    TADD            ;PUT IN DMA POINTER
+   0406    CD 09D0              CALL    SETDMA          ;SET STARTING DMA
+   0409    ED5B 0A59            LDED    SKWPTR          ;POINT TO SKEW TABLE    
+   040D    ED53 0A5B            SDED    NXTSEC
+                        
+   0411                 VLOOP1:
+   0411    01 0000              LXI     B,0
+   0414    ED5B 0A5B            LDED    NXTSEC
+   0418    1A                   LDAX    D               ;GET SECTOR
+   0419    FEFF                 CPI     0FFH            ;SEE IF END OF TABLE    
+   041B    CA 0445              JZ      TESTIT          ;GO CHECK FOR GOOD DATA
+   041E    4F                   MOV     C,A             ;O.K. PUT IN C
+                        ;       CALL    PHEX
+   041F    13                   INX     D
+   0420    ED53 0A5B            SDED    NXTSEC
+   0424    3A 0A55              LDA     CURTRK
+   0427    FE02                 CPI     2
+   0429    D8                   RC                      ;DON'T TEST SYSTEM TRACKS
+   042A    CD 065C              CALL    GETSKW
+   042D    CD 09CC       ..NSKW:CALL    SETSEC          ;AND SET IT
+   0430    CD 09D4              CALL    READ            ;NOW GO READ CURRENT SECTOR
+   0433    2A 0A61              LHLD    TADD            ;GET LAST DMA ADD.
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 9
+
+
+
+
+   0436    11 0080              LXI     D,128           ;PUT RECORD LENGTH IN DE
+   0439    19                   DAD     D               ;UPDATE OLD DMA ADDRESS
+   043A    22 0A61              SHLD    TADD            ;AND SAVE IT
+   043D    E5                   PUSH    H               ;PUT ON STACK
+   043E    C1                   POP     B               ;FOR BC TO GET
+   043F    CD 09D0              CALL    SETDMA          ;AND GO SET NEW DMA ADD.
+   0442    C3 0411              JMP     VLOOP1          ;DO NEXT SECTOR
+                        
+                        
+                        
+                        
+                        ;       FOLLWING GETS DATA FROM DRIVE 0 AND TESTS 
+                        ;       WITH DATA FROM DRIVE 1, AN ERROR IS REPORTED TO USER
+                        
+   0445                 TESTIT:
+                        
+                        
+   0445    21 0DF9              LXI     H,RDMADD        ;POINT TO SOURCE DATA
+   0448    11 38F1              LXI     D,VDMADD        ;POINT TO WRITTEN DATA
+   044B    ED4B 0A65            LBCD    TLENS           ;GET TRACK LENGTH IN BC
+   044F    1A           DODAT:  LDAX    D               ;GET WRITTEN DATA
+   0450    BE                   CMP     M               ;TEST WITH SOURCE
+   0451    C2 045D              JNZ     RETRY1
+   0454    23                   INX     H               ;ELSE POINT NEXT
+   0455    13                   INX     D               ;AND NEXT
+   0456    0B                   DCX     B               ;COUNT DOWN
+   0457    78                   MOV     A,B             ;GET HIGH COUNT
+   0458    B1                   ORA     C               ;OR WITH LOW
+   0459    C8                   RZ                      ;DONE IF COUNTED DOWN
+   045A    C3 044F              JMP     DODAT           ;ELSE TEST NEXT
+                        
+                        
+                        
+   045D                 RETRY1:
+   045D    3A 0A39              LDA     RETRY5
+   0460    3D                   DCR     A
+   0461    32 0A39              STA     RETRY5
+   0464    C2 03A7              JNZ     WRITER
+                        
+                        
+                        
+                        ;               SHOW USER COPY JUST FAILED
+                        
+   0467                 TOOBAD:
+                        
+   0467    11 0472              LXI     D,DEFAIL        ;DESTINATION JUNKED     
+   046A    0E09                 MVI     C,PRINT
+   046C    CD 0005              CALL    BDOS
+   046F    C3 0504              JMP     ENDIT                   ;GO CP/M
+                        
+   0472                 DEFAIL:
+                        
+   0472    0A0D                 .BYTE   LF,CR
+   0474    202020202020         .ASCII  \                   Failure to write correct data on destination\
+   04B3    0A0D                 .BYTE   LF,CR
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 10
+
+
+
+
+   04B5    202020202020         .ASCII  \               Inspect condition of disks and try copy from start $\ 
+                        
+   04F8                 PHEX:
+   04F8    F5                   PUSH    PSW
+   04F9    C5                   PUSH    B
+   04FA    D5                   PUSH    D
+   04FB    E5                   PUSH    H
+   04FC    CD 0679              CALL    HEX1
+   04FF    E1                   POP     H
+   0500    D1                   POP     D
+   0501    C1                   POP     B
+   0502    F1                   POP     PSW
+   0503    C9                   RET
+                        
+                        ;                   GET BACK TO MASTER PROGRAM NOW
+                        
+   0504                 ENDIT:
+   0504                 EXITCP:
+                        
+   0504                 EXTCP:
+   0504                 DODONE:
+   0504                 GOSOFT:
+                        ;       CALL    BCOMM
+   0504    11 076E              LXI     D,DONMES
+   0507    0E09                 MVI     C,PRINT
+   0509    CD 0005              CALL    BDOS
+   050C                 GOBAK:
+                                
+                        ;NOW RESET THE DISK CONTROLLER BACK TO ITS' POINT OF ORIGIN
+                        
+   050C    3A 01D5              LDA     TO
+   050F    32 0A6A              STA     CURDRV
+   0512    CD 05E2              CALL    PHOME
+                        
+   0515    3A 01D4              LDA     FROM
+   0518    32 0A6A              STA     CURDRV
+                        
+                        
+   051B                 HNIT:
+   051B    CD 05E2              CALL    PHOME
+   051E    01 0001              LXI     B,1
+   0521    CD 09CC              CALL    SETSEC
+   0524    01 0000              LXI     B,0
+   0527    3A 0A6A              LDA     CURDRV
+   052A    4F                   MOV     C,A
+   052B    1EFF                 MVI     E,0FFH
+   052D    CD 09C4              CALL    SELDSK
+   0530    01 0DF9              LXI     B,RDMADD
+   0533    CD 09D0              CALL    SETDMA
+   0536    CD 09C0              CALL    HOME
+   0539    CD 09D4              CALL    READ
+                        
+   053C                 PIEND:
+   053C    3A 01D5              LDA     TO
+   053F    32 0A6A              STA     CURDRV
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 11
+
+
+
+
+                        ;       CALL    PHOME
+                        
+   0542    11 0569              LXI     D,MOREMS
+   0545    0E09                 MVI     C,9
+   0547    CD 0005              CALL    BDOS
+   054A    0E01                 MVI     C,GCON
+   054C    CD 0005              CALL    BDOS
+   054F    FE59                 CPI     'Y'
+   0551    CA 012C              JZ      SIGON
+   0554    FE79                 CPI     'y'
+   0556    CA 012C              JZ      SIGON
+                        
+                        
+   0559    11 058D              LXI     D,SYSMES
+   055C    0E09                 MVI     C,9
+   055E    CD 0005              CALL    BDOS
+   0561    0E01                 MVI     C,GCON
+   0563    CD 0005              CALL    BDOS
+   0566    C3 0000              JMP     0
+                        
+                        
+   0569                 MOREMS:
+                        
+   0569    0D0A0A       .BYTE   CR,LF,LF
+                        
+   056C    436F70792061 .ASCII  \Copy another set of disks (Y/N) $\
+                        
+                        
+   058D                 SYSMES:
+                        
+   058D    0D0A0A       .BYTE   CR,LF,LF
+                        
+   0590    4D616B652073 .ASCII  \Make sure a SYSTEM DISKETTE is in drive A then type <CR> $\
+                        
+                        
+   05CA                 EEXIT:
+   05CA    CD 09C0              CALL    HOME
+   05CD    11 0741              LXI     D,BADMES
+   05D0    0E09                 MVI     C,PRINT
+   05D2    CD 0005              CALL    BDOS
+   05D5    C3 050C              JMP     GOBAK
+   05D8                 DSKNIT:
+                        
+                        ;       CALL    BCOMM
+   05D8    3A 01D4              LDA     FROM    
+   05DB    32 0A6A              STA     CURDRV
+   05DE    CD 05E2              CALL    PHOME
+   05E1    C9                   RET
+                        
+                        
+                        ;SET DRIVE TO HOME TRACK
+                        
+   05E2                 PHOME:
+   05E2    3A 0A6A              LDA     CURDRV          ;GET CURRENT DRIVE
+   05E5    01 0000              LXI     B,0
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 12
+
+
+
+
+   05E8    4F                   MOV     C,A
+   05E9    1E00                 MVI     E,0
+   05EB    CD 09C4              CALL    SELDSK          ;SET DISK
+   05EE    01 0000              LXI     B,0
+   05F1    CD 09C8              CALL    SETTRK          ;SET TRAK 0
+   05F4    01 0001              LXI     B,1
+   05F7    CD 09CC              CALL    SETSEC          ;SET SECTOR
+   05FA    01 0C79              LXI     B,TADDO
+   05FD    CD 09D0              CALL    SETDMA          ;SET DMA
+   0600    CD 09D4              CALL    READ
+   0603    C9                   RET
+                        
+                                
+                        ;ROUTINE TO GET DDB FROM A DRIVE
+                        
+                        
+   0604                 DDBIN:
+   0604    CD 05E2              CALL    PHOME           ;HOME THE DIRVE
+   0607    01 0000              LXI     B,0             ;SET BC TO ZERO
+   060A    CD 09C8              CALL    SETTRK          ;CALL SET TRACK
+   060D    01 0A79              LXI     B,DDBB          ;SET BC TO DDB BUFFER AREA
+   0610    CD 09D0              CALL    SETDMA          ;CALL SET DMA
+   0613    01 0000              LXI     B,0             ;SET BC TO ZERO
+   0616    21 0A6A              LXI     H,CURDRV        ;POINT HL TO CURRENT DRIVE
+   0619    4E                   MOV     C,M             ;PUT IN C
+   061A    1E00                 MVI     E,0
+   061C    CD 09C4              CALL    SELDSK          ;CALL SELECT DISK
+   061F    01 0020              LXI     B,32            ;POINT TO SECTOR 32
+   0622    CD 09CC              CALL    SETSEC          ;CALL SET SECTOR
+   0625    CD 09D4              CALL    READ            ;DO A DISK READ
+   0628    21 0A83              LXI     H,DDBB+10       ;POINT TO SIDES BYTE
+   062B    7E                   MOV     A,M
+   062C    E602                 ANI     2               ;SEE IF TWO SIDES
+   062E    2008                 JRNZ    TWOSID
+   0630    3E4C                 MVI     A,76
+   0632    32 0A72              STA     TRKS
+   0635    C3 063D              JMP     MORET
+   0638    3E97         TWOSID: MVI     A,151
+   063A    32 0A72              STA     TRKS
+   063D    21 0A89      MORET:  LXI     H,DDBB+16       ;POINT TO # OF USER SECTORS IN DDB      
+   0640    7E                   MOV     A,M             ;PUT INTO ACC.
+   0641    32 0A69              STA     NDSR            ;SAVE IT HERE
+   0644    21 0A87              LXI     H,DDBB+14       ;POINT TO SYSTEM SECTORS
+   0647    7E                   MOV     A,M
+   0648    32 0A78              STA     SYSSEC
+                        
+                        ;NOW GET LENGTH OF USER TRACK IN HL
+                        
+   064B    3A 0A69              LDA     NDSR            ;GET CP/M SECTORS
+                        ;       DCR     A
+   064E    21 0000              LXI     H,0             ;CLEAR HL
+   0651    11 0080              LXI     D,128           ;ONE CP/M SECTOR
+   0654    19           GETLEN: DAD     D               ;PUT INTO HL
+   0655    3D                   DCR     A               ;COUNT DOWN
+   0656    20FC                 JRNZ    GETLEN          ;DO NEXT
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 13
+
+
+
+
+   0658    22 0A65              SHLD    TLENS           ;ELSE SAVE HERE
+   065B    C9                   RET
+                        
+                        
+   065C                 GETSKW:
+                        
+   065C    ED5B 0A57            LDED    TTAB            ;POINT TO TRANS TABLE
+   0660    CD 09DC              CALL    SECTRA
+   0663    E5           BACK:   PUSH    H
+   0664    C1                   POP     B
+   0665    C9                   RET
+                        
+                        ;CONVERT THE BYTE IN C REG. TO TWO HEX NIBBLES AND PRINT
+                        
+                        
+   0666                 HEX:
+   0666    C5                   PUSH    B
+   0667    11 0799              LXI     D,TRKMES
+   066A    0E09                 MVI     C,PRINT
+   066C    CD 0005              CALL    BDOS
+   066F    C1                   POP     B
+   0670    CD 0679              CALL    HEX1
+   0673    3E0D                 MVI     A,CR
+   0675    CD 06A4              CALL    COUT
+   0678    C9                   RET
+                        
+                        
+   0679    79           HEX1:   MOV     A,C
+   067A    E6F0                 ANI     0F0H
+   067C    0F                   RRC
+   067D    0F                   RRC
+   067E    0F                   RRC
+   067F    0F                   RRC
+   0680    F630                 ORI     30H
+   0682    CD 06A4              CALL    COUT
+   0685    79                   MOV     A,C
+   0686    E60F                 ANI     0FH
+   0688    FE0A                 CPI     10
+   068A    300B                 JRNC    ALPH
+   068C    F630                 ORI     30H
+   068E    CD 06A4              CALL    COUT
+   0691    3E20                 MVI     A,20H
+   0693    CD 06A4              CALL    COUT
+   0696    C9                   RET
+   0697    D609         ALPH:   SUI     9
+   0699    F640                 ORI     40H
+   069B    CD 06A4              CALL    COUT
+   069E    3E20                 MVI     A,20H
+   06A0    CD 06A4              CALL    COUT
+   06A3    C9                   RET
+                        
+   06A4                 COUT:
+   06A4    C5                   PUSH    B
+   06A5    5F                   MOV     E,A
+   06A6    0E02                 MVI     C,WCON
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 14
+
+
+
+
+   06A8    CD 0005              CALL    BDOS
+   06AB    C1                   POP     B
+   06AC    C9                   RET
+                        
+                        
+                        
+                        ;****************************************************
+                        ; GET A CHARACTER FROM THE CONSOLE. IF THE CHARACTER
+                        ; IS UNACCEPTABLE, BEEP AND WAIT FOR ANOTHER. RETURN
+                        ; TO CP/M IF ^C IS ENTERED. (BDOS DOES RETURN ON ^C)
+                        ;****************************************************
+                        ; THE CCIR Z80 INSTRUCTION CHECKS ALL ACCEPTABLE
+                        ; CHARACTERS FROM THE TABLE POINTED TO BY HL
+                        ; A BAD INPUT CAUSES A BELL, PLUS A BACKSPACE
+                        ; BLANK-OVER AND BACKSPACE TO ERASE THE WRONG
+                        ; INPUT ON CONSOLE, THEN THE ROUTINE IS RE-ENTERED
+                        ;====================================================
+                        
+   06AD                 GETOK:  
+   06AD    E5           ..RTRY: PUSH    H       ;SAVE OK TABLE ADDR
+   06AE    4E                   MOV     C,M     ;GET COUNT
+   06AF    23                   INX     H
+   06B0    0600                 MVI     B,0
+   06B2    CD 06D5              CALL    CI      ;GET A CHAR
+   06B5    FE51                 CPI     'Q'     ;IS IT QUIT 
+   06B7    CA 0000              JZ      0       ;YES, GO BACK TO CP/M
+   06BA    EDB1                 CCIR            ;IS IT OKAY
+   06BC    E1                   POP     H
+   06BD    C8                   RZ              ;YES, RETURN IT
+                        
+   06BE    0E07                 MVI     C,BELL  ;NO, RING BELL
+   06C0    CD 06E1              CALL    CO
+   06C3    0E08                 MVI     C,8     ;BACK SPACE
+   06C5    CD 06E1              CALL    CO
+   06C8    0E20                 MVI     C,' '
+   06CA    CD 06E1              CALL    CO
+   06CD    0E08                 MVI     C,8
+   06CF    CD 06E1              CALL    CO
+   06D2    C3 06AD              JMP     ..RTRY  ;KEEP TRYING
+                        
+                        ;***************************************************
+                        ;       GET A CHARACTER FROM THE CONSOLE.
+                        ;***************************************************
+                        
+   06D5    C5           CI:     PUSH    B
+   06D6    D5                   PUSH    D
+   06D7    E5                   PUSH    H
+   06D8    0E01                 MVI     C,GCON  ;CONSOLE INPUT
+   06DA    CD 0005              CALL    BDOS    ;GET THE CHARACTER
+   06DD    E1                   POP     H
+   06DE    D1                   POP     D
+   06DF    C1                   POP     B
+   06E0    C9                   RET
+                        
+                        ;**************************************************
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 15
+
+
+
+
+                        ;      WRITE A CHARACTER TO THE CONSOLE.
+                        ;**************************************************
+                        
+   06E1    C5           CO:     PUSH    B
+   06E2    D5                   PUSH    D
+   06E3    E5                   PUSH    H
+   06E4    79                   MOV     A,C
+   06E5    E67F                 ANI     7FH
+   06E7    5F                   MOV     E,A     ;MOVE CHARACTER TO E
+   06E8    0E02                 MVI     C,2     ;CONSOLE OUTPUT
+   06EA    CD 0005              CALL    BDOS    ;OUTPUT THE CHARACTER
+   06ED    E1                   POP     H
+   06EE    D1                   POP     D
+   06EF    C1                   POP     B
+   06F0    79                   MOV     A,C     ;FIX UP ACC
+   06F1    C9                   RET
+                        
+                        
+   06F2    064142434451 OKDISK: .BYTE   6,'A','B','C','D','Q',3
+                        
+   06F9    04440D5103   OKMES1: .BYTE   4,'D',CR,'Q',3
+                        
+   06FE    04594E0D03   OKYES:  .BYTE   4,'Y','N',CR,3
+                        
+   0703    040D525103   OKR:    .BYTE   4,CR,'R','Q',3
+                        
+   0708    11 0713      BADDDB: LXI     D,DBJNK
+   070B    0E09                 MVI     C,PRINT
+   070D    CD 0005              CALL    BDOS
+   0710    C3 05CA              JMP     EEXIT
+                        
+   0713    0A0D         DBJNK:  .BYTE   LF,CR
+   0715    4469736B7320         .ASCII  \Disks are not of same format, please check $\
+                        
+                        
+                        
+                        
+   0741                 BADMES:
+                        
+   0741    0A0D0A0D             .BYTE   LF,CR,LF,CR
+   0745    202020202020         .ASCII  \                  Disk backup terminated$\
+                        
+                        
+   076E                 DONMES:
+                        
+   076E    0A0D                 .BYTE   LF,CR
+   0770    202020202020         .ASCII  \                  Disk backup completed $\
+                        
+                        
+   0799    202020202020 TRKMES: .ASCII  \                     copying track $\
+                        
+   07BD                 MESS1:
+                        
+   07BD    1A0A0D               .BYTE   1AH,LF,CR
+   07C0    202020202020         .ASCII  \                VFCOPY  Disk Backup V 1.1\
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 16
+
+
+
+
+                        
+   07E9    0A0D0A0D             .BYTE   LF,CR,LF,CR
+                        
+   07ED    202020202020         .ASCII  \                            OPTIONS\
+   0810    0D0A0A               .BYTE   CR,LF,LF
+                        
+                        
+   0813    202020202020         .ASCII  \                1- Press the RETURN key to...\
+   0840    0D0A0A               .BYTE   CR,LF,LF
+                        
+   0843    436F70792041         .ASCII  \Copy ALL information from drive A to the diskette in drive B.\
+   0880    0D0A0A               .BYTE   CR,LF,LF
+                        
+   0883    202020202020         .ASCII  \                2- Press the "D" key to...\
+   08AD    0D0A0A               .BYTE   CR,LF,LF
+                        
+   08B0    53656C656374         .ASCII  \Select some other drive to copy from/to\
+   08D7    0D0A0A               .BYTE   CR,LF,LF
+                        
+   08DA    202020202020         .ASCII  \                3- Type the "Q" key to...\
+   0903    0D0A0A               .BYTE   CR,LF,LF
+                        
+   0906    515549542074         .ASCII  \QUIT this program now.\
+   091C    0D0A0A24             .BYTE   CR,LF,LF,'$'
+                                
+                        
+   0920                 ATOBOK:
+   0920    1A                   .BYTE   1AH
+   0921    496E73657274         .ASCII  \Insert your LATEST disk in drive A and your OLDEST backup disk in drive B.\
+   096B    0D0A0A               .BYTE   CR,LF,LF
+                                
+   096E    204F4B20746F         .ASCII  \ OK to continue (Y/N) ?  $\
+                                
+   0988    010203040506 SYSSKW: .BYTE   1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17
+   0999    121314151617         .BYTE   18,19,20,21,22,23,24,25,26,27,28,29,30
+   09A6    1F2021222324         .BYTE   31,32,33,34,35,36,0FFH
+                        
+                        
+   09AD                 MAKSKW:
+   09AD    3A 0A6B              LDA     NDSR1           ;GET # SECTORS
+   09B0    4F                   MOV     C,A             ;SAVE FOR COMPARE
+   09B1    3E00                 MVI     A,0
+   09B3    21 09E0              LXI     H,SKEWTB        ;POINT TO TABLE 
+   09B6    77           ..NXT1: MOV     M,A
+   09B7    23                   INX     H
+   09B8    3C                   INR     A
+   09B9    B9                   CMP     C
+   09BA    20FA                 JRNZ    ..NXT1
+   09BC    AF                   XRA     A
+   09BD    2F                   CMA
+   09BE    77                   MOV     M,A
+   09BF    C9                   RET
+                        
+                        
+                        ;BIOS ACCESS POINTS NEXT
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 17
+
+
+
+
+                        
+   09C0                 HOME:
+   09C0    CD 0000              CALL    0
+   09C3    C9                   RET
+   09C4                 SELDSK:
+   09C4    CD 0000              CALL    0
+   09C7    C9                   RET
+   09C8                 SETTRK:
+   09C8    CD 0000              CALL    0
+   09CB    C9                   RET
+   09CC                 SETSEC:
+   09CC    CD 0000              CALL    0
+   09CF    C9                   RET
+   09D0                 SETDMA:
+   09D0    CD 0000              CALL    0
+   09D3    C9                   RET
+   09D4                 READ:
+   09D4    CD 0000              CALL    0
+   09D7    C9                   RET
+   09D8                 WRITE:
+   09D8    CD 0000              CALL    0
+   09DB    C9                   RET
+                        
+                        
+   09DC                 SECTRA:
+   09DC    CD 0000              CALL    0
+   09DF    C9                   RET
+                        
+                        
+   09E0                 SKEWTB: .BLKB   88
+   0A38    FF                   .BYTE   0FFH            ;MARK TABLE END
+                        
+                        
+                        ;PROGRAM STORAGE
+                        
+                        
+   0A39                 RETRY5: .BLKB   1
+   0A3A                 SPSAV:  .BLKW   1               ;SAVE ALL REGS. IN THESE
+   0A3C                 HLSAV:  .BLKW   1               ;TEN BYTES
+   0A3E                 DESAV:  .BLKW   1
+   0A40                 BCSAV:  .BLKW   1
+   0A42                 AFSAV:  .BLKW   1
+                                
+   0A44                 RTNTRK: .BLKW   1
+   0A46                 CTLBYT: .BLKW   1
+   0A48    01           VERFLG: .BYTE   1
+                        
+   0A49                 BOTVEC: .BLKW   1               ;BOOT O.K. LABEL
+   0A4B    0042         ALTB1:  .BYTE   0,'B'           ;"B" FOR A:
+   0A4D    0042         ALTB2:  .BYTE   0,'B'           ;"B" FOR B:
+   0A4F                 ALBONE: .BLKW   1               ;FIRST LABEL ON A
+   0A51    00           ANS1:   .BYTE   0               ;SPECIAL "B" FORMAT ALLOWED
+   0A52                 ACOP:   .BLKW   1               ;VALUE OF "A" DISK #
+   0A54    00           CPFLG:  .BYTE   0               ;DISK "A" COPIED FLAG
+   0A55                 CURTRK: .BLKW   1               ;CURRENT TRACK
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 18
+
+
+
+
+   0A57    0A99         TTAB:   .WORD   DDBB+32         ;POINTER TO XLATE TABLE
+   0A59                 SKWPTR: .BLKW   1               ;POINTER TO SKEW TABLE
+   0A5B                 NXTSEC: .BLKW   1               ;NEXT SECTOR TO R/W
+   0A5D                 SOURCE: .BLKB   1               ;SOURCE DRIVE
+   0A5E                 DESTIN: .BLKB   1               ;DESTINATION DRIVE
+   0A5F    01           SCOUNT: .BYTE   1               ;SECT. COUNT 
+   0A60    00           STRK:   .BYTE   0               ;INITIAL TRACK
+   0A61                 TADD:   .BLKW   1               ;CURRENT DMA ADDRESS
+   0A63                 BLOC:   .BLKW   1               ;POINTER TO BIOS
+   0A65                 TLENS:  .BLKW   1               ;TRACK LENGTH IN BYTES
+   0A67                 DPSAV:  .BLKW   1               ;DPH POINTER
+   0A69                 NDSR:   .BLKB   1               ;NUMBER OF USER SECTORS
+   0A6A                 CURDRV: .BLKB   1               ;CURRENT DRIVE
+   0A6B                 NDSR1:  .BLKB   1               ;NUMBER OF SECTORS ON A:
+   0A6C                 TLENS1: .BLKW   1               ;TRACK LENGTH ON A:
+   0A6E                 LABA:   .BLKW   1               ;SAVED DRIVE A: LABEL
+   0A70                 LABB:   .BLKW   1               ;SAVED DRIVE B: LABEL
+   0A72                 TRKS:   .BLKB   1               ;NUMBER OF DISK TRACKS
+   0A73                 TNDSR:  .BLKB   1               ;TEMP. # OF USER SECTORS
+   0A74                 LABNAM: .BLKW   1               ;NAME OF LABEL TO WRITE
+   0A76                 RTADD:  .BLKW   1               ;POINTER TO READ DMA ADDRESS
+   0A78                 SYSSEC: .BLKB   1               ;# OF SYSTEM SECTORS
+                        
+                        
+                        
+   0A79                 DDBB:
+   0A79                         .BLKB   128     ;DDB READ BUFFER
+                        
+                        
+   0AF9                 DDB1:
+   0AF9                         .BLKB   128     ;DRIVE B DDB BUFFER
+                        
+                        
+                        
+   0B79                 DDBPRM: .BLKB   128             ;PASS 1 DDB SAVE FOR DRIVE A:           
+                        
+                        
+   0BF9                 DDB2:   .BLKB   128             ;DRIVE B: DDB
+                        
+                        
+   0C79                 TADDO:  .BLKB   128             ;OPTIONAL DMA R/W ADDRESS
+                        
+                        
+   0CF9                 TADD1:  .BLKB   128             ;DMA XFER ADDRESS FOR WRITE FILE
+                                
+   0D79                 TADD2:  .BLKB   128             ;DMA XFER ADDRESS FOR READ      
+                        
+                        
+   0DF9                 NDMADD:                         ;DMA SAVE ADDRESS FOR FILE SAVE
+                                                        ;NOT IMPLEMENTED
+                        
+   0DF9                 RDMADD:                         ;READ DMA TRACK BUFFER
+                        
+                        
+                        
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 19
+
+
+
+
+   38F1                 VDMADD  ==      RDMADD+11000    ;POINTER TO VERIFY DATA BUFFER
+                        
+                        
+                        
+                                .END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                      

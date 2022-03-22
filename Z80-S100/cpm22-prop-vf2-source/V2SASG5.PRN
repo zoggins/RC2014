@@ -1,0 +1,529 @@
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 1
+
+
+
+
+                        ;********************************************************
+                        ;*                     V2SASG
+                        ;*             VF II STAND ALONE SYSGEN
+                        ;*                    12/15/03
+                        ;********************************************************
+                        
+                                .XLINK
+                                .Z80            ;Z80 OPCODES USED
+                                .PHEX
+                                .PABS
+   0100                         .LOC    100H
+                        
+                        ; THE FIRST TWO TRACKS OF ANY SYSTEM DISK MUST HAVE AT
+                        ; LEAST 9 SECTORS OF 512 BYTES EACH. THE INFORMATION
+                        ; ON THESE SECTORS MUST BE:
+                        
+                        ;   TRACK 0, SECTOR 1, BYTES 0 THRU 127 - LOADER
+                        ;   TRACK 0, SECTOR 1, BYTES 128 THRU 511 - CP/M
+                        ;   TRACK 0, SECTOR 2 THRU SECTOR 7 - CP/M
+                        ;   TRACK 0, SECTOR 8, BYTES 0 THRU 383 - CP/M
+                        ;   TRACK 0, SECTOR 8, BYTES 384 THRU 511 - DDB
+                        ;   TRACK 0, SECTOR 9, BYTES 0 THRU 511 - CP/M
+                        ;   TRACK 1, SECTOR 1 THRU SECTOR 9 - CP/M, FOLLOWED
+                        ;       BY THE CBIOS
+                        
+   0007                 BELL    ==      7
+   000D                 CR      ==      13
+   000A                 LF      ==      10
+   001A                 CLEAR   ==      26
+   0009                 PRINTS  ==      9
+                        
+   0005                 BDOS    ==      5
+                        
+                        
+                        ; FDC PORT ADDRESSES.
+                        
+   0053                 DCNTL   ==      053H    ;DMA DISC CONTROL PORT
+   0054                 WDC     ==      054H    ;WDC 179X BASE ADDRESS
+   0054                 WCMD    ==      WDC+0   ;COMMAND REGISTER
+   0054                 WSTAT   ==      WDC+0   ;STATUS REGISTER
+   0055                 WTRACK  ==      WDC+1   ;TRACK REGISTER
+   0056                 WSECT   ==      WDC+2   ;SECTOR REGISTER
+   0057                 WDATA   ==      WDC+3   ;DATA REGISTER
+                        
+                        ;    WD179X COMMANDS
+                        
+   0008                 WHOME   ==      00001000B       ;HOME COMMAND
+   0080                 WREAD   ==      10000000B       ;READ SECTOR COMMAND
+   00A0                 WWRITE  ==      10100000B       ;WRITE SECTOR COMMAND
+   0018                 WSEEK   ==      00011000B       ;SEEK TO GIVEN TRACK COMMAND
+   0010                 WUNLD   ==      00010000B       ;SEEK AND UNLOAD HEAD COMMAND
+   0018                 WLOAD   ==      00011000B       ;SEEK AND LOAD HEAD COMMAND
+                        
+                        ;********************************************************
+                        ;             COMMON 179X CONTROLLER STATUS
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 2
+
+
+
+
+                        ;********************************************************
+                        
+   0000                 WBBUSY  ==      0               ;179X BUSY STATUS BIT
+   0001                 WBSID1  ==      1               ;SIDE SELECT FLAG COMMAND BIT
+   0002                 WBDEL   ==      2               ;HEAD SETTLE DELAY COMMAND BIT
+   0005                 WBWRIT  ==      5               ;READ/WRITE DISTINGUISHING BIT
+   0004                 WBRNF   ==      4               ;RECORD NOT FOUND STATUS BIT
+   009C                 WSREAD  ==      10011100B       ;READ SECTOR STATUS MASK
+   00FC                 WSWRIT  ==      11111100B       ;WRITE SECTOR STATUS MASK
+   0098                 WSSEEK  ==      10011000B       ;SEEK STATUS MASK
+   00D0                 WFCINT  ==      11010000B       ;FORCE INTERRUPT COMMAND
+                        
+                        ;         NOTE ABOUT THE 'SEC08' BUFFER
+                        ;SECTOR 8 IS READ INTO HERE, FOR MERGING OF THE DDB
+                        ;THIS IS ABOUT 1024 BYTES ABOVE THE 'GEN CP/M'
+                        ;IMAGE. FOR A BIOS SIZE OF 3K, THE IMAGE ENDS
+                        ;AT 29FFH. THIS WILL ALLOW FOR A BIOS AS LARGE
+                        ;AS 4K, WHICH WOULD END AT 2DFFH.
+                        ;IF YOU INCREASE YOUR BIOS BEYOND 4K, YOU WILL HAVE TO
+                        ;MOVE 'XFERAD' PAST THE BIOS IMAGE POINT
+                        
+   2E00                 XFERAD  ==      2E00H           ;SAVED ADRESS
+   2E02                 SEC08   ==      XFERAD+2        ;SECTOR 8 HERE
+                        
+   0100    31 0100              LXI     SP,100H
+   0103    11 02DE              LXI     D,MESS1
+   0106    0E09                 MVI     C,PRINTS
+   0108    CD 0005              CALL    BDOS
+                        
+   010B                 ISVFII:
+   010B    21 03EE              LXI     H,OKDRIV
+   010E    CD 023D              CALL    GETOK
+   0111    32 03F3              STA     DRIVE
+   0114    FE41                 CPI     'A'
+   0116    CA 0128              JZ      VFA
+   0119    FE42                 CPI     'B'
+   011B    CA 012D              JZ      VFB
+   011E    FE43                 CPI     'C'
+   0120    CA 0132              JZ      VFC
+   0123    3E17                 MVI     A,00010111B     ;DRIVE D: FOR NOW
+   0125    C3 0134              JMP     GETDRV
+   0128    3E1E         VFA:    MVI     A,00011110B
+   012A    C3 0134              JMP     GETDRV
+   012D                 VFB:
+   012D    3E1D                 MVI     A,00011101B
+   012F    C3 0134              JMP     GETDRV
+   0132                 VFC:
+   0132    3E1B                 MVI     A,00011011B
+   0134                 GETDRV:
+   0134    D353                 OUT     DCNTL           ;SET IT
+                        
+                        ; FIRST GET SECTOR 8 FOR DDB MERGE
+                        
+   0136                 RETRY:
+   0136    CD 01F7              CALL    HOMEIT
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 3
+
+
+
+
+   0139    3E08                 MVI     A,8
+   013B    D356                 OUT     WSECT
+   013D    3E00                 MVI     A,0
+   013F    D355                 OUT     WTRACK
+                        
+   0141    21 2E02              LXI     H,SEC08 ;PUT IT HERE FOR MERGE
+   0144    CD 01A5              CALL    READER
+                        
+                        
+                        ;NOW WRITE OUT THE SYSTEM TRACKS
+                        
+   0147    21 0900              LXI     H,900H  ;CP/M IMAGE             
+   014A    1E01                 MVI     E,1             ;START AT SECTOR 1
+   014C    3E01                 MVI     A,1
+   014E    D356                 OUT     WSECT
+   0150    CD 01CE              CALL    WRITER
+                        
+   0153                 TRACK:
+   0153                 SECTOR:
+   0153    DB56                 IN      WSECT   ;UPDATE SECTOR REG IN 179X
+   0155    3C                   INR     A
+   0156    D356                 OUT     WSECT   ; THIS IS SUPER TACKY, BUT IT
+   0158    D356                 OUT WSECT   ; APPEARS THAT THAT THERE NEEDS TO BE
+   015A    D356                 OUT WSECT       ; A DELAY BETWEEN OUT WSECT & IN WSECT.
+                                                        ; SO USING DUPLICATE OUT CALLS TO ACT
+                                                        ; AS DELAY
+   015C    FE08                 CPI     8               ;SEE IF DDB SECTOR
+   015E    C2 017F              JNZ     TSTSEC
+   0161    DB55                 IN      WTRACK
+   0163    FE00                 CPI     0               ;LAST TRACK?
+   0165    C2 017F              JNZ     TSTSEC
+   0168    E5                   PUSH    H               ;SAVE MERGE ADDRESS
+                                
+   0169    11 2E02              LXI     D,SEC08 ;PLACE IMAGE HERE
+   016C    01 0180              LXI     B,(128*3)       ;3 CP/M RECORDS
+   016F    EDB0                 LDIR                    ;SET IN PLACE
+                                
+   0171    21 2E02              LXI     H,SEC08
+   0174    CD 01CE              CALL    WRITER
+   0177    E1                   POP     H
+   0178    11 0180              LXI     D,(128*3)
+   017B    19                   DAD     D               ;MAKE NEXT LOC
+   017C    C3 0153              JMP     SECTOR
+                                
+   017F                 TRACK1:
+   017F                 TSTSEC:
+   017F                 GOON:
+   017F    DB56                 IN      WSECT           ;CHECK SECTOR # AGAIN
+   0181    FE0A                 CPI     9+1             ;ENTIRE TRACK READ?
+   0183    C2 019F              JNZ     NXTSEC  ;NO
+   0186    DB55                 IN      WTRACK  ;ALREADY READ TRACK 1?
+   0188    B7                   ORA     A
+   0189    C2 020E              JNZ     BOOT    ;YES
+                        
+   018C    3E01                 MVI     A,1     ;START TRACK 1 WITH SECTOR 1
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 4
+
+
+
+
+   018E    D356                 OUT     WSECT
+   0190    3E5B                 MVI     A,5BH   ;STEP IN TO TRACK 1
+   0192    D354                 OUT     WCMD
+   0194    CD 0203              CALL    WAITNB
+   0197    E69C                 ANI     9CH     ;STEP IN SUCCESSFUL?
+   0199    C2 0136              JNZ     RETRY   ;NO, RETRY ENTIRE BOOT
+   019C    C3 017F              JMP     TRACK1  ;GO READ TRACK 1
+                        
+   019F                 NXTSEC:
+   019F    CD 01CE              CALL    WRITER
+   01A2    C3 0153              JMP     SECTOR
+                        
+   01A5                 READER:
+   01A5    3E0A                 MVI     A,10
+   01A7    32 03F4              STA     RECNT
+   01AA    22 2E00              SHLD    XFERAD
+   01AD                 READ0:
+   01AD    2A 2E00              LHLD    XFERAD
+   01B0    3E80                 MVI     A,WREAD ;ISSUE READ SECTOR COMMAND
+   01B2    D354                 OUT     WCMD
+   01B4    01 0057              LXI     B,WDATA
+   01B7    EDB2                 INIR
+   01B9    EDB2                 INIR
+                                
+   01BB    CD 0203              CALL    WAITNB
+   01BE    E69D                 ANI     WSREAD+1        ;WAS READ SUCCESSFUL?
+   01C0    C8                   RZ
+   01C1    3A 03F4              LDA     RECNT
+   01C4    3D                   DCR     A
+   01C5    32 03F4              STA     RECNT
+   01C8    C2 01AD              JNZ     READ0           ;NO, RETRY
+   01CB    C3 0219              JMP     REDBAD
+                        
+   01CE                 WRITER:
+   01CE    22 2E00              SHLD    XFERAD
+   01D1    3E0A                 MVI     A,10
+   01D3    32 03F4              STA     RECNT
+   01D6                 WRITE0:
+   01D6    2A 2E00              LHLD    XFERAD
+   01D9    3EA0                 MVI     A,WWRITE        ;ISSUE WRITE SECTOR COMMAND
+   01DB    D354                 OUT     WCMD
+   01DD    01 0057              LXI     B,WDATA
+   01E0    EDB3                 OUTIR
+   01E2    EDB3                 OUTIR
+                                
+   01E4    CD 0203              CALL    WAITNB
+   01E7    E6FD                 ANI     WSWRIT+1        ;WAS WRITE SUCCESSFUL?
+   01E9    C8                   RZ
+   01EA    3A 03F4              LDA     RECNT
+   01ED    3D                   DCR     A
+   01EE    32 03F4              STA     RECNT
+   01F1    C2 01D6              JNZ     WRITE0  ;NO, RETRY
+   01F4    C3 0224              JMP     WRBAD
+                        
+   01F7                 HOMEIT:
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 5
+
+
+
+
+   01F7    3E0B                 MVI     A,0BH   ;RESTORE THE DISC DRIVE
+   01F9    D354                 OUT     WCMD
+   01FB                 ..1LOP:
+   01FB    3C                   INR     A
+   01FC    C2 01FB              JNZ     ..1LOP
+                        
+   01FF    CD 0203              CALL    WAITNB
+                        
+   0202    C9                   RET
+                        
+                        ;SUBROUTINE TO WAIT UNTIL THE 179X INDICATES THAT IT
+                        ;IS NOT BUSY. AT THAT TIME STATUS IS RETURNED TO THE CALLING PROGRAM
+                        
+   0203    06C8         WAITNB: MVI     B,200   ;DELAY TILL VALID STATUS
+   0205    10FE         ..WAIT: DJNZ    ..WAIT
+                        
+   0207                 QUIKNB:
+   0207    DB54                 IN      WSTAT   ;GET STATUS
+   0209    CB47                 BIT     0,A     ;BUSY ?
+   020B    20FA                 JRNZ    QUIKNB  ;YES,KEEP WAITING
+   020D    C9                   RET
+                        
+   020E                 FINI:
+   020E                 BOOT:
+   020E    11 0393              LXI     D,MESS2
+   0211    0E09                 MVI     C,PRINTS
+   0213    CD 0005              CALL    BDOS
+   0216    C3 022C              JMP     TEXIT
+   0219                 REDBAD:
+   0219    11 03A7              LXI     D,MESS3
+   021C    0E09                 MVI     C,PRINTS
+   021E    CD 0005              CALL    BDOS
+   0221    C3 022C              JMP     TEXIT
+   0224                 WRBAD:
+   0224    11 03CA              LXI     D,MESS4
+   0227    0E09                 MVI     C,PRINTS
+   0229    CD 0005              CALL    BDOS
+   022C                 TEXIT:
+   022C    3A 03F3              LDA     DRIVE
+   022F    FE41                 CPI     'A'
+   0231    C2 0000              JNZ     0
+   0234    11 02AC              LXI     D,MESSA
+   0237    0E09                 MVI     C,PRINTS
+   0239    CD 0005              CALL    BDOS
+   023C    76                   HLT
+                        
+                        ;****************************************************
+                        ; GET A CHARACTER FROM THE CONSOLE. IF THE CHARACTER
+                        ; IS UNACCEPTABLE, BEEP AND WAIT FOR ANOTHER. RETURN
+                        ; TO CP/M IF ^C IS ENTERED. (BDOS DOES RETURN ON ^C)
+                        ;****************************************************
+                        ; THE CCIR Z80 INSTRUCTION CHECKS ALL ACCEPTABLE
+                        ; CHARACTERS FROM THE TABLE POINTED TO BY HL
+                        ; A BAD INPUT CAUSES A BELL, PLUS A BACKSPACE
+                        ; BLANK-OVER AND BACKSPACE TO ERASE THE WRONG
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 6
+
+
+
+
+                        ; INPUT ON CONSOLE, THEN THE ROUTINE IS RE-ENTERED
+                        ;====================================================
+                        
+   023D                 GETOK:  
+   023D    E5           ..RTRY: PUSH    H       ;SAVE OK TABLE ADDR
+   023E    4E                   MOV     C,M     ;GET COUNT
+   023F    23                   INX     H
+   0240    0600                 MVI     B,0
+   0242    CD 0265              CALL    CI      ;GET A CHAR
+   0245    FE51                 CPI     'Q'     ;IS IT QUIT 
+   0247    CA 0282              JZ      GOBAK   ;YES, GO BACK TO CP/M
+   024A    EDB1                 CCIR            ;IS IT OKAY
+   024C    E1                   POP     H
+   024D    C8                   RZ              ;YES, RETURN IT
+                        
+   024E    0E07                 MVI     C,BELL  ;NO, RING BELL
+   0250    CD 0271              CALL    CO
+   0253    0E08                 MVI     C,8     ;BACK SPACE
+   0255    CD 0271              CALL    CO
+   0258    0E20                 MVI     C,' '
+   025A    CD 0271              CALL    CO
+   025D    0E08                 MVI     C,8
+   025F    CD 0271              CALL    CO
+   0262    C3 023D              JMP     ..RTRY  ;KEEP TRYING
+                        
+                        ;***************************************************
+                        ;       GET A CHARACTER FROM THE CONSOLE.
+                        ;***************************************************
+                        
+   0265    C5           CI:     PUSH    B
+   0266    D5                   PUSH    D
+   0267    E5                   PUSH    H
+   0268    0E01                 MVI     C,1     ;CONSOLE INPUT
+   026A    CD 0005              CALL    BDOS    ;GET THE CHARACTER
+   026D    E1                   POP     H
+   026E    D1                   POP     D
+   026F    C1                   POP     B
+   0270    C9                   RET
+                        
+                        ;**************************************************
+                        ;      WRITE A CHARACTER TO THE CONSOLE.
+                        ;**************************************************
+                        
+   0271    C5           CO:     PUSH    B
+   0272    D5                   PUSH    D
+   0273    E5                   PUSH    H
+   0274    79                   MOV     A,C
+   0275    E67F                 ANI     7FH
+   0277    5F                   MOV     E,A     ;MOVE CHARACTER TO E
+   0278    0E02                 MVI     C,2     ;CONSOLE OUTPUT
+   027A    CD 0005              CALL    BDOS    ;OUTPUT THE CHARACTER
+   027D    E1                   POP     H
+   027E    D1                   POP     D
+   027F    C1                   POP     B
+   0280    79                   MOV     A,C     ;FIX UP ACC
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 7
+
+
+
+
+   0281    C9                   RET
+                        
+   0282                 GOBAK:
+   0282    11 028D              LXI     D,QUITER
+   0285    0E09                 MVI     C,PRINTS
+   0287    CD 0005              CALL    BDOS
+   028A    C3 0000              JMP     0
+                        
+   028D                 QUITER:
+   028D    0D0A0A0A             .BYTE   CR,LF,LF,LF
+   0291    45584954494E         .ASCII  \EXITING TO COMMAND PROMPT $\
+                        
+                        
+   02AC                 MESSA:
+   02AC    0D0A0A               .BYTE   CR,LF,LF
+   02AF    445249564520         .ASCII  \DRIVE "A" WAS UPDATED - HALTING FOR A REBOOT :$\
+                        
+   02DE    1A0D0A0A     MESS1:  .BYTE   CLEAR,CR,LF,LF
+   02E2    56462D494920         .ASCII  \VF-II SYSGEN FOR 5", OR MIN-FLOPPY DRIVES\
+   030B    0D0A0A               .BYTE   CR,LF,LF
+   030E    424520535552         .ASCII  \BE SURE A DISK IS ALREADY IN PLACE\
+   0330    0D0A0A               .BYTE   CR,LF,LF
+   0333    415320544845         .ASCII  \AS THE SYSGEN STARTS ONCE THE DRIVE IS TYPED IN\
+   0362    0D0A0A               .BYTE   CR,LF,LF
+   0365    53595347454E         .ASCII  \SYSGEN TO DRIVE A, B, C OR D ENTER CHOICE => $\
+                        
+   0393    0D0A0A       MESS2:  .BYTE   CR,LF,LF
+   0396    53595347454E         .ASCII  \SYSGEN COMPLETE $\
+                        
+   03A7    0D0A0A       MESS3:  .BYTE   CR,LF,LF
+   03AA    4641494C4544         .ASCII  \FAILED ON SECTOR READ, QUITING $\
+                        
+   03CA    0D0A0A       MESS4:  .BYTE   CR,LF,LF
+   03CD    4641494C4544         .ASCII  \FAILED ON SECTOR WRITE, QUITING $\
+                        
+   03EE    0441424344   OKDRIV: .BYTE   4,'A','B','C','D'
+                        
+   03F3                 DRIVE:  .BLKB   1
+   03F4    0A           RECNT:  .BYTE   10
+                                
+                        
+                        
+                                .END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                                                                   PAGE 8
+
++++++ SYMBOL TABLE +++++
+
+
+BDOS   0005         BELL   0007         BOOT   020E         CI     0265         CLEAR  001A         CO     0271      
+CR     000D         DCNTL  0053         DRIVE  03F3         FINI   020E         GETDRV 0134         GETOK  023D      
+GOBAK  0282         GOON   017F         HOMEIT 01F7         ISVFII 010B         LF     000A         MESS1  02DE      
+MESS2  0393         MESS3  03A7         MESS4  03CA         MESSA  02AC         NXTSEC 019F         OKDRIV 03EE      
+PRINTS 0009         QUIKNB 0207         QUITER 028D         READ0  01AD         READER 01A5         RECNT  03F4      
+REDBAD 0219         RETRY  0136         SEC08  2E02         SECTOR 0153         TEXIT  022C         TRACK  0153      
+TRACK1 017F         TSTSEC 017F         VFA    0128         VFB    012D         VFC    0132         WAITNB 0203      
+WBBUSY 0000         WBDEL  0002         WBRNF  0004         WBSID1 0001         WBWRIT 0005         WCMD   0054      
+WDATA  0057         WDC    0054         WFCINT 00D0         WHOME  0008         WLOAD  0018         WRBAD  0224      
+WREAD  0080         WRITE0 01D6         WRITER 01CE         WSECT  0056         WSEEK  0018         WSREAD 009C      
+WSSEEK 0098         WSTAT  0054         WSWRIT 00FC         WTRACK 0055         WUNLD  0010         WWRITE 00A0      
+XFERAD 2E00         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   

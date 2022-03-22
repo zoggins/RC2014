@@ -1,0 +1,1409 @@
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1
+
+
+                                	title	'console command processor (CCP), ver 2.0'
+                                
+                                	.Z80
+  0000'                         	aseg
+                                	org	100h
+                         C      	maclib	MEMCFG.LIB	; define configuration parameters
+  0040                   C      msize	equ	64		; adjust per installed system memory
+                         C      
+                         C      ; configuration parameters for BIOS
+                         C      ;bioslen	equ	0c00h		; adjust as bios changes are made (if necessary)
+  0003                   C      bioslen		equ	3
+  0000                   C      nhdisks	equ	0		; total number of hard disks (set to 0
+                         C      				;   if no hard disks desired)
+  0001                   C      needZ80	equ	1		; 0 = 8080 is ok, 1 = Z80 is needed
+  0001                   C      patchOS	equ	1		; 0 = do not patch CCP and BODS
+                         C      					; 1 = patch orignal CCP and original BDOS
+                         C      
+                         C      ; common definitions and derived values - no change should be necessary below
+  0800                   C      ccplen	equ	0800h		; cp/m constant
+  0E00                   C      bdoslen	equ	0e00h		; cp/m constant
+                         C      
+                         C      ; cp/m image size (rounded up to next 1k boundary)
+                         C      ;cpmlen	equ	(ccplen + bdoslen + bioslen + 03ffh) / 0400h
+                         C      
+  003D                   C      msiz	equ	msize-bioslen				;SUBTRACT BIOS SIZE
+  A400                   C      bias	equ (msiz-20)*1024				;THE DRI BIAS FACTOR
+                         C      
+                         C      ;ccpph	equ	(msize - cpmlen) * 1024		; old ccp start address
+  D800                   C      ccpph	equ	3400H+bias					; udpated ccp start address
+  E000                   C      bdosph	equ	ccpph + ccplen				; bdos start address
+  EE00                   C      biosph	equ	ccpph + ccplen + bdoslen	; bios start address
+                         C      
+                                	.phase	ccpph		; CCPLOC not needed, we use ccpph instead
+                                
+                                ;	assembly language version of the CP/M console command processor
+                                ;
+                                ;	version 2.2 February, 1980
+                                
+                                ;	Copyright (c) 1976, 1977, 1978, 1979, 1980
+                                ;	Digital Research
+                                ;	Box 579, Pacific Grove,
+                                ;	California, 93950
+                                
+  E000                          bdosl	equ	bdosph	;bdos location
+  0100                          tran	equ	100h
+  D800                          tranm	equ	$
+  D800                          ccploc	equ	$
+                                
+                                ;	********************************************************
+                                ;	*	Base of CCP contains the following code/data   *
+                                ;	*	ccp:	jmp ccpstart	(start with command)   *
+                                ;	*		jmp ccpclear    (start, clear command) *
+                                ;	*	ccp+6	127		(max command length)   *
+                                ;	*	ccp+7	comlen		(command length = 00)  *
+                                ;	*	ccp+8	' ... '		(16 blanks)	       *
+                                ;	********************************************************
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-1
+
+
+                                ;	* Normal entry is at ccp, where the command line given *
+                                ;	* at ccp+8 is executed automatically (normally a null  *
+                                ;	* command with comlen = 00).  An initializing program  *
+                                ;	* can be automatically loaded by storing the command   *
+                                ;	* at ccp+8, with the command length at ccp+7.  In this *
+                                ;	* case, the ccp executes the command before prompting  *
+                                ;	* the console for input.  Note that the command is exe-*
+                                ;	* cuted on both warm and cold starts.  When the command*
+                                ;	* line is initialized, a jump to "jmp ccpclear" dis-   *
+                                ;	* ables the automatic command execution.               *
+                                ;	********************************************************
+                                
+  D800    C3 DB5C               	jp	ccpstart	;start ccp with possible initial command
+  D803    C3 DB58               	jp	ccpclear	;clear the command buffer
+  D806    7F                    maxlen:	db	127		;max buffer length
+  D807    00                    comlen:	db	0		;command length (filled in by dos)
+                                
+                                ;	(command executed initially if comlen non zero)
+  D808    20 20 20 20           combuf:	db	'        '	;8 character fill
+  D80C    20 20 20 20           
+  D810    20 20 20 20           	db	'        '	;8 character fill
+  D814    20 20 20 20           
+  D818    43 4F 50 59           	db	'COPYRIGHT (C) 1979, DIGITAL RESEARCH  '; 38
+  D81C    52 49 47 48           
+  D820    54 20 28 43           
+  D824    29 20 31 39           
+  D828    37 39 2C 20           
+  D82C    44 49 47 49           
+  D830    54 41 4C 20           
+  D834    52 45 53 45           
+  D838    41 52 43 48           
+  D83C    20 20                 
+  D83E                          	ds	128-($-combuf)
+                                ;	total buffer length is 128 characters
+                                
+  D888                          comaddr:
+  D888    D808                  	dw	combuf		;address of next to char to scan
+  D88A                          staddr:	ds	2		;starting address of current fillfcb request
+                                
+  0004                          diska	equ	0004h		;disk address for current disk
+  0005                          bdos	equ	0005h		;primary bdos entry point
+  0080                          buff	equ	0080h		;default buffer
+  005C                          fcb	equ	005ch		;default file control block
+                                
+  0001                          rcharf	equ	1		;read character function
+  0002                          pcharf	equ	2		;print character function
+  0009                          pbuff	equ	9		;print buffer function
+  000A                          rbuff	equ	10		;read buffer function
+  000B                          breakf	equ	11		;break key function
+  000C                          liftf	equ	12		;lift head function (no operation)
+  000D                          initf	equ	13		;initialize bdos function
+  000E                          self	equ	14		;select disk function
+  000F                          openf	equ	15		;open file function
+  0010                          closef	equ	16		;close file function
+  0011                          searf	equ	17		;search for file function
+  0012                          searnf	equ	18		;search for next file function
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-2
+
+
+  0013                          delf	equ	19		;delete file function
+  0014                          dreadf	equ	20		;disk read function
+  0015                          dwritf	equ	21		;disk write function
+  0016                          makef	equ	22		;file make function
+  0017                          renf	equ	23		;rename file function
+  0018                          logf	equ	24		;return login vector
+  0019                          cself	equ	25		;return currently selected drive number
+  001A                          dmaf	equ	26		;set dma address
+  0020                          userf	equ	32		;set user number
+                                
+                                ;	special fcb flags
+  0009                          rofile	equ	9		;read only file
+  000A                          sysfile	equ	10		;system file flag
+                                
+                                ;	special characters
+  000D                          cr	equ	13		;carriage return
+  000A                          lf	equ	10		;line feed
+  005F                          la	equ	5fh		;left arrow
+  001A                          eofile	equ	1ah		;end of file
+                                
+                                ;	utility procedures
+  D88C                          printchar:
+  D88C    5F                    	ld	e,a
+  D88D    0E 02                 	ld	c,pcharf
+  D88F    C3 0005               	jp	bdos
+                                
+  D892                          printbc:			;print character, but save b,c registers
+  D892    C5                    	push	bc
+  D893    CD D88C               	call	printchar
+  D896    C1                    	pop	bc
+  D897    C9                    	ret
+                                
+  D898    3E 0D                 crlf:	ld	a,cr
+  D89A    CD D892               	call	printbc
+  D89D    3E 0A                 	ld	a,lf
+  D89F    C3 D892               	jp	printbc
+                                
+  D8A2    3E 20                 blank:	ld	a,' '
+  D8A4    C3 D892               	jp	printbc
+                                
+  D8A7                          print:				;print string starting at b,c until next 00 entry
+  D8A7    C5                    	push	bc
+  D8A8    CD D898               	call	crlf
+  D8AB    E1                    	pop	hl		;now print the string
+  D8AC    7E                    prin0:	ld	a,(hl)
+  D8AD    B7                    	or	a
+  D8AE    C8                    	ret	z		;stop on 00
+  D8AF    23                    	inc	hl
+  D8B0    E5                    	push	hl		;ready for next
+  D8B1    CD D88C               	call	printchar
+  D8B4    E1                    	pop	hl		;character printed
+  D8B5    C3 D8AC               	jp	prin0		;for another character
+                                
+  D8B8                          initialize:
+  D8B8    0E 0D                 	ld	c,initf
+  D8BA    C3 0005               	jp	bdos
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-3
+
+
+                                
+  D8BD    5F                    select:	ld	e,a
+  D8BE    0E 0E                 	ld	c,self
+  D8C0    C3 0005               	jp	bdos
+                                
+  D8C3                          bdos$inr:
+  D8C3    CD 0005               	call	bdos
+  D8C6    32 DFEE               	ld	(dcnt),a
+  D8C9    3C                    	inc	a
+  D8CA    C9                    	ret
+                                
+  D8CB                          open:				;open the file given by d,e
+  D8CB    0E 0F                 	ld	c,openf
+  D8CD    C3 D8C3               	jp	bdos$inr
+                                
+  D8D0                          openc:				;open comfcb
+  D8D0    AF                    	xor	a
+  D8D1    32 DFED               	ld	(comrec),a	;clear next record to read
+  D8D4    11 DFCD               	ld	de,comfcb
+  D8D7    C3 D8CB               	jp	open
+                                
+  D8DA                          close:				;close the file given by d,e
+  D8DA    0E 10                 	ld	c,closef
+  D8DC    C3 D8C3               	jp	bdos$inr
+                                
+  D8DF                          search:				;search for the file given by d,e
+  D8DF    0E 11                 	ld	c,searf
+  D8E1    C3 D8C3               	jp	bdos$inr
+                                
+  D8E4                          searchn:			;search for the next occurrence of the file given by d,e
+  D8E4    0E 12                 	ld	c,searnf
+  D8E6    C3 D8C3               	jp	bdos$inr
+                                
+  D8E9                          searchcom:			;search for comfcb file
+  D8E9    11 DFCD               	ld	de,comfcb
+  D8EC    C3 D8DF               	jp	search
+                                
+  D8EF                          delete:				;delete the file given by d,e
+  D8EF    0E 13                 	ld	c,delf
+  D8F1    C3 0005               	jp	bdos
+                                
+  D8F4                          bdos$cond:
+  D8F4    CD 0005               	call	bdos
+  D8F7    B7                    	or	a
+  D8F8    C9                    	ret
+                                
+  D8F9                          diskread:			;read the next record from the file given by d,e
+  D8F9    0E 14                 	ld	c,dreadf
+  D8FB    C3 D8F4               	jp	bdos$cond
+                                
+  D8FE                          diskreadc:			;read the comfcb file
+  D8FE    11 DFCD               	ld	de,comfcb
+  D901    C3 D8F9               	jp	diskread
+                                
+  D904                          diskwrite:			;write the next record to the file given by d,e
+  D904    0E 15                 	ld	c,dwritf
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-4
+
+
+  D906    C3 D8F4               	jp	bdos$cond
+                                
+  D909                          make:				;create the file given by d,e
+  D909    0E 16                 	ld	c,makef
+  D90B    C3 D8C3               	jp	bdos$inr
+                                
+  D90E                          renam:				;rename the file given by d,e
+  D90E    0E 17                 	ld	c,renf
+  D910    C3 0005               	jp	bdos
+                                
+  D913                          getuser:			;return current user code in a
+  D913    1E FF                 	ld	e,0ffh		;drop through to setuser
+                                
+  D915                          setuser:
+  D915    0E 20                 	ld	c,userf
+  D917    C3 0005               	jp	bdos		;sets user number
+                                
+  D91A                          saveuser:			;save user#/disk# before possible ^c or transient
+  D91A    CD D913               	call	getuser		;code to a
+  D91D    87                    	add	a,a
+  D91E    87                    	add	a,a
+  D91F    87                    	add	a,a
+  D920    87                    	add	a,a		;rot left
+  D921    21 DFEF               	ld	hl,cdisk
+  D924    B6                    	or	(hl)		;4b=user, 4b=disk
+  D925    32 0004               	ld	(diska),a	;stored away in memory for later
+  D928    C9                    	ret
+                                
+  D929                          setdiska:
+  D929    3A DFEF               	ld	a,(cdisk)
+  D92C    32 0004               	ld	(diska),a	;user/disk
+  D92F    C9                    	ret
+                                
+  D930                          translate:			;translate character in register A to upper case
+  D930    FE 61                 	cp	61h
+  D932    D8                    	ret	c		;return if below lower case a
+  D933    FE 7B                 	cp	7bh
+  D935    D0                    	ret	nc		;return if above lower case z
+  D936    E6 5F                 	and	5fh
+  D938    C9                    	ret			;translated to upper case
+                                
+  D939                          readcom:			;read the next command into the command buffer
+                                				;check for submit file
+  D939    3A DFAB               	ld	a,(submit)
+  D93C    B7                    	or	a
+  D93D    CA D996               	jp	z,nosub
+                                				;scanning a submit file
+                                				;change drives to open and read the file
+  D940    3A DFEF               	ld	a,(cdisk)
+  D943    B7                    	or	a
+  D944    3E 00                 	ld	a,0
+  D946    C4 D8BD               	call	nz,select
+                                				;have to open again in case xsub present
+  D949    11 DFAC               	ld	de,subfcb
+  D94C    CD D8CB               	call	open
+  D94F    CA D996               	jp	z,nosub		;skip if no sub
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-5
+
+
+  D952    3A DFBB               	ld	a,(subrc)
+  D955    3D                    	dec	a		;read last record(s) first
+  D956    32 DFCC               	ld	(subcr),a	;current record to read
+  D959    11 DFAC               	ld	de,subfcb
+  D95C    CD D8F9               	call	diskread	;end of file if last record
+  D95F    C2 D996               	jp	nz,nosub
+                                				;disk read is ok, transfer to combuf
+  D962    11 D807               	ld	de,comlen
+  D965    21 0080               	ld	hl,buff
+  D968    06 80                 	ld	b,128
+  D96A    CD DC42               	call	move0
+                                				;line is transferred, close the file with a
+                                				;deleted record
+  D96D    21 DFBA               	ld	hl,submod
+  D970    36 00                 	ld	(hl),0		;clear fwflag
+  D972    23                    	inc	hl
+  D973    35                    	dec	(hl)		;one less record
+  D974    11 DFAC               	ld	de,subfcb
+  D977    CD D8DA               	call	close
+  D97A    CA D996               	jp	z,nosub
+                                				;close went ok, return to original drive
+  D97D    3A DFEF               	ld	a,(cdisk)
+  D980    B7                    	or	a
+  D981    C4 D8BD               	call	nz,select
+                                				;print to the 00
+  D984    21 D808               	ld	hl,combuf
+  D987    CD D8AC               	call	prin0
+  D98A    CD D9C2               	call	break$key
+  D98D    CA D9A7               	jp	z,noread
+  D990    CD D9DD               	call	del$sub
+  D993    C3 DB82               	jp	ccp		;break key depressed
+                                
+  D996                          nosub:				;no submit file
+  D996    CD D9DD               	call	del$sub
+                                				;translate to upper case, store zero at end
+  D999    CD D91A               	call	saveuser	;user # save in case control c
+  D99C    0E 0A                 	ld	c,rbuff
+  D99E    11 D806               	ld	de,maxlen
+  D9A1    CD 0005               	call	bdos
+  D9A4    CD D929               	call	setdiska	;no control c, so restore diska
+  D9A7                          noread:				;enter here from submit file
+                                				;set the last character to zero for later scans
+  D9A7    21 D807               	ld	hl,comlen
+  D9AA    46                    	ld	b,(hl)		;length is in b
+  D9AB                          readcom0:
+  D9AB    23                    	inc	hl
+  D9AC    78                    	ld	a,b
+  D9AD    B7                    	or	a		;end of scan?
+  D9AE    CA D9BA               	jp	z,readcom1
+  D9B1    7E                    	ld	a,(hl)		;get character and translate
+  D9B2    CD D930               	call	translate
+  D9B5    77                    	ld	(hl),a
+  D9B6    05                    	dec	b
+  D9B7    C3 D9AB               	jp	readcom0
+                                
+  D9BA                          readcom1:			;end of scan, h,l address end of command
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-6
+
+
+  D9BA    77                    	ld	(hl),a		;store a zero
+  D9BB    21 D808               	ld	hl,combuf
+  D9BE    22 D888               	ld	(comaddr),hl	;ready to scan to zero
+  D9C1    C9                    	ret
+                                
+  D9C2                          break$key:			;check for a character ready at the console
+  D9C2    0E 0B                 	ld	c,breakf
+  D9C4    CD 0005               	call	bdos
+  D9C7    B7                    	or	a
+  D9C8    C8                    	ret	z
+  D9C9    0E 01                 	ld	c,rcharf
+  D9CB    CD 0005               	call	bdos		;character cleared
+  D9CE    B7                    	or	a
+  D9CF    C9                    	ret
+                                
+  D9D0                          cselect:			;get the currently selected drive number to reg-A
+  D9D0    0E 19                 	ld	c,cself
+  D9D2    C3 0005               	jp	bdos
+                                
+  D9D5                          setdmabuff:			;set default buffer dma address
+  D9D5    11 0080               	ld	de,buff		;(drop through)
+                                
+  D9D8                          setdma:				;set dma address to d,e
+  D9D8    0E 1A                 	ld	c,dmaf
+  D9DA    C3 0005               	jp	bdos
+                                
+  D9DD                          del$sub:			;delete the submit file, and set submit flag to false
+  D9DD    21 DFAB               	ld	hl,submit
+  D9E0    7E                    	ld	a,(hl)
+  D9E1    B7                    	or	a
+  D9E2    C8                    	ret	z		;return if no sub file
+  D9E3    36 00                 	ld	(hl),0		;submit flag is set to false
+  D9E5    AF                    	xor	a
+  D9E6    CD D8BD               	call	select		;on drive a to erase file
+  D9E9    11 DFAC               	ld	de,subfcb
+  D9EC    CD D8EF               	call	delete
+  D9EF    3A DFEF               	ld	a,(cdisk)
+  D9F2    C3 D8BD               	jp	select		;back to original drive
+                                
+  D9F5                          serialize:			;check serialization
+  D9F5    11 DB28               	ld	de,serial
+  D9F8    21 E000               	ld	hl,bdosl
+  D9FB    06 06                 	ld	b,6		;check six bytes
+  D9FD    1A                    ser0:	ld	a,(de)
+  D9FE    BE                    	cp	(hl)
+  D9FF    C2 DBCF               	jp	nz,badserial
+  DA02    13                    	inc	de
+  DA03    23                    	inc	hl
+  DA04    05                    	dec	b
+  DA05    C2 D9FD               	jp	nz,ser0
+  DA08    C9                    	ret			;serial number is ok
+                                
+  DA09                          comerr:				;error in command string starting at position
+                                				;'staddr' and ending with first delimiter
+  DA09    CD D898               	call	crlf		;space to next line
+  DA0C    2A D88A               	ld	hl,(staddr)	;h,l address first to print
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-7
+
+
+  DA0F                          comerr0:			;print characters until blank or zero
+  DA0F    7E                    	ld	a,(hl)
+  DA10    FE 20                 	cp	' '
+  DA12    CA DA22               	jp	z,comerr1	; not blank
+  DA15    B7                    	or	a
+  DA16    CA DA22               	jp	z,comerr1	; not zero, so print it
+  DA19    E5                    	push	hl
+  DA1A    CD D88C               	call	printchar
+  DA1D    E1                    	pop	hl
+  DA1E    23                    	inc	hl
+  DA1F    C3 DA0F               	jp	comerr0		; for another character
+  DA22                          comerr1:			;print question mark,and delete sub file
+  DA22    3E 3F                 	ld	a,'?'
+  DA24    CD D88C               	call	printchar
+  DA27    CD D898               	call	crlf
+  DA2A    CD D9DD               	call	del$sub
+  DA2D    C3 DB82               	jp	ccp		;restart with next command
+                                
+                                				; fcb scan and fill subroutine (entry is at fillfcb below)
+                                				;fill the comfcb, indexed by A (0 or 16)
+                                				;subroutines
+  DA30                          delim:				;look for a delimiter
+  DA30    1A                    	ld	a,(de)
+  DA31    B7                    	or	a
+  DA32    C8                    	ret	z		;not the last element
+  DA33    FE 20                 	cp	' '
+  DA35    DA DA09               	jp	c,comerr	;non graphic
+  DA38    C8                    	ret	z		;treat blank as delimiter
+  DA39    FE 3D                 	cp	'='
+  DA3B    C8                    	ret	z
+  DA3C    FE 5F                 	cp	la
+  DA3E    C8                    	ret	z		;left arrow
+  DA3F    FE 2E                 	cp	'.'
+  DA41    C8                    	ret	z
+  DA42    FE 3A                 	cp	':'
+  DA44    C8                    	ret	z
+  DA45    FE 3B                 	cp	';'
+  DA47    C8                    	ret	z
+  DA48    FE 3C                 	cp	'<'
+  DA4A    C8                    	ret	z
+  DA4B    FE 3E                 	cp	'>'
+  DA4D    C8                    	ret	z
+  DA4E    C9                    	ret			;delimiter not found
+                                
+  DA4F                          deblank:			;deblank the input line
+  DA4F    1A                    	ld	a,(de)
+  DA50    B7                    	or	a
+  DA51    C8                    	ret	z		;treat end of line as blank
+  DA52    FE 20                 	cp	' '
+  DA54    C0                    	ret	nz
+  DA55    13                    	inc	de
+  DA56    C3 DA4F               	jp	deblank
+                                
+  DA59                          addh:				;add a to h,l
+  DA59    85                    	add	a,l
+  DA5A    6F                    	ld	l,a
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-8
+
+
+  DA5B    D0                    	ret	nc
+  DA5C    24                    	inc	h
+  DA5D    C9                    	ret
+                                
+  DA5E                          fillfcb0:			;equivalent to fillfcb(0)
+  DA5E    3E 00                 	ld	a,0
+                                
+  DA60                          fillfcb:
+  DA60    21 DFCD               	ld	hl,comfcb
+  DA63    CD DA59               	call	addh
+  DA66    E5                    	push	hl
+  DA67    E5                    	push	hl		;fcb rescanned at end
+  DA68    AF                    	xor	a
+  DA69    32 DFF0               	ld	(sdisk),a	;clear selected disk (in case A:...)
+  DA6C    2A D888               	ld	hl,(comaddr)
+  DA6F    EB                    	ex	de,hl		;command address in d,e
+  DA70    CD DA4F               	call	deblank		;to first non-blank character
+  DA73    EB                    	ex	de,hl
+  DA74    22 D88A               	ld	(staddr),hl	;in case of errors
+  DA77    EB                    	ex	de,hl
+  DA78    E1                    	pop	hl		;d,e has command, h,l has fcb address
+                                				;look for preceding file name A: B: ...
+  DA79    1A                    	ld	a,(de)
+  DA7A    B7                    	or	a
+  DA7B    CA DA89               	jp	z,setcur0	;use current disk if empty command
+  DA7E    DE 40                 	sbc	a,'A'-1
+  DA80    47                    	ld	b,a		;disk name held in b if : follows
+  DA81    13                    	inc	de
+  DA82    1A                    	ld	a,(de)
+  DA83    FE 3A                 	cp	':'
+  DA85    CA DA90               	jp	z,setdsk	;set disk name if :
+                                
+  DA88                          setcur:				;set current disk
+  DA88    1B                    	dec	de		;back to first character of command
+  DA89                          setcur0:
+  DA89    3A DFEF               	ld	a,(cdisk)
+  DA8C    77                    	ld	(hl),a
+  DA8D    C3 DA96               	jp	setname
+                                
+  DA90                          setdsk:				;set disk to name in register b
+  DA90    78                    	ld	a,b
+  DA91    32 DFF0               	ld	(sdisk),a	;mark as disk selected
+  DA94    70                    	ld	(hl),b
+  DA95    13                    	inc	de		;past the :
+                                
+  DA96                          setname:			;set the file name field
+  DA96    06 08                 	ld	b,8		;file name length (max)
+  DA98    CD DA30               setnam0:	call	delim
+  DA9B    CA DAB9               	jp	z,padname	;not a delimiter
+  DA9E    23                    	inc	hl
+  DA9F    FE 2A                 	cp	'*'
+  DAA1    C2 DAA9               	jp	nz,setnam1	;must be ?'s
+  DAA4    36 3F                 	ld	(hl),'?'
+  DAA6    C3 DAAB               	jp	setnam2		;to dec count
+                                
+  DAA9                          setnam1:
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-9
+
+
+  DAA9    77                    	ld	(hl),a		;store character to fcb
+  DAAA    13                    	inc	de
+  DAAB                          setnam2:
+  DAAB    05                    	dec	b		;count down length
+  DAAC    C2 DA98               	jp	nz,setnam0
+                                
+                                				;end of name, truncate remainder
+  DAAF    CD DA30               trname:	call	delim
+  DAB2    CA DAC0               	jp	z,setty		;set type field if delimiter
+  DAB5    13                    	inc	de
+  DAB6    C3 DAAF               	jp	trname
+                                
+  DAB9                          padname:
+  DAB9    23                    	inc	hl
+  DABA    36 20                 	ld	(hl),' '
+  DABC    05                    	dec	b
+  DABD    C2 DAB9               	jp	nz,padname
+                                
+  DAC0                          setty:				;set the type field
+  DAC0    06 03                 	ld	b,3
+  DAC2    FE 2E                 	cp	'.'
+  DAC4    C2 DAE9               	jp	nz,padty	;skip the type field if no .
+  DAC7    13                    	inc	de		;past the ., to the file type field
+  DAC8                          setty0:				;set the field from the command buffer
+  DAC8    CD DA30               	call	delim
+  DACB    CA DAE9               	jp	z,padty
+  DACE    23                    	inc	hl
+  DACF    FE 2A                 	cp	'*'
+  DAD1    C2 DAD9               	jp	nz,setty1
+  DAD4    36 3F                 	ld	(hl),'?'	;since * specified
+  DAD6    C3 DADB               	jp	setty2
+                                
+  DAD9                          setty1:				;not a *, so copy to type field
+  DAD9    77                    	ld	(hl),a
+  DADA    13                    	inc	de
+  DADB                          setty2:				;decrement count and go again
+  DADB    05                    	dec	b
+  DADC    C2 DAC8               	jp	nz,setty0
+                                
+                                				;end of type field, truncate
+  DADF                          trtyp:				;truncate type field
+  DADF    CD DA30               	call	delim
+  DAE2    CA DAF0               	jp	z,efill
+  DAE5    13                    	inc	de
+  DAE6    C3 DADF               	jp	trtyp
+                                
+  DAE9                          padty:				;pad the type field with blanks
+  DAE9    23                    	inc	hl
+  DAEA    36 20                 	ld	(hl),' '
+  DAEC    05                    	dec	b
+  DAED    C2 DAE9               	jp	nz,padty
+                                
+  DAF0                          efill:				;end of the filename/filetype fill, save command address
+                                				;fill the remaining fields for the fcb
+  DAF0    06 03                 	ld	b,3
+  DAF2    23                    efill0:	inc	hl
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-10
+
+
+  DAF3    36 00                 	ld	(hl),0
+  DAF5    05                    	dec	b
+  DAF6    C2 DAF2               	jp	nz,efill0
+  DAF9    EB                    	ex	de,hl
+  DAFA    22 D888               	ld	(comaddr),hl	;set new starting point
+                                
+                                				;recover the start address of the fcb and count ?'s
+  DAFD    E1                    	pop	hl
+  DAFE    01 000B               	ld	bc,11		;b=0, c=8+3
+  DB01    23                    scnq:	inc	hl
+  DB02    7E                    	ld	a,(hl)
+  DB03    FE 3F                 	cp	'?'
+  DB05    C2 DB09               	jp	nz,scnq0
+                                				;? found, count it in b
+  DB08    04                    	inc	b
+  DB09    0D                    scnq0:	dec	c
+  DB0A    C2 DB01               	jp	nz,scnq
+                                				;number of ?'s in c, move to a and return with flags set
+  DB0D    78                    	ld	a,b
+  DB0E    B7                    	or	a
+  DB0F    C9                    	ret
+                                
+  DB10                          intvec:				;intrinsic function names (all are four characters)
+  DB10    44 49 52 20           	db	'DIR '
+  DB14    45 52 41 20           	db	'ERA '
+  DB18    54 59 50 45           	db	'TYPE'
+  DB1C    53 41 56 45           	db	'SAVE'
+  DB20    52 45 4E 20           	db	'REN '
+  DB24    55 53 45 52           	db	'USER'
+  0006                          intlen	equ ($-intvec)/4	;intrinsic function length
+  DB28    00 00 00 00           serial:	db	0,0,0,0,0,0
+  DB2C    00 00                 
+                                
+                                
+  DB2E                          intrinsic:			;look for intrinsic functions (comfcb has been filled)
+  DB2E    21 DB10               	ld	hl,intvec
+  DB31    0E 00                 	ld	c,0		;c counts intrinsics as scanned
+  DB33                          intrin0:
+  DB33    79                    	ld	a,c
+  DB34    FE 06                 	cp	intlen		;done with scan?
+  DB36    D0                    	ret	nc
+                                				;no, more to scan
+  DB37    11 DFCE               	ld	de,comfcb+1	;beginning of name
+  DB3A    06 04                 	ld	b,4		;length of match is in b
+  DB3C                          intrin1:
+  DB3C    1A                    	ld	a,(de)
+  DB3D    BE                    	cp	(hl)		;match?
+  DB3E    C2 DB4F               	jp	nz,intrin2	;skip if no match
+  DB41    13                    	inc	de
+  DB42    23                    	inc	hl
+  DB43    05                    	dec	b
+  DB44    C2 DB3C               	jp	nz,intrin1	;loop while matching
+                                				;complete match on name, check for blank in fcb
+  DB47    1A                    	ld	a,(de)
+  DB48    FE 20                 	cp	' '
+  DB4A    C2 DB54               	jp	nz,intrin3	;otherwise matched
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-11
+
+
+  DB4D    79                    	ld	a,c
+  DB4E    C9                    	ret			;with intrinsic number in a
+                                
+  DB4F                          intrin2:			;mismatch, move to end of intrinsic
+  DB4F    23                    	inc	hl
+  DB50    05                    	dec	b
+  DB51    C2 DB4F               	jp	nz,intrin2
+                                
+  DB54                          intrin3:			;try next intrinsic
+  DB54    0C                    	inc	c		;to next intrinsic number
+  DB55    C3 DB33               	jp	intrin0		;for another round
+                                
+  DB58                          ccpclear:			;clear the command buffer
+  DB58    AF                    	xor	a
+  DB59    32 D807               	ld	(comlen),a
+                                				;drop through to start ccp
+  DB5C                          ccpstart:			;enter here from boot loader
+  DB5C    31 DFAB               	ld	sp,stack
+  DB5F    C5                    	push	bc		;save initial disk number
+                                				;(high order 4bits=user code, low 4bits=disk#)
+  DB60    79                    	ld	a,c
+  DB61    1F                    	rra
+  DB62    1F                    	rra
+  DB63    1F                    	rra
+  DB64    1F                    	rra
+  DB65    E6 0F                 	and	0fh		;user code
+  DB67    5F                    	ld	e,a
+  DB68    CD D915               	call	setuser		;user code selected
+                                				;initialize for this user, get $ flag
+  DB6B    CD D8B8               	call	initialize	;0ffh in accum if $ file present
+  DB6E    32 DFAB               	ld	(submit),a	;submit flag set if $ file present
+  DB71    C1                    	pop	bc		;recall user code and disk number
+  DB72    79                    	ld	a,c
+  DB73    E6 0F                 	and	0fh		;disk number in accumulator
+  DB75    32 DFEF               	ld	(cdisk),a	;clears user code nibble
+  DB78    CD D8BD               	call	select		;proper disk is selected, now check sub files
+                                				;check for initial command
+  DB7B    3A D807               	ld	a,(comlen)
+  DB7E    B7                    	or	a
+  DB7F    C2 DB98               	jp	nz,ccp0		;assume typed already
+                                
+  DB82                          ccp:				;enter here on each command or error condition
+  DB82    31 DFAB               	ld	sp,stack
+  DB85    CD D898               	call	crlf		;print d> prompt, where d is disk name
+  DB88    CD D9D0               	call	cselect		;get current disk number
+  DB8B    C6 41                 	add	a,'A'
+  DB8D    CD D88C               	call	printchar
+  DB90    3E 3E                 	ld	a,'>'
+  DB92    CD D88C               	call	printchar
+  DB95    CD D939               	call	readcom		;command buffer filled
+  DB98                          ccp0:				;(enter here from initialization with command full)
+  DB98    11 0080               	ld	de,buff
+  DB9B    CD D9D8               	call	setdma		;default dma address at buff
+  DB9E    CD D9D0               	call	cselect
+  DBA1    32 DFEF               	ld	(cdisk),a	;current disk number saved
+  DBA4    CD DA5E               	call	fillfcb0	;command fcb filled
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-12
+
+
+  DBA7    C4 DA09               	call	nz,comerr	;the name cannot be an ambiguous reference
+  DBAA    3A DFF0               	ld	a,(sdisk)
+  DBAD    B7                    	or	a
+  DBAE    C2 DEA5               	jp	nz,userfunc
+                                				;check for an intrinsic function
+  DBB1    CD DB2E               	call	intrinsic
+  DBB4    21 DBC1               	ld	hl,jmptab	;index is in the accumulator
+  DBB7    5F                    	ld	e,a
+  DBB8    16 00                 	ld	d,0
+  DBBA    19                    	add	hl,de
+  DBBB    19                    	add	hl,de		;index in d,e
+  DBBC    7E                    	ld	a,(hl)
+  DBBD    23                    	inc	hl
+  DBBE    66                    	ld	h,(hl)
+  DBBF    6F                    	ld	l,a
+  DBC0    E9                    	jp	(hl)
+                                				;pc changes to the proper intrinsic or user function
+  DBC1    DC77                  jmptab:	dw	direct		;directory search
+  DBC3    DD1F                  	dw	erase		;file erase
+  DBC5    DD5D                  	dw	type		;type file
+  DBC7    DDAD                  	dw	save		;save memory image
+  DBC9    DE10                  	dw	rename		;file rename
+  DBCB    DE8E                  	dw	user		;user number
+  DBCD    DEA5                  	dw	userfunc	;user-defined function
+  DBCF                          badserial:
+  DBCF    21 76F3               	ld	hl,76f3h	;'di hlt' instructions. [di or (hlt shl 8)]
+  DBD2    22 D800               	ld	(ccploc),hl
+  DBD5    21 D800               	ld	hl,ccploc
+  DBD8    E9                    	jp	(hl)
+                                
+                                
+                                				;utility subroutines for intrinsic handlers
+  DBD9                          readerr:			;print the read error message
+  DBD9    01 DBDF               	ld	bc,rdmsg
+  DBDC    C3 D8A7               	jp	print
+  DBDF    52 45 41 44           rdmsg:	db	'READ ERROR',0
+  DBE3    20 45 52 52           
+  DBE7    4F 52 00              
+                                
+  DBEA                          nofile:				;print no file message
+  DBEA    01 DBF0               	ld	bc,nofmsg
+  DBED    C3 D8A7               	jp	print
+  DBF0    4E 4F 20 46           nofmsg:	db	'NO FILE',0
+  DBF4    49 4C 45 00           
+                                
+  DBF8                          getnumber:			;read a number from the command line
+  DBF8    CD DA5E               	call	fillfcb0	;should be number
+  DBFB    3A DFF0               	ld	a,(sdisk)
+  DBFE    B7                    	or	a
+  DBFF    C2 DA09               	jp	nz,comerr	;cannot be prefixed
+                                				;convert the byte value in comfcb to binary
+  DC02    21 DFCE               	ld	hl,comfcb+1
+  DC05    01 000B               	ld	bc,11		;(b=0, c=11)
+                                				;value accumulated in b, c counts name length to zero
+  DC08    7E                    conv0:	ld	a,(hl)
+  DC09    FE 20                 	cp	' '
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-13
+
+
+  DC0B    CA DC33               	jp	z,conv1
+                                				;more to scan, convert char to binary and add
+  DC0E    23                    	inc	hl
+  DC0F    D6 30                 	sub	'0'
+  DC11    FE 0A                 	cp	10
+  DC13    D2 DA09               	jp	nc,comerr	;valid?
+  DC16    57                    	ld	d,a		;save value
+  DC17    78                    	ld	a,b		;mult by 10
+  DC18    E6 E0                 	and	11100000b
+  DC1A    C2 DA09               	jp	nz,comerr
+  DC1D    78                    	ld	a,b		;recover value
+  DC1E    07                    	rlca
+  DC1F    07                    	rlca
+  DC20    07                    	rlca			;*8
+  DC21    80                    	add	a,b
+  DC22    DA DA09               	jp	c,comerr
+  DC25    80                    	add	a,b
+  DC26    DA DA09               	jp	c,comerr	;*8+*2 = *10
+  DC29    82                    	add	a,d
+  DC2A    DA DA09               	jp	c,comerr	;+digit
+  DC2D    47                    	ld	b,a
+  DC2E    0D                    	dec	c
+  DC2F    C2 DC08               	jp	nz,conv0	;for another digit
+  DC32    C9                    	ret
+  DC33                          conv1:				;end of digits, check for all blanks
+  DC33    7E                    	ld	a,(hl)
+  DC34    FE 20                 	cp	' '
+  DC36    C2 DA09               	jp	nz,comerr	;blanks?
+  DC39    23                    	inc	hl
+  DC3A    0D                    	dec	c
+  DC3B    C2 DC33               	jp	nz,conv1
+  DC3E    78                    	ld	a,b		;recover value
+  DC3F    C9                    	ret
+                                
+  DC40                          movename:			;move 3 characters from h,l to d,e addresses
+  DC40    06 03                 	ld	b,3
+  DC42    7E                    move0:	ld	a,(hl)
+  DC43    12                    	ld	(de),a
+  DC44    23                    	inc	hl
+  DC45    13                    	inc	de
+  DC46    05                    	dec	b
+  DC47    C2 DC42               	jp	nz,move0
+  DC4A    C9                    	ret
+                                
+  DC4B                          addhcf:				;buff + a + c to h,l followed by fetch
+  DC4B    21 0080               	ld	hl,buff
+  DC4E    81                    	add	a,c
+  DC4F    CD DA59               	call	addh
+  DC52    7E                    	ld	a,(hl)
+  DC53    C9                    	ret
+                                
+  DC54                          setdisk:			;change disks for this command, if requested
+  DC54    AF                    	xor	a
+  DC55    32 DFCD               	ld	(comfcb),a	;clear disk name from fcb
+  DC58    3A DFF0               	ld	a,(sdisk)
+  DC5B    B7                    	or	a
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-14
+
+
+  DC5C    C8                    	ret	z		;no action if not specified
+  DC5D    3D                    	dec	a
+  DC5E    21 DFEF               	ld	hl,cdisk
+  DC61    BE                    	cp	(hl)
+  DC62    C8                    	ret	z		;already selected
+  DC63    C3 D8BD               	jp	select
+                                
+  DC66                          resetdisk:			;return to original disk after command
+  DC66    3A DFF0               	ld	a,(sdisk)
+  DC69    B7                    	or	a
+  DC6A    C8                    	ret	z		;no action if not selected
+  DC6B    3D                    	dec	a
+  DC6C    21 DFEF               	ld	hl,cdisk
+  DC6F    BE                    	cp	(hl)
+  DC70    C8                    	ret	z		;same disk
+  DC71    3A DFEF               	ld	a,(cdisk)
+  DC74    C3 D8BD               	jp	select
+                                
+                                				;individual intrinsics follow
+  DC77                          direct:				;directory search
+  DC77    CD DA5E               	call	fillfcb0	;comfcb gets file name
+  DC7A    CD DC54               	call	setdisk		;change disk drives if requested
+  DC7D    21 DFCE               	ld	hl,comfcb+1
+  DC80    7E                    	ld	a,(hl)		;may be empty request
+  DC81    FE 20                 	cp	' '
+  DC83    C2 DC8F               	jp	nz,dir1		;skip fill of ??? if not blank
+                                				;set comfcb to all ??? for current disk
+  DC86    06 0B                 	ld	b,11		;length of fill ????????.???
+  DC88    36 3F                 dir0:	ld	(hl),'?'
+  DC8A    23                    	inc	hl
+  DC8B    05                    	dec	b
+  DC8C    C2 DC88               	jp	nz,dir0
+                                				;not a blank request, must be in comfcb
+  DC8F    1E 00                 dir1:	ld	e,0
+  DC91    D5                    	push	de		;E counts directory entries
+  DC92    CD D8E9               	call	searchcom	;first one has been found
+  DC95    CC DBEA               	call	z,nofile	;not found message
+  DC98    CA DD1B               dir2:	jp	z,endir
+                                				;found, but may be system file
+  DC9B    3A DFEE               	ld	a,(dcnt)	;get the location of the element
+  DC9E    0F                    	rrca
+  DC9F    0F                    	rrca
+  DCA0    0F                    	rrca
+  DCA1    E6 60                 	and	1100000b
+  DCA3    4F                    	ld	c,a
+                                				;c contains base index into buff for dir entry
+  DCA4    3E 0A                 	ld	a,sysfile
+  DCA6    CD DC4B               	call	addhcf		;value to A
+  DCA9    17                    	rla
+  DCAA    DA DD0F               	jp	c,dir6		;skip if system file
+                                				;c holds index into buffer
+                                				;another fcb found, new line?
+  DCAD    D1                    	pop	de
+  DCAE    7B                    	ld	a,e
+  DCAF    1C                    	inc	e
+  DCB0    D5                    	push	de
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-15
+
+
+                                				;e=0,1,2,3,...new line if mod 4 = 0
+  DCB1    E6 03                 	and	11b
+  DCB3    F5                    	push	af		;and save the test
+  DCB4    C2 DCCC               	jp	nz,dirhdr0	;header on current line
+  DCB7    CD D898               	call	crlf
+  DCBA    C5                    	push	bc
+  DCBB    CD D9D0               	call	cselect
+  DCBE    C1                    	pop	bc
+                                				;current disk in A
+  DCBF    C6 41                 	add	a,'A'
+  DCC1    CD D892               	call	printbc
+  DCC4    3E 3A                 	ld	a,':'
+  DCC6    CD D892               	call	printbc
+  DCC9    C3 DCD4               	jp	dirhdr1		;skip current line hdr
+  DCCC                          dirhdr0:
+  DCCC    CD D8A2               	call	blank		;after last one
+  DCCF    3E 3A                 	ld	a,':'
+  DCD1    CD D892               	call	printbc
+  DCD4                          dirhdr1:
+  DCD4    CD D8A2               	call	blank
+                                				;compute position of name in buffer
+  DCD7    06 01                 	ld	b,1		;start with first character of name
+  DCD9    78                    dir3:	ld	a,b
+  DCDA    CD DC4B               	call	addhcf		;buff+a+c fetched
+  DCDD    E6 7F                 	and	7fh		;mask flags
+                                				;may delete trailing blanks
+  DCDF    FE 20                 	cp	' '
+  DCE1    C2 DCF9               	jp	nz,dir4		;check for blank type
+  DCE4    F1                    	pop	af
+  DCE5    F5                    	push	af		;may be 3rd item
+  DCE6    FE 03                 	cp	3
+  DCE8    C2 DCF7               	jp	nz,dirb		;place blank at end if not
+  DCEB    3E 09                 	ld	a,9
+  DCED    CD DC4B               	call	addhcf		;first char of type
+  DCF0    E6 7F                 	and	7fh
+  DCF2    FE 20                 	cp	' '
+  DCF4    CA DD0E               	jp	z,dir5
+                                				;not a blank in the file type field
+  DCF7    3E 20                 dirb:	ld	a,' '		;restore trailing filename chr
+  DCF9                          dir4:
+  DCF9    CD D892               	call	printbc		;char printed
+  DCFC    04                    	inc	b
+  DCFD    78                    	ld	a,b
+  DCFE    FE 0C                 	cp	12
+  DD00    D2 DD0E               	jp	nc,dir5
+                                				;check for break between names
+  DD03    FE 09                 	cp	9
+  DD05    C2 DCD9               	jp	nz,dir3		;for another char
+                                				;print a blank between names
+  DD08    CD D8A2               	call	blank
+  DD0B    C3 DCD9               	jp	dir3
+                                
+  DD0E                          dir5:				;end of current entry
+  DD0E    F1                    	pop	af		;discard the directory counter (mod 4)
+  DD0F    CD D9C2               dir6:	call	break$key	;check for interrupt at keyboard
+  DD12    C2 DD1B               	jp	nz,endir	;abort directory search
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-16
+
+
+  DD15    CD D8E4               	call	searchn
+  DD18    C3 DC98               	jp	dir2		;for another entry
+  DD1B                          endir:				;end of directory scan
+  DD1B    D1                    	pop	de		;discard directory counter
+  DD1C    C3 DF86               	jp	retcom
+                                
+                                
+  DD1F    CD DA5E               erase:	call	fillfcb0	;cannot be all ???'s
+  DD22    FE 0B                 	cp	11
+  DD24    C2 DD42               	jp	nz,erasefile
+                                				;erasing all of the disk
+  DD27    01 DD52               	ld	bc,ermsg
+  DD2A    CD D8A7               	call	print
+  DD2D    CD D939               	call	readcom
+  DD30    21 D807               	ld	hl,comlen
+  DD33    35                    	dec	(hl)
+  DD34    C2 DB82               	jp	nz,ccp		;bad input
+  DD37    23                    	inc	hl
+  DD38    7E                    	ld	a,(hl)
+  DD39    FE 59                 	cp	'Y'
+  DD3B    C2 DB82               	jp	nz,ccp
+                                				;ok, erase the entire diskette
+  DD3E    23                    	inc	hl
+  DD3F    22 D888               	ld	(comaddr),hl	;otherwise error at retcom
+  DD42                          erasefile:
+  DD42    CD DC54               	call	setdisk
+  DD45    11 DFCD               	ld	de,comfcb
+  DD48    CD D8EF               	call	delete
+  DD4B    3C                    	inc	a		;255 returned if not found
+  DD4C    CC DBEA               	call	z,nofile	;no file message if so
+  DD4F    C3 DF86               	jp	retcom
+                                
+  DD52    41 4C 4C 20           ermsg:	db	'ALL (Y/N)?',0
+  DD56    28 59 2F 4E           
+  DD5A    29 3F 00              
+                                
+  DD5D    CD DA5E               type:	call	fillfcb0
+  DD60    C2 DA09               	jp	nz,comerr	;don't allow ?'s in file name
+  DD63    CD DC54               	call	setdisk
+  DD66    CD D8D0               	call	openc		;open the file
+  DD69    CA DDA7               	jp	z,typerr	;zero flag indicates not found
+                                				;file opened, read 'til eof
+  DD6C    CD D898               	call	crlf
+  DD6F    21 DFF1               	ld	hl,bptr
+  DD72    36 FF                 	ld	(hl),255	;read first buffer
+  DD74                          type0:				;loop on bptr
+  DD74    21 DFF1               	ld	hl,bptr
+  DD77    7E                    	ld	a,(hl)
+  DD78    FE 80                 	cp	128		;end buffer
+  DD7A    DA DD87               	jp	c,type1
+  DD7D    E5                    	push	hl		;carry if 0,1,...,127
+                                				;read another buffer full
+  DD7E    CD D8FE               	call	diskreadc
+  DD81    E1                    	pop	hl		;recover address of bptr
+  DD82    C2 DDA0               	jp	nz,typeof	;hard end of file
+  DD85    AF                    	xor	a
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-17
+
+
+  DD86    77                    	ld	(hl),a		;bptr = 0
+  DD87                          type1:				;read character at bptr and print
+  DD87    34                    	inc	(hl)		;bptr = bptr + 1
+  DD88    21 0080               	ld	hl,buff
+  DD8B    CD DA59               	call	addh		;h,l addresses char
+  DD8E    7E                    	ld	a,(hl)
+  DD8F    FE 1A                 	cp	eofile
+  DD91    CA DF86               	jp	z,retcom
+  DD94    CD D88C               	call	printchar
+  DD97    CD D9C2               	call	break$key
+  DD9A    C2 DF86               	jp	nz,retcom	;abort if break
+  DD9D    C3 DD74               	jp	type0		;for another character
+                                
+  DDA0                          typeof:				;end of file, check for errors
+  DDA0    3D                    	dec	a
+  DDA1    CA DF86               	jp	z,retcom
+  DDA4    CD DBD9               	call	readerr
+  DDA7    CD DC66               typerr:	call	resetdisk
+  DDAA    C3 DA09               	jp	comerr
+                                
+  DDAD    CD DBF8               save:	call	getnumber	; value to register a
+  DDB0    F5                    	push	af		;save it for later
+                                				;should be followed by a file to save the memory image
+  DDB1    CD DA5E               	call	fillfcb0
+  DDB4    C2 DA09               	jp	nz,comerr	;cannot be ambiguous
+  DDB7    CD DC54               	call	setdisk		;may be a disk change
+  DDBA    11 DFCD               	ld	de,comfcb
+  DDBD    D5                    	push	de
+  DDBE    CD D8EF               	call	delete		;existing file removed
+  DDC1    D1                    	pop	de
+  DDC2    CD D909               	call	make		;create a new file on disk
+  DDC5    CA DDFB               	jp	z,saverr	;no directory space
+  DDC8    AF                    	xor	a
+  DDC9    32 DFED               	ld	(comrec),a	; clear next record field
+  DDCC    F1                    	pop	af		;#pages to write is in a, change to #sectors
+  DDCD    6F                    	ld	l,a
+  DDCE    26 00                 	ld	h,0
+  DDD0    29                    	add	hl,hl
+  DDD1    11 0100               	ld	de,tran		;h,l is sector count, d,e is load address
+  DDD4                          save0:				;check for sector count zero
+  DDD4    7C                    	ld	a,h
+  DDD5    B5                    	or	l
+  DDD6    CA DDF1               	jp	z,save1		;may be completed
+  DDD9    2B                    	dec	hl		;sector count = sector count - 1
+  DDDA    E5                    	push	hl		;save it for next time around
+  DDDB    21 0080               	ld	hl,128
+  DDDE    19                    	add	hl,de
+  DDDF    E5                    	push	hl		;next dma address saved
+  DDE0    CD D9D8               	call	setdma		;current dma address set
+  DDE3    11 DFCD               	ld	de,comfcb
+  DDE6    CD D904               	call	diskwrite
+  DDE9    D1                    	pop	de
+  DDEA    E1                    	pop	hl		;dma address, sector count
+  DDEB    C2 DDFB               	jp	nz,saverr	;may be disk full case
+  DDEE    C3 DDD4               	jp	save0		;for another sector
+                                
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-18
+
+
+  DDF1                          save1:				;end of dump, close the file
+  DDF1    11 DFCD               	ld	de,comfcb
+  DDF4    CD D8DA               	call	close
+  DDF7    3C                    	inc	a		; 255 becomes 00 if error
+  DDF8    C2 DE01               	jp	nz,retsave	;for another command
+  DDFB                          saverr:				;must be full or read only disk
+  DDFB    01 DE07               	ld	bc,fullmsg
+  DDFE    CD D8A7               	call	print
+  DE01                          retsave:			;reset dma buffer
+  DE01    CD D9D5               	call	setdmabuff
+  DE04    C3 DF86               	jp	retcom
+                                
+  DE07                          fullmsg:
+  DE07    4E 4F 20 53           	db	'NO SPACE',0
+  DE0B    50 41 43 45           
+  DE0F    00                    
+                                
+  DE10                          rename:				;rename a file on a specific disk
+  DE10    CD DA5E               	call	fillfcb0
+  DE13    C2 DA09               	jp	nz,comerr	;must be unambiguous
+  DE16    3A DFF0               	ld	a,(sdisk)
+  DE19    F5                    	push	af		;save for later compare
+  DE1A    CD DC54               	call	setdisk		;disk selected
+  DE1D    CD D8E9               	call	searchcom	;is new name already there?
+  DE20    C2 DE79               	jp	nz,renerr3
+                                				;file doesn't exist, move to second half of fcb
+  DE23    21 DFCD               	ld	hl,comfcb
+  DE26    11 DFDD               	ld	de,comfcb+16
+  DE29    06 10                 	ld	b,16
+  DE2B    CD DC42               	call	move0
+                                				;check for = or left arrow
+  DE2E    2A D888               	ld	hl,(comaddr)
+  DE31    EB                    	ex	de,hl
+  DE32    CD DA4F               	call	deblank
+  DE35    FE 3D                 	cp	'='
+  DE37    CA DE3F               	jp	z,ren1		;ok if =
+  DE3A    FE 5F                 	cp	la
+  DE3C    C2 DE73               	jp	nz,renerr2
+  DE3F    EB                    ren1:	ex	de,hl
+  DE40    23                    	inc	hl
+  DE41    22 D888               	ld	(comaddr),hl	;past delimiter
+                                				;proper delimiter found
+  DE44    CD DA5E               	call	fillfcb0
+  DE47    C2 DE73               	jp	nz,renerr2
+                                				;check for drive conflict
+  DE4A    F1                    	pop	af
+  DE4B    47                    	ld	b,a		;previous drive number
+  DE4C    21 DFF0               	ld	hl,sdisk
+  DE4F    7E                    	ld	a,(hl)
+  DE50    B7                    	or	a
+  DE51    CA DE59               	jp	z,ren2
+                                				;drive name was specified.  same one?
+  DE54    B8                    	cp	b
+  DE55    70                    	ld	(hl),b
+  DE56    C2 DE73               	jp	nz,renerr2
+  DE59    70                    ren2:	ld	(hl),b		;store the name in case drives switched
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-19
+
+
+  DE5A    AF                    	xor	a
+  DE5B    32 DFCD               	ld	(comfcb),a
+  DE5E    CD D8E9               	call	searchcom	;is old file there?
+  DE61    CA DE6D               	jp	z,renerr1
+                                
+                                				;everything is ok, rename the file
+  DE64    11 DFCD               	ld	de,comfcb
+  DE67    CD D90E               	call	renam
+  DE6A    C3 DF86               	jp	retcom
+                                
+  DE6D                          renerr1:			; no file on disk
+  DE6D    CD DBEA               	call	nofile
+  DE70    C3 DF86               	jp	retcom
+  DE73                          renerr2:			; ambigous reference/name conflict
+  DE73    CD DC66               	call	resetdisk
+  DE76    C3 DA09               	jp	comerr
+  DE79                          renerr3:			; file already exists
+  DE79    01 DE82               	ld	bc,renmsg
+  DE7C    CD D8A7               	call	print
+  DE7F    C3 DF86               	jp	retcom
+  DE82    46 49 4C 45           renmsg:	db	'FILE EXISTS',0
+  DE86    20 45 58 49           
+  DE8A    53 54 53 00           
+                                
+  DE8E                          user:				;set user number
+  DE8E    CD DBF8               	call	getnumber	; leaves the value in the accumulator
+  DE91    FE 10                 	cp	16
+  DE93    D2 DA09               	jp	nc,comerr	; must be between 0 and 15
+  DE96    5F                    	ld	e,a		;save for setuser call
+  DE97    3A DFCE               	ld	a,(comfcb+1)
+  DE9A    FE 20                 	cp	' '
+  DE9C    CA DA09               	jp	z,comerr
+  DE9F    CD D915               	call	setuser		;new user number set
+  DEA2    C3 DF89               	jp	endcom
+                                
+  DEA5                          userfunc:
+  DEA5    CD D9F5               	call	serialize	;check serialization
+                                				;load user function and set up for execution
+  DEA8    3A DFCE               	ld	a,(comfcb+1)
+  DEAB    FE 20                 	cp	' '
+  DEAD    C2 DEC4               	jp	nz,user0
+                                				;no file name, but may be disk switch
+  DEB0    3A DFF0               	ld	a,(sdisk)
+  DEB3    B7                    	or	a
+  DEB4    CA DF89               	jp	z,endcom	;no disk name if 0
+  DEB7    3D                    	dec	a
+  DEB8    32 DFEF               	ld	(cdisk),a
+  DEBB    CD D929               	call	setdiska	;set user/disk
+  DEBE    CD D8BD               	call	select
+  DEC1    C3 DF89               	jp	endcom
+  DEC4                          user0:				;file name is present
+  DEC4    11 DFD6               	ld	de,comfcb+9
+  DEC7    1A                    	ld	a,(de)
+  DEC8    FE 20                 	cp	' '
+  DECA    C2 DA09               	jp	nz,comerr	;type ' '
+  DECD    D5                    	push	de
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-20
+
+
+  DECE    CD DC54               	call	setdisk
+  DED1    D1                    	pop	de
+  DED2    21 DF83               	ld	hl,comtype	;.com
+  DED5    CD DC40               	call	movename	;file type is set to .com
+  DED8    CD D8D0               	call	openc
+  DEDB    CA DF6B               	jp	z,userer
+                                				;file opened properly, read it into memory
+  DEDE    21 0100               	ld	hl,tran		;transient program base
+  DEE1    E5                    load0:	push	hl		;save dma address
+  DEE2    EB                    	ex	de,hl
+  DEE3    CD D9D8               	call	setdma
+  DEE6    11 DFCD               	ld	de,comfcb
+  DEE9    CD D8F9               	call	diskread
+  DEEC    C2 DF01               	jp	nz,load1
+                                				;sector loaded, set new dma address and compare
+  DEEF    E1                    	pop	hl
+  DEF0    11 0080               	ld	de,128
+  DEF3    19                    	add	hl,de
+  DEF4    11 D800               	ld	de,tranm	;has the load overflowed?
+  DEF7    7D                    	ld	a,l
+  DEF8    93                    	sub	e
+  DEF9    7C                    	ld	a,h
+  DEFA    9A                    	sbc	a,d
+  DEFB    D2 DF71               	jp	nc,loaderr
+  DEFE    C3 DEE1               	jp	load0		;for another sector
+                                
+  DF01    E1                    load1:	pop	hl
+  DF02    3D                    	dec	a
+  DF03    C2 DF71               	jp	nz,loaderr	;end file is 1
+  DF06    CD DC66               	call	resetdisk	;back to original disk
+  DF09    CD DA5E               	call	fillfcb0
+  DF0C    21 DFF0               	ld	hl,sdisk
+  DF0F    E5                    	push	hl
+  DF10    7E                    	ld	a,(hl)
+  DF11    32 DFCD               	ld	(comfcb),a	;drive number set
+  DF14    3E 10                 	ld	a,16
+  DF16    CD DA60               	call	fillfcb		;move entire fcb to memory
+  DF19    E1                    	pop	hl
+  DF1A    7E                    	ld	a,(hl)
+  DF1B    32 DFDD               	ld	(comfcb+16),a
+  DF1E    AF                    	xor	a
+  DF1F    32 DFED               	ld	(comrec),a	;record number set to zero
+  DF22    11 005C               	ld	de,fcb
+  DF25    21 DFCD               	ld	hl,comfcb
+  DF28    06 21                 	ld	b,33
+  DF2A    CD DC42               	call	move0
+                                				;move command line to buff
+  DF2D    21 D808               	ld	hl,combuf
+  DF30    7E                    bmove0:	ld	a,(hl)
+  DF31    B7                    	or	a
+  DF32    CA DF3E               	jp	z,bmove1
+  DF35    FE 20                 	cp	' '
+  DF37    CA DF3E               	jp	z,bmove1
+  DF3A    23                    	inc	hl
+  DF3B    C3 DF30               	jp	bmove0		;for another scan
+                                				;first blank position found
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-21
+
+
+  DF3E    06 00                 bmove1:	ld	b,0
+  DF40    11 0081               	ld	de,buff+1
+                                				;ready for the move
+  DF43    7E                    bmove2:	ld	a,(hl)
+  DF44    12                    	ld	(de),a
+  DF45    B7                    	or	a
+  DF46    CA DF4F               	jp	z,bmove3
+                                				;more to move
+  DF49    04                    	inc	b
+  DF4A    23                    	inc	hl
+  DF4B    13                    	inc	de
+  DF4C    C3 DF43               	jp	bmove2
+  DF4F                          bmove3:				;b has character count
+  DF4F    78                    	ld	a,b
+  DF50    32 0080               	ld	(buff),a
+  DF53    CD D898               	call	crlf
+                                				;now go to the loaded program
+  DF56    CD D9D5               	call	setdmabuff	;default dma
+  DF59    CD D91A               	call	saveuser	;user code saved
+                                				;low memory diska contains user code
+  DF5C    CD 0100               	call	tran		;gone to the loaded program
+  DF5F    31 DFAB               	ld	sp,stack	;may come back here
+  DF62    CD D929               	call	setdiska
+  DF65    CD D8BD               	call	select
+  DF68    C3 DB82               	jp	ccp
+                                
+  DF6B                          userer:				;arrive here on command error
+  DF6B    CD DC66               	call	resetdisk
+  DF6E    C3 DA09               	jp	comerr
+                                
+  DF71                          loaderr:			;cannot load the program
+  DF71    01 DF7A               	ld	bc,loadmsg
+  DF74    CD D8A7               	call	print
+  DF77    C3 DF86               	jp	retcom
+  DF7A                          loadmsg:
+  DF7A    42 41 44 20           	db	'BAD LOAD',0
+  DF7E    4C 4F 41 44           
+  DF82    00                    
+  DF83                          comtype:
+  DF83    43 4F 4D              	db	'COM'		;for com files
+                                
+                                
+  DF86                          retcom:				;reset disk before end of command check
+  DF86    CD DC66               	call	resetdisk
+                                
+  DF89                          endcom:				;end of intrinsic command
+  DF89    CD DA5E               	call	fillfcb0	;to check for garbage at end of line
+  DF8C    3A DFCE               	ld	a,(comfcb+1)
+  DF8F    D6 20                 	sub	' '
+  DF91    21 DFF0               	ld	hl,sdisk
+  DF94    B6                    	or	(hl)
+                                				;0 in accumulator if no disk selected, and blank fcb
+  DF95    C2 DA09               	jp	nz,comerr
+  DF98    C3 DB82               	jp	ccp
+                                
+                                ;	data areas
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	1-22
+
+
+  DF9B                          	ds	16		;8 level stack
+  DFAB                          stack:
+                                
+                                ;	'submit' file control block
+  DFAB    00                    submit:	db	0		;00 if no submit file, ff if submitting
+  DFAC    00 24 24 24           subfcb:	db	0,'$$$     '	;file name is $$$
+  DFB0    20 20 20 20           
+  DFB4    20                    
+  DFB5    53 55 42 00           	db	'SUB',0,0	;file type is sub
+  DFB9    00                    
+  DFBA    00                    submod:	db	0		;module number
+  DFBB                          subrc:	ds	1		;record count filed
+  DFBC                          	ds	16		;disk map
+  DFCC                          subcr:	ds	1		;current record to read
+                                
+                                ;	command file control block
+  DFCD                          comfcb:	ds	32		;fields filled in later
+  DFED                          comrec:	ds	1		;current record to read/write
+  DFEE                          dcnt:	ds	1		;disk directory count (used for error codes)
+  DFEF                          cdisk:	ds	1		;current disk
+  DFF0                          sdisk:	ds	1		;selected disk for current operation
+                                				;none=0, a=1, b=2 ...
+  DFF1                          bptr:	ds	1		;buffer pointer
+                                
+                                	end	ccploc
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	S
+
+
+Macros:
+
+Symbols:
+DA59 	ADDH            DC4B 	ADDHCF          DBCF 	BADSERIAL       
+0005 	BDOS            D8F4 	BDOS$COND       D8C3 	BDOS$INR        
+E000 	BDOSL           0E00 	BDOSLEN         E000 	BDOSPH          
+A400 	BIAS            0003 	BIOSLEN         EE00 	BIOSPH          
+D8A2 	BLANK           DF30 	BMOVE0          DF3E 	BMOVE1          
+DF43 	BMOVE2          DF4F 	BMOVE3          DFF1 	BPTR            
+D9C2 	BREAK$KEY       000B 	BREAKF          0080 	BUFF            
+DB82 	CCP             DB98 	CCP0            DB58 	CCPCLEAR        
+0800 	CCPLEN          D800 	CCPLOC          D800 	CCPPH           
+DB5C 	CCPSTART        DFEF 	CDISK           D8DA 	CLOSE           
+0010 	CLOSEF          D888 	COMADDR         D808 	COMBUF          
+DA09 	COMERR          DA0F 	COMERR0         DA22 	COMERR1         
+DFCD 	COMFCB          D807 	COMLEN          DFED 	COMREC          
+DF83 	COMTYPE         DC08 	CONV0           DC33 	CONV1           
+000D 	CR              D898 	CRLF            D9D0 	CSELECT         
+0019 	CSELF           DFEE 	DCNT            DA4F 	DEBLANK         
+D9DD 	DEL$SUB         D8EF 	DELETE          0013 	DELF            
+DA30 	DELIM           DC88 	DIR0            DC8F 	DIR1            
+DC98 	DIR2            DCD9 	DIR3            DCF9 	DIR4            
+DD0E 	DIR5            DD0F 	DIR6            DCF7 	DIRB            
+DC77 	DIRECT          DCCC 	DIRHDR0         DCD4 	DIRHDR1         
+0004 	DISKA           D8F9 	DISKREAD        D8FE 	DISKREADC       
+D904 	DISKWRITE       001A 	DMAF            0014 	DREADF          
+0015 	DWRITF          DAF0 	EFILL           DAF2 	EFILL0          
+DF89 	ENDCOM          DD1B 	ENDIR           001A 	EOFILE          
+DD1F 	ERASE           DD42 	ERASEFILE       DD52 	ERMSG           
+005C 	FCB             DA60 	FILLFCB         DA5E 	FILLFCB0        
+DE07 	FULLMSG         DBF8 	GETNUMBER       D913 	GETUSER         
+000D 	INITF           D8B8 	INITIALIZE      0006 	INTLEN          
+DB33 	INTRIN0         DB3C 	INTRIN1         DB4F 	INTRIN2         
+DB54 	INTRIN3         DB2E 	INTRINSIC       DB10 	INTVEC          
+DBC1 	JMPTAB          005F 	LA              000A 	LF              
+000C 	LIFTF           DEE1 	LOAD0           DF01 	LOAD1           
+DF71 	LOADERR         DF7A 	LOADMSG         0018 	LOGF            
+D909 	MAKE            0016 	MAKEF           D806 	MAXLEN          
+DC42 	MOVE0           DC40 	MOVENAME        003D 	MSIZ            
+0040 	MSIZE           0001 	NEEDZ80         0000 	NHDISKS         
+DBEA 	NOFILE          DBF0 	NOFMSG          D9A7 	NOREAD          
+D996 	NOSUB           D8CB 	OPEN            D8D0 	OPENC           
+000F 	OPENF           DAB9 	PADNAME         DAE9 	PADTY           
+0001 	PATCHOS         0009 	PBUFF           0002 	PCHARF          
+D8AC 	PRIN0           D8A7 	PRINT           D892 	PRINTBC         
+D88C 	PRINTCHAR       000A 	RBUFF           0001 	RCHARF          
+DBDF 	RDMSG           D939 	READCOM         D9AB 	READCOM0        
+D9BA 	READCOM1        DBD9 	READERR         DE3F 	REN1            
+DE59 	REN2            D90E 	RENAM           DE10 	RENAME          
+DE6D 	RENERR1         DE73 	RENERR2         DE79 	RENERR3         
+0017 	RENF            DE82 	RENMSG          DC66 	RESETDISK       
+DF86 	RETCOM          DE01 	RETSAVE         0009 	ROFILE          
+DDAD 	SAVE            DDD4 	SAVE0           DDF1 	SAVE1           
+DDFB 	SAVERR          D91A 	SAVEUSER        DB01 	SCNQ            
+DB09 	SCNQ0           DFF0 	SDISK           D8DF 	SEARCH          
+'console command processor (CCP), ver 2.0'	MACRO-80 3.44	09-Dec-81	PAGE	S-1
+
+
+D8E9 	SEARCHCOM       D8E4 	SEARCHN         0011 	SEARF           
+0012 	SEARNF          D8BD 	SELECT          000E 	SELF            
+D9FD 	SER0            DB28 	SERIAL          D9F5 	SERIALIZE       
+DA88 	SETCUR          DA89 	SETCUR0         DC54 	SETDISK         
+D929 	SETDISKA        D9D8 	SETDMA          D9D5 	SETDMABUFF      
+DA90 	SETDSK          DA98 	SETNAM0         DAA9 	SETNAM1         
+DAAB 	SETNAM2         DA96 	SETNAME         DAC0 	SETTY           
+DAC8 	SETTY0          DAD9 	SETTY1          DADB 	SETTY2          
+D915 	SETUSER         DFAB 	STACK           D88A 	STADDR          
+DFCC 	SUBCR           DFAC 	SUBFCB          DFAB 	SUBMIT          
+DFBA 	SUBMOD          DFBB 	SUBRC           000A 	SYSFILE         
+0100 	TRAN            D800 	TRANM           D930 	TRANSLATE       
+DAAF 	TRNAME          DADF 	TRTYP           DD5D 	TYPE            
+DD74 	TYPE0           DD87 	TYPE1           DDA0 	TYPEOF          
+DDA7 	TYPERR          DE8E 	USER            DEC4 	USER0           
+DF6B 	USERER          0020 	USERF           DEA5 	USERFUNC        
+
+
+
+No Fatal error(s)
+
+
