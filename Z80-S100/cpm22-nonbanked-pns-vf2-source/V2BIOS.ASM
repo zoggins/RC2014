@@ -323,6 +323,8 @@ CBOOT:
 	LHLD	INITIO		;SET INITIAL I/O BYTE
 	SHLD	IOBYTE
 
+	MVI	A,0FFH
+	STA SERL
 	IN	HIOBYTE
 	ANI 020H
 	CZ CRTINIT		
@@ -1824,6 +1826,8 @@ TTYOS:
 ;post: serial device will be initialized
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CRTINIT:
+		MVI		A,00H
+		STA		SERL
 		LXI     H,SCCINIT
         MVI     C,0A1H
         MVI     B,0EH
@@ -1911,8 +1915,8 @@ LISTST:				;NOT IMPLEMENTED
 ;post: status check is handed off to selected device
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CONST:	
-	IN	HIOBYTE
-	ANI	020H
+	LDA	SERL
+	ORA  A
 	JZ	CRTIS
 	JMP	TTYIS
 
@@ -1928,8 +1932,8 @@ READER:				;NOT IMPLEMENTED
 ;post: data request is handed off to selected device
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CONIN:	
-	IN	HIOBYTE
-	ANI	020H
+	LDA	SERL
+	ORA  A
 	JZ	CRTIN
 	JMP	TTYIN
 
@@ -1945,8 +1949,8 @@ PUNCH:				;NOT IMPLEMENTED
 ;post: data request is handed off to selected device
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CONOUT:
-	IN	HIOBYTE
-	ANI	020H
+	LDA	SERL
+	ORA  A
 	JZ	CRTOUT
 	JMP	TTYOUT
 
@@ -2210,6 +2214,7 @@ D3SNO:	.BLKB	1		;CURRENT NO WAIT VF2 BYTE
 D3SWT:	.BLKB	1		;CURRENT WAIT VF2 BYTE
 SAVADR:	.BLKB	2		;STD OR ALT DDB ADDRESS
 MRML:	.BLKB	1		;MACRO RETRY MAJOR LOOP
+SERL:	.BLKB	1		;SERIAL OUTPUT
 
 
 ;********************************************************
