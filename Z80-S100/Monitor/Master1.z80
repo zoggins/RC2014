@@ -571,19 +571,13 @@ NoHighPageError:
 ;
 ;<<<<<<<<<<<<<<<<<<<<<< MAIN CONSOL OUTPUT ROUTINE >>>>>>>>>>>>>>>>>>>>>>>>>
 
-HIGH_CO:
-	IN	A,(IOBYTE)
-	BIT	5,A			;SEE IF SERIAL PORT OUTPUT IS REQ
-	JR	NZ,NO_SERIAL		;MAKE SURE TO RETURN CHARACTER SENT IN [A]
-	CALL 	SERIAL_OUT		;Send data in [C] to Serial Port (Only)
-	JR	SDCON5
-NO_SERIAL:
+HIGH_CO:	IN	A,(IOBYTE)
+	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
+	JP	Z,CSO
 	IN	A,(IOBYTE)		;NOTE CHARACTER IS IN [C]
 	BIT	0,A			;CHECK IF OUTPUT TO PRINTER IS ALSO REQ
-	CALL	SDCONO			;OUTPUT TO CONSOLE (No Printer)
-	RET
-
-SDCONO:	IN	A,(CONSOL_STATUS)	;SD SYSTEMS OR PROPELLER CONSOLE I/O BOARD PORT
+	JP	Z,LOX
+SDCONO:	IN	A,(CONSOL_STATUS)	;SD SYSTEMS VIDIO BOARD PORT
 	AND	4H
 	JR	Z,SDCONO
 	LD	A,C
@@ -595,8 +589,13 @@ SDCONO:	IN	A,(CONSOL_STATUS)	;SD SYSTEMS OR PROPELLER CONSOLE I/O BOARD PORT
 	IN	A,(IOBYTE)
 	BIT	5,A			;SEE IF SERIAL PORT OUTPUT IS REQ
 	JR	NZ,SDCON5		;MAKE SURE TO RETURN CHARACTER SENT IN [A]
+	CALL 	SERIAL_OUT		;Send data in [C] to Serial Port
 SDCON5:	LD	A,C
 	RET				;RETURN CHARACTER SENT IN [A]
+
+LOX:	CALL	SDCONO			;OUTPUT TO BOTH PRINTER & CONSOLE
+;		CALL	LO				;EXCEPT THE PRINTER CODE ISN'T IN HIPAGE
+		RET
 
 BELL1:	LD	A,06H			;SEND A BELL
 	OUT	(CONSOL_OUT),A
@@ -621,46 +620,64 @@ MORE2:	DEC	A
 	POP	AF
 	JR	DELAY
 
+
 ;<<<<<<<<<<<<<<<<<<< MAIN CONSOL STATUS ROUTINE >>>>>>>>>>>>>>>>>>>>>>
 
-HIGH_CSTS:
-	IN	A,(IOBYTE)
-	BIT	5,A			;SEE IF SERIAL PORT STATUS IS REQ
-	JR	NZ,NO_SER_STAT		
-	JP	SERIAL_STAT		;Check if anything at Modem IN status routine
-	
-NO_SER_STAT:
+HIGH_CSTS:	IN	A,(IOBYTE)
+	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
+	JP	Z,STS
 	IN	A,(CONSOL_STATUS)
 	AND	02H
-	JP	Z,NOCHAR		
+	JP	Z,TRYSER		;See if input from Serial Port is req
 	XOR	A
 	DEC	A			;RETURN WITH 0FFH IN [A] IF SOMETHING
 	RET
-NOCHAR: XOR	A			;RETURN WITH 0 IN A IF NOTHING THERE
-	RET
+TRYSER:	IN	A,(IOBYTE)
+	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
+	JP	Z,SERIAL_STAT		;Check if anything at Modem IN status routine
+	XOR	A			;IF IOBYTE bit 1 then skip modem input
+	RET				;RETURN WITH 0 IN A IF NOTHING THERE
 
 
 ;<<<<<<<<<<<<<<<<<<<< MAIN CONSOL INPUT ROUTINE >>>>>>>>>>>>>>>>>>>>
 
-HIGH_CI:
+HIGH_CI:	IN	A,(IOBYTE)
+	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
+	JP	Z,CIS
+	IN 	A,(CONSOL_STATUS)	;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
+	AND	02H
+	JR	Z,CHKSERIAL
+	IN	A,(CONSOL_IN)
+	AND	7FH
+	RET
+CHKSERIAL:
 	IN	A,(IOBYTE)
 	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
-	JR	NZ,CI_IN		;NO, then do normal CI
-	CALL	SERIAL_STAT		;See if anything at Serial/Modem input
-	JP	Z,CI_IN		;No Keep trying
+	JR	NZ,HIGH_CI			;NO, then do normal CI
+	CALL	SERIAL_STAT		;See if anything at Modem input
+	JP	Z,HIGH_CI
 	JP	SERIAL_IN
 
-CI_IN: 	IN	A,(CONSOL_STATUS)	;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
-	AND	02H
-	JR	Z,HIGH_CI
-	IN	A,(CONSOL_IN)
-	AND	7FH			;7 bits only
+
+
+;<<<<<<<<<<<<<<<<<<< SERIAL CONSOL ROUTINE >>>>>>>>>>>>>>>>>>>>>>
+
+CSO:	CALL 	SERIAL_OUT		;Send data in [C] to Serial Port
 	RET
 
-QUICK_CSTS:	
-	IN	A,(CONSOL_STATUS)	
-	AND	02H
-	RET				;Ret Z if nothing
+
+;<<<<<<<<<<<<<<<<<<< SERIAL CONSOL STATUS ROUTINE >>>>>>>>>>>>>>>>>>>>>>
+
+STS:	JP	Z,SERIAL_STAT		;Check if anything at Modem IN status routine
+	XOR	A			;IF IOBYTE bit 1 then skip modem input
+	RET				;RETURN WITH 0 IN A IF NOTHING THERE
+
+
+;<<<<<<<<<<<<<<<<<<<< SERIAL CONSOL INPUT ROUTINE >>>>>>>>>>>>>>>>>>>>
+
+CIS:	CALL	SERIAL_STAT		;See if anything at Modem input
+	JP	Z,CIS
+	JP	SERIAL_IN
 
 ;>>>>>>>>>>>>>>>>>> S100Computers SERIAL I/O Board <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ; Note the S100Computers I/O board will have the SSC-B set initially to 19,200 Baud 
