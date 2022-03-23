@@ -680,12 +680,12 @@ MASTER1 Z80
   647 F111  CB 6F       	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
   648 F113  20 09       	JR	NZ,CI_IN		;NO, then do normal CI
   649 F115  CD F150     	CALL	SERIAL_STAT		;See if anything at Serial/Modem input
-  650 F118  CA F10F     	JP	Z,HIGH_CI		;No Keep trying
+  650 F118  CA F11E     	JP	Z,CI_IN		;No Keep trying
   651 F11B  C3 F140     	JP	SERIAL_IN
   652                   
   653 F11E  DB 00       CI_IN: 	IN	A,(CONSOL_STATUS)	;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
   654 F120  E6 02       	AND	02H
-  655 F122  28 FA       	JR	Z,CI_IN
+  655 F122  28 EB       	JR	Z,HIGH_CI
   656 F124  DB 01       	IN	A,(CONSOL_IN)
   657 F126  E6 7F       	AND	7FH			;7 bits only
   658 F128  C9          	RET

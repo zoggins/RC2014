@@ -1052,12 +1052,12 @@ MASTER0 Z80
  1003 F33B  CB 6F       	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
  1004 F33D  20 09       	JR	NZ,CI_IN		;NO, then do normal CI
  1005 F33F  CD F979     	CALL	SERIAL_STAT		;See if anything at Serial/Modem input
- 1006 F342  CA F339     	JP	Z,CI			;No Keep trying
+ 1006 F342  CA F348     	JP	Z,CI_IN			;No Keep trying
  1007 F345  C3 F969     	JP	SERIAL_IN
  1008                   
  1009 F348  DB 00       CI_IN: 	IN	A,(CONSOL_STATUS)	;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
  1010 F34A  E6 02       	AND	02H
- 1011 F34C  28 FA       	JR	Z,CI_IN
+ 1011 F34C  28 EB       	JR	Z,CI
  1012 F34E  DB 01       	IN	A,(CONSOL_IN)
  1013 F350  E6 7F       	AND	7FH			;7 bits only
  1014 F352  C9          	RET
@@ -2313,7 +2313,7 @@ MASTER0 Z80
  2225 FA2B              ..NB1:		
  2226 FA2B  DB 54       	IN		A,(STATUS)	;GET STATUS
  2227 FA2D  CB 47       	BIT		0,A			;BUSY (y/n)
- 2228 FA2F  C2 FA2B     	JP		NZ,..NB1		;YES,KEEP WAITING
+ 2228 FA2F  C2 FA2B     	JP		NZ,..NB1	;YES,KEEP WAITING
  2229                   
  2230 FA32  3E 01       	LD		A,1			;START WITH SECTOR 1
 Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  39

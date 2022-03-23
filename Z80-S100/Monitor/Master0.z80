@@ -1003,12 +1003,12 @@ CI:	IN	A,(IOBYTE)
 	BIT	5,A			;SEE IF SERIAL PORT INPUT IS REQ
 	JR	NZ,CI_IN		;NO, then do normal CI
 	CALL	SERIAL_STAT		;See if anything at Serial/Modem input
-	JP	Z,CI			;No Keep trying
+	JP	Z,CI_IN			;No Keep trying
 	JP	SERIAL_IN
 
 CI_IN: 	IN	A,(CONSOL_STATUS)	;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
 	AND	02H
-	JR	Z,CI_IN
+	JR	Z,CI
 	IN	A,(CONSOL_IN)
 	AND	7FH			;7 bits only
 	RET
