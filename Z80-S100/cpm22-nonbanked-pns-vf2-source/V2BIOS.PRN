@@ -2517,15 +2517,17 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    F633    0D0A                 .BYTE   CR,LF
    F635    413A20262042         .ASCII  'A: & B: = 8" SDSS Floppies, C: = 5" DDDS Floppy'
    F664    0D0A                 .BYTE   CR,LF
-   F666    5573696E6720         .ASCII  'Using a VersaFloppy II Board with a WD FD1791.'
-   F694    0D0A                 .BYTE   CR,LF
-   F696    0D0A00               .BYTE   CR,LF,00H
+   F666    53657269616C         .ASCII  'Serial Ports at A2 & A3'
+   F67D    0D0A                 .BYTE   CR,LF
+   F67F    5573696E6720         .ASCII  'Using a VersaFloppy II Board with a WD FD1791.'
+   F6AD    0D0A                 .BYTE   CR,LF
+   F6AF    0D0A00               .BYTE   CR,LF,00H
                         
-   F699    C9                   RET
+   F6B2    C9                   RET
                         
-   0094                         NITLEN  ==      .-SYSNIT
+   00AD                         NITLEN  ==      .-SYSNIT
                         
-   F69A                 BIOEND:
+   F6B3                 BIOEND:
                         
                         ;********************************************************
                         ;        SHOW HOW MUCH DISK SPACE IS LEFT
@@ -2534,7 +2536,7 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         ;TOTAL BYTE NEEDED ON BOOT TRACKS ARE
                         ;FROM CCP TO END OF BIOS CODE PLUS LODER + DDB
                         
-   1F9A                 TOTSIZ  ==      ((BIOEND-CCP)+128+128)
+   1FB3                 TOTSIZ  ==      ((BIOEND-CCP)+128+128)
                         
                         ;SYSTEM SECTORS USED
                         
@@ -2567,8 +2569,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                                 .PRNTX  /XX   OF 18, 512 BYTE SECTORS USED ON SYSTEM TRACKS /]
                         
                                 .IF1,[
-                                .IFG    (NSBIOS*128)-(.-BIOS),[
-                                SBOND   \(NSBIOS*128)-(.-BIOS)
 
 
 
@@ -2580,6 +2580,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                                .IFG    (NSBIOS*128)-(.-BIOS),[
+                                SBOND   \(NSBIOS*128)-(.-BIOS)
                                 TSIZE   \TOTSIZ
                                 .RADIX  10
                                 SECNED  \SECALL
@@ -2633,8 +2635,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    FA17                 RETRY:
    FA17                 RMICRO: .BLKB   1               ;MICRO FDC RETRY COUNT
    FA18                 RMACRO: .BLKB   1               ;MACRO FDC RETRY COUNT
-   FA19                 ADISK:  .BLKB   1               ;DISK NUMBER OF DISK AT ATABLE
-   FA1A                 OLDFLO: .BLKB   1               ;OLD FLOPPY DRIVE NUMBER
 
 
 
@@ -2646,6 +2646,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   FA19                 ADISK:  .BLKB   1               ;DISK NUMBER OF DISK AT ATABLE
+   FA1A                 OLDFLO: .BLKB   1               ;OLD FLOPPY DRIVE NUMBER
    FA1B                 PCMD:   .BLKB   1               ;ACTUAL FLOPPY READ/WRITE CMD
    FA1C                 ORWCMD: .BLKB   1               ;LAST R/W OUTPUT TO CMD REG
    FA1D                 DPHADR: .BLKB   2               ;DPH ADDRESS FOR CURRENT DISK
@@ -2699,8 +2701,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    FA3D                 HSTACT: .BLKB   1               ;0 = HOST NOT ACTIVE
    FA3E                 HSTWRT: .BLKB   1               ;HOST WRITTEN FLAG
                         
-                        
-   FA3F                 HSTDSK: .BLKB   1
 
 
 
@@ -2712,6 +2712,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        
+   FA3F                 HSTDSK: .BLKB   1
    FA40                 HSTTRK: .BLKB   2
    FA42                 HSTSEC: .BLKB   2
                         
@@ -2765,8 +2767,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
    FA5D                 APB0:   .BLKB   ALEN            ;AUXILIARY PARAMETER BLOCK
    FA6E                 DPB0:   .BLKB   15              ;DISK PARAMETER BLOCK
                         
-   000F                 DPBLEN  ==      .-DPB0
-                        
 
 
 
@@ -2778,6 +2778,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+   000F                 DPBLEN  ==      .-DPB0
+                        
    FA7D                 TRANS0: .BLKB   88              ;TRANSLATE TABLE
                         
    0058                 TRALEN  ==      .-TRANS0
@@ -2831,8 +2833,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                         
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         ;The following assembler directives give important
-                        ;information about the size and location of the BIOS
-                        ;after assembly. In particular, the printout will warn if
 
 
 
@@ -2844,6 +2844,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                        ;information about the size and location of the BIOS
+                        ;after assembly. In particular, the printout will warn if
                         ;the BIOS Is too large for the allocated space (default 
                         ;3K). You will need the BIOS OFFSET and MOVCPM VALUE.
                         ;
@@ -2897,8 +2899,6 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
                                 BADMEM  \((.-BIOS)-(6*256+BIOSIZ*1024))
                         
                                 .RADIX  16
-                                CCPL    \CCP
-                                BDOSL   \BDOS
 
 
 
@@ -2910,6 +2910,8 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
+                                CCPL    \CCP
+                                BDOSL   \BDOS
                                 SBIOS   \BIOS
                                 CODEND  \HSTBUF-1
                                 WRKEND  \BIOEND
@@ -2966,6 +2968,4 @@ TDL Z80 CP/M DISK ASSEMBLER VERSION 2.21                                        
 
 
 
-
-
-                                         
+                                                           
