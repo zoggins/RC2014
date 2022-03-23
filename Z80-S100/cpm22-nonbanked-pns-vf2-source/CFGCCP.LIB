@@ -1,7 +1,8 @@
 msize	equ	64		; adjust per installed system memory
 
 ; configuration parameters for BIOS
-bioslen	equ	0c00h		; adjust as bios changes are made (if necessary)
+;bioslen	equ	0c00h		; adjust as bios changes are made (if necessary)
+bioslen	equ 3
 nhdisks	equ	0		; total number of hard disks (set to 0
 				;   if no hard disks desired)
 needZ80	equ	1		; 0 = 8080 is ok, 1 = Z80 is needed
@@ -13,9 +14,9 @@ ccplen	equ	0800h		; cp/m constant
 bdoslen	equ	0e00h		; cp/m constant
 
 ; cp/m image size (rounded up to next 1k boundary)
-cpmlen	equ	(ccplen + bdoslen + bioslen + 03ffh) / 0400h
+;cpmlen	equ	(ccplen + bdoslen + bioslen + 03ffh) / 0400h
 
-msiz	equ	msize-(bioslen/400H)		;SUBTRACT BIOS SIZE
+msiz	equ	msize-bioslen				;SUBTRACT BIOS SIZE
 bias	equ (msiz-20)*1024				;THE DRI BIAS FACTOR
 
 ;ccpph	equ	(msize - cpmlen) * 1024		; old ccp start address

@@ -10,7 +10,8 @@
   0040                   C      msize	equ	64		; adjust per installed system memory
                          C      
                          C      ; configuration parameters for BIOS
-  0C00                   C      bioslen	equ	0c00h		; adjust as bios changes are made (if necessary)
+                         C      ;bioslen	equ	0c00h		; adjust as bios changes are made (if necessary)
+  0003                   C      bioslen	equ 3
   0000                   C      nhdisks	equ	0		; total number of hard disks (set to 0
                          C      				;   if no hard disks desired)
   0001                   C      needZ80	equ	1		; 0 = 8080 is ok, 1 = Z80 is needed
@@ -22,9 +23,9 @@
   0E00                   C      bdoslen	equ	0e00h		; cp/m constant
                          C      
                          C      ; cp/m image size (rounded up to next 1k boundary)
-  0009                   C      cpmlen	equ	(ccplen + bdoslen + bioslen + 03ffh) / 0400h
+                         C      ;cpmlen	equ	(ccplen + bdoslen + bioslen + 03ffh) / 0400h
                          C      
-  003D                   C      msiz	equ	msize-(bioslen/400H)		;SUBTRACT BIOS SIZE
+  003D                   C      msiz	equ	msize-bioslen				;SUBTRACT BIOS SIZE
   A400                   C      bias	equ (msiz-20)*1024				;THE DRI BIAS FACTOR
                          C      
                          C      ;ccpph	equ	(msize - cpmlen) * 1024		; old ccp start address
@@ -56,10 +57,10 @@
                                 
                                 ;	low memory locations
   0000                          reboot	equ	0000h		;reboot system
-  0003                          ioloc	equ	0003h		;i/o byte location
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-1
 
 
+  0003                          ioloc	equ	0003h		;i/o byte location
   0006                          bdosa	equ	0006h		;address field of jp BDOS
                                 
                                 ;	bios access constants
@@ -115,10 +116,10 @@
                                 
   E011    EB                    bdose:	ex	de,hl		;arrive here from user programs
   E012    22 E343               	ld	(info),hl
-  E015    EB                    	ex	de,hl		;info=DE, DE=info
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-2
 
 
+  E015    EB                    	ex	de,hl		;info=DE, DE=info
   E016    7B                    	ld	a,e
   E017    32 EDD6               	ld	(linfo),a	;linfo = low(info) - don't equ
   E01A    21 0000               	ld	hl,0
@@ -174,10 +175,10 @@
   E097    ED9B                  	dw	func40
   0029                          nfuncs	equ	($-functab)/2
                                 
-                                
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-3
 
 
+                                
                                 ;	error subroutines
   E099    21 E0CA               persub:	ld	hl,permsg	;report permanent error
   E09C    CD E0E5               	call	errflg		;to report the error
@@ -233,10 +234,10 @@
   E0FF    36 00                 	ld	(hl),0
   E101    B7                    	or	a
   E102    C0                    	ret	nz
-                                				;no previous keyboard character ready
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-4
 
 
+                                				;no previous keyboard character ready
   E103    C3 EE09               	jp	coninf		;get character externally
                                 ;	ret
   E106    CD E0FB               conech:	call	conin		;read character with echo
@@ -292,10 +293,10 @@
                                 				;compcol = true if computing column position
   E148    3A E30A               	ld	a,(compcol)
   E14B    B7                    	or	a
-  E14C    C2 E162               	jp	nz,compout
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-5
 
 
+  E14C    C2 E162               	jp	nz,compout
                                 				;write the character, then compute the column
                                 				;write console character from C
   E14F    C5                    	push	bc
@@ -351,10 +352,10 @@
   E18D    F6 40                 	or	40h		;becomes graphic letter
   E18F    4F                    	ld	c,a		;ready to print
                                 				;(drop through to tabout)
-                                
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-6
 
 
+                                
   E190                          tabout:				;expand tabs to console
   E190    79                    	ld	a,c
   E191    FE 09                 	cp	tab
@@ -410,10 +411,10 @@
   E1E4    32 E30B               	ld	(strtcol),a	;save start for ctl-x, ctl-h
   E1E7    2A E343               	ld	hl,(info)
   E1EA    4E                    	ld	c,(hl)
-  E1EB    23                    	inc	hl
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-7
 
 
+  E1EB    23                    	inc	hl
   E1EC    E5                    	push	hl
   E1ED    06 00                 	ld	b,0
                                 				;B = current buffer length,
@@ -469,10 +470,10 @@
   E234    C3 E1F1               	jp	readn0		;for another character
                                 
   E237                          note:				;not end of line, list toggle?
-  E237    FE 10                 	cp	ctlp
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-8
 
 
+  E237    FE 10                 	cp	ctlp
   E239    C2 E248               	jp	nz,notp		;skip if not ctlp
                                 				;list toggle - change parity
   E23C    E5                    	push	hl		;save next to fill - 1
@@ -528,10 +529,10 @@
   E282    CD E17F               	call	ctlout		;character echoed
   E285    E1                    	pop	hl
   E286    C1                    	pop	bc		;recall remaining count
-  E287    C3 E278               	jp	rep0		;for the next character
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-9
 
 
+  E287    C3 E278               	jp	rep0		;for the next character
                                 
   E28A                          rep1:				;end of repeat, recall lengths
                                 				;original BC still remains pushed
@@ -587,10 +588,10 @@
                                 
   E2CE                          func3:				;return reader character
   E2CE    CD EE15               	call	readerf
-  E2D1    C3 E301               	jp	sta$ret
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-10
 
 
+  E2D1    C3 E301               	jp	sta$ret
                                 
                                 ;func4:	equated to punchf
                                 				;write punch character
@@ -646,10 +647,10 @@
   E307    C3 E301               	jp	sta$ret
                                 
                                 
-                                
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-11
 
 
+                                
                                 ;	data areas
                                 
   E30A                          compcol:
@@ -705,10 +706,10 @@
                                 ;per$error:			;report permanent error to user
                                 ;	ld	hl,pererr
                                 ;	jp	goerr
-                                
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-12
 
 
+                                
                                 ;rod$error:			;report read/only disk error
                                 ;	ld	hl,roderr
                                 ;	jp	goerr
@@ -764,10 +765,10 @@
   E36B    23                    	inc	hl		;.cdrmax
   E36C    22 EDB5               	ld	(curtrka),hl
   E36F    23                    	inc	hl
-  E370    23                    	inc	hl		;HL=.currec
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-13
 
 
+  E370    23                    	inc	hl		;HL=.currec
   E371    22 EDB7               	ld	(curreca),hl
   E374    23                    	inc	hl
   E375    23                    	inc	hl		;HL=.buffa
@@ -823,10 +824,10 @@
                                 				;wrtype = 1 => directory write operation
                                 				;wrtype = 2 => start of new block
   E3B8    CD EE2A               	call	writef		;current drive, track, sector, dma
-  E3BB                          diocomp:			;check for disk errors
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-14
 
 
+  E3BB                          diocomp:			;check for disk errors
   E3BB    B7                    	or	a
   E3BC    C8                    	ret	z
   E3BD    21 E009               	ld	hl,pererr
@@ -882,10 +883,10 @@
   E3FA    E5                    	push	hl
   E3FB    2A EDC1               	ld	hl,(sectpt)
   E3FE    19                    	add	hl,de		;HL = currec+sectpt
-  E3FF    DA E40F               	jp	c,seek2		;can be > FFFFH
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-15
 
 
+  E3FF    DA E40F               	jp	c,seek2		;can be > FFFFH
   E402    79                    	ld	a,c
   E403    95                    	sub	l
   E404    78                    	ld	a,b
@@ -941,10 +942,10 @@
   00E5                          empty	equ	0e5h		;empty directory entry
   007F                          lstrec	equ	127		;last record# in extent
   0080                          recsiz	equ	128		;record size
-  0020                          fcblen	equ	32		;file control block size
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-16
 
 
+  0020                          fcblen	equ	32		;file control block size
   0004                          dirrec	equ	recsiz/fcblen	;directory elts / record
   0002                          dskshf	equ	2		;log2(dirrec)
   0003                          dskmsk	equ	dirrec-1
@@ -1000,10 +1001,10 @@
                                 				;1k   3     v/8 + extval * 16
                                 				;2k   4     v/16+ extval * 8
                                 				;4k   5     v/32+ extval * 4
-                                				;8k   6     v/64+ extval * 2
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-17
 
 
+                                				;8k   6     v/64+ extval * 2
                                 				;16k  7     v/128+extval * 1
   E45D    C9                    	ret			;with dm$position in A
                                 
@@ -1059,10 +1060,10 @@
                                 
   E4A6                          getexta:			;get current extent field address to A
   E4A6    2A E343               	ld	hl,(info)
-  E4A9    11 000C               	ld	de,extnum
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-18
 
 
+  E4A9    11 000C               	ld	de,extnum
   E4AC    19                    	add	hl,de		;HL=.fcb(extnum)
   E4AD    C9                    	ret
                                 
@@ -1118,10 +1119,10 @@
   E4F3    6F                    	ld	l,a		;low byte
   E4F4    C3 E4EB               	jp	hlrotr0
                                 
-  E4F7                          compute$cs:			;compute checksum for current directory buffer
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-19
 
 
+  E4F7                          compute$cs:			;compute checksum for current directory buffer
   E4F7    0E 80                 	ld	c,recsiz	;size of directory buffer
   E4F9    2A EDB9               	ld	hl,(buffa)	;current directory buffer
   E4FC    AF                    	xor	a		;clear checksum value
@@ -1177,10 +1178,10 @@
   E53C    EB                    	ex	de,hl		;DE = directory max
   E53D    2A EDB3               	ld	hl,(cdrmaxa)	;HL = .cdrmax
   E540    73                    	ld	(hl),e
-  E541    23                    	inc	hl
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-20
 
 
+  E541    23                    	inc	hl
   E542    72                    	ld	(hl),d		;cdrmax = dirmax
   E543    C9                    	ret
                                 
@@ -1236,10 +1237,10 @@
                                 				;set fwf (file write flag) to "1"
   E57B    F6 80                 	or	fwfmsk
   E57D    77                    	ld	(hl),a		;fcb(modnum)=fcb(modnum) or 80h
-                                				;also returns non zero in accumulator
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-21
 
 
+                                				;also returns non zero in accumulator
   E57E    C9                    	ret
                                 
                                 
@@ -1295,10 +1296,10 @@
   E5B6    0C                    	inc	c		;0ffh produces zero flag
   E5B7    CA E5C4               	jp	z,initial$cs
                                 				;not initializing, compare
-  E5BA    BE                    	cp	(hl)		;compute$cs=check(drec)?
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-22
 
 
+  E5BA    BE                    	cp	(hl)		;compute$cs=check(drec)?
   E5BB    C8                    	ret	z		;no message if ok
                                 				;checksum error, are we beyond
                                 				;the end of the disk?
@@ -1354,10 +1355,10 @@
   E5FA    BE                    	cp	(hl)		;low(dcnt) = high(dcnt)?
   E5FB    C0                    	ret	nz		;non zero returned if different
                                 				;high and low the same, = 0ffh?
-  E5FC    3C                    	inc	a		;0ffh becomes 00 if so
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-23
 
 
+  E5FC    3C                    	inc	a		;0ffh becomes 00 if so
   E5FD    C9                    	ret
                                 
   E5FE                          set$end$dir:			;set dcnt to the end of the directory
@@ -1413,10 +1414,10 @@
                                 				;d and e both contain the number of bit positions to shift
   E63B    79                    	ld	a,c
   E63C    0F                    	rrca
-  E63D    0F                    	rrca
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-24
 
 
+  E63D    0F                    	rrca
   E63E    0F                    	rrca
   E63F    E6 1F                 	and	11111b
   E641    4F                    	ld	c,a		;C shr 3 to C
@@ -1472,10 +1473,10 @@
   E671    19                    	add	hl,de		;hl now addresses the disk map
   E672    C5                    	push	bc		;save the 0/1 bit to set
   E673    0E 11                 	ld	c,fcblen-dskmap+1;size of single byte disk map + 1
-  E675                          scandm0:			;loop once for each disk map entry
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-25
 
 
+  E675                          scandm0:			;loop once for each disk map entry
   E675    D1                    	pop	de		;recall bit parity
   E676    0D                    	dec	c
   E677    C8                    	ret	z		;all done scanning?
@@ -1531,10 +1532,10 @@
   E6B3    23                    	inc	hl		;alloc(i)=0
   E6B4    0B                    	dec	bc		;count length down
   E6B5    78                    	ld	a,b
-  E6B6    B1                    	or	c
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-26
 
 
+  E6B6    B1                    	or	c
   E6B7    C2 E6B1               	jp	nz,initial0
                                 				;set the reserved space for the directory
   E6BA    2A EDCA               	ld	hl,(dirblk)
@@ -1590,10 +1591,10 @@
   E707                          compext:			;compare extent# in A with that in C, return nonzero
                                 				;if they do not match
   E707    C5                    	push	bc		;save C's original value
-  E708    F5                    	push	af
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-27
 
 
+  E708    F5                    	push	af
   E709    3A EDC5               	ld	a,(extmsk)
   E70C    2F                    	cpl
   E70D    47                    	ld	b,a
@@ -1649,10 +1650,10 @@
   E758    1A                    	ld	a,(de)
   E759    FE 3F                 	cp	'?'
   E75B    CA E77C               	jp	z,searchok	;? matches all
-                                				;scan next character if not ubytes
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-28
 
 
+                                				;scan next character if not ubytes
   E75E    78                    	ld	a,b
   E75F    FE 0D                 	cp	ubytes
   E761    CA E77C               	jp	z,searchok
@@ -1708,10 +1709,10 @@
   E7A7    C8                    	ret	z		;stop if end
                                 				;set each non zero disk map entry to 0
                                 				;in the allocation vector
-                                				;may be r/o file
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-29
 
 
+                                				;may be r/o file
   E7A8    CD E544               	call	check$rodir	;ro disk error if found
   E7AB    CD E55E               	call	getdptra	;HL=.buff(dptr)
   E7AE    36 E5                 	ld	(hl),empty
@@ -1767,10 +1768,10 @@
   E7EE    CD E664               	call	rotr		;move bit back to position and store
   E7F1    E1                    	pop	hl
   E7F2    D1                    	pop	de		;HL returned value, DE discarded
-  E7F3    C9                    	ret
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-30
 
 
+  E7F3    C9                    	ret
                                 
   E7F4                          retblock0:			;cannot find an available bit, return 0000
   E7F4    79                    	ld	a,c
@@ -1826,10 +1827,10 @@
                                 				;element renamed, move to next
   E835    CD E72D               	call	searchn
   E838    C3 E827               	jp	rename0
-                                
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-31
 
 
+                                
   E83B                          indicators:			;set file indicators for current fcb
   E83B    0E 0C                 	ld	c,extnum
   E83D    CD E718               	call	search		;through file type
@@ -1885,10 +1886,10 @@
   E88B                          open$rcnt:			;A has record count to fill
   E88B    2A E343               	ld	hl,(info)
   E88E    11 000F               	ld	de,reccnt
-  E891    19                    	add	hl,de
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-32
 
 
+  E891    19                    	add	hl,de
   E892    77                    	ld	(hl),a
   E893    C9                    	ret
                                 
@@ -1944,10 +1945,10 @@
   E8D6    1A                    	ld	a,(de)
   E8D7    C2 E8DB               	jp	nz,fcbnzero
                                 				;fcb(i) = 0
-  E8DA    77                    	ld	(hl),a		;fcb(i) = buff(i)
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-33
 
 
+  E8DA    77                    	ld	(hl),a		;fcb(i) = buff(i)
   E8DB                          fcbnzero:
   E8DB    B7                    	or	a
   E8DC    C2 E8E1               	jp	nz,buffnzero
@@ -2003,10 +2004,10 @@
   E916    12                    	ld	(de),a		;buff(reccnt)=fcb(reccnt)
   E917                          endmerge:
   E917    3E FF                 	ld	a,true
-  E919    32 EDD2               	ld	(fcb$copied),a	;mark as copied
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-34
 
 
+  E919    32 EDD2               	ld	(fcb$copied),a	;mark as copied
   E91C    C3 E810               	jp	seek$copy	;ok to "wrdir" here - 1.4 compat
                                 				;		ret
                                 
@@ -2062,10 +2063,10 @@
   E96B    09                    	add	hl,bc		;HL=.fcb(extnum)
   E96C    7E                    	ld	a,(hl)
   E96D    3C                    	inc	a
-  E96E    E6 1F                 	and	maxext
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-35
 
 
+  E96E    E6 1F                 	and	maxext
   E970    77                    	ld	(hl),a		;fcb(extnum)=++1
   E971    CA E983               	jp	z,open$mod	;move to next module if zero
                                 				;may be in the same extent group
@@ -2121,10 +2122,10 @@
   E9BE    32 EDD5               	ld	(seqio),a
                                 				;drop through to diskread
                                 
-  E9C1                          diskread:			;(may enter from seqdiskread)
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-36
 
 
+  E9C1                          diskread:			;(may enter from seqdiskread)
   E9C1    3E FF                 	ld	a,true
   E9C3    32 EDD3               	ld	(rmf),a		;read mode flag = true (open$reel)
                                 				;read the next record from the current fcb
@@ -2180,10 +2181,10 @@
                                 				;skip if vrecord > lstrec
                                 				;vrecord = 128, cannot open next extent
   EA19    D2 E305               	jp	nc,setlret1	;lret=1
-  EA1C                          diskwr0:			;can write the next record, so continue
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-37
 
 
+  EA1C                          diskwr0:			;can write the next record, so continue
   EA1C    CD E477               	call	index
   EA1F    CD E484               	call	allocated
   EA22    0E 00                 	ld	c,0		;marked as normal write operation for wrbuff
@@ -2239,10 +2240,10 @@
   EA6B    72                    	ld	(hl),d		;double wd
   EA6C                          diskwru:			;disk write to previously unallocated block
   EA6C    0E 02                 	ld	c,2		;marked as unallocated write
-  EA6E                          diskwr1:			;continue the write operation of no allocation error
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-38
 
 
+  EA6E                          diskwr1:			;continue the write operation of no allocation error
                                 				;C = 0 if normal write, 2 if to prev unalloc block
   EA6E    3A E345               	ld	a,(lret)
   EA71    B7                    	or	a
@@ -2298,10 +2299,10 @@
   EACB    DA EAD2               	jp	c,diskwr2
                                 				;rcount <= vrecord
   EACE    77                    	ld	(hl),a
-  EACF    34                    	inc	(hl)		;rcount = vrecord+1
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-39
 
 
+  EACF    34                    	inc	(hl)		;rcount = vrecord+1
   EAD0    0E 02                 	ld	c,2		;mark as record count incremented
   EAD2                          diskwr2:			;A has vrecord, C=2 if new block or new record#
   EAD2    0D                    	dec	c
@@ -2357,10 +2358,10 @@
   EB15    17                    	rla			;cy=lsb of extent#
   EB16    23                    	inc	hl
   EB17    7E                    	ld	a,(hl)
-  EB18    17                    	rla
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-40
 
 
+  EB18    17                    	rla
   EB19    E6 1F                 	and	11111b		;A=ext#
   EB1B    4F                    	ld	c,a		;C holds extent number, record stacked
   EB1C    7E                    	ld	a,(hl)
@@ -2416,10 +2417,10 @@
   EB5F    19                    	add	hl,de
   EB60    70                    	ld	(hl),b		;fcb(modnum)=mod#
   EB61    CD E851               	call	open		;is the file present?
-  EB64    3A E345               	ld	a,(lret)
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-41
 
 
+  EB64    3A E345               	ld	a,(lret)
   EB67    3C                    	inc	a
   EB68    C2 EB7F               	jp	nz,seekok	;open successful?
                                 				;cannot open the file, read mode?
@@ -2475,10 +2476,10 @@
   EBAA    21 000C               	ld	hl,extnum
   EBAD    19                    	add	hl,de
   EBAE    7E                    	ld	a,(hl)
-  EBAF    0F                    	rrca
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-42
 
 
+  EBAF    0F                    	rrca
   EBB0    E6 80                 	and	80h		;A=e000 0000
   EBB2    81                    	add	a,c
   EBB3    4F                    	ld	c,a
@@ -2534,10 +2535,10 @@
                                 				;A=0000 000? BC = mmmm eeee errr rrrr
                                 				;compare with memory, larger?
   EBF3    E1                    	pop	hl
-  EBF4    E5                    	push	hl		;recall, replace .fcb(ranrec)
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-43
 
 
+  EBF4    E5                    	push	hl		;recall, replace .fcb(ranrec)
   EBF5    5F                    	ld	e,a		;save cy
   EBF6    79                    	ld	a,c
   EBF7    96                    	sub	(hl)
@@ -2593,10 +2594,10 @@
   EC37    2A EDAF               	ld	hl,(dlog)
   EC3A    4D                    	ld	c,l
   EC3B    44                    	ld	b,h		;call ready
-  EC3C    CD E50B               	call	set$cdisk
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-44
 
 
+  EC3C    CD E50B               	call	set$cdisk
   EC3F    22 EDAF               	ld	(dlog),hl	;dlog=set$cdisk(dlog)
   EC42    C3 E6A3               	jp	initialize
                                 ;	ret
@@ -2652,10 +2653,10 @@
   EC93    22 EDB1               	ld	(dmaad),hl	;dmaad = tbuff
   EC96    CD E5DA               	call	setdata		;to data dma address
   EC99    C3 EC21               	jp	select
-                                ;	ret
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-45
 
 
+                                ;	ret
                                 ;	jp	goback
                                 
   EC45                          func14	equ	curselect	;select disk info
@@ -2711,10 +2712,10 @@
                                 ;	jp	goback
                                 
   ECE0                          func20:				;read a file
-  ECE0    CD EC51               	call	reselect
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-46
 
 
+  ECE0    CD EC51               	call	reselect
   ECE3    C3 E9BC               	jp	seqdiskread
                                 ;	jp	goback
                                 
@@ -2770,10 +2771,10 @@
   ED17                          func29:				;return r/o bit vector
   ED17    2A EDAD               	ld	hl,(rodsk)
   ED1A    C3 ED29               	jp	sthl$ret
-                                ;	ret
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-47
 
 
+                                ;	ret
                                 ;	jp	goback
                                 
   ED1D                          func30:				;set file indicators
@@ -2829,10 +2830,10 @@
                                 ;	jp	goback
                                 
   ED53    2A E343               func37:	ld	hl,(info)
-  ED56    7D                    	ld	a,l
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-48
 
 
+  ED56    7D                    	ld	a,l
   ED57    2F                    	cpl
   ED58    5F                    	ld	e,a
   ED59    7C                    	ld	a,h
@@ -2888,10 +2889,10 @@
   EDA3    0E 00                 	ld	c,false
   EDA5    CD EB07               	call	rseek1
   EDA8    CC EA03               	call	z,diskwrite	;if seek successful
-  EDAB    C9                    	ret
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-49
 
 
+  EDAB    C9                    	ret
                                 
                                 ;	data areas
                                 
@@ -2947,10 +2948,10 @@
   EDDD                          single:	ds	byte		;set true if single byte allocation map
   EDDE                          resel:	ds	byte		;reselection flag
   EDDF                          olddsk:	ds	byte		;disk on entry to bdos
-  EDE0                          fcbdsk:	ds	byte		;disk named in fcb
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	1-50
 
 
+  EDE0                          fcbdsk:	ds	byte		;disk named in fcb
   EDE1                          rcount:	ds	byte		;record count in current fcb
   EDE2                          extval:	ds	byte		;extent number and extmsk
   EDE3                          vrecord:
@@ -2980,7 +2981,7 @@ EDE7 	ARECORD1        E345 	ARET            E48A 	ATRAN
 E490 	ATRAN0          E299 	BACKSP          E1A4 	BACKUP          
 E24E 	BACKX           EB84 	BADSEEK         0006 	BDOSA           
 E011 	BDOSE           0E00 	BDOSLEN         E000 	BDOSPH          
-A400 	BIAS            EE00 	BIOS            0C00 	BIOSLEN         
+A400 	BIAS            EE00 	BIOS            0003 	BIOSLEN         
 EE00 	BIOSPH          EDC4 	BLKMSK          EDC3 	BLKSHF          
 EA48 	BLOCKOK         EE00 	BOOTF           EDB9 	BUFFA           
 E8E1 	BUFFNZERO       0001 	BYTE            0800 	CCPLEN          
@@ -2994,125 +2995,124 @@ E142 	CONB0           E145 	CONB1           E123 	CONBRK
 E106 	CONECH          E0FB 	CONIN           EE09 	CONINF          
 E148 	CONOUT          EE0C 	CONOUTF         EE06 	CONSTF          
 E801 	COPY$DIR        E701 	COPY$DIRLOC     E7FD 	COPY$FCB        
-0009 	CPMLEN          000D 	CR              E1C9 	CRLF            
-E1B1 	CRLFP           E1B9 	CRLFP0          005E 	CTL             
-0003 	CTLC            0005 	CTLE            0008 	CTLH            
-E17F 	CTLOUT          0010 	CTLP            0012 	CTLR            
-0013 	CTLS            0015 	CTLU            0018 	CTLX            
-001A 	CTLZ            E342 	CURDSK          EDB7 	CURRECA         
-EC45 	CURSELECT       EDB5 	CURTRKA         EDEA 	DCNT            
-E79C 	DELETE          E7A4 	DELETE0         E3BB 	DIOCOMP         
-E5E9 	DIR$TO$USER     EDCA 	DIRBLK          E2E0 	DIRINP          
-EDD4 	DIRLOC          EDC8 	DIRMAX          0004 	DIRREC          
-E9FB 	DISKEOF         000C 	DISKF           E9C1 	DISKREAD        
-EA1C 	DISKWR0         EA6E 	DISKWR1         EABB 	DISKWR11        
-EAD2 	DISKWR2         EB00 	DISKWR3         EA03 	DISKWRITE       
-EA6C 	DISKWRU         EDAF 	DLOG            E43E 	DM$POSITION     
-EDB1 	DMAAD           EDD7 	DMINX           E445 	DMPOS0          
-E453 	DMPOS1          E45C 	DMPOS2          E8FD 	DMSET           
-EDBB 	DPBADDR         000F 	DPBLIST         EDE9 	DPTR            
-EDEC 	DREC            E0C6 	DSKERR          0010 	DSKMAP          
-E0BA 	DSKMSG          0003 	DSKMSK          0002 	DSKSHF          
-0022 	DVERS           E114 	ECHOC           EDAC 	EFCB            
-00E5 	EMPTY           E5F5 	END$OF$DIR      FFFF 	ENDDIR          
-E917 	ENDMERGE        E783 	ENDSEARCH       E30F 	ENTSP           
-E0E5 	ERRFLG          EDC5 	EXTMSK          000C 	EXTNUM          
-EDE2 	EXTVAL          0000 	FALSE           EDD2 	FCB$COPIED      
-EDE0 	FCBDSK          0020 	FCBLEN          E8DB 	FCBNZERO        
-0005 	FCBSHF          EA8C 	FILL0           EA9A 	FILL1           
-E304 	FUNC$RET        E2C8 	FUNC1           E1E1 	FUNC10          
-E2FE 	FUNC11          EC7E 	FUNC12          EC83 	FUNC13          
-EC45 	FUNC14          EC9C 	FUNC15          ECA5 	FUNC16          
-ECAB 	FUNC17          ECC8 	FUNC18          ECD7 	FUNC19          
-E190 	FUNC2           ECE0 	FUNC20          ECE6 	FUNC21          
-ECEC 	FUNC22          ECF5 	FUNC23          ECFE 	FUNC24          
+000D 	CR              E1C9 	CRLF            E1B1 	CRLFP           
+E1B9 	CRLFP0          005E 	CTL             0003 	CTLC            
+0005 	CTLE            0008 	CTLH            E17F 	CTLOUT          
+0010 	CTLP            0012 	CTLR            0013 	CTLS            
+0015 	CTLU            0018 	CTLX            001A 	CTLZ            
+E342 	CURDSK          EDB7 	CURRECA         EC45 	CURSELECT       
+EDB5 	CURTRKA         EDEA 	DCNT            E79C 	DELETE          
+E7A4 	DELETE0         E3BB 	DIOCOMP         E5E9 	DIR$TO$USER     
+EDCA 	DIRBLK          E2E0 	DIRINP          EDD4 	DIRLOC          
+EDC8 	DIRMAX          0004 	DIRREC          E9FB 	DISKEOF         
+000C 	DISKF           E9C1 	DISKREAD        EA1C 	DISKWR0         
+EA6E 	DISKWR1         EABB 	DISKWR11        EAD2 	DISKWR2         
+EB00 	DISKWR3         EA03 	DISKWRITE       EA6C 	DISKWRU         
+EDAF 	DLOG            E43E 	DM$POSITION     EDB1 	DMAAD           
+EDD7 	DMINX           E445 	DMPOS0          E453 	DMPOS1          
+E45C 	DMPOS2          E8FD 	DMSET           EDBB 	DPBADDR         
+000F 	DPBLIST         EDE9 	DPTR            EDEC 	DREC            
+E0C6 	DSKERR          0010 	DSKMAP          E0BA 	DSKMSG          
+0003 	DSKMSK          0002 	DSKSHF          0022 	DVERS           
+E114 	ECHOC           EDAC 	EFCB            00E5 	EMPTY           
+E5F5 	END$OF$DIR      FFFF 	ENDDIR          E917 	ENDMERGE        
+E783 	ENDSEARCH       E30F 	ENTSP           E0E5 	ERRFLG          
+EDC5 	EXTMSK          000C 	EXTNUM          EDE2 	EXTVAL          
+0000 	FALSE           EDD2 	FCB$COPIED      EDE0 	FCBDSK          
+0020 	FCBLEN          E8DB 	FCBNZERO        0005 	FCBSHF          
+EA8C 	FILL0           EA9A 	FILL1           E304 	FUNC$RET        
+E2C8 	FUNC1           E1E1 	FUNC10          E2FE 	FUNC11          
+EC7E 	FUNC12          EC83 	FUNC13          EC45 	FUNC14          
+EC9C 	FUNC15          ECA5 	FUNC16          ECAB 	FUNC17          
+ECC8 	FUNC18          ECD7 	FUNC19          E190 	FUNC2           
+ECE0 	FUNC20          ECE6 	FUNC21          ECEC 	FUNC22          
+ECF5 	FUNC23          ECFE 	FUNC24          ED04 	FUNC25          
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	S-1
 
 
-ED04 	FUNC25          ED0A 	FUNC26          ED11 	FUNC27          
-E52C 	FUNC28          ED17 	FUNC29          E2CE 	FUNC3           
-ED1D 	FUNC30          ED26 	FUNC31          ED2D 	FUNC32          
-ED41 	FUNC33          ED47 	FUNC34          ED4D 	FUNC35          
-EC0E 	FUNC36          ED53 	FUNC37          E304 	FUNC38          
-E304 	FUNC39          ED9B 	FUNC40          E2D4 	FUNC6           
-E2ED 	FUNC7           E2F3 	FUNC8           E2F8 	FUNC9           
-E047 	FUNCTAB         0080 	FWFMSK          E7BE 	GET$BLOCK       
-E635 	GETALLOCBIT     E45E 	GETDM           E471 	GETDMD          
-E55E 	GETDPTRA        E4A6 	GETEXTA         E4BB 	GETFCB          
-E4AE 	GETFCBA         EBD2 	GETFILESIZE     E569 	GETMODNUM       
-EC06 	GETNEXTSIZE     EBE4 	GETSIZE         ED74 	GOBACK          
-E34A 	GOERR           E504 	HLROTL          E505 	HLROTL0         
-E4EA 	HLROTR          E4EB 	HLROTR0         E3A1 	HOME            
-EE18 	HOMEF           E477 	INDEX           E840 	INDIC0          
-E83B 	INDICATORS      E343 	INFO            E5C4 	INITIAL$CS      
-E6B1 	INITIAL0        E6D2 	INITIAL2        E6A3 	INITIALIZE      
-000A 	INVIS           0003 	IOLOC           E30E 	KBCHAR          
-E7C0 	LEFTTST         000A 	LF              E270 	LINELEN         
-EDD6 	LINFO           E30D 	LISTCP          EE0F 	LISTF           
-EE2D 	LISTSTF         E345 	LRET            E341 	LSTACK          
-001F 	LSTFCB          007F 	LSTREC          E924 	MAKE            
-E946 	MAKE0           EDC6 	MAXALL          001F 	MAXEXT          
-000F 	MAXMOD          E8CD 	MERGE0          E8E8 	MERGED          
-E91F 	MERGERR         E894 	MERGEZERO       000E 	MODNUM          
-E34F 	MOVE            E350 	MOVE0           003D 	MSIZ            
-0040 	MSIZE           000F 	NAMLEN          0001 	NEEDZ80         
-E59C 	NEWCHECKSUM     0029 	NFUNCS          0000 	NHDISKS         
-EA3B 	NOPBLOCK        EC75 	NOSELECT        EAFE 	NOSPACE         
-E179 	NOTBACKSP       E2BD 	NOTC            E237 	NOTE            
-E216 	NOTH            E248 	NOTP            E2A6 	NOTR            
-E226 	NOTRUB          E26B 	NOTU            E25F 	NOTX            
-EADF 	NOUPDATE        E51E 	NOWRITE         0020 	NXTREC          
-EDCE 	OFFSET          EDDF 	OLDDSK          E851 	OPEN            
-E85A 	OPEN$COPY       E983 	OPEN$MOD        E9B6 	OPEN$R$ERR      
-E88B 	OPEN$RCNT       E95A 	OPEN$REEL       E98E 	OPEN$REEL0      
-E9AC 	OPEN$REEL1      E9AF 	OPEN$REEL2      0001 	PATCHOS         
-E1AC 	PCTLH           E6F6 	PDOLLAR         E009 	PERERR          
-E0CA 	PERMSG          E099 	PERSUB          E1D3 	PRINT           
-EE12 	PUNCHF          ECC2 	QSELECT         EB47 	RANCLOSE        
-EB93 	RANDISKREAD     EB9C 	RANDISKWRITE    0021 	RANREC          
-EDE1 	RCOUNT          E5D4 	RD$DIR          E3B2 	RDBUFF          
-E2A9 	RDECH1          E2A6 	RDECHO          E1E1 	READ            
-E605 	READ$DIR        E619 	READ$DIR0       E620 	READ$DIR1       
-E2C1 	READEN          EE15 	READERF         EE27 	READF           
-E1F1 	READN0          E1EF 	READNX          0000 	REBOOT          
-000F 	RECCNT          E9E6 	RECORDOK        0080 	RECSIZ          
-E816 	RENAME          E827 	RENAME0         E278 	REP0            
-E28A 	REP1            EDDE 	RESEL           EC51 	RESELECT        
-E7EC 	RETBLOCK        E7F4 	RETBLOCK0       ED91 	RETMON          
-E39D 	RETSELECT       E7D1 	RIGHTTST        EDD3 	RMF             
-E00D 	RODERR          E0E1 	RODMSG          EDAD 	RODSK           
-E0AB 	RODSUB          E00F 	ROFERR          0009 	ROFILE          
-E0DC 	ROFMSG          E0B1 	ROFSUB          E656 	ROTL            
-E664 	ROTR            EB03 	RSEEK           EB07 	RSEEK1          
-007F 	RUBOUT          E66B 	SCANDM          E675 	SCANDM0         
+ED0A 	FUNC26          ED11 	FUNC27          E52C 	FUNC28          
+ED17 	FUNC29          E2CE 	FUNC3           ED1D 	FUNC30          
+ED26 	FUNC31          ED2D 	FUNC32          ED41 	FUNC33          
+ED47 	FUNC34          ED4D 	FUNC35          EC0E 	FUNC36          
+ED53 	FUNC37          E304 	FUNC38          E304 	FUNC39          
+ED9B 	FUNC40          E2D4 	FUNC6           E2ED 	FUNC7           
+E2F3 	FUNC8           E2F8 	FUNC9           E047 	FUNCTAB         
+0080 	FWFMSK          E7BE 	GET$BLOCK       E635 	GETALLOCBIT     
+E45E 	GETDM           E471 	GETDMD          E55E 	GETDPTRA        
+E4A6 	GETEXTA         E4BB 	GETFCB          E4AE 	GETFCBA         
+EBD2 	GETFILESIZE     E569 	GETMODNUM       EC06 	GETNEXTSIZE     
+EBE4 	GETSIZE         ED74 	GOBACK          E34A 	GOERR           
+E504 	HLROTL          E505 	HLROTL0         E4EA 	HLROTR          
+E4EB 	HLROTR0         E3A1 	HOME            EE18 	HOMEF           
+E477 	INDEX           E840 	INDIC0          E83B 	INDICATORS      
+E343 	INFO            E5C4 	INITIAL$CS      E6B1 	INITIAL0        
+E6D2 	INITIAL2        E6A3 	INITIALIZE      000A 	INVIS           
+0003 	IOLOC           E30E 	KBCHAR          E7C0 	LEFTTST         
+000A 	LF              E270 	LINELEN         EDD6 	LINFO           
+E30D 	LISTCP          EE0F 	LISTF           EE2D 	LISTSTF         
+E345 	LRET            E341 	LSTACK          001F 	LSTFCB          
+007F 	LSTREC          E924 	MAKE            E946 	MAKE0           
+EDC6 	MAXALL          001F 	MAXEXT          000F 	MAXMOD          
+E8CD 	MERGE0          E8E8 	MERGED          E91F 	MERGERR         
+E894 	MERGEZERO       000E 	MODNUM          E34F 	MOVE            
+E350 	MOVE0           003D 	MSIZ            0040 	MSIZE           
+000F 	NAMLEN          0001 	NEEDZ80         E59C 	NEWCHECKSUM     
+0029 	NFUNCS          0000 	NHDISKS         EA3B 	NOPBLOCK        
+EC75 	NOSELECT        EAFE 	NOSPACE         E179 	NOTBACKSP       
+E2BD 	NOTC            E237 	NOTE            E216 	NOTH            
+E248 	NOTP            E2A6 	NOTR            E226 	NOTRUB          
+E26B 	NOTU            E25F 	NOTX            EADF 	NOUPDATE        
+E51E 	NOWRITE         0020 	NXTREC          EDCE 	OFFSET          
+EDDF 	OLDDSK          E851 	OPEN            E85A 	OPEN$COPY       
+E983 	OPEN$MOD        E9B6 	OPEN$R$ERR      E88B 	OPEN$RCNT       
+E95A 	OPEN$REEL       E98E 	OPEN$REEL0      E9AC 	OPEN$REEL1      
+E9AF 	OPEN$REEL2      0001 	PATCHOS         E1AC 	PCTLH           
+E6F6 	PDOLLAR         E009 	PERERR          E0CA 	PERMSG          
+E099 	PERSUB          E1D3 	PRINT           EE12 	PUNCHF          
+ECC2 	QSELECT         EB47 	RANCLOSE        EB93 	RANDISKREAD     
+EB9C 	RANDISKWRITE    0021 	RANREC          EDE1 	RCOUNT          
+E5D4 	RD$DIR          E3B2 	RDBUFF          E2A9 	RDECH1          
+E2A6 	RDECHO          E1E1 	READ            E605 	READ$DIR        
+E619 	READ$DIR0       E620 	READ$DIR1       E2C1 	READEN          
+EE15 	READERF         EE27 	READF           E1F1 	READN0          
+E1EF 	READNX          0000 	REBOOT          000F 	RECCNT          
+E9E6 	RECORDOK        0080 	RECSIZ          E816 	RENAME          
+E827 	RENAME0         E278 	REP0            E28A 	REP1            
+EDDE 	RESEL           EC51 	RESELECT        E7EC 	RETBLOCK        
+E7F4 	RETBLOCK0       ED91 	RETMON          E39D 	RETSELECT       
+E7D1 	RIGHTTST        EDD3 	RMF             E00D 	RODERR          
+E0E1 	RODMSG          EDAD 	RODSK           E0AB 	RODSUB          
+E00F 	ROFERR          0009 	ROFILE          E0DC 	ROFMSG          
+E0B1 	ROFSUB          E656 	ROTL            E664 	ROTR            
+EB03 	RSEEK           EB07 	RSEEK1          007F 	RUBOUT          
+E66B 	SCANDM          E675 	SCANDM0         E688 	SCANDM1         
 'Bdos Interface, Bdos, Version 2.2 Feb, 1980'	MACRO-80 3.44	09-Dec-81	PAGE	S-2
 
 
-E688 	SCANDM1         E68E 	SCANDM2         E69D 	SCANM3          
-E718 	SEARCH          E794 	SEARCH$FIN      EDD9 	SEARCHA         
-E773 	SEARCHEXT       EDD8 	SEARCHL         E753 	SEARCHLOOP      
-E72D 	SEARCHN         E74A 	SEARCHNEXT      E77C 	SEARCHOK        
-EDC1 	SECTPT          EE30 	SECTRAN         E3D1 	SEEK            
-E810 	SEEK$COPY       E3C3 	SEEK$DIR        E3E4 	SEEK0           
-E3FA 	SEEK1           E40F 	SEEK2           EB8B 	SEEKERR         
-EB7F 	SEEKOK          E347 	SEL$ERROR       EE1B 	SELDSKF         
-EC21 	SELECT          E359 	SELECTDISK      E00B 	SELERR          
-E0D5 	SELMSG          E0A5 	SELSUB          E9BC 	SEQDISKREAD     
-E9FE 	SEQDISKWRITE    EDD5 	SEQIO           E65C 	SET$ALLOC$BIT   
-E50B 	SET$CDISK       E5FE 	SET$END$DIR     E52C 	SET$RO          
-E58C 	SETCDR          E5DA 	SETDATA         E5E0 	SETDIR          
-E5E3 	SETDMA          EE24 	SETDMAF         E4D2 	SETFCB          
-E4DE 	SETFCB1         E578 	SETFWF          E305 	SETLRET1        
-EC0E 	SETRANDOM       EE21 	SETSECF         EC0C 	SETSIZE         
-EE1E 	SETTRKF         ED3B 	SETUSRCODE      EDDD 	SINGLE          
-0018 	SSIZE           E301 	STA$RET         ED29 	STHL$RET        
-E30B 	STRTCOL         E595 	SUBDH           0009 	TAB             
-E196 	TAB0            E190 	TABOUT          0080 	TBUFF           
-005C 	TFCB            EDDB 	TINFO           EDD0 	TRANV           
-00FF 	TRUE            000D 	UBYTES          E341 	USRCODE         
-EDE3 	VRECORD         E0B4 	WAIT$ERR        EE03 	WBOOTF          
-0002 	WORD            E3B8 	WRBUFF          E5C6 	WRDIR           
-EE2A 	WRITEF          
+E68E 	SCANDM2         E69D 	SCANM3          E718 	SEARCH          
+E794 	SEARCH$FIN      EDD9 	SEARCHA         E773 	SEARCHEXT       
+EDD8 	SEARCHL         E753 	SEARCHLOOP      E72D 	SEARCHN         
+E74A 	SEARCHNEXT      E77C 	SEARCHOK        EDC1 	SECTPT          
+EE30 	SECTRAN         E3D1 	SEEK            E810 	SEEK$COPY       
+E3C3 	SEEK$DIR        E3E4 	SEEK0           E3FA 	SEEK1           
+E40F 	SEEK2           EB8B 	SEEKERR         EB7F 	SEEKOK          
+E347 	SEL$ERROR       EE1B 	SELDSKF         EC21 	SELECT          
+E359 	SELECTDISK      E00B 	SELERR          E0D5 	SELMSG          
+E0A5 	SELSUB          E9BC 	SEQDISKREAD     E9FE 	SEQDISKWRITE    
+EDD5 	SEQIO           E65C 	SET$ALLOC$BIT   E50B 	SET$CDISK       
+E5FE 	SET$END$DIR     E52C 	SET$RO          E58C 	SETCDR          
+E5DA 	SETDATA         E5E0 	SETDIR          E5E3 	SETDMA          
+EE24 	SETDMAF         E4D2 	SETFCB          E4DE 	SETFCB1         
+E578 	SETFWF          E305 	SETLRET1        EC0E 	SETRANDOM       
+EE21 	SETSECF         EC0C 	SETSIZE         EE1E 	SETTRKF         
+ED3B 	SETUSRCODE      EDDD 	SINGLE          0018 	SSIZE           
+E301 	STA$RET         ED29 	STHL$RET        E30B 	STRTCOL         
+E595 	SUBDH           0009 	TAB             E196 	TAB0            
+E190 	TABOUT          0080 	TBUFF           005C 	TFCB            
+EDDB 	TINFO           EDD0 	TRANV           00FF 	TRUE            
+000D 	UBYTES          E341 	USRCODE         EDE3 	VRECORD         
+E0B4 	WAIT$ERR        EE03 	WBOOTF          0002 	WORD            
+E3B8 	WRBUFF          E5C6 	WRDIR           EE2A 	WRITEF          
 
 
 
