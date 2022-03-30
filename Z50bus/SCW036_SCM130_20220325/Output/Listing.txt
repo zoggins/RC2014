@@ -1,0 +1,1593 @@
+                    0001  ; **********************************************************************
+                    0002  ; **  Alphanumeric LCD example                  by Stephen C Cousins  **
+                    0003  ; **********************************************************************
+                    0004  ;
+                    0005  ; **  Written as a Small Computer Monitor App
+                    0006  ; **  www.scc.me.uk
+                    0007  ;
+                    0008  ; History
+                    0009  ; 2018-05-20  v0.2.0  SCC  Example for LiNC80 SBC1 only
+                    0010  ; 2018-06-28  v0.3.0  SCC  Added support for RC2014 and Z280RC
+                    0011  ; 2019-09-14  v0.4.0  SCC  Added support for SC129 digital I/O module
+                    0012  ;
+                    0013  ; **********************************************************************
+                    0014  ;
+                    0015  ; This program is an example of one of the methods of interfacing an 
+                    0016  ; alphanumeric LCD module. 
+                    0017  ;
+                    0018  ; In this example the display is connected to either a Z80 PIO or a 
+                    0019  ; simple 8-bit output port. 
+                    0020  ;
+                    0021  ; This interfacing method uses 4-bit data mode and uses time delays
+                    0022  ; rather than polling the display's ready status. As a result the 
+                    0023  ; interface only requires 6 simple output lines:
+                    0024  ;   Output bit 0 = not used
+                    0025  ;   Output bit 1 = not used
+                    0026  ;   Output bit 2 = RS         High = data, Low = instruction
+                    0027  ;   Output bit 3 = E          Active high
+                    0028  ;   Output bit 4 = DB4
+                    0029  ;   Output bit 5 = DB5
+                    0030  ;   Output bit 6 = DB6
+                    0031  ;   Output bit 7 = DB7
+                    0032  ; Display's R/W is connected to 0v so it is always in write mode
+                    0033  ;
+                    0034  ; For further details see the LCD support code
+                    0035  ;
+                    0036  ; LiNC80 PIO address 0x18 to 0x1B (included on LiNC80 SBC1)
+                    0037  ;   0x18 = Port A data
+                    0038  ;   0x19 = Port B data
+                    0039  ;   0x1A = Port A control
+                    0040  ;   0x1B = Port B control
+                    0041  ;
+                    0042  ; RC2014 PIO address 0x68 to 0x6B (using module SC103 Z80 PIO)
+                    0043  ;   0x98 = Port A data
+                    0044  ;   0x99 = Port B data
+                    0045  ;   0x9A = Port A control
+                    0046  ;   0x9B = Port B control
+                    0047  ;
+                    0048  ; Z280RC PIO address 0x68 to 0x6B (using module SC103 Z80 PIO)
+                    0049  ;   0x68 = Port A data
+                    0050  ;   0x69 = Port B data
+                    0051  ;   0x6A = Port A control
+                    0052  ;   0x6B = Port B control
+                    0053  ;
+                    0054  ; SC129 simple digital I/O module set to address 0xA0
+                    0055  ; This set up should work with any system supporting the RC2014 bus
+                    0056  
+                    0057  ; To set up PIO port A in mode 3 (control) using LiNC80 as example
+                    0058  ;   I/O address 0x1A = 0b11001111 (0xCF)   Select mode 3 (control)
+                    0059  ;   I/O address 0x1A = 0b00000000 (0x00)   All pins are output
+                    0060  ;
+                    0061  ; To write a data byte to the output port using LiNC80 as example
+                    0062  ;   I/O address 0x18 = <data byte>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                    0063  ;
+                    0064  
+                    0065  ; **********************************************************************
+                    0066  
+                    0067  ; Select target system
+                    0068  ;#DEFINE    LINC80              ;Using built in PIO to connect LCD
+                    0069  #DEFINE    RC2014              ;Using PIO module to connect LCD
+                    0070  ;#DEFINE    Z280RC              ;Using PIO module to connect LCD
+                    0071  ;#DEFINE     SC129               ;Any system using SC129 to connect LCD
+                    0072  
+                    0073              .PROC Z80           ;SCWorkshop select processor
+                    0074              .HEXBYTES 0x18      ;SCWorkshop Intel Hex output format
+                    0075  
+                    0076  
+                    0077  ; **********************************************************************
+                    0078  ; **  Memory map
+                    0079  ; **********************************************************************
+                    0080  
+8000:               0081  CodeORG:    .EQU $8000          ;Loader code runs here
+8F00:               0082  DataORG:    .EQU $8F00          ;Start of data section
+                    0083  
+                    0084  
+                    0085  ; **********************************************************************
+                    0086  ; **  Constants
+                    0087  ; **********************************************************************
+                    0088  
+                    0089  ; Constants used by this code module
+                    0090  #IFDEF      LINC80
+                    0091  kDataReg:   .EQU 0x18           ;PIO port A data register
+                    0092  kContReg:   .EQU 0x1A           ;PIO port A control register
+                    0093  #DEFINE     Z80PIO              ;Use Z80 PIO
+                    0094  #ENDIF
+                    0095  #IFDEF      RC2014
+0098:               0096  kDataReg:   .EQU 0x98           ;PIO port A data register
+009A:               0097  kContReg:   .EQU 0x9A           ;PIO port A control register
+                    0098  #DEFINE     Z80PIO              ;Use Z80 PIO
+                    0099  #ENDIF
+                    0100  #IFDEF      Z280RC
+                    0101  kDataReg:   .EQU 0x68           ;PIO port A data register
+                    0102  kContReg:   .EQU 0x6A           ;PIO port A control register
+                    0103  #DEFINE     Z80PIO              ;Use Z80 PIO
+                    0104  #ENDIF
+                    0105  #IFDEF      SC129
+                    0106  kDataReg:   .EQU 0xA0           ;SC129 output port (data register)
+                    0107  #ENDIF
+                    0108  
+                    0109  
+                    0110  ; LCD constants required by LCD support module
+0098:               0111  kLCDPrt:    .EQU kDataReg       ;LCD port is the PIO port A data reg
+0002:               0112  kLCDBitRS:  .EQU 2              ;Port bit for LCD RS signal
+0003:               0113  kLCDBitE:   .EQU 3              ;Port bit for LCD E signal
+0014:               0114  kLCDWidth:  .EQU 20             ;Width in characters
+                    0115  
+                    0116  ; **********************************************************************
+                    0117  ; **  Code library usage
+                    0118  ; **********************************************************************
+                    0119  
+                    0120  ; SCMonAPI functions used
+                    0121  #REQUIRES   aDelayInMS
+                    0122  
+                    0123  ; Alphanumeric LCD functions used
+                    0124  ; no need to specify specific functions for this module
+                    0125  
+                    0126  
+                    0127  ; **********************************************************************
+                    0128  ; **  Establish memory sections
+                    0129  ; **********************************************************************
+                    0130  
+                    0131              .DATA
+                    0132              .ORG  DataORG       ;Establish start of data section
+                    0133  
+                    0134              .CODE
+                    0135              .ORG  CodeORG       ;Establish start of code section
+                    0136  
+                    0137  
+                    0138  ; **********************************************************************
+                    0139  ; **  Main program code
+                    0140  ; **********************************************************************
+                    0141  
+                    0142  ; Z280RC requires I/O page selection to access external I/O
+                    0143  ; Based on code by Bill Shen
+                    0144  #IFDEF      Z280RC
+                    0145              ld c,08h            ;Reg c points to I/O page register
+                    0146              ld l,0h             ;Set I/O page register to 0x00
+                    0147              db 0edh,6eh         ;This is the op code for LDCTL (C),HL
+                    0148  #ENDIF
+                    0149  
+                    0150  ; Initalise PIO port A for control mode with all bits set as outputs
+                    0151  #IFDEF      Z80PIO
+8000: 3E CF         0152              LD   A, 0b11001111
+8002: D3 9A         0153              OUT  (kContReg), A  ;Port A = PIO 'control' mode
+8004: 3E 00         0154              LD   A, 0b00000000
+8006: D3 9A         0155              OUT  (kContReg),A   ;Port A = all lines are outputs
+                    0156  #ENDIF
+                    0157  
+                    0158  ; Initialise alphanumeric LCD module
+8008: CD 77 80      0159              CALL fLCD_Init      ;Initialise LCD module
+                    0160  
+                    0161  ; Display text on first line
+800B: 3E 00         0162              LD   A, kLCD_Line1
+800D: CD E8 80      0163              CALL fLCD_Pos       ;Position cursor to location in A
+8010: 11 3D 80      0164              LD   DE, MsgHello
+8013: CD F0 80      0165              CALL fLCD_Str       ;Display string pointed to by DE
+                    0166  
+                    0167  ; Display text on second line
+8016: 3E 40         0168              LD   A, kLCD_Line2
+8018: CD E8 80      0169              CALL fLCD_Pos       ;Position cursor to location in A
+801B: 11 4A 80      0170              LD   DE, MsgLiNC80
+801E: CD F0 80      0171              CALL fLCD_Str       ;Display string pointed to by DE
+                    0172  
+                    0173  ; Define custom character(s)
+8021: 3E 00         0174              LD   A, 0           ;First character to define (0 to 7)
+8023: 11 58 80      0175              LD   DE, BitMaps    ;Pointer to start of bitmap data
+8026: 06 02         0176              LD   B, 2           ;Number of characters to define
+8028: CD F9 80      0177  @DefLoop:   CALL fLCD_Def       ;Define custom character
+802B: 10 FB         0178              DJNZ @DefLoop       ;Repeat for each character
+                    0179  
+                    0180  ; Display custom character 0
+802D: 3E 0E         0181              LD   A, kLCD_Line1+14
+802F: CD E8 80      0182              CALL fLCD_Pos       ;Position cursor to location in A
+8032: 3E 00         0183              LD   A, 0
+8034: CD C1 80      0184              CALL fLCD_Data      ;Write character in A at cursor
+                    0185  
+                    0186  ; Display custom character 1
+                    0187              ;LD   A, kLCD_Line2+14
+                    0188              ;CALL fLCD_Pos      ;Position cursor to location in A
+                    0189              ;LD   A, 1
+                    0190              ;CALL fLCD_Data     ;Write character in A at cursor
+                    0191  
+                    0192  ; Some other things to do
+                    0193              ;LD   A, kLCD_Clear ;Display clear
+                    0194              ;LD   A, kLCD_Blink ;Display on with blinking block cursor
+                    0195              ;LD   A, kLCD_Under ;Display on with underscore cursor
+8037: 3E 0C         0196              LD   A, kLCD_On     ;Display on with no cursor
+                    0197              ;LD   A, kLCD_Off   ;Display off
+8039: CD A0 80      0198              CALL fLCD_Inst      ;Send instruction to display
+                    0199  
+                    0200  ; Z280RC requires I/O page selection to be restored 
+                    0201  ; Code by Bill Shen
+                    0202  #IFDEF      Z280RC
+                    0203              ld c,08h            ;hcs reg c points to I/O page register
+                    0204              ld l,0feh           ;hcs set I/O page register to 0xFE
+                    0205              db 0edh,6eh         ;hcs this is the op code for LDCTL (C),HL
+                    0206  #ENDIF
+                    0207  
+803C: C9            0208              RET
+                    0209  
+                    0210  
+                    0211  ; Test strings
+803D: 48 65 6C 6C   0212  MsgHello:   .DB  "Hello World!",0
+8041: 6F 20 ...     0212  
+                    0213  #IFDEF      LINC80
+                    0214  MsgLiNC80:  .DB  "I'm a LiNC80",0
+                    0215  #ENDIF
+                    0216  #IFDEF      RC2014
+804A: 49 27 6D 20   0217  MsgLiNC80:  .DB  "I'm an RC2014",0
+804E: 61 6E ...     0217  
+                    0218  #ENDIF
+                    0219  #IFDEF      Z280RC
+                    0220  MsgLiNC80:  .DB  "I'm a Z280RC",0
+                    0221  #ENDIF
+                    0222  #IFDEF      SC129
+                    0223  MsgLiNC80:  .DB  "Using SC129",0
+                    0224  #ENDIF
+                    0225  
+                    0226  ; Custom characters 5 pixels wide by 8 pixels high
+                    0227  ; Up to 8 custom characters can be defined
+0000:               0228  BitMaps:    
+                    0229  ; Character 0x00 = Battery icon
+8058: 0E            0230              .DB  0b01110
+8059: 1B            0231              .DB  0b11011
+805A: 11            0232              .DB  0b10001
+805B: 11            0233              .DB  0b10001
+805C: 1F            0234              .DB  0b11111
+805D: 1F            0235              .DB  0b11111
+805E: 1F            0236              .DB  0b11111
+805F: 1F            0237              .DB  0b11111
+                    0238  ; Character 0x01 = Bluetooth icon
+8060: 0C            0239              .DB  0b01100
+8061: 0A            0240              .DB  0b01010
+8062: 1C            0241              .DB  0b11100
+8063: 08            0242              .DB  0b01000
+8064: 1C            0243              .DB  0b11100
+8065: 0A            0244              .DB  0b01010
+8066: 0C            0245              .DB  0b01100
+8067: 00            0246              .DB  0b00000
+                    0247  
+                    0248  
+                    0249  ; **********************************************************************
+                    0250  ; **  Includes
+                    0251  ; **********************************************************************
+                    0252  
+                    0253  #INCLUDE    ..\_CodeLibrary\SCMonitor_API.asm
+                    0001  ; **********************************************************************
+                    0002  ; **  Small Computer Monitor API                by Stephen C Cousins  **
+                    0003  ; **********************************************************************
+                    0004  ;
+                    0005  ; **  Written as a module to be included in Small Computer Monitor Apps
+                    0006  ; **  Version 0.2 SCC 2018-05-15 
+                    0007  ; **  www.scc.me.uk
+                    0008  ;
+                    0009  ; **********************************************************************
+                    0010  ;
+                    0011  ; This module provides shims for SCMonitor API functions
+                    0012  ;
+                    0013  ; **********************************************************************
+                    0014  ;
+                    0015  ; To include the code for any given function provided by this module, 
+                    0016  ; add the appropriate #REQUIRES <FunctionName> statement at the top of 
+                    0017  ; the parent source file.
+                    0018  ; For example:  #REQUIRES   aSystemReset
+                    0019  ;
+                    0020  ; Also #INCLUDE this file at some point after the #REQUIRES statements
+                    0021  ; in the parent source file.
+                    0022  ; For example:  #INCLUDE    ..\_CodeLibrary\SCMonAPI.asm
+                    0023  ;
+                    0024  ; To call an API function via these shims, use the #REQUIRES operand 
+                    0025  ; (see list below), but without the leading "_".
+                    0026  ; For example:  CALL aSystemReset
+                    0027  ;
+                    0028  ; These are the function names provided by this module:
+                    0029  ; aSystemReset                  API 0x00: System reset
+                    0030  ; aInputChar                    API 0x01: Input character from console
+                    0031  ; aOutputChar                   API 0x02: Output character to console
+                    0032  ; aInputStatus                  API 0x03: Get console input status
+                    0033  ; aInputLineTo                  API 0x04: Input line to specified address
+                    0034  ; aInputLineDef                 API 0x05: Input line to default address
+                    0035  ; aOutputText                   API 0x06: Output null terminated string
+                    0036  ; aOutputNewLine                API 0x07: Output new line (eg. CR+LF)
+                    0037  ; aGetVersion                   API 0x08: Get version details
+                    0038  ; aClaimJumpTab                 API 0x09: Claim jump table entry
+                    0039  ; aDelayInMS                    API 0x0A: Delay in milliseconds
+                    0040  ; aOutputSysMsg                 API 0x0B: Output system message
+                    0041  ; aReadJumpTab                  API 0x0C: Read jump table entry
+                    0042  ; aSelectConDev                 API 0x0D: Select console I/O device
+                    0043  ; aSelectConIn                  API 0x0E: Select console input device
+                    0044  ; aSelectConOut                 API 0x0F: Select console output device
+                    0045  ; aInputFromDev                 API 0x10: Input from specified device
+                    0046  ; aOutputToDev                  API 0x11: Output to specified device
+                    0047  ; aPollEvents                   API 0x12: Poll idle events
+                    0048  ; aConfigEvents                 API 0x13: Configure idle events
+                    0049  ; aSet1msTimer                  API 0x14: Set up 1 ms timer 1
+                    0050  ; aSet10msTimer                 API 0x15: Set up 10 ms timer 2
+                    0051  ; aSet100msTimer                API 0x16: Set up 100 ms timer 3
+                    0052  ; aInitOutPort                  API 0x17: Initialise output port
+                    0053  ; aWriteOutPort                 API 0x18: Write to output port
+                    0054  ; aReadOutPort                  API 0x19: Read from output port
+                    0055  ; aTestOutBit                   API 0x1A: Test output port bit
+                    0056  ; aSetOutBit                    API 0x1B: Set output port bit
+                    0057  ; aClearOutBit                  API 0x1C: Clear output port bit
+                    0058  ; aInvertOutBit                 API 0x1D: Invert output port bit
+                    0059  ; aInitInPort                   API 0x1E: Initialise input port
+                    0060  ; aReadInPort                   API 0x1F: Read from input port
+                    0061  ; aTestInBit                    API 0x20: Test input port bit
+                    0062  ; aSetBaudRate                  API 0x21: Set baud rate
+                    0063  ; aExecuteCL                    API 0x22: Execute command line string
+                    0064  ; aGetPtrToCL                   API 0x23: Get pointer to command line
+                    0065  ; aSkipDelim                    API 0x24: Skip delimiter in line
+                    0066  ; aSkipNonDelim                 API 0x25: Skip non-delimiter in line
+                    0067  ; aGetHexParam                  API 0x26: Get hex parameter from line
+                    0068  ; aGetConDevices                API 0x27: Get console device numbers
+                    0069  ; aGetTopOfMem                  API 0x28: Get top of free memory
+                    0070  ; aSetTopOfMem                  API 0x29: Set top of free memory
+                    0071  
+                    0072  
+                    0073  ; **********************************************************************
+                    0074  ; **  Constants
+                    0075  ; **********************************************************************
+                    0076  
+                    0077  ; Character constants
+0000:               0078  kNull       .EQU 0              ;Null character/byte (0x00)
+0005:               0079  kNewLine    .EQU 5              ;New line character (0x05)
+8068:               0080  kBackspace:
+                    0080  kBackspace: .EQU 8              ;Backspace character (0x08)
+000A:               0081  kLinefeed:  .EQU 10             ;Line feed character (0x0A)
+000A:               0082  kLF:        .EQU 10             ;Line feed character (0x0A)
+000D:               0083  kReturn:    .EQU 13             ;Return character (0x0D)
+000D:               0084  kCR:        .EQU 13             ;Return character (0x0D)
+001B:               0085  kEscape:    .EQU 27             ;Escape character (0x1B)
+0020:               0086  kSpace:     .EQU 32             ;Space character (0x20)
+0022:               0087  kQuote:     .EQU 34             ;Quotation mark (0x22)
+8068:               0088  kApostroph:
+                    0088  kApostroph: .EQU 39             ;Apostrophe character (0x27)
+002C:               0089  kComma:     .EQU 44             ;Comma character (0x2C)
+002E:               0090  kPeriod:    .EQU 46             ;Period character (0x2E)
+003A:               0091  kColon:     .EQU 58             ;Colon character (0x3A)
+8068:               0092  kSemicolon:
+                    0092  kSemicolon: .EQU 59             ;Semicolon character (0x3B)
+007F:               0093  kDelete:    .EQU 127            ;Delete character (0x7F)
+                    0094  
+                    0095  ; Other constants are embedded with their API functions below
+                    0096  
+                    0097  
+                    0098  ; **********************************************************************
+                    0099  ; **  Program code
+                    0100  ; **********************************************************************
+                    0101  
+                    0102              .CODE               ;Code section
+                    0103  
+                    0104  
+                    0105  ; **********************************************************************
+                    0106  ; **  SC Monitor API functions
+                    0107  ; **********************************************************************
+                    0108  
+                    0109  
+                    0110  #IFREQUIRED aSystemReset
+                    0111  ; API 0x00: System reset
+                    0112  ;  On entry:  A = Reset type: 
+                    0113  ;               0 = Cold start monitor
+                    0114  ;               1 = Warm start monitor
+                    0115  ;   On exit:  System resets
+                    0116  aSystemReset:
+                    0117              LD   C,0x00         ;API 0x00
+                    0118              RST  0x30           ;  = System reset
+                    0119  #ENDIF
+                    0120  
+                    0121  
+                    0122  #IFREQUIRED aInputChar
+                    0123  ; API 0x01: Input character 
+                    0124  ;   On entry: No parameters required
+                    0125  ;   On exit:  A = Character input from current console device
+                    0126  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0127  ; Function does not return until a character has been received
+                    0128  aInputChar:
+                    0129              PUSH BC
+                    0130              PUSH DE
+                    0131              PUSH HL
+                    0132              LD   C,0x01         ;API 0x01
+                    0133              RST  0x30           ;  = Input character
+                    0134              POP  HL
+                    0135              POP  DE
+                    0136              POP  BC
+                    0137              RET
+                    0138  #ENDIF
+                    0139  
+                    0140  
+                    0141  #IFREQUIRED aOutputChar
+                    0142  ; API 0x02: Output character 
+                    0143  ;   On entry: A = Character to be output to the current console device
+                    0144  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0145  aOutputChar:
+                    0146              PUSH AF
+                    0147              PUSH BC
+                    0148              PUSH DE
+                    0149              PUSH HL
+                    0150              LD   C,0x02         ;API 0x02
+                    0151              RST  0x30           ;  = Output character
+                    0152              POP  HL
+                    0153              POP  DE
+                    0154              POP  BC
+                    0155              POP  AF
+                    0156              RET
+                    0157  #ENDIF
+                    0158  
+                    0159  
+                    0160  #IFREQUIRED aInputStatus
+                    0161  ; API 0x03: Get character input status 
+                    0162  ;   On entry: No parameters required
+                    0163  ;   On exit:  NZ if character available
+                    0164  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0165  aInputStatus:
+                    0166              PUSH BC
+                    0167              PUSH DE
+                    0168              PUSH HL
+                    0169              LD   C,0x03         ;API 0x03
+                    0170              RST  0x30           ;  = Character input status
+                    0171              POP  HL
+                    0172              POP  DE
+                    0173              POP  BC
+                    0174              RET
+                    0175  #ENDIF
+                    0176  
+                    0177  
+                    0178  #IFREQUIRED aInputLineTo
+                    0179  ; API 0x04: Input line to specified buffer
+                    0180  ;   On entry: DE = Start of buffer
+                    0181  ;             A = Size of input buffer in bytes
+                    0182  ;   On exit:  A = Number of characters in input buffer
+                    0183  ;             Z flagged if no characters in bufffer ???
+                    0184  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0185  ;             Interrupts enabled during this call ???
+                    0186  ; Maximum buffer length 255 bytes.
+                    0187  ; The buffer length includes the string termination character (null).
+                    0188  ; The number of characters returned does not include the null terminator.
+                    0189  aInputLineTo:
+                    0190              PUSH BC
+                    0191              PUSH DE
+                    0192              PUSH HL
+                    0193              LD   C,0x04         ;API 0x04
+                    0194              RST  0x30           ;  = Input line
+                    0195              POP  HL
+                    0196              POP  DE
+                    0197              POP  BC
+                    0198              RET
+                    0199  #ENDIF
+                    0200  
+                    0201  
+                    0202  #IFREQUIRED aInputLineDef
+                    0203  ; API 0x05: Input line to default buffer
+                    0204  ;   On entry: No parameters required
+                    0205  ;   On exit:  DE = Start location of buffer
+                    0206  ;             A = Number of characters in buffer
+                    0207  ;             Z flagged if no characters in bufffer
+                    0208  ;             BC HL IX IY I AF' BC' DE' HL' preserved
+                    0209  ;             Interrupts enabled during this call ???
+                    0210  ; The number of characters returned does not include the null terminator.
+                    0211  ; DE points to a null terminated string to be edited
+                    0212  aInputLineDef:
+                    0213              PUSH BC
+                    0214              PUSH HL
+                    0215              LD   C,0x05         ;API 0x05
+                    0216              RST  0x30           ;  = Input line default
+                    0217              POP  HL
+                    0218              POP  BC
+                    0219              RET
+                    0220  #ENDIF
+                    0221  
+                    0222  
+                    0223  #IFREQUIRED aOutputText
+                    0224  ; API 0x06: Output text string (null terminated)
+                    0225  ;   On entry: DE = Pointer to start of null terminated string
+                    0226  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0227  aOutputText:
+                    0228              PUSH AF
+                    0229              PUSH BC
+                    0230              PUSH DE
+                    0231              PUSH HL
+                    0232              LD   C,0x06         ;API 0x06
+                    0233              RST  0x30           ;  = Output string
+                    0234              POP  HL
+                    0235              POP  DE
+                    0236              POP  BC
+                    0237              POP  AF
+                    0238              RET
+                    0239  #ENDIF
+                    0240  
+                    0241  
+                    0242  #IFREQUIRED aOutputNewLine
+                    0243  ; API 0x07: Output new line
+                    0244  ;   On entry: No parameters required
+                    0245  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0246  aOutputNewLine:
+                    0247              PUSH AF
+                    0248              PUSH BC
+                    0249              PUSH DE
+                    0250              PUSH HL
+                    0251              LD   C,0x07         ;API 0x07
+                    0252              RST  0x30           ;  = Output new line
+                    0253              POP  HL
+                    0254              POP  DE
+                    0255              POP  BC
+                    0256              POP  AF
+                    0257              RET
+                    0258  #ENDIF
+                    0259  
+                    0260  
+                    0261  #IFREQUIRED aGetVersion
+                    0262  ; API 0x08: Get version details
+                    0263  ;   On entry: No parameters required
+                    0264  ;   On exit:  D,E and A = Monitor code version
+                    0265  ;               D = kVersMajor
+                    0266  ;               E = kVersMinor
+                    0267  ;               A = kVersRevis(ion)
+                    0268  ;             B,C = Configuration ID
+                    0269  ;               B = kConfMajor ('R'=RC2014, 'L'=LiNC80, etc)
+                    0270  ;               C = kConfMinor (sub-type '1', '2', etc)
+                    0271  ;             H,L = Target hardware ID
+                    0272  ;               H = kHardID (1=Simulator, 2=,SCDevKt, 3=RC2014, etc)
+                    0273  ;               L = Hardware option flags (hardware specific)
+                    0274  ;             IX IY I AF' BC' DE' HL' preserved
+                    0275  aGetVersion:
+                    0276              LD   C,0x08         ;API 0x08
+                    0277              RST  0x30           ;  = Get version details
+                    0278              RET
+                    0279  #ENDIF
+                    0280  
+                    0281  
+                    0282  #IFREQUIRED aClaimJumpTab
+                    0283  ; API 0x09: Claim/write jump table entry
+                    0284  ;   On entry: A = Entry number (0 to n)
+                    0285  ;             DE = Address of function
+                    0286  ;   On exit:  No parameters returned
+                    0287  ;             AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0288  ; Some system functions, such as console in and console out, are 
+                    0289  ; redirected through a jump table. By claiming a jump table entry the
+                    0290  ; function can be handled by any required code. This might allow
+                    0291  ; swapping output to a different device, such as a printer.
+                    0292  aClaimJumpTab:
+                    0293              PUSH AF
+                    0294              PUSH BC
+                    0295              PUSH DE
+                    0296              PUSH HL
+                    0297              LD   C,0x09         ;API 0x09
+                    0298              RST  0x30           ;  = Claim jump table entry
+                    0299              POP  HL
+                    0300              POP  DE
+                    0301              POP  BC
+                    0302              POP  AF
+                    0303              RET
+                    0304  ; Jump table entry numbers
+                    0305  kFnNMI:     .EQU 0x00           ;Fn 0x00: non-maskable interrupt handler
+                    0306  kFnRST08:   .EQU 0x01           ;Fn 0x01: restart 08 handler
+                    0307  kFnRST10:   .EQU 0x02           ;Fn 0x02: restart 10 handler
+                    0308  kFnRST18:   .EQU 0x03           ;Fn 0x03: restart 18 handler
+                    0309  kFnRST20:   .EQU 0x04           ;Fn 0x04: restart 20 handler
+                    0310  kFnRST28:   .EQU 0x05           ;Fn 0x05: restart 18 breakpoint
+                    0311  kFnRST30:   .EQU 0x06           ;Fn 0x06: restart 30 API handler
+                    0312  kFnINT:     .EQU 0x07           ;Fn 0x07: restart 38 interrupt handler
+                    0313  kFnConIn:   .EQU 0x08           ;Fn 0x08: console input character
+                    0314  kFnConOut:  .EQU 0x09           ;Fn 0x09: console output character
+                    0315  ;FnConISta: .EQU 0x0A           ;Fn 0x0A: console get input status
+                    0316  ;FnConOSta: .EQU 0x0B           ;Fn 0x0B: console get output status
+                    0317  kFnIdle:    .EQU 0x0C           ;Fn 0x0C: Jump to idle handler
+                    0318  kFnTimer1:  .EQU 0x0D           ;Fn 0x0D: Jump to timer 1 handler
+                    0319  kFnTimer2:  .EQU 0x0E           ;Fn 0x0E: Jump to timer 2 handler
+                    0320  kFnTimer3:  .EQU 0x0F           ;Fn 0x0F: Jump to timer 3 handler
+                    0321  kFnDev1In:  .EQU 0x10           ;Fn 0x10: device 1 input
+                    0322  kFnDev1Out: .EQU 0x11           ;Fn 0x11: device 1 output
+                    0323  kFnDev2In:  .EQU 0x12           ;Fn 0x12: device 2 input
+                    0324  FnDev2Out:  .EQU 0x13           ;Fn 0x13: device 2 output
+                    0325  kFnDev3In:  .EQU 0x14           ;Fn 0x14: device 3 input
+                    0326  FnDev3Out:  .EQU 0x15           ;Fn 0x15: device 3 output
+                    0327  FnDev4In:   .EQU 0x16           ;Fn 0x16: device 4 input
+                    0328  FnDev4Out:  .EQU 0x17           ;Fn 0x17: device 4 output
+                    0329  FnDev5In:   .EQU 0x18           ;Fn 0x18: device 5 input
+                    0330  FnDev5Out:  .EQU 0x19           ;Fn 0x19: device 5 output
+                    0331  FnDev6In:   .EQU 0x1A           ;Fn 0x1A: device 6 input
+                    0332  FnDev6Out:  .EQU 0x1B           ;Fn 0x1B: device 6 output
+                    0333  #ENDIF
+                    0334  
+                    0335  
+                    0336  #IFREQUIRED aDelayInMS
+                    0337  ; API 0x0A: Delay in milliseconds
+                    0338  ;   On entry: A = Number of milliseconds delay
+                    0339  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+8068:               0340  aDelayInMS:
+8068: F5            0341              PUSH AF
+8069: C5            0342              PUSH BC
+806A: D5            0343              PUSH DE
+806B: E5            0344              PUSH HL
+806C: 16 00         0345              LD   D,0
+806E: 5F            0346              LD   E,A
+806F: 0E 0A         0347              LD   C, 0x0A        ;API 0x0A
+8071: F7            0348              RST  0x30           ;  = Delay in milliseconds
+8072: E1            0349              POP  HL
+8073: D1            0350              POP  DE
+8074: C1            0351              POP  BC
+8075: F1            0352              POP  AF
+8076: C9            0353              RET
+                    0354  #ENDIF
+                    0355  
+                    0356  
+                    0357  #IFREQUIRED aOutputSysMsg
+                    0358  ; API 0x0B: Output system message
+                    0359  ;  On entry:  A = Message number (0 to n)
+                    0360  ;  On exit:   AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0361  aOutputSysMsg
+                    0362              PUSH AF
+                    0363              PUSH BC
+                    0364              PUSH DE
+                    0365              PUSH HL
+                    0366              LD   C,0x0B         ;API 0x0B
+                    0367              RST  0x30           ;  = Output system message
+                    0368              POP  HL
+                    0369              POP  DE
+                    0370              POP  BC
+                    0371              POP  AF
+                    0372              RET
+                    0373  ; Message numbers
+                    0374  kMsgNull:   .EQU 0x00           ;Null message
+                    0375  kMsgProdID: .EQU 0x01           ;"Small Computer Monitor "
+                    0376  kMsgDevice: .EQU 0x02           ;"Devices detected:"
+                    0377  kMsgAbout:  .EQU 0x03           ;About SCMonitor inc version
+                    0378  kMsgDevLst: .EQU 0x04           ;Device list
+                    0379  kMsgMonFst  .EQU 0x20           ;First monitor message
+                    0380  kMsgBadCmd: .EQU kMsgMonFst+0   ;"Bad command"
+                    0381  kMsgBadPar: .EQU kMsgMonFst+1   ;"Bad parameter"
+                    0382  kMsgSyntax: .EQU kMsgMonFst+2   ;"Syntax error"
+                    0383  kMsgBPSet:  .EQU kMsgMonFst+3   ;"Breakpoint set"
+                    0384  kMsgBPClr:  .EQU kMsgMonFst+4   ;"Breakpoint cleared"
+                    0385  kMsgBPFail: .EQU kMsgMonFst+5   ;"Unable to set breakpoint here"
+                    0386  kMsgHelp:   .EQU kMsgMonFst+6   ;Help text
+                    0387  kMsgNotAv:  .EQU kMsgMonFst+7   ;"Feature not included"
+                    0388  kMsgReady:  .EQU kMsgMonFst+8   ;"Ready"
+                    0389  kMsgFileEr: .EQU kMsgMonFst+9   ;"File error"
+                    0390  #ENDIF
+                    0391  
+                    0392  
+                    0393  #IFREQUIRED aReadJumpTab
+                    0394  ; API 0x0C: Read system jump table entry
+                    0395  ;   On entry: A = Entry number (0 to n)
+                    0396  ;   On exit:  DE = Address of function
+                    0397  ;             AF BC HL IX IY I AF' BC' DE' HL' preserved
+                    0398  ; Some system functions, such as console in and console out, are 
+                    0399  ; redirected through a jump table. By claiming a jump table entry the
+                    0400  ; function can be handled by any required code. This might allow
+                    0401  ; swapping output to a different device, such as a printer.
+                    0402  aReadJumpTab
+                    0403              PUSH AF
+                    0404              PUSH BC
+                    0405              PUSH HL
+                    0406              LD   C,0x0C         ;API 0x0C
+                    0407              RST  0x30           ;  = Read jump table entry
+                    0408              POP  HL
+                    0409              POP  BC
+                    0410              POP  AF
+                    0411              RET
+                    0412  ; Jump table entry numbers defined in aClaimJumpTab (above)
+                    0413  #ENDIF
+                    0414  
+                    0415  
+                    0416  #IFREQUIRED aSelectConDev
+                    0417  ; API 0x0D: Select console I/O device
+                    0418  ;   On entry: A = New console device number (1 to n)
+                    0419  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0420  ; Select both input and output device
+                    0421  aSelectConDev:
+                    0422              PUSH AF
+                    0423              PUSH BC
+                    0424              PUSH DE
+                    0425              PUSH HL
+                    0426              LD   C,0x0D         ;API 0x0D
+                    0427              RST  0x30           ;  = Select console I/O device
+                    0428              POP  HL
+                    0429              POP  DE
+                    0430              POP  BC
+                    0431              POP  AF
+                    0432              RET
+                    0433  #ENDIF
+                    0434  
+                    0435  
+                    0436  #IFREQUIRED aSelectConIn
+                    0437  ; API 0x0E: Select console input device
+                    0438  ;   On entry: A = New console device number (1 to n)
+                    0439  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0440  ; Select input device only
+                    0441  aSelectConIn:
+                    0442              PUSH AF
+                    0443              PUSH BC
+                    0444              PUSH DE
+                    0445              PUSH HL
+                    0446              LD   C,0x0E         ;API 0x0E
+                    0447              RST  0x30           ;  = Select console input device
+                    0448              POP  HL
+                    0449              POP  DE
+                    0450              POP  BC
+                    0451              POP  AF
+                    0452              RET
+                    0453  #ENDIF
+                    0454  
+                    0455  
+                    0456  #IFREQUIRED aSelectConOut
+                    0457  ; API 0x0F: Select console output device
+                    0458  ;   On entry: A = New console device number (1 to n)
+                    0459  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0460  ; Select output device only
+                    0461  aSelectConOut:                  
+                    0462              PUSH AF
+                    0463              PUSH BC
+                    0464              PUSH DE
+                    0465              PUSH HL
+                    0466              LD   C,0x0F         ;API 0x0F
+                    0467              RST  0x30           ;  = Select console output device
+                    0468              POP  HL
+                    0469              POP  DE
+                    0470              POP  BC
+                    0471              POP  AF
+                    0472              RET
+                    0473  #ENDIF
+                    0474  
+                    0475  
+                    0476  #IFREQUIRED aInputFromDev
+                    0477  ; API 0x10: Input from specified console device
+                    0478  ;   On entry: E = Console device number (1 to n)
+                    0479  ;   On exit:  A = Character input 9if there is one ready)
+                    0480  ;             NZ flagged if character has been input
+                    0481  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0482  aInputFromDev:
+                    0483              PUSH BC
+                    0484              PUSH DE
+                    0485              PUSH HL
+                    0486              LD   C,0x10         ;API 0x10
+                    0487              RST  0x30           ;  = Input from specified device
+                    0488              POP  HL
+                    0489              POP  DE
+                    0490              POP  BC
+                    0491              RET
+                    0492  #ENDIF
+                    0493  
+                    0494  
+                    0495  #IFREQUIRED aOutputToDev
+                    0496  ; API 0x11: Output to specified console device
+                    0497  ;   On entry: A = Character to be output
+                    0498  ;             E = Console device number (1 to n)
+                    0499  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0500  aOutputToDev:
+                    0501              PUSH AF
+                    0502              PUSH BC
+                    0503              PUSH DE
+                    0504              PUSH HL
+                    0505              LD   C,0x11         ;API 0x11
+                    0506              RST  0x30           ;  = Output to specified device
+                    0507              POP  HL
+                    0508              POP  DE
+                    0509              POP  BC
+                    0510              POP  AF
+                    0511              RET
+                    0512  #ENDIF
+                    0513  
+                    0514  
+                    0515  #IFREQUIRED aPollEvents
+                    0516  ; API 0x12: Poll idle events
+                    0517  ;   On entry: No parameters required
+                    0518  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0519  aPollEvents:
+                    0520              PUSH AF
+                    0521              PUSH BC
+                    0522              PUSH DE
+                    0523              PUSH HL
+                    0524              LD   C,0x12         ;API 0x12
+                    0525              RST  0x30           ;  = Poll idle events
+                    0526              POP  HL
+                    0527              POP  DE
+                    0528              POP  BC
+                    0529              POP  AF
+                    0530              RET
+                    0531  #ENDIF
+                    0532  
+                    0533  
+                    0534  #IFREQUIRED aConfigEvents
+                    0535  ; API 0x13: Configure idle events
+                    0536  ;   On entry: A = Configuration:
+                    0537  ;                 0 = Off (just execute RET instruction)
+                    0538  ;                 1 = Software generated timer events
+                    0539  ;                 2+ = Future expansion
+                    0540  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0541  aConfigEvents
+                    0542              PUSH AF
+                    0543              PUSH BC
+                    0544              PUSH DE
+                    0545              PUSH HL
+                    0546              LD   C,0x13         ;API 0x13
+                    0547              RST  0x30           ;  = Configure idle events
+                    0548              POP  HL
+                    0549              POP  DE
+                    0550              POP  BC
+                    0551              POP  AF
+                    0552              RET
+                    0553  #ENDIF
+                    0554  
+                    0555  
+                    0556  #IFREQUIRED aSet1msTimer
+                    0557  ; API 0x14: Set up 1 ms timer (timer 1)
+                    0558  ;   On entry: A = Time period in units of 1 ms
+                    0559  ;             DE = Address of timer event handler
+                    0560  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0561  aSet1msTimer:
+                    0562              PUSH AF
+                    0563              PUSH BC
+                    0564              PUSH DE
+                    0565              PUSH HL
+                    0566              LD   C,0x14         ;API 0x14
+                    0567              RST  0x30           ;  = Set up 1 ms timer 1
+                    0568              POP  HL
+                    0569              POP  DE
+                    0570              POP  BC
+                    0571              POP  AF
+                    0572              RET
+                    0573  #ENDIF
+                    0574  
+                    0575  
+                    0576  #IFREQUIRED aSet10msTimer
+                    0577  ; API 0x15: Set up 10 ms timer (timer 2)
+                    0578  ;   On entry: A = Time period in units of 10 ms
+                    0579  ;             DE = Address of timer event handler
+                    0580  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0581  aSet10msTimer:
+                    0582              PUSH AF
+                    0583              PUSH BC
+                    0584              PUSH DE
+                    0585              PUSH HL
+                    0586              LD   C,0x15         ;API 0x15
+                    0587              RST  0x30           ;  = Set up 10 ms timer 2
+                    0588              POP  HL
+                    0589              POP  DE
+                    0590              POP  BC
+                    0591              POP  AF
+                    0592              RET
+                    0593  #ENDIF
+                    0594  
+                    0595  
+                    0596  #IFREQUIRED aSet100msTimer
+                    0597  ; API 0x16: Set up 100 ms timer (timer 3)
+                    0598  ;   On entry: A = Time period in units of 100 ms
+                    0599  ;             DE = Address of timer event handler
+                    0600  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0601  aSet100msTimer:
+                    0602              PUSH AF
+                    0603              PUSH BC
+                    0604              PUSH DE
+                    0605              PUSH HL
+                    0606              LD   C,0x16         ;API 0x16
+                    0607              RST  0x30           ;  = Set up 100 ms timer 3
+                    0608              POP  HL
+                    0609              POP  DE
+                    0610              POP  BC
+                    0611              POP  AF
+                    0612              RET
+                    0613  #ENDIF
+                    0614  
+                    0615  
+                    0616  #IFREQUIRED aInitOutPort
+                    0617  ; API 0x17: Initialise output port
+                    0618  ;   On entry: A = Output port address
+                    0619  ;   On exit:  A = Output port data byte (which will be zero)
+                    0620  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0621  aInitOutPort:
+                    0622              PUSH BC
+                    0623              PUSH DE
+                    0624              PUSH HL
+                    0625              LD   C,0x17         ;API 0x17
+                    0626              RST  0x30           ;  = Initialise output port
+                    0627              POP  HL
+                    0628              POP  DE
+                    0629              POP  BC
+                    0630              RET
+                    0631  #ENDIF
+                    0632  
+                    0633  
+                    0634  #IFREQUIRED aWriteOutPort
+                    0635  ; API 0x18: Write output port data
+                    0636  ;   On entry: A = Output data byte
+                    0637  ;   On exit:  A = Output port data
+                    0638  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0639  aWriteOutPort:
+                    0640              PUSH BC
+                    0641              PUSH DE
+                    0642              PUSH HL
+                    0643              LD   C,0x18         ;API 0x18
+                    0644              RST  0x30           ;  = Write output port data
+                    0645              POP  HL
+                    0646              POP  DE
+                    0647              POP  BC
+                    0648              RET
+                    0649  #ENDIF
+                    0650  
+                    0651  
+                    0652  #IFREQUIRED aReadOutPort
+                    0653  ; API 0x19: Read output port data
+                    0654  ;   On entry: no parameters required
+                    0655  ;   On exit:  A = Output port data
+                    0656  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0657  aReadOutPort:
+                    0658              PUSH BC
+                    0659              PUSH DE
+                    0660              PUSH HL
+                    0661              LD   C,0x19         ;API 0x19
+                    0662              RST  0x30           ;  = Read output port data
+                    0663              POP  HL
+                    0664              POP  DE
+                    0665              POP  BC
+                    0666              RET
+                    0667  #ENDIF
+                    0668  
+                    0669  
+                    0670  #IFREQUIRED aTestOutBit
+                    0671  ; API 0x1A: Test output port bit
+                    0672  ;   On entry: A = Bit number 0 to 7
+                    0673  ;   On exit:  A = 0 and Z flagged if bit low
+                    0674  ;             A !=0 and NZ flagged if bit high
+                    0675  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0676  aTestOutBit:
+                    0677              PUSH BC
+                    0678              PUSH DE
+                    0679              PUSH HL
+                    0680              LD   C,0x1A         ;API 0x1A
+                    0681              RST  0x30           ;  = Test output port bit
+                    0682              POP  HL
+                    0683              POP  DE
+                    0684              POP  BC
+                    0685              RET
+                    0686  #ENDIF
+                    0687  
+                    0688  
+                    0689  #IFREQUIRED aSetOutputPortBit
+                    0690  ; API 0x1B: Set output port bit
+                    0691  ;   On entry: A = Bit number 0 to 7
+                    0692  ;   On exit:  A = Output port data
+                    0693  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0694  aSetOutBit:
+                    0695              PUSH BC
+                    0696              PUSH DE
+                    0697              PUSH HL
+                    0698              LD   C,0x1B         ;API 0x1B
+                    0699              RST  0x30           ;  = Set output port bit
+                    0700              POP  HL
+                    0701              POP  DE
+                    0702              POP  BC
+                    0703              RET
+                    0704  #ENDIF
+                    0705  
+                    0706  
+                    0707  #IFREQUIRED aClearOutputPortBit
+                    0708  ; API 0x1C: Clear output port bit
+                    0709  ;   On entry: A = Bit number 0 to 7
+                    0710  ;   On exit:  A = Output port data
+                    0711  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0712  aClearOutBit:
+                    0713              PUSH BC
+                    0714              PUSH DE
+                    0715              PUSH HL
+                    0716              LD   C,0x1C         ;API 0x1C
+                    0717              RST  0x30           ;  = Clear output port bit
+                    0718              POP  HL
+                    0719              POP  DE
+                    0720              POP  BC
+                    0721              RET
+                    0722  #ENDIF
+                    0723  
+                    0724  
+                    0725  #IFREQUIRED aInvertOutBit
+                    0726  ; API 0x1D: Invert output port bit
+                    0727  ;   On entry: A = Bit number 0 to 7
+                    0728  ;   On exit:  A = Output port data
+                    0729  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0730  aInvertOutBit:
+                    0731              PUSH BC
+                    0732              PUSH DE
+                    0733              PUSH HL
+                    0734              LD   C,0x1D         ;API 0x1D
+                    0735              RST  0x30           ;  = Invert output port bit
+                    0736              POP  HL
+                    0737              POP  DE
+                    0738              POP  BC
+                    0739              RET
+                    0740  #ENDIF
+                    0741  
+                    0742  
+                    0743  #IFREQUIRED aInitInPort
+                    0744  ; API 0x1E: Initialise input port
+                    0745  ;   On entry: A = Input port address
+                    0746  ;   On exit:  A = Input port data byte 
+                    0747  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0748  aInitInPort:
+                    0749              PUSH BC
+                    0750              PUSH DE
+                    0751              PUSH HL
+                    0752              LD   C,0x1E         ;API 0x1E
+                    0753              RST  0x30           ;  = Initialise input port
+                    0754              POP  HL
+                    0755              POP  DE
+                    0756              POP  BC
+                    0757              RET
+                    0758  #ENDIF
+                    0759  
+                    0760  
+                    0761  #IFREQUIRED aReadInPort
+                    0762  ; API 0x1F: Read input port data
+                    0763  ;   On entry: no parameters required
+                    0764  ;   On exit:  A = Input port data
+                    0765  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0766  aReadInPort:
+                    0767              PUSH BC
+                    0768              PUSH DE
+                    0769              PUSH HL
+                    0770              LD   C,0x1F         ;API 0x1F
+                    0771              RST  0x30           ;  = Read intput port data
+                    0772              POP  HL
+                    0773              POP  DE
+                    0774              POP  BC
+                    0775              RET
+                    0776  #ENDIF
+                    0777  
+                    0778  
+                    0779  #IFREQUIRED aTestInBit
+                    0780  ; API 0x20: Test input port bit
+                    0781  ;   On entry: A = Bit number 0 to 7
+                    0782  ;   On exit:  A = 0 and Z flagged if bit low
+                    0783  ;             A !=0 and NZ flagged if bit high
+                    0784  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0785  aTestInBit:
+                    0786              PUSH BC
+                    0787              PUSH DE
+                    0788              PUSH HL
+                    0789              LD   C,0x20         ;API 0x20
+                    0790              RST  0x30           ;  = Test input port bit
+                    0791              POP  HL
+                    0792              POP  DE
+                    0793              POP  BC
+                    0794              RET
+                    0795  #ENDIF
+                    0796  
+                    0797  
+                    0798  #IFREQUIRED aSetBaudRate
+                    0799  ; API 0x21: Set baud rate
+                    0800  ;  On entry:  A = Device identifier (0x01 to 0x06, or 0x0A to 0x0B)
+                    0801  ;             E = Baud rate code 
+                    0802  ;   On exit:  IF successful: (ie. valid device and baud code)
+                    0803  ;               A != 0 and NZ flagged
+                    0804  ;             BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0805  aSetBaudRate:
+                    0806              PUSH BC
+                    0807              PUSH DE
+                    0808              PUSH HL
+                    0809              LD   C,0x21         ;API 0x21
+                    0810              RST  0x30           ;  = Set baud rate
+                    0811              POP  HL
+                    0812              POP  DE
+                    0813              POP  BC
+                    0814              RET
+                    0815  #ENDIF
+                    0816  
+                    0817  
+                    0818  #IFREQUIRED aExecuteCL
+                    0819  ; API 0x22: Execute command line
+                    0820  ;  On entry:  DE = Start of command string terminated in Null
+                    0821  ;  On exit:   If command handled (blank line or executed command):
+                    0822  ;               A = 0x00 and Z flagged
+                    0823  ;             If command not handled:
+                    0824  ;               A = 0xFF and NZ flagged
+                    0825  ;             No register contents preserved
+                    0826  ; Offer string to command line interpreter
+                    0827  ; If found the command is executed before return. HL points to
+                    0828  ; start of parameter string when command code entered.
+                    0829  aExecuteCL:
+                    0830              LD   C,0x22         ;API 0x22
+                    0831              RST  0x30           ;  = Execute command line
+                    0832              RET
+                    0833  #ENDIF
+                    0834  
+                    0835  
+                    0836  #IFREQUIRED aGetPtrToCL
+                    0837  ; API 0x23: Get pointer to current position in command line string
+                    0838  ;   On entry: No parameters required
+                    0839  ;   On exit:  DE = Address of string typically in command line
+                    0840  ;             AF BC HL IX IY I AF' BC' DE' HL' preserved
+                    0841  ; Used by monitor command files to read command parameters
+                    0842  aGetPtrToCL:
+                    0843              PUSH AF
+                    0844              PUSH BC
+                    0845              PUSH HL
+                    0846              LD   C,0x23         ;API 0x23
+                    0847              RST  0x30           ;  = Get pointer to command line
+                    0848              POP  HL
+                    0849              POP  BC
+                    0850              POP  AF
+                    0851              RET
+                    0852  #ENDIF
+                    0853  
+                    0854  
+                    0855  #IFREQUIRED aSkipDelim
+                    0856  ; API 0x24: Skip deliminaters in command line
+                    0857  ;   On entry: DE = Start address in input line
+                    0858  ;   On exit:  If end of line (null) found:
+                    0859  ;               A = Zero and Z flagged
+                    0860  ;               DE = Address of null character
+                    0861  ;             If non-delimiter character found:
+                    0862  ;               A = Character found and NZ flagged
+                    0863  ;               DE = Address of first non-delimiter character
+                    0864  ;             BC HL IX IY preserved
+                    0865  ; Delimiters are spaces or tabs (actually any control character other than null)
+                    0866  ; Input line must be null terminated
+                    0867  ; The return address can be that of the null terminator
+                    0868  aSkipDelim:
+                    0869              PUSH BC
+                    0870              PUSH HL
+                    0871              LD   C,0x24         ;API 0x24
+                    0872              RST  0x30           ;  = Skip delimiter in command line
+                    0873              POP  HL
+                    0874              POP  BC
+                    0875              RET
+                    0876  #ENDIF
+                    0877  
+                    0878  
+                    0879  #IFREQUIRED aSkipNonDelim
+                    0880  ; API 0x25: Skip non-deliminaters in input line
+                    0881  ;   On entry: DE = Start address in input line
+                    0882  ;   On exit:  A = Character at returned address
+                    0883  ;             DE = Address of first non-delimiter character
+                    0884  ;             BC HL IX IY preserved
+                    0885  ; Delimiters are spaces or tabs (actually any control character other than null)
+                    0886  ; Input line must be null terminated
+                    0887  ; The return address can be that of the null terminator
+                    0888  aSkipNonDelim:
+                    0889              PUSH BC
+                    0890              PUSH HL
+                    0891              LD   C,0x25         ;API 0x25
+                    0892              RST  0x30           ;  = Skip delimiter in command line
+                    0893              POP  HL
+                    0894              POP  BC
+                    0895              RET
+                    0896  #ENDIF
+                    0897  
+                    0898  
+                    0899  #IFREQUIRED aGetHexParam
+                    0900  ; API 0x26: Get hex word/byte from input line
+                    0901  ;   On entry: A = Error reporting flags kReportXXX
+                    0902  ;             DE = Location of parameter in input line
+                    0903  ;             HL = Default value returned if no parameter found
+                    0904  ;   On exit:  If a valid hex parameter:
+                    0905  ;               A = 0x00 and Z flagged and C flagged
+                    0906  ;               DE = Location after parameter in input line
+                    0907  ;               HL = Hex byte/word from input line
+                    0908  ;               Carry flagged if no parameter found
+                    0909  ;             If no parameter if found:
+                    0910  ;               A = 0x00 and Z flagged and NC flagged
+                    0911  ;               DE = Location after parameter in input line
+                    0912  ;               HL = Hex byte/word from input line
+                    0913  ;               Carry flagged if no parameter found
+                    0914  ;               An error message is may be shown
+                    0915  ;             If an invalid hex parameter is found
+                    0916  ;               A = 0xFF and NZ flagged and NC flagged
+                    0917  ;               DE = Location after any valid characters
+                    0918  ;               HL = Unspecified
+                    0919  ;               An error message is may be shown
+                    0920  ;             BC IX IY preserved
+                    0921  ; If a non-hex character is encountered before a delimiter or null an 
+                    0922  ; error is reported.
+                    0923  aGetHexParam:
+                    0924              PUSH BC
+                    0925              LD   C,0x26         ;API 0x26
+                    0926              RST  0x30           ;  = Get hex parameter from input line
+                    0927              POP  BC
+                    0928              RET
+                    0929  #ENDIF
+                    0930  
+                    0931  
+                    0932  #IFREQUIRED aGetConDevices
+                    0933  ; API 0x27: Get current console device numbers
+                    0934  ;   On entry: No parameters required
+                    0935  ;   On exit:  D = Current console output device number
+                    0936  ;             E = Current console input device number
+                    0937  ;   On exit:  AF BC HL IX IY I AF' BC' DE' HL' preserved
+                    0938  aGetConDevices:
+                    0939              PUSH AF
+                    0940              PUSH BC
+                    0941              PUSH HL
+                    0942              LD   C,0x27         ;API 0x27
+                    0943              RST  0x30           ;  = Get current console device numbers
+                    0944              POP  HL
+                    0945              POP  BC
+                    0946              POP  AF
+                    0947              RET
+                    0948  #ENDIF
+                    0949  
+                    0950  
+                    0951  #IFREQUIRED aGetTopOfMem
+                    0952  ; API 0x28: Get top of free memory
+                    0953  ;   On entry: No parameters required
+                    0954  ;   On exit:  DE = Top of free memory
+                    0955  ;             AF BC HL IX IY I AF' BC' DE' HL' preserved
+                    0956  aGetTopOfMem:
+                    0957              PUSH AF
+                    0958              PUSH BC
+                    0959              PUSH HL
+                    0960              LD   C,0x28         ;API 0x28
+                    0961              RST  0x30           ;  = Get top of free memory
+                    0962              POP  HL
+                    0963              POP  BC
+                    0964              POP  AF
+                    0965              RET
+                    0966  #ENDIF
+                    0967  
+                    0968  
+                    0969  #IFREQUIRED aSetTopOfMem
+                    0970  ; API 0x29: Set top of free memory
+                    0971  ;   On entry: DE = Top of free memory
+                    0972  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+                    0973  aSetTopOfMem:
+                    0974              PUSH AF
+                    0975              PUSH BC
+                    0976              PUSH DE
+                    0977              PUSH HL
+                    0978              LD   C,0x29         ;API 0x29
+                    0979              RST  0x30           ;  = Set top of free memory
+                    0980              POP  HL
+                    0981              POP  BC
+                    0982              POP  DE
+                    0983              POP  AF
+                    0984              RET
+                    0985  #ENDIF
+                    0986  
+                    0987  
+                    0988  ; **********************************************************************
+                    0989  ; **  Variables
+                    0990  ; **********************************************************************
+                    0991  
+                    0992              .DATA               ;Data section
+                    0993  
+                    0994  ; No variables used
+                    0995  
+                    0996  
+                    0997  
+                    0998  
+                    0999  
+                    1000  
+                    1001  
+                    1002  
+                    1003  
+                    1004  
+                    1005  
+                    1006  
+                    1007  
+                    0254  ;#INCLUDE   ..\_CodeLibrary\Utilities.asm
+                    0255  #INCLUDE    ..\_CodeLibrary\Alphanumeric_LCD.asm
+                    0001  ; **********************************************************************
+                    0002  ; **  Alphanumeric LCD support                  by Stephen C Cousins  **
+                    0003  ; **********************************************************************
+                    0004  ;
+                    0005  ; **  Written as a Small Computer Monitor App 
+                    0006  ; **  Version 0.1 SCC 2018-05-16
+                    0007  ; **  www.scc.me.uk
+                    0008  ;
+                    0009  ; **********************************************************************
+                    0010  ;
+                    0011  ; This module provides support for alphanumeric LCD modules using with
+                    0012  ; *  HD44780 (or compatible) controller
+                    0013  ; *  5 x 7 pixel fonts
+                    0014  ; *  Up to 80 characters in total (eg. 4 lines of 20 characters)
+                    0015  ; *  Interface via six digital outputs to the display (see below)
+                    0016  ;
+                    0017  ; LCD module pinout:
+                    0018  ;   1  Vss   0v supply
+                    0019  ;   2  Vdd   5v supply
+                    0020  ;   3  Vo    LCD input voltage (near zero volts via potentiometer)
+                    0021  ;   4  RS    High = data, Low = instruction
+                    0022  ;   5  R/W   High = Read, Low = Write
+                    0023  ;   6  E     Enable signal (active high)
+                    0024  ;   7  DB0   Data bit 0
+                    0025  ;   8  DB1   Data bit 1
+                    0026  ;   9  DB2   Data bit 2
+                    0027  ;  10  DB3   Data bit 3
+                    0028  ;  11  DB4   Data bit 4
+                    0029  ;  12  DB5   Data bit 5
+                    0030  ;  13  DB6   Data bit 6
+                    0031  ;  14  DB7   Data bit 7
+                    0032  ;  15  A     Backlight anode (+)
+                    0033  ;  16  K     Backlight cathode (-)
+                    0034  ;
+                    0035  ; This interfacing method uses 4-bit data mode and uses time delays
+                    0036  ; rather than polling the display's ready status. As a result the 
+                    0037  ; interface only requires 6 simple output lines:
+                    0038  ;   LCD E   = Microcomputer output port bit <kLCDBitE>
+                    0039  ;   LCD RS  = Microcomputer output port bit <kLCDBitRS>
+                    0040  ;   LCD DB4 = Microcomputer output port bit 4
+                    0041  ;   LCD DB5 = Microcomputer output port bit 5
+                    0042  ;   LCD DB6 = Microcomputer output port bit 6
+                    0043  ;   LCD DB7 = Microcomputer output port bit 7
+                    0044  ; Display's R/W is connected to 0v so it is always in write mode
+                    0045  ; All 6 connections must be on the same port address <kLCDPrt>
+                    0046  ; This method also allows a decent length of cable from micro to LCD
+                    0047  ;
+                    0048  ; **********************************************************************
+                    0049  ;
+                    0050  ; To include the code for any given function provided by this module, 
+                    0051  ; add the appropriate #REQUIRES <FunctionName> statement at the top of 
+                    0052  ; the parent source file.
+                    0053  ; For example:  #REQUIRES   uHexPrefix
+                    0054  ;
+                    0055  ; Also #INCLUDE this file at some point after the #REQUIRES statements
+                    0056  ; in the parent source file.
+                    0057  ; For example:  #INCLUDE    ..\_CodeLibrary\Utilities.asm
+                    0058  ;
+                    0059  ; These are the function names provided by this module:
+                    0060  ; fLCD_Init                     ;Initialise LCD
+                    0061  ; fLCD_Inst                     ;Send instruction to LCD
+                    0062  ; fLCD_Data                     ;Send data byte to LCD
+                    0063  ; fLCD_Pos                      ;Position cursor
+                    0064  ; fLCD_Str                      ;Display string
+                    0065  ; fLCD_Def                      ;Define custom character
+                    0066  ;
+                    0067  ; **********************************************************************
+                    0068  ;
+                    0069  ; Requires SCMonAPI.asm to also be included in the project
+                    0070  ;
+                    0071  #REQUIRES   aDelayInMS
+                    0072  
+                    0073  
+                    0074  ; **********************************************************************
+                    0075  ; **  Constants
+                    0076  ; **********************************************************************
+                    0077  
+                    0078  ; Constants that must be defined externally
+                    0079  ;kLCDPrt:   .EQU 0x18           ;Port address used for LCD
+                    0080  ;kLCDBitRS: .EQU 2              ;Port bit for LCD RS signal
+                    0081  ;kLCDBitE:  .EQU 3              ;Port bit for LCD E signal
+                    0082  ;kLCDWidth: .EQU 20             ;Width in characters
+                    0083  
+                    0084  ; Cursor position values for the start of each line
+8F00:               0085  kLCD_Line1:
+                    0085  kLCD_Line1: .EQU 0x00 
+8F00:               0086  kLCD_Line2:
+                    0086  kLCD_Line2: .EQU 0x40 
+8F00:               0087  kLCD_Line3:
+                    0087  kLCD_Line3: .EQU kLCD_Line1+kLCDWidth
+8F00:               0088  kLCD_Line4:
+                    0088  kLCD_Line4: .EQU kLCD_Line1+kLCDWidth 
+                    0089  
+                    0090  ; Instructions to send as A register to fLCD_Inst
+8F00:               0091  kLCD_Clear:
+                    0091  kLCD_Clear: .EQU 0b00000001     ;LCD clear
+0008:               0092  kLCD_Off:   .EQU 0b00001000     ;LCD off
+000C:               0093  kLCD_On:    .EQU 0b00001100     ;LCD on, no cursor or blink
+8F00:               0094  kLCD_Under:
+                    0094  kLCD_Under: .EQU 0b00001110     ;LCD on, cursor = underscore
+8F00:               0095  kLCD_Blink:
+                    0095  kLCD_Blink: .EQU 0b00001101     ;LCD on, cursor = blink block
+000F:               0096  kLCD_Both:  .EQU 0b00001111     ;LCD on, cursor = under+blink
+                    0097  
+                    0098  ; Constants used by this code module
+                    0099  ;kLCD_Clr:  .EQU 0b00000001     ;LCD command: Clear display
+0080:               0100  kLCD_Pos:   .EQU 0b10000000     ;LCD command: Position cursor
+0040:               0101  kLCD_Def:   .EQU 0b01000000     ;LCD command: Define character
+                    0102  
+                    0103  
+                    0104  ; **********************************************************************
+                    0105  ; **  Program code
+                    0106  ; **********************************************************************
+                    0107  
+                    0108              .CODE               ;Code section
+                    0109  
+                    0110  
+                    0111  ; **********************************************************************
+                    0112  ; **  LCD support functions
+                    0113  ; **********************************************************************
+                    0114  
+                    0115  ; Initialise alphanumeric LCD module
+                    0116  ; LCD control register codes:
+                    0117  ;   DL   0 = 4-bit mode        1 = 8-bit mode
+                    0118  ;   N    0 = 1-line mode       1 = 2-line mode
+                    0119  ;   F    0 = Font 5 x 8        1 = Font 5 x 11
+                    0120  ;   D    0 = Display off       1 = Display on
+                    0121  ;   C    0 = Cursor off        1 = Cursor on
+                    0122  ;   B    0 = Blinking off      1 = Blinking on
+                    0123  ;   ID   0 = Decrement mode    1 = Increment mode
+                    0124  ;   SH   0 = Entire shift off  1 = Entire shift on
+8077: 3E 28         0125  fLCD_Init:  LD   A, 40
+8079: CD 2D 81      0126              CALL LCDDelay       ;Delay 40ms after power up
+                    0127  ; For reliable reset set 8-bit mode - 3 times
+807C: CD 17 81      0128              CALL WrFn8bit       ;Function = 8-bit mode
+807F: CD 17 81      0129              CALL WrFn8bit       ;Function = 8-bit mode
+8082: CD 17 81      0130              CALL WrFn8bit       ;Function = 8-bit mode
+                    0131  ; Set 4-bit mode
+8085: CD 13 81      0132              CALL WrFn4bit       ;Function = 4-bit mode
+8088: CD 2B 81      0133              CALL LCDDelay1      ;Delay 37 us or more
+                    0134  ; Function set
+808B: 3E 28         0135              LD   A, 0b00101000  ;Control reg:  0  0  1  DL N  F  x  x
+808D: CD A0 80      0136              CALL fLCD_Inst      ;2 line, display on
+                    0137  ; Display On/Off control
+8090: 3E 0C         0138              LD   A, 0b00001100  ;Control reg:  0  0  0  0  1  D  C  B 
+8092: CD A0 80      0139              CALL fLCD_Inst      ;Display on, cursor on, blink off
+                    0140  ; Display Clear
+8095: 3E 01         0141              LD   A, 0b00000001  ;Control reg:  0  0  0  0  0  0  0  1
+8097: CD A0 80      0142              CALL fLCD_Inst      ;Clear display
+                    0143  ; Entry mode
+809A: 3E 06         0144              LD   A, 0b00000110  ;Control reg:  0  0  0  0  0  1  ID SH
+809C: CD A0 80      0145              CALL fLCD_Inst      ;Increment mode, shift off
+                    0146  ; Display module now initialised
+809F: C9            0147              RET
+                    0148  
+                    0149  
+                    0150  ; Write instruction to LCD
+                    0151  ;   On entry: A = Instruction byte to be written
+                    0152  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+80A0: F5            0153  fLCD_Inst:  PUSH AF
+80A1: F5            0154              PUSH AF
+80A2: CD B4 80      0155              CALL @Wr4bits       ;Write bits 4 to 7 of instruction
+80A5: F1            0156              POP  AF
+80A6: 17            0157              RLA                 ;Rotate bits 0-3 into bits 4-7...
+80A7: 17            0158              RLA
+80A8: 17            0159              RLA
+80A9: 17            0160              RLA
+80AA: CD B4 80      0161              CALL @Wr4bits       ;Write bits 0 to 3 of instruction
+80AD: 3E 02         0162              LD   A, 2
+80AF: CD 2D 81      0163              CALL LCDDelay       ;Delay 2 ms to complete 
+80B2: F1            0164              POP  AF
+80B3: C9            0165              RET
+80B4: E6 F0         0166  @Wr4bits:   AND  0xF0           ;Mask so we only have D4 to D7
+80B6: D3 98         0167              OUT  (kLCDPrt), A   ;Output with E=Low and RS=Low
+80B8: CB DF         0168              SET  kLCDBitE, A
+80BA: D3 98         0169              OUT  (kLCDPrt), A   ;Output with E=High and RS=Low
+80BC: CB 9F         0170              RES  kLCDBitE, A
+80BE: D3 98         0171              OUT  (kLCDPrt), A   ;Output with E=Low and RS=Low
+80C0: C9            0172              RET
+                    0173  
+                    0174  
+                    0175  ; Write data to LCD
+                    0176  ;   On entry: A = Data byte to be written
+                    0177  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+80C1: F5            0178  fLCD_Data:  PUSH AF
+80C2: F5            0179              PUSH AF
+80C3: CD D5 80      0180              CALL @Wr4bits       ;Write bits 4 to 7 of data byte
+80C6: F1            0181              POP  AF
+80C7: 17            0182              RLA                 ;Rotate bits 0-3 into bits 4-7...
+80C8: 17            0183              RLA
+80C9: 17            0184              RLA
+80CA: 17            0185              RLA
+80CB: CD D5 80      0186              CALL @Wr4bits       ;Write bits 0 to 3 of data byte
+80CE: 3E 96         0187              LD   A, 150
+80D0: 3D            0188  @Wait:      DEC  A              ;Wait a while to allow data 
+80D1: 20 FD         0189              JR   NZ, @Wait      ;  write to complete
+80D3: F1            0190              POP  AF
+80D4: C9            0191              RET
+80D5: E6 F0         0192  @Wr4bits:   AND  0xF0           ;Mask so we only have D4 to D7
+80D7: CB D7         0193              SET  kLCDBitRS, A
+80D9: D3 98         0194              OUT  (kLCDPrt), A   ;Output with E=Low and RS=High
+80DB: CB DF         0195              SET  kLCDBitE, A
+80DD: D3 98         0196              OUT  (kLCDPrt), A   ;Output with E=High and RS=High
+80DF: CB 9F         0197              RES  kLCDBitE, A
+80E1: D3 98         0198              OUT  (kLCDPrt), A   ;Output with E=Low and RS=High
+80E3: CB 97         0199              RES  kLCDBitRS, A
+80E5: D3 98         0200              OUT  (kLCDPrt), A   ;Output with E=Low and RS=Low
+80E7: C9            0201              RET
+                    0202  
+                    0203  
+                    0204  ; Position cursor to specified location
+                    0205  ;   On entry: A = Cursor position
+                    0206  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+80E8: F5            0207  fLCD_Pos:   PUSH AF
+80E9: F6 80         0208              OR   kLCD_Pos       ;Prepare position cursor instruction
+80EB: CD A0 80      0209              CALL fLCD_Inst      ;Write instruction to LCD
+80EE: F1            0210              POP  AF
+80EF: C9            0211              RET
+                    0212  
+                    0213  
+                    0214  ; Output text string to LCD
+                    0215  ;   On entry: DE = Pointer to null terminated text string
+                    0216  ;   On exit:  BC HL IX IY I AF' BC' DE' HL' preserved
+80F0: 1A            0217  fLCD_Str:   LD   A, (DE)        ;Get character from string
+80F1: B7            0218              OR   A              ;Null terminator?
+80F2: C8            0219              RET  Z              ;Yes, so finished
+80F3: CD C1 80      0220              CALL fLCD_Data      ;Write character to display
+80F6: 13            0221              INC  DE             ;Point to next character
+80F7: 18 F7         0222              JR   fLCD_Str       ;Repeat
+                    0223  
+                    0224  
+                    0225  ; Define custom character
+                    0226  ;   On entry: A = Character number (0 to 7)
+                    0227  ;             DE = Pointer to character bitmap data
+                    0228  ;   On exit:  A = Next character number
+                    0229  ;             DE = Next location following bitmap
+                    0230  ;             BC HL IX IY I AF' BC' DE' HL' preserved
+                    0231  ; Character is 
+80F9: C5            0232  fLCD_Def:   PUSH BC
+80FA: F5            0233              PUSH AF
+80FB: 07            0234              RLCA                ;Calculate location
+80FC: 07            0235              RLCA                ;  for bitmap data
+80FD: 07            0236              RLCA                ;  = 8 x CharacterNumber
+80FE: F6 40         0237              OR   kLCD_Def       ;Prepare define character instruction
+8100: CD A0 80      0238              CALL fLCD_Inst      ;Write instruction to LCD
+8103: 06 00         0239              LD   B, 0
+8105: 1A            0240  @Loop:      LD   A, (DE)        ;Get byte from bitmap
+8106: CD C1 80      0241              CALL fLCD_Data      ;Write byte to display
+8109: 13            0242              INC  DE             ;Point to next byte
+810A: 04            0243              INC  B              ;Count bytes
+810B: CB 58         0244              BIT  3, B           ;Finish all 8 bytes?
+810D: 28 F6         0245              JR   Z, @Loop       ;No, so repeat
+810F: F1            0246              POP  AF
+8110: 3C            0247              INC  A              ;Increment character number
+8111: C1            0248              POP  BC
+8112: C9            0249              RET
+                    0250  
+                    0251  
+                    0252  ; **********************************************************************
+                    0253  ; **  Private functions
+                    0254  ; **********************************************************************
+                    0255  
+                    0256  ; Write function to LCD
+                    0257  ;   On entry: A = Function byte to be written
+                    0258  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+8113: 3E 20         0259  WrFn4bit:   LD   A, 0b00100000  ;4-bit mode
+8115: 18 02         0260              JR   WrFunc
+8117: 3E 30         0261  WrFn8bit:   LD   A, 0b00110000  ;8-bit mode
+8119: F5            0262  WrFunc:     PUSH AF
+811A: D3 98         0263              OUT  (kLCDPrt), A   ;Output with E=Low and RS=Low
+811C: CB DF         0264              SET  kLCDBitE, A
+811E: D3 98         0265              OUT  (kLCDPrt), A   ;Output with E=High and RS=Low
+8120: CB 9F         0266              RES  kLCDBitE, A
+8122: D3 98         0267              OUT  (kLCDPrt), A   ;Output with E=Low and RS=Low
+8124: 3E 05         0268              LD   A, 5
+8126: CD 2D 81      0269              CALL LCDDelay       ;Delay 5 ms to complete
+8129: F1            0270              POP  AF
+812A: C9            0271              RET
+                    0272  
+                    0273  
+                    0274  ; Delay in milliseconds
+                    0275  ;   On entry: A = Number of milliseconds delay
+                    0276  ;   On exit:  AF BC DE HL IX IY I AF' BC' DE' HL' preserved
+812B: 3E 01         0277  LCDDelay1:  LD   A, 1           ;Delay by 1 ms
+812D: D5            0278  LCDDelay:   PUSH DE
+812E: 5F            0279              LD   E, A           ;Delay by 'A' ms
+812F: 16 00         0280              LD   D, 0
+8131: CD 68 80      0281              CALL aDelayInMS
+8134: D1            0282              POP  DE
+8135: C9            0283              RET
+                    0284  
+                    0285  
+                    0286  ; **********************************************************************
+                    0287  ; **  Variables
+                    0288  ; **********************************************************************
+                    0289  
+                    0290              .DATA
+                    0291  
+                    0292  ; No variables used
+                    0293  
+                    0256  
+                    0257  
+                    0258  ; **********************************************************************
+                    0259  ; **  Variables
+                    0260  ; **********************************************************************
+                    0261  
+                    0262              .DATA
+                    0263  
+                    0264  ; No variables used
+                    0265  
+                    0266              .END
+                    0267  
+                    0268  
+                    0269  
+                    0270  
+                    0271  
+                    0272  
+                    0273  
+                    0274  
+                    0275  
+                    0276  
+                    0277  
+                    0278  
+                    0279  
+                    0280  
+ 

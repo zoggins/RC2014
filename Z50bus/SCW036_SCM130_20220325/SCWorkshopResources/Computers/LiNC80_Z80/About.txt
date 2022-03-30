@@ -1,0 +1,25 @@
+The LiNC80 SBC1 is a complete single board computer kit.
+
+It is a well equiped board with full support for mode 2 interrupts, 
+including IEI and IEO signals on the expansion bus.
+
+The board includes:
+Z80 CPU
+64k RAM
+64k ROM
+2 serial ports, 1xTTL 1xRS232 (Z80 SIO)
+2 parallel ports (Z80 PIO)
+4 counter/timers (Z80 CTC)
+1 8-bit IDE port for compact flash
+1 ROM slot for external ROM  cartridge
+1 Z50Bus expansion socket
+
+Supplied with ROM containing:
+Small Computer Monitor
+MS Basic
+CP/M Loader (from compact flash)
+
+Optional extras include:
+Z80Bus 5 slot backplane
+Adapter for RC2014 boards
+ROM cartridge PCB

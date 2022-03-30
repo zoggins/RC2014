@@ -1,0 +1,14 @@
+8058  BitMaps      8000  CodeORG      8F00  DataORG      812D  LCDDelay     
+812B  LCDDelay1    803D  MsgHello     804A  MsgLiNC80    8113  WrFn4bit     
+8117  WrFn8bit     8119  WrFunc       8068  aDelayInMS   80C1  fLCD_Data    
+80F9  fLCD_Def     8077  fLCD_Init    80A0  fLCD_Inst    80E8  fLCD_Pos     
+80F0  fLCD_Str     0027  kApostroph   0008  kBackspace   000D  kCR          
+003A  kColon       002C  kComma       009A  kContReg     0098  kDataReg     
+007F  kDelete      001B  kEscape      0003  kLCDBitE     0002  kLCDBitRS    
+0098  kLCDPrt      0014  kLCDWidth    000D  kLCD_Blink   000F  kLCD_Both    
+0001  kLCD_Clear   0040  kLCD_Def     0000  kLCD_Line1   0040  kLCD_Line2   
+0014  kLCD_Line3   0014  kLCD_Line4   0008  kLCD_Off     000C  kLCD_On      
+0080  kLCD_Pos     000E  kLCD_Under   000A  kLF          000A  kLinefeed    
+0005  kNewLine     0000  kNull        002E  kPeriod      0022  kQuote       
+000D  kReturn      003B  kSemicolon   0020  kSpace       
+ 

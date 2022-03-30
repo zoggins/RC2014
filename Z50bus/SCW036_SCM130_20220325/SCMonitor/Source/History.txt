@@ -1,0 +1,175 @@
+; **********************************************************************
+; **  Small Computer Monitor (SCMonitor)        by Stephen C Cousins  **
+; **********************************************************************
+;
+; HISTORY
+;
+; 2017-11-18  v0.2.1  First version with decent feature list
+;                     Preview release, needs testing
+;
+; 2017-11-24  v0.2.2  Split configuration options to separate file
+;                     Added configuration letter to version info
+;                     Removed version number from logon message
+;                     Added version number to help text
+;                     Added support for SC101 computer
+;                     Added extra system messages to API
+;                     Changed some of the message numbers
+;                     Organised source to better split monitor from OS
+;                     Added simple self test at reset
+;
+; 2017-12-07  v0.2.3  Added support for SIO/2 channel B
+;                     Changed to serial receive driver returning with no char flag
+;                       when not ready instead of having status call
+;                     Added jump table entries for 4 physical devices
+;                     Added function to select which physical divices is console
+;                     Added CONSOLE command
+;                     Added jump table to redirect RST 08,10,18,20
+;                     Added support for original SIO/2 addressing scheme (untested)
+;                     Added API to read jump table
+;                     Added checksum handling to Hex loader
+;                     Changed numbers of jump table entires
+;                     Assembler allows LD A,'*' and LD A,"*" and LD A,+10
+;                     Memory edit allows +10
+;                     Single letter commands no longer require space before 1st param
+;                     Added FILL command
+;
+; 2017-12-12  v0.3.0  Release v0.3.0
+;
+; 2017-12-31  v0.3.1  Fixed assembler handling of RST instruction to allow RST $30 etc (Q0001)
+;                     Allowed for two more console device (was 4, now 6)
+;                     Added separate selection of console in and console out devices
+;                     Added command to call API function from the command line
+;                     Added '.' {return} to abort assembly and memory editing
+;                     Added APIs for timer events
+;                     Added APIs for i/o port functions
+;                     Console output devices no longer wait for output device to be ready
+;
+; 2018-01-01  v0.4.0  Release v0.4.0
+;
+; 2018-01-12  v0.4.1  Improved handling of immediate values which are also register names
+;                     Assembler no longer have to prefix some hex numbers with 0 or $ or 0x
+;                     Fixed handling of JP (HL), JP (IX) and JP (HL) instructions
+;                     Fixed B0001: Trapped assembler relative jumps too big
+;                     Added InputLineEdit function
+;
+; 2018-03-11  v0.4.2  Added support for second 6850 ACIA at I/O address $40
+;                     Serial modules now identified as:
+;                     Console device 1 = Serial device at $80 (SIO port A or ACIA #1)
+;                     Console device 2 = Serial device at $80 (SIO port B)
+;                     Console device 3 = Serial device at $40 (ACIA #2)
+;                     The default console device is set as 1 to 6 at location $0040
+;
+; 2018-03-14  v0.5.0  Release v0.5.0
+;
+; 2018-03-15  v0.5.1  Added minimal support for LiNC80
+;
+; 2018-03-16          Modified RC2014 drivers to match LiNC80 version
+;
+; 2018-03-21          Added console I/O support via RST $8, $10, $18
+;
+; 2018-03-25  v0.5.2  Added support for baud rate selection
+;
+; 2018-03-28          Added ROM filing system
+;
+; 2018-04-16  v0.6.0  Release v0.6.0 (partial release for testing)
+;
+; 2018-04-17  v0.6.1  Release v0.6.0 (partial release for testing)
+;                     Fixed CPM command with 68B50 BIOS problem
+
+; 2018-04-19  v0.6.2  Changed help text so it takes up less lines
+;                     Changed CPM app help to include "(requires prepared CF card)"
+;                     Added support for Toms's SBC
+;
+; 2018-04-22  v0.6.3  Tested and fixed bugs:
+;                     RC2014 idle event timing accuracy improved (changed count from 6 to 7)
+;                     API $4 initially showed previous line via 'LineInputTo'
+;                     API $B msg 24 showed two messages
+;                     Also:
+;                     Moved monitor ROMFS info to separate file
+;                     Trapped setting breakpoint in monitor code area
+;                     Implemented ROM paging for TomsSBC
+;
+; 2018-04-23  v0.6.4  Baud rate setting, added push and pop, for reliability
+;                     Line input edit mode fixed unwanted switch to edit mode
+;                     Tidied some source comments
+;
+; 2018-04-25  v1.0.0  Planned release
+;
+; 2018-05-13  v1.0.0  Added option so Bill Shen can build RCZ280 version (configuration Z1)
+;                     SCMonitor core code v1.0.0.2018-05-13 (established binaries unchanged)
+;                     Released with SCWorkshop v0.1.6
+;
+; 2018-05-20  v1.0.0  Renamed RCZ280 to Z280RC
+;                     Added RC2014 configuration R4
+;                     Added config.asm constant kDelayCnt to set loop count in Delay function
+;                     SCMonitor core code v1.0.0.2018-05-20 (established binaries unchanged)
+;                     Released with SCWorkshop v0.1.7
+;
+; 2018-06-02  v1.0.0  Minor tweaks
+;                     SCMonitor core code v1.0.0.2018-05-20 (established binaries unchanged)
+;                     Released with SCWorkshop v0.1.8
+;
+; 2018-10-27  v1.0.0  Added support for SC114 Z80 motherboard
+;                     Added framework for Bill Shen to develop Z80SBCRC version (config Z2)
+;                     Added config option to display hardware driver revision number
+;                     SCMonitor core code v1.0.0.2018-10-27 (established binaries unchanged)
+;                     Released with SCWorkshop v0.1.9
+;
+; 2018-12-12  v1.0.0  Added support for SC-S3 compatible hardware (configuration S3)
+;                     All other hardware remains unchanged so core code still v1.0.0
+;                     SC108 has API to allow access to banked RAM
+;                     SC110 has support for baud rate control of serial port B
+;                     SC102+SC104 has support for baud rate control of serial ports A or B
+;                     Idle timer uses CTC to time event processing
+;                     Z80 SIO detect no longer relies on state of CTS input
+;
+; 2019-01-24  v1.0.0  Rearranged source to better isolate hardware source and simply !Main.asm
+;                     Binary output for all configurations unchanged
+;
+; 2019-05-17  v1.0.1  Continued reorganising source code
+;                     Created separate version numbers for each layer: Monitor, OS, BIOS
+;                     Monitor IN and OUT commands now use 16-bit addresses for I/O devices
+;                     Fixed bug in MemAPI where HL is not returned correctly
+;
+; 2019-06-02  v1.0.1  Released SC-S5 (for SC111+SC119)
+;
+; 2019-06-27  Released SC_S6 (for SC126)
+;             Monitor v1.0.2, SC_S6 BIOS v1.0.1
+;
+; 2019-07-15  Released SC_S6 (for SC126) using new BIOS interface
+;             Monitor v1.1.0, SC_S6 BIOS v1.1.0
+;
+; 2019-09-07  Interim development release
+;
+; 2020-05-27  Interim development release using new BIOS framework
+;             System v1.2.0, Monitor v1.2.0
+;
+; 2020-06-16  Added build SC108
+;             Added build ColecoVision
+;             Improves framework's DEVICE command output
+;             Merged Z80 and Z180 self-test into one file
+;             Added support EXTERNALOS option to self-test
+;             Added more framework devices: CFCard, DiagLED, StatusLED, sc127, sc129
+;             Posted 1st attempt ColecoVision code on retro-comp google group
+;
+; 2020-06-18  ColecoVision Z180 register base set to 0x00
+;             Breakpoint restart can now be defined
+;             All internal uses of API restart changed to call so RST 30 not required
+;             Created configuration SC126COM (CP/M style COM exutable but does not use CP/M once loaded)
+; 2020-06-29  Improved selftest: now tests all RAM required by SCM using multiple test patterns
+;
+; 2022-02-16  Added support for SC516 
+;             Created: SCM-F1-20220216-Monitor-v121-BIOS-v121-SC516.hex
+;             Released HEX file but not source
+;
+;             Z180 memory map now changed as requested by Tadeusz Pycio
+;             Z180 instructions included as contributed by Ivan De La Fuente
+;
+; 2022-02-27  Built F1, F2, F3, S2, S3, S4, S5, S6
+;             All with Monitor v1.30 and BIOS v1.30
+;             System not updated still v1.20
+;
+; 2022-03-07  Released source code for above with SCW 0.3.4
+
+
+

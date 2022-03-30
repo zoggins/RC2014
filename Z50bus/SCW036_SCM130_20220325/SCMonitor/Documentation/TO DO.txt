@@ -1,0 +1,18 @@
+User guide p16 and p18
+Check if $C to $F can be used to specify the device
+
+Check autorun ROMFS files work
+
+
+p43 check BASIC locations
+
+
+Check if API £0A delay takes account of different processor default frequencies
+
+Are Ready adn File Error messages duplicated in Monitor and System
+Yes, remove from monitor
+
+
+Website SCM, v1.3, Manager.asm
+says BIOS ID > 1000 available to users.
+Correct

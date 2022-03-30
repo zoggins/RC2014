@@ -1,0 +1,1 @@
+This folder contains pre-build SCM ROM images (HEX files)

@@ -1,0 +1,12 @@
+About Z180 processor
+
+The Z180 is an enhanced version of the Z80 processor.
+
+The Z80 was one of the most popular 8-bit processors during 
+the late 70s and most of the 80s.
+
+One of its strengths is the ability to run CP/M, which was 
+probably the only general purpose portable operating system 
+for 8-bit processors in the 70s.
+
+It was used in many of the iconic computers of the era.

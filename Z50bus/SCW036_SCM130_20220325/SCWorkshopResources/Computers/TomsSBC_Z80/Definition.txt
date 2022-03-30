@@ -1,0 +1,5 @@
+; TomsSBC_Z80 computer description
+;
+Processor=Z80
+Clock=7372
+Website=https://easyeda.com/peabody1929

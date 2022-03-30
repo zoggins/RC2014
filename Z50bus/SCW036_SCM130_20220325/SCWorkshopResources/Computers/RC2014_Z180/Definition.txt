@@ -1,0 +1,5 @@
+; RC2014_Z180 computer description
+;
+Processor=Z180
+Clock=7372
+Website=http://rc2014.co.uk

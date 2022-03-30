@@ -1,0 +1,31 @@
+**************************************************************
+**                     Copyright notice                     **
+**                                                          **
+**  This software is very nearly 100% my own work so I am   **
+**  entitled to claim copyright and to grant licences to    **
+**  others.                                                 **
+**                                                          **
+**  You are free to use this software for non-commercial    **
+**  purposes provided it retains this copyright notice and  **
+**  is clearly credited to me where appropriate.            **
+**                                                          **
+**  You are free to modify this software as you see fit     **
+**  for your own use. You may also distribute derived       **
+**  works provided they remain free of charge, are          **
+**  appropriately credited and grant the same freedoms.     **
+**                                                          **
+**                    Stephen C Cousins                     **
+**************************************************************
+
+Thanks to all those who have contributed to this software, 
+particularly:
+
+Jon Langseth for all the input, testing and encouragement during
+the conversion and extension for the LiNC80 SBC1.
+
+Bill Shen for porting to his Z280RC and Z80SBCRC systems.
+
+
+
+
+

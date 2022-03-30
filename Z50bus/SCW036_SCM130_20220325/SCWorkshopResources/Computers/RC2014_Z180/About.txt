@@ -1,0 +1,9 @@
+The RC2014 range of computer kits comes in two formats:
+1/ Single board computer (RC2014 Mini)
+2/ Modular computer consisting of backplane and various plug in boards
+
+Kits range from 8k ROM and 32k RAM, to 64k ROM and 64k RAM.
+
+There is also a module available with 512k ROM and 512k RAM.
+
+Supplied software ranges from BASIC only, to CP/M.
