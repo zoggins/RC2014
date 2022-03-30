@@ -1,0 +1,122 @@
+; 8085 instruction set
+;
+; Hard coded substitutions:
+; n	=1-byte 8-bit integer immediate value
+; nn	=2-byte 16-bit integer immediate value
+; rel	=1-byte 2's complement displacement
+; d	=1-byte 8-bit integer displacement
+;
+; Substitutions
+-r0		=B,C,D,E,H,L,A			=00,01,02,03,04,05,07
+-r3		=B,C,D,E,H,L,A			=00,08,10,18,20,28,38
+-b3		=0,1,2,3,4,5,6,7		=00,08,10,18,20,28,30,38
+-dd4		=B,D,H,SP				=00,10,20,30
+-qq4		=B,D,H,PSW				=00,10,20,30
+;
+; Instructions
+;
+; 8-bit load group
+LDAX B		=0A
+LDAX D		=1A
+MOV r3,M		=46+r3
+MOV M,r0		=70+r0
+MOV r3,r0		=40+r3+r0
+MVI r3,n		=06+r3,n
+MVI M,n		=36,n
+STAX B		=02
+STAX D		=12
+STA nn		=32,nlo,nhi
+LDA nn		=3A,nlo,nhi
+;
+; 16-bit load group
+SPHL			=F9
+LXI dd4,nn		=01+dd4,nlo,nhi
+LHLD nn		=2A,nlo,nhi
+SHLD nn		=22,nlo,nhi
+PUSH qq4		=C5+qq4
+POP qq4		=C1+qq4
+;
+; Exchange, block transfer and search group
+XCHG			=EB
+XTHL			=E3
+;
+; 16-bit arithmetic group
+DAD dd4		=09+dd4
+INX dd4		=03+dd4
+DCX dd4		=0B+dd4
+;
+; 8-bit arithmetic group
+-ar		=ADD,ADC,SUB,SBB,ANA,ORA,XRA,CMP  =80,88,90,98,A0,B0,A8,B8
+ar r0		=ar+r0
+ar M		=ar+06
+ANI n		=E6
+XRI n		=EE
+ORI n		=F6
+CPI n		=FE,n
+ADI n		=C6,n
+ACI n		=CE,n
+SUI n		=D6,n
+SBB n		=DE,n
+ar M		=ar+06
+-id             =INR,DCR			=04,05
+id r3		=id+r3
+id M		=id+30
+;
+; General purpose arithmetic and cpu control groups
+DAA		=27
+CPL		=2F
+CCF		=3F
+SCF		=37
+NOP		=00
+HALT		=76
+DI		=F3
+EI		=FB
+RIM		=20
+SIM		=30
+;
+; Rotate and shift group	
+RLCA		=07
+RLA		=17
+RRCA		=0F
+RRA		=1F
+;
+; Jump group
+; JP H added in addition to JP M to
+; give option to use none standard format that is consistent 
+; with a limitation in the current SCMonitor's disassembler.
+JMP nn	=C3,nlo,nhi
+JNZ nn	=C2,nlo,nhi	
+JZ nn		=CA,nlo,nhi	
+JNC nn	=D2,nlo,nhi	
+JC nn		=DA,nlo,nhi	
+JPO nn	=E2,nlo,nhi	
+JPE nn	=EA,nlo,nhi	
+JP nn		=F2,nlo,nhi	
+JM		=FA
+PCHL		=E9
+;
+; Call and return group
+CALL nn	=CD,nlo,nhi
+CNZ nn	=C4,nlo,nhi
+CZ nn		=CC,nlo,nhi
+CNC nn	=D4,nlo,nhi
+CC nn		=DC,nlo,nhi
+CPO nn	=E4,nlo,nhi
+CPE nn	=EC,nlo,nhi
+CP nn		=F4,nlo,nhi
+CM nn		=FC,nlo,nhi
+RET		=C9
+RNZ nn	=C0,nlo,nhi
+RZ nn		=C8,nlo,nhi
+RNC nn	=D0,nlo,nhi
+RC nn		=D8,nlo,nhi
+RPO nn	=E0,nlo,nhi
+RPE nn	=E8,nlo,nhi
+RP nn		=F0,nlo,nhi
+RM nn		=F8,nlo,nhi
+RST b3		=C7+s3
+;
+; Input and output group
+IN n		=DB,n
+OUT n		=D3,n
+;

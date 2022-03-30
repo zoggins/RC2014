@@ -1,0 +1,155 @@
+; 1802 instruction set
+;
+; Hard coded substitutions:
+; n	=1-byte 8-bit integer immediate value
+; nn	=2-byte 16-bit integer immediate value
+; rel	=1-byte 2's complement displacement
+; d	=1-byte 8-bit integer displacement
+;
+; Substitutions
+-r		=R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,RA,RB,RC,RD,RE,RF	=00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F
+-c		=0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F			=00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F
+-io		=1,2,3,4,5,6,7						=01,02,03,04,05,06,07
+;
+; Special instructions
+;
+; Some source code is not very cross-assembler friendly, using register 
+; names where immediate values should be and not defining them first 
+; with EQU directives. 
+; To support this type of software the following instruction variants 
+; have been added. They need to be before the standard instructions as 
+; the assembler would otherwise fail to find the register names in the 
+; symbol table and give up with an error.
+; Warning: With these instructions included the disassembler shows 
+; register values by default instead of proper immediate values!
+; Thus they are currently commented out!!
+;LDI r		=F8,r
+;ORI r		=F9,r
+;XRI r		=FB,r
+;ANI r		=FA,r
+;ADI r		=FC,r
+;ADCI r		=7C,r
+;SDI r		=FD,r
+;SDBI r		=7D,r
+;SMI r		=FF,r
+;SMBI r		=7F,r
+;OUT r		=60+r
+;INP r		=68+r
+;
+; Standard instructions
+;
+; Memory reference group
+LDN r		=00+r
+LDN c		=00+c
+LDA r		=40+r
+LDA c		=40+c
+LDX		=F0
+LDXA		=72
+LDI n		=F8,n
+STR r		=50+r
+STR c		=50+c
+STXD		=73
+;
+; Register operations
+INC r		=10+r
+INC c		=10+c
+DEC r		=20+r
+DEC c		=20+c
+IRX		=60
+GLO r		=80+r
+GLO c		=80+c
+PLO r		=A0+r
+PLO c		=A0+c
+GHI r		=90+r
+GHI c		=90+c
+PHI r		=B0+r
+PHI c		=B0+c
+;
+; Logic operations
+OR		=F1
+ORI n		=F9,n
+XOR		=F3
+XRI n		=FB,n
+AND		=F2
+ANI n		=FA,n
+SHR		=F6
+SHRC		=76
+RSHR		=76
+SHL		=FE
+SHLC		=7E
+RSHL		=7E
+;
+; Arithmetic operations
+ADD		=F4
+ADI n		=FC,n
+ADC		=74
+ADCI n		=7C,n
+SD		=F5
+SDI n		=FD,n
+SDB		=75
+SDBI n		=7D,n
+SM		=F7
+SMI n		=FF,n
+SMB		=77
+SMBI n		=7F,n
+;
+; Branch instructions short
+BR nn		=30,nlo
+NBR nn		=38,nlo
+BZ nn		=32,nlo
+BNZ nn		=3A,nlo
+BDF nn		=33,nlo
+BPZ nn		=33,nlo
+BGE nn		=33,nlo
+BNF nn		=3B,nlo
+BM nn		=3B,nlo
+BL nn		=3B,nlo
+BQ nn		=31,nlo
+BNQ nn		=39,nlo
+B1 nn		=34,nlo
+BN1 nn		=3C,nlo
+B2 nn		=35,nlo
+BN2 nn		=3D,nlo
+B3 nn		=36,nlo
+BN3 nn		=3E,nlo
+B4 nn		=37,nlo
+BN4 nn		=3F,nlo
+;
+; Branch instructions long
+LBR nn		=C0,nhi,nlo
+NLBR nn		=C8,nhi,nlo
+LBZ nn		=C2,nhi,nlo
+LBNZ nn		=CA,nhi,nlo
+LBDF nn		=C3,nhi,nlo
+LBNF nn		=CB,nhi,nlo
+LBQ nn		=C1,nhi,nlo
+LBNQ nn		=C9,nhi,nlo
+;
+; Skip instructions
+SKP		=38
+LSKP		=C8
+LSZ		=CE
+LSNZ		=C6
+LSDF		=CF
+LSNF		=C7
+LSQ		=CD
+LSNQ		=C5
+LSIE		=CC
+;
+; Control instructions
+IDL		=00
+NOP		=C4
+SEP r		=D0+r
+SEP c		=D0+c
+SEX r		=E0+r
+SEX c		=E0+c
+SEQ		=7B
+REQ		=7A
+SAV		=78
+MARK		=79
+RET		=70
+DIS		=71
+;
+Input/output byte transfer
+OUT io		=60+io
+INP io		=68+io

@@ -1,0 +1,47 @@
+For full details see www.scc.me.uk
+
+
+The following SCM configuration codes have been allocated:
+
+00  Complete custom build
+
+C1  Z80sc standard ROM
+
+E1  External OS = CP/M
+E2  External OS = RomWBW HBIOS
+
+F1  Z80Bus Z80 CPU with bit-bang serial port
+F2  Z50Bus Z80 CPU without bit-bang serial port
+F3  Z50Bus Z180 CPU without bit-bang serial port
+
+J1  ColecoVision games debug on SC126 (J.B. Langston)
+
+L1  LiNC80 SBC1
+
+M1  SC126 CP/M style COM executable (does not use CP/M once loaded)
+M2  SC130 CP/M style COM executable (does not use CP/M once loaded)
+M3  SC131 CP/M style COM executable (does not use CP/M once loaded)
+
+P1  John Squires' Z80 Playground
+
+R1  RC2014 official image 9, SCM in 8k ROM
+R2  RC2014 SCM+BASIC in 16k ROM
+R3  RC2014 SCM+BASIC+CP/M loader in 32k ROM
+R4  RC2014 official image 88, SCM+BASIC+CP/M loader in 16k ROM
+
+S1  SC101 standard ROM
+S2  SC114 standard ROM
+S3  SC108 standard ROM
+S4  SC111 Z180 CPU legacy mode (Z80 replacement)
+S5  SC111+SC119 Z180 system (Z180 native mode)
+S6  SC126 standard ROM
+
+T1  Tom's SBC revision C
+
+W1  SCWorkshop simulator
+
+Z1  Z280RC by Bill Shen
+Z?  Z80SBC64 by Bill Shen
+Z8  ZORAk standard ROM
+
+

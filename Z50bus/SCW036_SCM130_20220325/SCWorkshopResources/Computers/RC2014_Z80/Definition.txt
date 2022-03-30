@@ -1,0 +1,5 @@
+; RC2014_Z80 computer description
+;
+Processor=Z80
+Clock=7372
+Website=http://rc2014.co.uk

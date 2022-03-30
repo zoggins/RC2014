@@ -1,0 +1,10 @@
+This is where the Small Computer Workshop writes assembler
+output files.
+
+Some or all of these files may be present:
+
+Binary.bin     Binary image of assembled code
+IntelHex.hex   Intel hexadecimal format assembled code
+Listing.txt    Assembler listing
+Memory.txt     Memory dump of assembled code
+Symbols.txt    Symbol table

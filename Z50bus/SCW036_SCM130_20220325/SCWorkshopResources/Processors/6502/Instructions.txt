@@ -1,0 +1,38 @@
+; 6502 instruction set    >>>> NOT DONE MUCH ON THIS !!!
+;
+; Hard coded substitutions:
+; n	=1-byte 8-bit integer immediate value
+; nn	=2-byte 16-bit integer immediate value
+; rel	=1-byte 2's complement displacement
+; d	=1-byte 8-bit integer displacement
+;
+; Substitutions
+-opc		=ORA,AND,EOR,ADC,LDA,CMP,SBC	=00,20,40,60,A0,C0,E0
+-r0		=B,C,D,E,H,L,,A			=00,01,02,03,04,05,06,07
+-r3		=B,C,D,E,H,L,,A			=00,08,10,18,20,28,30,38
+-j3		=NZ,Z,NC,C			=00,08,10,18
+-c3		=NZ,Z,NC,C,PO,PE,P,M		=00,08,10,18,20,28,30,38
+-b3		=0,1,2,3,4,5,6,7		=00,08,10,18,20,28,30,38
+-s3		=00,08,10,18,20,28,30,38	=00,08,10,18,20,28,30,38
+-ir		=IX,IY				=DD,FD
+-dd4		=BC,DE,HL,SP			=00,10,20,30
+-qq4		=BC,DE,HL,AF			=00,10,20,30
+-pp4		=BC,DE,IX,SP			=00,10,20,30
+-rr4		=BC,DE,IY,SP			=00,10,20,30
+;
+; Instructions
+;
+opc #n		=opc+09,n
+opc n		=opc+05,n
+opc n,X		=opc+15,n
+opc nn		=6D,nlo,nhi
+opc nn,X	=7D,nlo,nhi
+opc nn,Y	=79,nlo,nhi
+opc (n,X)	=61,n
+opc (n),Y	=71,n
+;
+; http://www.obelisk.me.uk/6502/reference.html
+; $ prefix means hexadecimal number
+; % prefix means binary number
+; # prefix means immediate
+; #$ prefix means immediate hex number

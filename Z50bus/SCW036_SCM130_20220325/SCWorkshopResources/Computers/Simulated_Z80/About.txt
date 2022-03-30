@@ -1,0 +1,8 @@
+This is a theoretic computer only. It does not really exist.
+
+It is designed to allow experimentation and learning via this program's simulator.
+
+This simulated computer is well equiped with simple input and output devices making 
+it quite a flexible learning tool.
+
+It is also a good environment to develop much of the code needed for a real computer.

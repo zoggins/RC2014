@@ -1,0 +1,16 @@
+Tom Szolyga's SBC version C is a very small computer designed to run CP/M.
+
+The board includes:
+Z80 CPU
+64k RAM
+64k ROM
+Two serial ports TTL (Z80 SIO)
+8-bit IDE port for compact flash
+
+The board is available on EasyEDA for anyone to order and build:
+https://easyeda.com/peabody1929/CPM_Z80_Board_REV_B_copy-76313012f79945d3b8b9d3047368abf7
+Also:
+https://easyeda.com/peabody1929
+
+The SBC was announced on the RC2014_Z80 user group:
+https://groups.google.com/forum/#!topic/rc2014-z80/IFkzQh3bHhY

@@ -1,0 +1,21 @@
+This folder contains a means to build custom versions of the CP/M 2.2
+CBIOS and then create a CP/M installation program (PutSysPlus) with
+the custom CBIOS embedded in it.
+
+1/ Edit Configure.asm to configure the CBIOS
+2/ Assemble CBIOS.asm
+3/ Assemble PutSysPlus.asm
+
+The resulting code is in SCWorkshop\Output named IntelHex.hex
+
+To install the version of CP/M created:
+
+1/ Format the CompactFlash card using the SCM CompactFlash Format App 
+2/ Send IntelHex.hex file to SCM
+3/ Execute it with the SCM command "G 8000"
+
+CP/M can then be started with the SCM command "CPM".
+
+
+Technical notes:
+SCM S5 did have Z180 base = 0x40, now 0xC0

@@ -1,0 +1,22 @@
+; Simulated Z80 computer definition
+;
+; Processor details
+Processor=Z80
+Clock=7372
+MemMappedIO=No
+;
+; I/O ports (no value if device missing)
+TerminalTxData=1
+TerminalRxData=2
+PrinterTxData=3
+KeyboardRxData=4
+SerialTxData=5
+SerialRxData=6
+PortOutput=0
+PortInput=0
+;
+; Memory addresses (no value if device missing) 0x4000
+ScreenStart=16384
+;
+; Further information
+Website=

@@ -1,0 +1,6 @@
+; RCZ280C_Z280 computer description
+;
+; There is no support for Z280 in SCWorkshop so using Z80 instead
+Processor=Z80
+Clock=7372
+Website=

@@ -1,0 +1,28 @@
+From Tadeusz Pycio
+==================
+
+Would it be possible to change the default OS loading address from 0xF0000 to 0X80000 for Z180 processors under SCM? This would definitely make it easier to implement operating systems that use banked memory (CP/M3, MP/M). This change does not affect the available software. It looks better when users can download such SCM from the author, that is why I have not put the "hacked" ones in my MP/M repository - https://github.com/tpycio/MPMII-RC2014.
+
+
+
+The problem in question is in the files:
+\SCMonitor\Apps\CPM_load_from_compact_flash\SCMon_CPM_loader_Z180.asm
+and
+\SCMonitor\Source\BIOS\SCZ180\Selftest.asm
+where you would need to change the CBR register setting from 0xF0 to 0x80
+
+            LD   A, 0xF0        ;Physical memory base address:
+            OUT0 (CBR), A       ;  Common Base = 0xF8000
+
+and banking operating systems that start from their "zero" page expect available RAM to begin with:
+
+            LD   A, 0x80        ;Physical memory base address:
+            OUT0 (CBR), A       ;  Common Base = 0x88000
+
+
+================================================================================================
+
+
+Change implemented for v1.2.1 releaase
+
+

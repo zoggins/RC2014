@@ -1,0 +1,97 @@
+                    0001  ; **********************************************************************
+                    0002  ; **  CTC Mode 2 Interrupt Demo                 by Stephen C Cousins  **
+                    0003  ; **********************************************************************
+                    0004  
+                    0005  ; This code demonstrates how to generate a periodic mode 2 interrupt 
+                    0006  ; using a Z80 CTC.
+                    0007  
+                    0008  ; CTC channel 1 is set to generate an interrupt every 5 ms
+                    0009  ;   Input clock is 7.3728 MHz
+                    0010  ;   Prescaler = 256
+                    0011  ;   Timer reload value = 144
+                    0012  ;   Interrupt frequency = 7372800 / 256 / 144 = 200 Hz
+                    0013  
+                    0014  ; The interrupt vector table starts at 0x8200 and are used as follows:
+                    0015  ;   0x8200-8201  Interrupt vector for CTC channel 0
+                    0016  ;   0x8202-8203  Interrupt vector for CTC channel 1
+                    0017  ;   0x8204-8205  Interrupt vector for CTC channel 2
+                    0018  ;   0x8206-8207  Interrupt vector for CTC channel 3
+                    0019  
+                    0020              .PROC Z80           ;SCWorkshop select processor
+                    0021  
+0088:               0022  ctc:        .EQU 0x88           ;Base I/O address for CTC
+                    0023  
+0090:               0024  reload:     .EQU 144            ;CTC timer reload value
+                    0025  
+8100:               0026  counter:    .EQU 0x8100         ;Counter in RAM
+                    0027  
+8200:               0028  vectors:    .EQU 0x8200         ;Interrupt vector table in RAM
+                    0029  
+                    0030              .ORG 0x8000         ;Program code starts here
+                    0031  
+                    0032  ; Initialise interrupt vector table entry for CTC channel 1
+8000: 21 2F 80      0033              LD   HL,CTC_Int     ;CTC channel 1 interrupt routine
+8003: 22 02 82      0034              LD   (vectors+2),HL ;Interrupt vector for CTC channel 1
+                    0035  
+                    0036  ; Initialise Z80 for interrupt mode 2
+8006: 3E 82         0037              LD   A,vectors\256  ;Get hi byte of int vector table address
+8008: ED 47         0038              LD   I,A            ;Set Z80's int vector table address (hi)
+800A: ED 5E         0039              IM   2              ;Set interrupt mode 2
+                    0040  
+                    0041  ; CTC channel control register
+                    0042  ;   Bit 7:   Interrupt     1 = Enable   0 = Disable
+                    0043  ;   Bit 6:   Mode          1 = Counter  0 = Timer
+                    0044  ;   Bit 5:   Prescaler     1 = 256      0 = 16        (timer mode only)
+                    0045  ;   Bit 4:   Edge select   1 = Rising   0 = Falling
+                    0046  ;   Bit 3:   Time trigger  1 = CLK/TRG  0 = Auto when time const loaded
+                    0047  ;   Bit 2:   Time constant 1 = Follows  0 = Continue operation
+                    0048  ;   Bit 1:   Reset         1 = Reset    0 = Continue operation
+                    0049  ;   Bit 0:   Control/vect  1 = Control  0 = Vector
+                    0050  
+                    0051  ; CTC interrupt vector register
+                    0052  ;   Bit 7-3: Bits 7-3 of int vector address lo byte for chan 0
+                    0053  ;   Bit 2-1: Channel identifier  00=chan 0, ... , 11=chan 3
+                    0054  ;   Bit 0:   Control/vect    1 = Control  0 = Vector   
+                    0055  
+                    0056  ; Initialise CTC channel 1 interrupt vector
+800C: 3E 00         0057              LD   A,0b00000000   ;Set int vector for the CTC
+800E: D3 88         0058              OUT  (ctc),A
+                    0059  
+                    0060  ; Initialise CTC channel 1 for periodic timer
+8010: 3E 35         0061              LD   A,0b00110101   ;Timer with 256 prescaler
+8012: D3 89         0062              OUT  (ctc+1),A
+8014: 3E 90         0063              LD   A,reload       ;Time constant = N x prescaler o/p
+8016: D3 89         0064              OUT  (ctc+1),A
+                    0065  
+                    0066  ; Enable interrupts from channel 1 periodic timer
+8018: 3E B1         0067              LD   A,0b10110001   ;Timer with 256 prescaler
+801A: D3 89         0068              OUT  (ctc+1),A
+                    0069  
+                    0070  ; Enable interrupts and return to SCM command line interpreter
+801C: FB            0071              EI                  ;Enable interrupts
+                    0072  ;           RET                 ;Return to Small Computer Monitor
+                    0073  
+                    0074  ; Test code to output '*' every time counter reaches 1 second
+801D: 3A 00 81      0075  @Wait:      LD   A,(counter)    ;Wait for counter value = 200
+8020: FE C8         0076              CP   200            ;  which is 200 x 5 ms = 1s
+8022: 20 F9         0077              JR   NZ,@Wait
+8024: AF            0078              XOR  A              ;Reset counter to zero
+8025: 32 00 81      0079              LD   (counter),A
+8028: 3E 2A         0080              LD   A,'*'          ;Output '*' to terminal
+802A: 0E 02         0081              LD   C,2            ;  using SCM's API function 2
+802C: F7            0082              RST  0x30           ;  RST 30 is call to SCM's API
+802D: 18 EE         0083              JR   @Wait
+                    0084  
+                    0085  
+                    0086  ; CTC interrupt routine
+                    0087  ; This routine increments (counter) every time it runs
+802F: F5            0088  CTC_Int:    PUSH AF             ;Preserve AF
+8030: 3A 00 81      0089              LD   A,(counter)    ;Read current counter
+8033: 3C            0090              INC  A              ;Increment counter
+8034: 32 00 81      0091              LD   (counter),A    ;Store updated counter
+8037: F1            0092              POP  AF             ;Restore AF
+8038: FB            0093              EI                  ;Enable interrupts
+8039: ED 4D         0094              RETI                ;Return from interrupt
+                    0095  
+                    0096  
+ 
