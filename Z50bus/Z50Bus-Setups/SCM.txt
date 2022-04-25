@@ -9,8 +9,11 @@ SC518 – Z80 central processor unit (CPU) card
 SC519 – Z80 memory (128k+128k) card
 SC511 – Serial (SIO) and timer (CTC) card or SC521 – Z80 SIO/2 (Serial I/O) card or SC520 – Serial ACIA (68B50) card
 
-Nice to Have Modules/Cards for C/PM:
-SC505 – Real time clock and I2C bus master
+Must Have Modules/Cards for CP/M
 SC504 – Compact flash storage card
+
+Nice to Have Modules/Cards for CP/M:
+SC505 – Real time clock and I2C bus master
+
 
 CF Card: Z80 CP/M
