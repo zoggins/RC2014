@@ -328,7 +328,7 @@ ColdStrt:
 ; Output sign-on message
             CALL OutputNewLine  ;Output new line
             CALL OutputNewLine  ;Output new line
-            LD   A,kMsgProdID   ;="Small Computer Monitor"
+            LD   A,kMsgProdID   ;="Zoggins's Small Computer Monitor"
             CALL OutputMessage  ;Output message
             LD   A,'-'          ;="-"
             CALL OutputChar     ;Output character
@@ -775,7 +775,7 @@ SysReset:   CP   0x01           ;Warm start monitor
 
 ; Message strings (zero terminated)
 szNull:     .DB  kNull
-szProduct:  .DB  "Small Computer Monitor ",kNull
+szProduct:  .DB  "Zoggins's Small Computer Monitor ",kNull
 szDevices:  .DB  "Devices detected:",kNewLine,kNull
 szAbout:    .DB  "by Stephen C Cousins (www.scc.me.uk)",kNewLine
             .DB  "Configuration ",kNull
