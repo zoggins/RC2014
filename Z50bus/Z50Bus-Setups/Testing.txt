@@ -1,0 +1,31 @@
+== SC506 – Digital I/O card & Z80 PIO (Parallel I/O) card ==
+SCM Z80 Setup
+SCMon_alphanumeric_LCD v0.4.0.asm
+Use #DEFINE SC129 with SC506 – Digital I/O card @ 0xA0
+Use #DEFINE RC2014 with SC509 – Z80 PIO (Parallel I/O) card @ 0x98
+
+== SC511 – Serial (SIO) and timer (CTC) card ==
+SCM Z80 Setup
+SCMon_CTC_Mode_2_Demo.asm
+SC511 – Serial (SIO) and timer (CTC) card @ 0x88
+
+== SC505 – Real time clock and I2C bus master == 
+SCM Z80 Setup
+Chain together all the I2C modules connected to SC505
+I2C demo v2.1.0.asm
+SC505 – Real time clock and I2C bus master @ 0x0C
+
+== SC514 – Z80 CTC (Counter/Timer) card ==
+SCM Z80 Setup
+SCMon_SC512_CTC_Demo.asm
+SC514 – Z80 CTC (Counter/Timer) card
+SC514 – Z80 CTC (Counter/Timer) card @ 0x60
+
+SC520 – Serial ACIA (68B50) card  & SC521 – Z80 SIO/2 (Serial I/O) card & SC511 – Serial (SIO) and timer (CTC) card
+SCM Z80 Setup
+Just boot with cable connected to console and should see SCM prompt.  It works best with only 1 connected at a time.
+
+== Z50AYMSound card ==
+scsound.txt in SCM with base address of 0x40
+decend.bas in Basic with base address of 0x40
+wiwowa.bas in Basic with base address of 0x40

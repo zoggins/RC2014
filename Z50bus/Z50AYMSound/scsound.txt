@@ -1,0 +1,88 @@
+A quick example of how you can Output data to the sound chip,
+using only SCMonitor. This example sets channel A to generate a
+fixed frequency tone, all other channels and noise-generators are off:
+
+SCMon command   	Description
+o 33 7			Select Mixer register
+o 32 ff			All mixer channels off
+
+o 33 8			Select Channel A Volume register
+o 32 9			Fixed Volume = 9 (01001 binary)
+
+o 33 9			Select Channel B Volume register
+o 32 0			Fixed Volume = 0
+
+o 33 a			Select Channel C Volume register
+o 32 0			Fixed Volume = 0
+
+o 33 1			Select Channel A frequency, coarse tune
+o 32 1			Rough tone adjust = 1
+
+o 33 0			Select Channel A frequency, fine tune
+o 32 ff			Fine tone adjust = ff
+
+o 33 7			Select Mixer register
+o 32 fe			Turn on Channel A Tone only
+
+The same example as above, but without descriptions (to make copy/paste easy)
+o 33 7
+o 32 ff
+o 33 8
+o 32 9
+o 33 9
+o 32 0
+o 33 a
+o 32 0
+o 33 1
+o 32 1
+o 33 0
+o 32 ff
+o 33 7
+o 32 fe
+
+The same example as above, but moved the ports to 42 & 43 to avoid conflict with Z80 Memory Card
+o 43 7
+o 42 ff
+o 43 8
+o 42 9
+o 43 9
+o 42 0
+o 43 a
+o 42 0
+o 43 1
+o 42 1
+o 43 0
+o 42 ff
+o 43 7
+o 42 fe
+
+A short-hand for the used registers follow. For more details about what the
+registers do, read the data sheets in the Documentation directory. 
+
+
+Registers 0+1, 2+3 and 4+5 are Tone generator register pairs, Ch A/B/C resp.
+	Even register is Fine tune, Odd register is Coarse tune
+
+Registers 8,9,A are the Level registers for channel A, B and C respectively.
+	1 bit mode, 4 bits of volume. The mode bit selects fixed/dynamic
+
+Register 7 is the Mixer register.
+Here are some values for the Mixer register to make selection of the different
+Tone generators easy:
+ Binary		Hex	Selects:
+ 1111 1111 	FF	<- All off
+ 1111 1110 	FE	<- Ch A tone solo
+ 1111 1101 	FD	<- Ch B tone solo
+ 1111 1011 	FB	<- Ch C tone solo
+
+ 1111 1100 	FC	<- A + B
+ 1111 1010 	FA	<- A + C
+ 1111 1001 	F9	<- B + C
+ 1111 1000 	F8	<- A + B + C 
+
+Mixer bit map:
+|     IO    |  Noise channels |  Tone channels  |
+| IOB | IOA |  C  |  B  |  A  |  C  |  B  |  A  |
+
+Mixer bits are "low active", so 0xFF is "All off", while
+0xC0 is "All audio channels and noise on".

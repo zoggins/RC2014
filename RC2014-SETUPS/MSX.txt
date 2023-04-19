@@ -4,8 +4,7 @@ Yellow MSX Series for RC2014 Backplane v1.5
 Standard Modules/Cards:
 Dual Serial v1.0
 Compact Flash Storage v1.1
-Z80 CPU v2.1
-Dual Clock & Reset v2.1
+Yellow MSX Series for RC2014 Turbo CPU v1.6
 Yellow MSX Series for RC2014 RTC & F4 v1.6
 Yellow MSX Series for RC2014 Memory v1.3
 Yellow MSX Series for RC2014 PPI v1.4

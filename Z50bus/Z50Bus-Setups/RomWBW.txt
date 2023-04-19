@@ -1,0 +1,14 @@
+Backplane:
+SC508 - Backplane, 10-slot, wide spacing
+or
+SC515 – Backplane, 14-slot, narrow spacing
+
+Minimum Modules/Cards:
+SC502 – Power supply and reset card, 8 to 15 volt input
+SC503 – Z180 processor card with serial and SPI (SD card)
+
+Nice to Have Modules/Cards for CP/M:
+SC505 – Real time clock and I2C bus master
+SC504 – Compact flash storage card
+
+CF Card: Z180
