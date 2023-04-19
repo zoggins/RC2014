@@ -383,7 +383,8 @@ SIGNON$MSG:
 	DB	CR,LF,'A: = IDE CF Memory Disk, B: & C: = 8" SDSS Floppies,'
 	DB	CR,LF,'D: = 5" Floppy, E: = Second IDE CF Memory Disk.'
 	; DB	CR,LF,'MSDOS Support Board CMOS RTC ports at 70H & 71H, '
-	; DB	CR,LF,'Serial Ports at A2 & A3, 8259A PIC at 20H & 21H.'
+	DB	CR,LF,'Serial Ports at A2 & A3.'
+	; , 8259A PIC at 20H & 21H.'
 	DB	CR,LF,'Using a ZFDC FDC Board (V2.6 ROM or later).'
 	DB	CR,LF
 	DB	CR,LF,0
