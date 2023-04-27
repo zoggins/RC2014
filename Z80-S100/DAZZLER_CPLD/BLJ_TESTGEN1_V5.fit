@@ -1,0 +1,1422 @@
+Atmel ATF1508AS Fitter Version 1.8.7.8 ,running Wed Aug 24 17:48:44 2016
+
+
+fit1508 C:\DATA\TV_DAZZLER_II\CPLD\CUPL_FILES\BLJ_TESTGEN1_V5\BLJ_TESTGEN1_V5.tt2 -CUPL -dev P1508C84 -JTAG ON
+
+
+****** Initial fitting strategy and property ******
+ Pla_in_file = BLJ_TESTGEN1_V5.tt2
+ Pla_out_file = BLJ_TESTGEN1_V5.tt3
+ Jedec_file = BLJ_TESTGEN1_V5.jed
+ Vector_file = BLJ_TESTGEN1_V5.tmv
+ verilog_file = BLJ_TESTGEN1_V5.vt
+ Time_file = 
+ Log_file = BLJ_TESTGEN1_V5.fit
+ err_file = 
+ Device_name = PLCC84
+ Module_name = 
+ Package_type = PLCC
+ Preassign_file = 
+ Property_file = 
+ Sleep_mode = 
+ Preassignment = 
+ Security_mode = OFF
+ Pin_keep_mode = ON
+ Dedicated_input_clock = 
+ Dedicated_input_reset = 
+ Dedicated_input_oe = 
+ supporter = CUPL
+ optimize = ON
+ Soft_buffer = 
+ Xor_synthesis =  ON
+ Foldback_logic =  on
+ Expander = 
+ Cascade_logic = OFF
+ Dedicated_input = 
+ Output_fast = ON
+ *******************************
+ Power down pin 1 = OFF
+ Power down pin 2 = OFF
+ power_reset = OFF
+ JTAG = ON
+ TDI pullup = ON
+ TMS pullup = ON
+ MC_power = OFF
+ Open_collector = OFF
+ ITD0 = ON
+ ITD1 = ON
+ ITD2 = ON
+ Fast_inlatch = off
+ *******************************
+---------------------------------------------------------
+ Fitter_Pass 1, Preassign = KEEP, LOGIC_DOUBLING : OFF 
+ ... 
+ ## Warning : Placement fail 
+---------------------------------------------------------
+ Fitter_Pass 2, Preassign = KEEP, CASCADE_LOGIC : (TRY) 
+ ... 
+
+Performing global Output Enable pin assignments ...
+
+Performing global pin assignments ...
+--------------------------------------
+
+
+
+Final global control pins assignment (if applicable)...
+-------------------------------------------------------
+ck5 assigned to pin  81
+ck10 assigned to pin  83
+
+
+
+Performing input pin pre-assignments ...
+------------------------------------
+ck10 assigned to pin  83
+mldq0.OE equation needs patching.
+1 control eqution need patching
+
+Attempt to place floating signals ...
+------------------------------------
+yp_2_ is placed at feedback node 601 (MC 1)
+yp_3_ is placed at feedback node 602 (MC 2)
+P0_N_6 is placed at feedback node 603 (MC 3)
+yp_4_ is placed at feedback node 604 (MC 4)
+ADRINC is placed at feedback node 605 (MC 5)
+xp_3_ is placed at feedback node 606 (MC 6)
+yp_5_ is placed at feedback node 607 (MC 7)
+xp_4_ is placed at feedback node 608 (MC 8)
+N_24 is placed at feedback node 609 (MC 9)
+N_20 is placed at feedback node 610 (MC 10)
+mldq0.OE is placed at feedback node 611 (MC 11)
+xp_2_ is placed at feedback node 612 (MC 12)
+xp_5_ is placed at feedback node 613 (MC 13)
+yp_0_ is placed at feedback node 614 (MC 14)
+N_14 is placed at feedback node 615 (MC 15)
+N_16 is placed at foldback expander node 315 (MC 15)
+yp_1_ is placed at feedback node 616 (MC 16)
+N_12 is placed at foldback expander node 316 (MC 16)
+O0_q_3_ is placed at feedback node 617 (MC 17)
+O0_q_5_ is placed at feedback node 618 (MC 18)
+la3 is placed at pin 21 (MC 19)
+O0_N_23 is placed at feedback node 620 (MC 20)
+la4 is placed at pin 20 (MC 21)
+O0_N_2 is placed at feedback node 622 (MC 22)
+O0_q_2_ is placed at feedback node 623 (MC 23)
+la5 is placed at pin 18 (MC 24)
+la6 is placed at pin 17 (MC 25)
+O0_q_0_ is placed at feedback node 626 (MC 26)
+la7 is placed at pin 16 (MC 27)
+O0_q_4_ is placed at feedback node 628 (MC 28)
+la8 is placed at pin 15 (MC 29)
+XXL_419 is placed at feedback node 630 (MC 30)
+XXL_420 is placed at feedback node 631 (MC 31)
+TDI is placed at pin 14 (MC 32)
+O0_q_1_ is placed at feedback node 632 (MC 32)
+P1_N_22 is placed at feedback node 633 (MC 33)
+P1_q_4_ is placed at feedback node 634 (MC 34)
+mldq7 is placed at pin 31 (MC 35)
+XXL_418 is placed at feedback node 636 (MC 36)
+P1_q_3_ is placed at feedback node 637 (MC 37)
+P1_q_5_ is placed at feedback node 638 (MC 38)
+XXL_411 is placed at feedback node 639 (MC 39)
+N_17 is placed at feedback node 640 (MC 40)
+XXL_415 is placed at feedback node 641 (MC 41)
+XXL_422 is placed at feedback node 642 (MC 42)
+la0 is placed at pin 27 (MC 43)
+XXL_414 is placed at feedback node 644 (MC 44)
+la1 is placed at pin 25 (MC 45)
+la2 is placed at pin 24 (MC 46)
+XXL_421 is placed at feedback node 647 (MC 47)
+TMS is placed at pin 23 (MC 48)
+P1_q_1_ is placed at feedback node 648 (MC 48)
+N_40 is placed at feedback node 650 (MC 50)
+mldq0 is placed at pin 40 (MC 51)
+E0_N_6 is placed at feedback node 652 (MC 52)
+mldq1 is placed at pin 39 (MC 53)
+E0_N_10 is placed at feedback node 654 (MC 54)
+xp_1_ is placed at feedback node 655 (MC 55)
+mldq2 is placed at pin 37 (MC 56)
+mldq3 is placed at pin 36 (MC 57)
+XXL_417 is placed at feedback node 658 (MC 58)
+mldq4 is placed at pin 35 (MC 59)
+XXL_416 is placed at feedback node 660 (MC 60)
+mldq5 is placed at pin 34 (MC 61)
+XXL_413 is placed at feedback node 662 (MC 62)
+XXL_412 is placed at feedback node 663 (MC 63)
+mldq6 is placed at pin 33 (MC 64)
+led1 is placed at feedback node 665 (MC 65)
+vcnt_7_ is placed at feedback node 666 (MC 66)
+U0_N_35 is placed at feedback node 667 (MC 67)
+vcnt_8_ is placed at feedback node 668 (MC 68)
+U0_N_33 is placed at feedback node 669 (MC 69)
+vcnt_3_ is placed at feedback node 670 (MC 70)
+vcnt_2_ is placed at feedback node 671 (MC 71)
+U0_N_34 is placed at feedback node 672 (MC 72)
+vcnt_4_ is placed at feedback node 673 (MC 73)
+P0_N_18 is placed at feedback node 674 (MC 74)
+vcnt_5_ is placed at feedback node 675 (MC 75)
+vcnt_9_ is placed at feedback node 676 (MC 76)
+U0_N_32 is placed at feedback node 677 (MC 77)
+vcnt_0_ is placed at feedback node 678 (MC 78)
+U0_N_31 is placed at feedback node 679 (MC 79)
+vcnt_6_ is placed at feedback node 680 (MC 80)
+U0_N_37 is placed at feedback node 681 (MC 81)
+P0_N_17 is placed at feedback node 682 (MC 82)
+P0_N_4 is placed at feedback node 683 (MC 83)
+P0_N_10 is placed at feedback node 684 (MC 84)
+P0_N_5 is placed at feedback node 685 (MC 85)
+led0 is placed at feedback node 686 (MC 86)
+U0_N_36 is placed at feedback node 687 (MC 87)
+J0_N_6 is placed at feedback node 688 (MC 88)
+vcnt_1_ is placed at feedback node 689 (MC 89)
+H0_N_4 is placed at feedback node 690 (MC 90)
+P0_N_14 is placed at feedback node 691 (MC 91)
+H0_N_7 is placed at feedback node 692 (MC 92)
+P0_N_16 is placed at feedback node 693 (MC 93)
+N_44 is placed at feedback node 694 (MC 94)
+P1_q_2_ is placed at feedback node 695 (MC 95)
+TCK is placed at pin 62 (MC 96)
+N_13 is placed at feedback node 696 (MC 96)
+J0_N_7 is placed at feedback node 698 (MC 98)
+P0_N_20 is placed at feedback node 700 (MC 100)
+N_45 is placed at feedback node 702 (MC 102)
+O0_N_3 is placed at feedback node 703 (MC 103)
+N_46 is placed at feedback node 706 (MC 106)
+la9 is placed at pin 69 (MC 107)
+N_41 is placed at feedback node 708 (MC 108)
+P0_N_19 is placed at feedback node 709 (MC 109)
+N_43 is placed at feedback node 710 (MC 110)
+N_42 is placed at feedback node 711 (MC 111)
+TDO is placed at pin 71 (MC 112)
+N_47 is placed at feedback node 712 (MC 112)
+nled is placed at pin 74 (MC 117)
+noel is placed at pin 75 (MC 118)
+la10 is placed at pin 76 (MC 120)
+la11 is placed at pin 77 (MC 123)
+nwrl is placed at pin 79 (MC 125)
+ncel is placed at pin 80 (MC 126)
+ck5 is placed at pin 81 (MC 128)
+
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                             c     n n   l l n                      
+                              G       V      k G c c w V a a o                      
+                              N       C      1 N k e r C 1 1 e                      
+                              D       C      0 D 5 l l C 1 0 l                      
+                    -------------------------------------------                     
+                   / 11   9   7   5   3   1  83  81  79  77  75 \                  
+                  /    10   8   6   4   2  84  82  80  78  76    \                 
+                 | 12                    (*)                   74 | nled            
+             VCC | 13                                          73 |                 
+             TDI | 14                                          72 | GND             
+             la8 | 15                                          71 | TDO             
+             la7 | 16                                          70 |                 
+             la6 | 17                                          69 | la9             
+             la5 | 18                                          68 |                 
+             GND | 19                                          67 |                 
+             la4 | 20                                          66 | VCC             
+             la3 | 21                                          65 |                 
+                 | 22                 ATF1508                  64 |                 
+             TMS | 23               84-Lead PLCC               63 |                 
+             la2 | 24                                          62 | TCK             
+             la1 | 25                                          61 |                 
+             VCC | 26                                          60 |                 
+             la0 | 27                                          59 | GND             
+                 | 28                                          58 |                 
+                 | 29                                          57 |                 
+                 | 30                                          56 |                 
+           mldq7 | 31                                          55 |                 
+             GND | 32                                          54 |                 
+                  \     34  36  38  40  42  44  46  48  50  52   /                 
+                   \  33  35  37  39  41  43  45  47  49  51  53/                  
+              	    --------------------------------------------                     
+                      m m m m m V m m   G V       G           V                     
+                      l l l l l C l l   N C       N           C                     
+                      d d d d d C d d   D C       D           C                     
+                      q q q q q   q q                                               
+                      6 5 4 3 2   1 0                                               
+
+
+
+VCC = Supply Voltage pin which must be connected to (5.0V or 3.0V)
+
+GND = GND pin which must be connected to ground
+
+TMS,TDI,TDO,TDI = JTAG pins which must reserved for the JTAG interface
+
+NC = Unused I/O pins which must be unconnected on the board
+
+Universal-Interconnect-Multiplexer assignments
+------------------------------------------------
+FanIn assignment for block A [25]
+{
+E0_N_10,E0_N_6,
+H0_N_7,H0_N_4,
+N_20,N_24,N_13,N_14,
+P0_N_19,P0_N_4,P0_N_14,P0_N_16,P0_N_5,P0_N_20,
+xp_4_,xp_1_,xp_3_,xp_5_,xp_2_,
+yp_1_,yp_2_,yp_5_,yp_3_,yp_0_,yp_4_,
+}
+Multiplexer assignment for block A
+yp_1_			(MC13	FB)  : MUX 1		Ref (A16fb)
+yp_2_			(MC1	FB)  : MUX 2		Ref (A1fb)
+xp_4_			(MC6	FB)  : MUX 4		Ref (A8fb)
+P0_N_19			(MC25	FB)  : MUX 5		Ref (G109fb)
+P0_N_4			(MC17	FB)  : MUX 6		Ref (F83fb)
+N_20			(MC8	FB)  : MUX 7		Ref (A10fb)
+yp_5_			(MC5	FB)  : MUX 8		Ref (A7fb)
+yp_3_			(MC2	FB)  : MUX 10		Ref (A2fb)
+N_24			(MC7	FB)  : MUX 11		Ref (A9fb)
+E0_N_10			(MC15	FB)  : MUX 12		Ref (D54fb)
+P0_N_14			(MC20	FB)  : MUX 13		Ref (F91fb)
+N_13			(MC23	FB)  : MUX 15		Ref (F96fb)
+xp_1_			(MC16	FB)  : MUX 16		Ref (D55fb)
+H0_N_7			(MC21	FB)  : MUX 17		Ref (F92fb)
+E0_N_6			(MC14	FB)  : MUX 20		Ref (D52fb)
+N_14			(MC12	FB)  : MUX 23		Ref (A15fb)
+xp_3_			(MC4	FB)  : MUX 26		Ref (A6fb)
+P0_N_16			(MC22	FB)  : MUX 27		Ref (F93fb)
+P0_N_5			(MC18	FB)  : MUX 28		Ref (F85fb)
+yp_0_			(MC11	FB)  : MUX 29		Ref (A14fb)
+xp_5_			(MC10	FB)  : MUX 31		Ref (A13fb)
+P0_N_20			(MC24	FB)  : MUX 34		Ref (G100fb)
+H0_N_4			(MC19	FB)  : MUX 35		Ref (F90fb)
+xp_2_			(MC9	FB)  : MUX 37		Ref (A12fb)
+yp_4_			(MC3	FB)  : MUX 38		Ref (A4fb)
+
+FanIn assignment for block B [22]
+{
+ADRINC,
+N_14,N_13,N_24,
+O0_N_23,O0_N_2,O0_q_3_,O0_N_3,O0_q_0_,O0_q_4_,O0_q_1_,O0_q_5_,O0_q_2_,
+P1_q_4_,
+XXL_420,XXL_419,
+xp_4_,
+yp_1_,yp_2_,yp_3_,yp_0_,yp_4_,
+}
+Multiplexer assignment for block B
+yp_1_			(MC9	FB)  : MUX 1		Ref (A16fb)
+yp_2_			(MC1	FB)  : MUX 2		Ref (A1fb)
+XXL_420			(MC18	FB)  : MUX 3		Ref (B31fb)
+O0_N_23			(MC12	FB)  : MUX 4		Ref (B20fb)
+N_14			(MC8	FB)  : MUX 5		Ref (A15fb)
+O0_N_2			(MC13	FB)  : MUX 8		Ref (B22fb)
+yp_3_			(MC2	FB)  : MUX 10		Ref (A2fb)
+yp_0_			(MC7	FB)  : MUX 11		Ref (A14fb)
+O0_q_3_			(MC10	FB)  : MUX 12		Ref (B17fb)
+N_13			(MC21	FB)  : MUX 15		Ref (F96fb)
+xp_4_			(MC5	FB)  : MUX 16		Ref (A8fb)
+N_24			(MC6	FB)  : MUX 17		Ref (A9fb)
+XXL_419			(MC17	FB)  : MUX 19		Ref (B30fb)
+yp_4_			(MC3	FB)  : MUX 20		Ref (A4fb)
+O0_N_3			(MC22	FB)  : MUX 22		Ref (G103fb)
+O0_q_0_			(MC15	FB)  : MUX 23		Ref (B26fb)
+ADRINC			(MC4	FB)  : MUX 28		Ref (A5fb)
+O0_q_4_			(MC16	FB)  : MUX 31		Ref (B28fb)
+O0_q_1_			(MC19	FB)  : MUX 33		Ref (B32fb)
+O0_q_5_			(MC11	FB)  : MUX 34		Ref (B18fb)
+P1_q_4_			(MC20	FB)  : MUX 36		Ref (C34fb)
+O0_q_2_			(MC14	FB)  : MUX 38		Ref (B23fb)
+
+FanIn assignment for block C [25]
+{
+ADRINC,
+N_17,N_45,N_20,N_40,N_24,N_42,N_44,N_46,N_43,N_13,N_41,N_47,
+P1_q_5_,P1_q_2_,P1_N_22,P1_q_1_,P1_q_3_,P1_q_4_,
+XXL_418,XXL_422,
+mldq0.OE,
+xp_2_,xp_3_,xp_1_,
+}
+Multiplexer assignment for block C
+N_17			(MC12	FB)  : MUX 0		Ref (C40fb)
+xp_2_			(MC6	FB)  : MUX 1		Ref (A12fb)
+P1_q_5_			(MC11	FB)  : MUX 2		Ref (C38fb)
+mldq0.OE		(MC5	FB)  : MUX 3		Ref (A11fb)
+N_45			(MC20	FB)  : MUX 4		Ref (G102fb)
+P1_q_2_			(MC18	FB)  : MUX 5		Ref (F95fb)
+P1_N_22			(MC7	FB)  : MUX 6		Ref (C33fb)
+N_20			(MC4	FB)  : MUX 7		Ref (A10fb)
+XXL_418			(MC9	FB)  : MUX 8		Ref (C36fb)
+XXL_422			(MC13	FB)  : MUX 9		Ref (C42fb)
+N_40			(MC15	FB)  : MUX 10		Ref (D50fb)
+N_24			(MC3	FB)  : MUX 11		Ref (A9fb)
+xp_3_			(MC2	FB)  : MUX 12		Ref (A6fb)
+N_42			(MC24	FB)  : MUX 15		Ref (G111fb)
+N_44			(MC17	FB)  : MUX 17		Ref (F94fb)
+N_46			(MC21	FB)  : MUX 19		Ref (G106fb)
+P1_q_1_			(MC14	FB)  : MUX 21		Ref (C48fb)
+N_43			(MC23	FB)  : MUX 23		Ref (G110fb)
+N_13			(MC19	FB)  : MUX 25		Ref (F96fb)
+ADRINC			(MC1	FB)  : MUX 28		Ref (A5fb)
+P1_q_3_			(MC10	FB)  : MUX 30		Ref (C37fb)
+N_41			(MC22	FB)  : MUX 31		Ref (G108fb)
+N_47			(MC25	FB)  : MUX 33		Ref (G112fb)
+P1_q_4_			(MC8	FB)  : MUX 36		Ref (C34fb)
+xp_1_			(MC16	FB)  : MUX 38		Ref (D55fb)
+
+FanIn assignment for block D [25]
+{
+E0_N_10,E0_N_6,
+N_40,N_45,N_24,N_44,N_43,N_13,N_20,N_41,N_46,N_42,N_47,
+P1_N_22,
+XXL_417,XXL_412,XXL_416,XXL_413,XXL_414,XXL_415,XXL_411,
+mldq0.OE,mldq0,
+noel,
+xp_1_,
+}
+Multiplexer assignment for block D
+XXL_417			(MC13	FB)  : MUX 1		Ref (D58fb)
+mldq0.OE		(MC3	FB)  : MUX 3		Ref (A11fb)
+XXL_412			(MC16	FB)  : MUX 5		Ref (D63fb)
+P1_N_22			(MC4	FB)  : MUX 6		Ref (C33fb)
+XXL_416			(MC14	FB)  : MUX 7		Ref (D60fb)
+mldq0			(MC9	P)   : MUX 9		Ref (D51p)
+N_40			(MC8	FB)  : MUX 10		Ref (D50fb)
+noel			(MC25	P)   : MUX 11		Ref (H118p)
+XXL_413			(MC15	FB)  : MUX 13		Ref (D62fb)
+N_45			(MC19	FB)  : MUX 14		Ref (G102fb)
+N_24			(MC1	FB)  : MUX 15		Ref (A9fb)
+E0_N_10			(MC11	FB)  : MUX 16		Ref (D54fb)
+N_44			(MC17	FB)  : MUX 17		Ref (F94fb)
+XXL_414			(MC7	FB)  : MUX 19		Ref (C44fb)
+XXL_415			(MC6	FB)  : MUX 21		Ref (C41fb)
+N_43			(MC22	FB)  : MUX 23		Ref (G110fb)
+E0_N_6			(MC10	FB)  : MUX 24		Ref (D52fb)
+N_13			(MC18	FB)  : MUX 25		Ref (F96fb)
+N_20			(MC2	FB)  : MUX 29		Ref (A10fb)
+N_41			(MC21	FB)  : MUX 31		Ref (G108fb)
+N_46			(MC20	FB)  : MUX 33		Ref (G106fb)
+xp_1_			(MC12	FB)  : MUX 34		Ref (D55fb)
+N_42			(MC23	FB)  : MUX 35		Ref (G111fb)
+XXL_411			(MC5	FB)  : MUX 36		Ref (C39fb)
+N_47			(MC24	FB)  : MUX 37		Ref (G112fb)
+
+FanIn assignment for block E [24]
+{
+J0_N_6,J0_N_7,
+P0_N_19,P0_N_20,P0_N_17,P0_N_16,
+U0_N_32,U0_N_34,U0_N_33,U0_N_37,U0_N_31,U0_N_35,U0_N_36,
+led0,
+vcnt_8_,vcnt_1_,vcnt_2_,vcnt_6_,vcnt_0_,vcnt_5_,vcnt_7_,vcnt_3_,vcnt_4_,vcnt_9_,
+}
+Multiplexer assignment for block E
+J0_N_6			(MC19	FB)  : MUX 0		Ref (F88fb)
+U0_N_32			(MC11	FB)  : MUX 1		Ref (E77fb)
+vcnt_8_			(MC3	FB)  : MUX 2		Ref (E68fb)
+U0_N_34			(MC7	FB)  : MUX 4		Ref (E72fb)
+P0_N_19			(MC24	FB)  : MUX 5		Ref (G109fb)
+U0_N_33			(MC4	FB)  : MUX 6		Ref (E69fb)
+vcnt_1_			(MC20	FB)  : MUX 7		Ref (F89fb)
+U0_N_37			(MC15	FB)  : MUX 8		Ref (F81fb)
+vcnt_2_			(MC6	FB)  : MUX 10		Ref (E71fb)
+U0_N_31			(MC13	FB)  : MUX 11		Ref (E79fb)
+U0_N_35			(MC2	FB)  : MUX 12		Ref (E67fb)
+vcnt_6_			(MC14	FB)  : MUX 13		Ref (E80fb)
+P0_N_20			(MC23	FB)  : MUX 14		Ref (G100fb)
+vcnt_0_			(MC12	FB)  : MUX 15		Ref (E78fb)
+vcnt_5_			(MC9	FB)  : MUX 17		Ref (E75fb)
+vcnt_7_			(MC1	FB)  : MUX 18		Ref (E66fb)
+vcnt_3_			(MC5	FB)  : MUX 20		Ref (E70fb)
+vcnt_4_			(MC8	FB)  : MUX 23		Ref (E73fb)
+J0_N_7			(MC22	FB)  : MUX 24		Ref (G98fb)
+P0_N_17			(MC16	FB)  : MUX 28		Ref (F82fb)
+U0_N_36			(MC18	FB)  : MUX 32		Ref (F87fb)
+led0			(MC17	FB)  : MUX 34		Ref (F86fb)
+vcnt_9_			(MC10	FB)  : MUX 35		Ref (E76fb)
+P0_N_16			(MC21	FB)  : MUX 37		Ref (F93fb)
+
+FanIn assignment for block F [25]
+{
+H0_N_7,H0_N_4,
+J0_N_6,J0_N_7,
+N_20,N_13,N_44,N_17,
+P0_N_14,P0_N_4,P0_N_20,P0_N_10,P0_N_19,P0_N_16,P1_N_22,P0_N_17,P1_q_1_,
+U0_N_36,U0_N_31,U0_N_37,
+XXL_421,
+mldq4,
+noel,
+vcnt_1_,vcnt_0_,
+}
+Multiplexer assignment for block F
+J0_N_6			(MC14	FB)  : MUX 0		Ref (F88fb)
+vcnt_1_			(MC15	FB)  : MUX 1		Ref (F89fb)
+P0_N_14			(MC17	FB)  : MUX 3		Ref (F91fb)
+P0_N_4			(MC11	FB)  : MUX 6		Ref (F83fb)
+noel			(MC25	P)   : MUX 7		Ref (H118p)
+U0_N_36			(MC13	FB)  : MUX 10		Ref (F87fb)
+U0_N_31			(MC8	FB)  : MUX 11		Ref (E79fb)
+mldq4			(MC6	P)   : MUX 12		Ref (D59p)
+N_20			(MC1	FB)  : MUX 13		Ref (A10fb)
+P0_N_20			(MC23	FB)  : MUX 14		Ref (G100fb)
+N_13			(MC21	FB)  : MUX 15		Ref (F96fb)
+P0_N_10			(MC12	FB)  : MUX 16		Ref (F84fb)
+N_44			(MC20	FB)  : MUX 17		Ref (F94fb)
+P0_N_19			(MC24	FB)  : MUX 21		Ref (G109fb)
+H0_N_7			(MC18	FB)  : MUX 23		Ref (F92fb)
+J0_N_7			(MC22	FB)  : MUX 24		Ref (G98fb)
+P0_N_16			(MC19	FB)  : MUX 27		Ref (F93fb)
+N_17			(MC3	FB)  : MUX 28		Ref (C40fb)
+XXL_421			(MC4	FB)  : MUX 29		Ref (C47fb)
+vcnt_0_			(MC7	FB)  : MUX 31		Ref (E78fb)
+P1_N_22			(MC2	FB)  : MUX 32		Ref (C33fb)
+H0_N_4			(MC16	FB)  : MUX 35		Ref (F90fb)
+P0_N_17			(MC10	FB)  : MUX 36		Ref (F82fb)
+U0_N_37			(MC9	FB)  : MUX 38		Ref (F81fb)
+P1_q_1_			(MC5	FB)  : MUX 39		Ref (C48fb)
+
+FanIn assignment for block G [23]
+{
+ADRINC,
+J0_N_7,
+N_42,N_24,N_46,N_43,N_41,N_47,N_45,N_13,
+O0_N_3,O0_N_2,
+P0_N_19,P1_q_5_,P0_N_18,
+mldq1,mldq6,mldq5,mldq7,mldq2,mldq3,
+noel,
+xp_5_,
+}
+Multiplexer assignment for block G
+N_42			(MC21	FB)  : MUX 1		Ref (G111fb)
+O0_N_3			(MC16	FB)  : MUX 2		Ref (G103fb)
+mldq1			(MC7	P)   : MUX 3		Ref (D53p)
+P0_N_19			(MC19	FB)  : MUX 5		Ref (G109fb)
+mldq6			(MC11	P)   : MUX 6		Ref (D64p)
+mldq5			(MC10	P)   : MUX 8		Ref (D61p)
+mldq7			(MC5	P)   : MUX 9		Ref (C35p)
+noel			(MC23	P)   : MUX 11		Ref (H118p)
+xp_5_			(MC3	FB)  : MUX 15		Ref (A13fb)
+J0_N_7			(MC14	FB)  : MUX 16		Ref (G98fb)
+N_24			(MC2	FB)  : MUX 17		Ref (A9fb)
+N_46			(MC17	FB)  : MUX 19		Ref (G106fb)
+mldq2			(MC8	P)   : MUX 21		Ref (D56p)
+N_43			(MC20	FB)  : MUX 23		Ref (G110fb)
+ADRINC			(MC1	FB)  : MUX 24		Ref (A5fb)
+P1_q_5_			(MC6	FB)  : MUX 26		Ref (C38fb)
+mldq3			(MC9	P)   : MUX 28		Ref (D57p)
+N_41			(MC18	FB)  : MUX 31		Ref (G108fb)
+N_47			(MC22	FB)  : MUX 33		Ref (G112fb)
+O0_N_2			(MC4	FB)  : MUX 34		Ref (B22fb)
+P0_N_18			(MC12	FB)  : MUX 35		Ref (E74fb)
+N_45			(MC15	FB)  : MUX 38		Ref (G102fb)
+N_13			(MC13	FB)  : MUX 39		Ref (F96fb)
+
+FanIn assignment for block H [16]
+{
+E0_N_10,E0_N_6,
+H0_N_4,H0_N_7,
+N_14,N_20,N_24,
+O0_q_5_,
+P0_N_19,P0_N_20,P0_N_17,P0_N_16,
+ck5,
+led1,led0,
+yp_5_,
+}
+Multiplexer assignment for block H
+O0_q_5_			(MC5	FB)  : MUX 0		Ref (B18fb)
+E0_N_10			(MC7	FB)  : MUX 2		Ref (D54fb)
+P0_N_19			(MC15	FB)  : MUX 5		Ref (G109fb)
+led1			(MC8	FB)  : MUX 6		Ref (E65fb)
+N_14			(MC4	FB)  : MUX 7		Ref (A15fb)
+P0_N_20			(MC14	FB)  : MUX 8		Ref (G100fb)
+H0_N_4			(MC11	FB)  : MUX 11		Ref (F90fb)
+N_20			(MC3	FB)  : MUX 13		Ref (A10fb)
+P0_N_17			(MC9	FB)  : MUX 14		Ref (F82fb)
+N_24			(MC2	FB)  : MUX 17		Ref (A9fb)
+E0_N_6			(MC6	FB)  : MUX 18		Ref (D52fb)
+ck5			(MC16	P)   : MUX 20		Ref (H128p)
+H0_N_7			(MC12	FB)  : MUX 23		Ref (F92fb)
+yp_5_			(MC1	FB)  : MUX 24		Ref (A7fb)
+P0_N_16			(MC13	FB)  : MUX 27		Ref (F93fb)
+led0			(MC10	FB)  : MUX 34		Ref (F86fb)
+
+Creating JEDEC file C:\DATA\TV_DAZZLER_II\CPLD\CUPL_FILES\BLJ_TESTGEN1_V5\BLJ_TESTGEN1_V5.jed ...
+
+PLCC84 programmed logic:
+-----------------------------------
+J0_N_7.D = !J0_N_7.Q;
+
+!N_12 = (P0_N_4.Q & P0_N_14.Q & !P0_N_19.Q & P0_N_20.Q);
+
+!N_16 = (P0_N_16.Q & P0_N_19.Q & !P0_N_20.Q);
+
+P0_N_5.T = (P0_N_4.Q & P0_N_14.Q & !P0_N_19.Q & P0_N_20.Q);
+
+P0_N_4.T = (P0_N_14.Q & !P0_N_19.Q & P0_N_20.Q);
+
+P0_N_6.T = (P0_N_4.Q & P0_N_5.Q & P0_N_14.Q & !P0_N_19.Q & P0_N_20.Q);
+
+P0_N_18.D = ((vcnt_2_.Q & !vcnt_3_.Q & !vcnt_4_.Q & !vcnt_5_.Q & !vcnt_6_.Q & !vcnt_7_.Q & !vcnt_8_.Q & !vcnt_9_.Q & vcnt_1_.Q)
+	# (!vcnt_2_.Q & vcnt_3_.Q & !vcnt_4_.Q & !vcnt_5_.Q & !vcnt_6_.Q & !vcnt_7_.Q & !vcnt_8_.Q & !vcnt_9_.Q));
+
+P0_N_20.D = P0_N_19.Q;
+
+P0_N_19.D = P0_N_18.Q;
+
+U0_N_32.T = (J0_N_6.Q & J0_N_7.Q & !U0_N_31.Q & U0_N_33.Q & U0_N_34.Q & U0_N_35.Q & U0_N_36.Q & U0_N_37.Q);
+
+U0_N_31.D = ((U0_N_31.Q & !J0_N_7.Q)
+	# (U0_N_31.Q & !J0_N_6.Q)
+	# (!U0_N_31.Q & J0_N_6.Q & J0_N_7.Q & U0_N_32.Q & U0_N_33.Q & U0_N_34.Q & U0_N_35.Q & U0_N_36.Q & U0_N_37.Q));
+
+U0_N_33.T = (J0_N_6.Q & J0_N_7.Q & !U0_N_31.Q & U0_N_34.Q & U0_N_35.Q & U0_N_36.Q & U0_N_37.Q);
+
+U0_N_34.T = (J0_N_6.Q & J0_N_7.Q & !U0_N_31.Q & U0_N_35.Q & U0_N_36.Q & U0_N_37.Q);
+
+U0_N_35.T = (J0_N_6.Q & J0_N_7.Q & !U0_N_31.Q & U0_N_36.Q & U0_N_37.Q);
+
+ck5.D = !ck5.Q;
+
+la0 = ((!N_24.Q & !N_13.Q & P1_q_1_.Q)
+	# (N_24.Q & xp_1_.Q)
+	# (!N_24.Q & N_13.Q & !P1_q_1_.Q));
+
+la1 = ((!N_24.Q & !N_13.Q & P1_q_2_.Q)
+	# (N_24.Q & xp_2_.Q)
+	# (!N_24.Q & N_13.Q & !P1_q_2_.Q));
+
+la2 = ((!N_24.Q & !N_13.Q & P1_q_3_.Q)
+	# (N_24.Q & xp_3_.Q)
+	# (!N_24.Q & N_13.Q & !P1_q_3_.Q));
+
+la4 = ((!N_24.Q & !N_14.Q & O0_q_0_.Q)
+	# (N_24.Q & yp_0_.Q)
+	# (!N_24.Q & N_14.Q & !O0_q_0_.Q));
+
+la5 = ((!N_24.Q & !N_14.Q & O0_q_1_.Q)
+	# (N_24.Q & yp_1_.Q)
+	# (!N_24.Q & N_14.Q & !O0_q_1_.Q));
+
+la3 = ((!N_24.Q & !N_13.Q & P1_q_4_.Q)
+	# (N_24.Q & xp_4_.Q)
+	# (!N_24.Q & N_13.Q & !P1_q_4_.Q));
+
+la6 = ((!N_24.Q & !N_14.Q & O0_q_2_.Q)
+	# (N_24.Q & yp_2_.Q)
+	# (!N_24.Q & N_14.Q & !O0_q_2_.Q));
+
+la7 = ((!N_24.Q & !N_14.Q & O0_q_3_.Q)
+	# (N_24.Q & yp_3_.Q)
+	# (!N_24.Q & N_14.Q & !O0_q_3_.Q));
+
+la10 = ((!N_24.Q & !N_14.Q & O0_q_5_.Q)
+	# (N_24.Q & yp_5_.Q)
+	# (!N_24.Q & N_14.Q & !O0_q_5_.Q));
+
+la8 = ((!N_24.Q & !N_14.Q & O0_q_4_.Q)
+	# (N_24.Q & yp_4_.Q)
+	# (!N_24.Q & N_14.Q & !O0_q_4_.Q));
+
+led0.T = (P0_N_16.Q & P0_N_17.Q & P0_N_19.Q & !P0_N_20.Q);
+
+la9 = ((!N_24.Q & !N_13.Q & P1_q_5_.Q)
+	# (N_24.Q & xp_5_.Q)
+	# (!N_24.Q & N_13.Q & !P1_q_5_.Q));
+
+la11 = 0;
+
+led1.T = (P0_N_16.Q & P0_N_17.Q & P0_N_19.Q & !P0_N_20.Q & led0.Q);
+
+mldq0 = (XXL_411
+	# (!N_24.Q & N_40.Q));
+
+mldq1 = (XXL_412
+	# (N_24.Q & !N_40.Q & !N_41.Q & N_42.Q));
+
+mldq2 = (XXL_413
+	# (N_24.Q & !N_40.Q & !N_41.Q & !N_42.Q & N_43.Q));
+
+mldq4 = (XXL_414
+	# (!N_24.Q & N_44.Q));
+
+!mldq3 = XXL_415;
+
+mldq5 = (XXL_416
+	# (N_24.Q & !N_44.Q & !N_45.Q & N_46.Q));
+
+mldq6 = (XXL_417
+	# (N_24.Q & !N_44.Q & !N_45.Q & !N_46.Q & N_47.Q));
+
+!mldq7 = XXL_418;
+
+!noel = ((!ck5.Q & !H0_N_4.Q & !H0_N_7.Q & N_20.Q)
+	# (!ck5.Q & !E0_N_6.Q & !E0_N_10.Q & N_24.Q));
+
+!ncel = ((!ck5.Q & !H0_N_4.Q & N_20.Q)
+	# (!ck5.Q & !E0_N_6.Q & N_24.Q));
+
+nled.T = (P0_N_16.Q & P0_N_17.Q & P0_N_19.Q & !P0_N_20.Q & led0.Q & led1.Q);
+
+!nwrl = ((!ck5.Q & !H0_N_4.Q & H0_N_7.Q & N_20.Q)
+	# (!ck5.Q & !E0_N_6.Q & E0_N_10.Q & N_24.Q));
+
+vcnt_0_.T = ((J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & !vcnt_2_.Q)
+	# (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & !vcnt_9_.Q)
+	# (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & !vcnt_3_.Q));
+
+vcnt_2_.T = ((J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_2_.Q & vcnt_3_.Q & vcnt_9_.Q)
+	# (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_0_.Q & vcnt_1_.Q));
+
+vcnt_3_.T = ((J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_2_.Q & vcnt_3_.Q & vcnt_9_.Q)
+	# (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_2_.Q & vcnt_0_.Q & vcnt_1_.Q));
+
+vcnt_4_.T = (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_0_.Q & vcnt_1_.Q & vcnt_2_.Q & vcnt_3_.Q & !vcnt_9_.Q);
+
+vcnt_6_.T = (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_0_.Q & vcnt_1_.Q & vcnt_2_.Q & vcnt_3_.Q & vcnt_4_.Q & vcnt_5_.Q & !vcnt_9_.Q);
+
+vcnt_5_.T = (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_0_.Q & vcnt_1_.Q & vcnt_2_.Q & vcnt_3_.Q & vcnt_4_.Q & !vcnt_9_.Q);
+
+vcnt_8_.T = (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_0_.Q & vcnt_1_.Q & vcnt_2_.Q & vcnt_3_.Q & vcnt_4_.Q & vcnt_5_.Q & vcnt_6_.Q & vcnt_7_.Q & !vcnt_9_.Q);
+
+vcnt_7_.T = (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_0_.Q & vcnt_1_.Q & vcnt_2_.Q & vcnt_3_.Q & vcnt_4_.Q & vcnt_5_.Q & vcnt_6_.Q & !vcnt_9_.Q);
+
+vcnt_9_.T = ((J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_2_.Q & vcnt_3_.Q & vcnt_9_.Q)
+	# (J0_N_6.Q & J0_N_7.Q & U0_N_31.Q & vcnt_2_.Q & vcnt_3_.Q & vcnt_0_.Q & vcnt_1_.Q & vcnt_4_.Q & vcnt_5_.Q & vcnt_6_.Q & vcnt_7_.Q & vcnt_8_.Q));
+
+xp_3_.T = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q & xp_2_.Q);
+
+xp_4_.T = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q & xp_2_.Q & xp_3_.Q);
+
+yp_0_.T = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q & xp_2_.Q & xp_3_.Q & xp_4_.Q & xp_5_.Q);
+
+xp_5_.T = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q & xp_2_.Q & xp_3_.Q & xp_4_.Q);
+
+yp_1_.T = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q & xp_2_.Q & xp_3_.Q & xp_4_.Q & xp_5_.Q & yp_0_.Q);
+
+yp_2_.T = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q & xp_2_.Q & xp_3_.Q & xp_4_.Q & xp_5_.Q & yp_0_.Q & yp_1_.Q);
+
+yp_3_.T = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q & xp_2_.Q & xp_3_.Q & xp_4_.Q & xp_5_.Q & yp_0_.Q & yp_1_.Q & yp_2_.Q);
+
+yp_4_.T = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q & xp_2_.Q & xp_3_.Q & xp_4_.Q & xp_5_.Q & yp_0_.Q & yp_1_.Q & yp_2_.Q & yp_3_.Q);
+
+yp_5_.T = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q & xp_2_.Q & xp_3_.Q & xp_4_.Q & xp_5_.Q & yp_0_.Q & yp_1_.Q & yp_2_.Q & yp_3_.Q & yp_4_.Q);
+
+ATM_368 = (N_24.Q & E0_N_6.Q);
+
+ATM_374 = (N_20.Q & H0_N_4.Q);
+
+ATM_380 = (H0_N_4.Q & N_20.Q & H0_N_7.Q);
+
+ATM_383 = (H0_N_4.Q & H0_N_7.Q & N_20.Q & N_13.Q);
+
+ATM_386 = (!P0_N_19.Q & P0_N_14.Q & P0_N_20.Q);
+
+ATM_389 = (!P0_N_19.Q & P0_N_20.Q);
+
+ATM_392 = (P0_N_19.Q & P0_N_16.Q & !P0_N_20.Q);
+
+ATM_395 = (P0_N_19.Q & !P0_N_20.Q);
+
+ATM_398 = (J0_N_7.Q & !U0_N_31.Q & J0_N_6.Q);
+
+ATM_401 = (J0_N_7.Q & J0_N_6.Q & U0_N_37.Q & !U0_N_31.Q);
+
+ATM_404 = (U0_N_31.Q & J0_N_7.Q & J0_N_6.Q & vcnt_0_.Q);
+
+ATM_407 = (E0_N_6.Q & N_24.Q & E0_N_10.Q);
+
+ATM_410 = (E0_N_6.Q & E0_N_10.Q & N_24.Q & xp_1_.Q);
+
+ADRINC = (H0_N_4.Q & H0_N_7.Q & N_13.Q & N_14.Q & N_16 & N_20.Q);
+
+!N_20.D = ((N_16 & !N_20.Q)
+	# (N_16 & H0_N_4.Q & H0_N_7.Q & N_13.Q & N_14.Q));
+
+!N_24.D = ((N_12 & !N_24.Q)
+	# (N_12 & E0_N_6.Q & E0_N_10.Q & xp_1_.Q & xp_2_.Q & xp_3_.Q & xp_4_.Q & xp_5_.Q & yp_0_.Q & yp_1_.Q & yp_2_.Q & yp_3_.Q & yp_4_.Q & yp_5_.Q));
+
+N_40.D = ((!noel & mldq0.PIN)
+	# (noel & N_40.Q));
+
+N_43.D = ((!noel & mldq3.PIN)
+	# (noel & N_43.Q));
+
+N_41.D = ((!noel & mldq1.PIN)
+	# (noel & N_41.Q));
+
+N_42.D = ((!noel & mldq2.PIN)
+	# (noel & N_42.Q));
+
+N_44.D = ((!noel & mldq4.PIN)
+	# (noel & N_44.Q));
+
+N_45.D = ((!noel & mldq5.PIN)
+	# (noel & N_45.Q));
+
+N_46.D = ((!noel & mldq6.PIN)
+	# (noel & N_46.Q));
+
+N_47.D = ((!noel & mldq7.PIN)
+	# (noel & N_47.Q));
+
+E0_N_6.D = E0_N_6.Q $ N_24.Q;
+
+E0_N_10.D = ATM_368 $ E0_N_10.Q;
+
+H0_N_4.D = H0_N_4.Q $ N_20.Q;
+
+H0_N_7.D = ATM_374 $ H0_N_7.Q;
+
+J0_N_6.D = J0_N_6.Q $ J0_N_7.Q;
+
+N_13.D = ATM_380 $ N_13.Q;
+
+N_14.D = ATM_383 $ N_14.Q;
+
+P0_N_10.D = ATM_386 $ P0_N_10.Q;
+
+P0_N_14.D = ATM_389 $ P0_N_14.Q;
+
+P0_N_17.D = ATM_392 $ P0_N_17.Q;
+
+P0_N_16.D = ATM_395 $ P0_N_16.Q;
+
+U0_N_37.D = ATM_398 $ U0_N_37.Q;
+
+U0_N_36.D = ATM_401 $ U0_N_36.Q;
+
+vcnt_1_.D = ATM_404 $ vcnt_1_.Q;
+
+xp_1_.D = ATM_407 $ xp_1_.Q;
+
+xp_2_.D = ATM_410 $ xp_2_.Q;
+
+O0_N_2.D = ((ADRINC & O0_N_23.Q & O0_q_0_.Q & O0_q_1_.Q & O0_q_2_.Q & O0_q_3_.Q & O0_q_4_.Q & O0_q_5_.Q)
+	# (!ADRINC & O0_N_2.Q));
+
+N_17.T = ((ADRINC & !N_17.Q & !P1_N_22.Q & !P1_q_1_.Q & !P1_q_2_.Q & !P1_q_3_.Q & !P1_q_4_.Q & !P1_q_5_.Q)
+	# (ADRINC & N_17.Q & P1_N_22.Q & P1_q_1_.Q & P1_q_2_.Q & P1_q_3_.Q & P1_q_4_.Q & P1_q_5_.Q));
+
+O0_N_3.D = ((ADRINC & O0_N_2.Q)
+	# (!ADRINC & O0_N_3.Q));
+
+O0_N_23.T = ((ADRINC & O0_N_23.Q & O0_q_0_.Q & O0_q_1_.Q & O0_q_2_.Q & O0_q_3_.Q & O0_q_4_.Q & O0_q_5_.Q & O0_N_2.Q & O0_N_3.Q)
+	# (ADRINC & !O0_N_23.Q & !O0_q_0_.Q & !O0_q_1_.Q & !O0_q_2_.Q & !O0_q_3_.Q & !O0_q_4_.Q & !O0_q_5_.Q));
+
+!O0_q_0_.T = ((!O0_N_23.Q & !O0_q_0_.Q & !O0_q_1_.Q & !O0_q_2_.Q & !O0_q_3_.Q & !O0_q_4_.Q & !O0_q_5_.Q)
+	# (O0_N_23.Q & O0_q_0_.Q & O0_q_1_.Q & O0_q_2_.Q & O0_q_3_.Q & O0_q_4_.Q & O0_q_5_.Q)
+	# !ADRINC);
+
+!O0_q_1_.T = ((O0_N_23.Q & O0_q_1_.Q & O0_q_2_.Q & O0_q_3_.Q & O0_q_4_.Q & O0_q_5_.Q)
+	# !ADRINC
+	# (!O0_N_23.Q & O0_q_0_.Q)
+	# (O0_N_23.Q & !O0_q_0_.Q)
+	# (!O0_N_23.Q & !O0_q_1_.Q & !O0_q_2_.Q & !O0_q_3_.Q & !O0_q_4_.Q & !O0_q_5_.Q));
+
+O0_q_4_.T = ((ADRINC & !O0_N_23.Q & !O0_q_0_.Q & !O0_q_1_.Q & !O0_q_2_.Q & !O0_q_3_.Q & O0_q_5_.Q)
+	# (ADRINC & !O0_N_23.Q & !O0_q_0_.Q & !O0_q_1_.Q & !O0_q_2_.Q & !O0_q_3_.Q & O0_q_4_.Q)
+	# (ADRINC & O0_N_23.Q & O0_q_0_.Q & O0_q_1_.Q & O0_q_2_.Q & O0_q_3_.Q & !O0_q_5_.Q)
+	# (ADRINC & O0_N_23.Q & O0_q_0_.Q & O0_q_1_.Q & O0_q_2_.Q & O0_q_3_.Q & !O0_q_4_.Q));
+
+!O0_q_2_.T = ((!O0_N_23.Q & O0_q_1_.Q)
+	# XXL_419
+	# (!O0_N_23.Q & O0_q_0_.Q));
+
+O0_q_3_.T = (XXL_420
+	# (ADRINC & !O0_N_23.Q & !O0_q_0_.Q & !O0_q_1_.Q & !O0_q_2_.Q & O0_q_3_.Q));
+
+O0_q_5_.T = ((ADRINC & !O0_N_23.Q & !O0_q_0_.Q & !O0_q_1_.Q & !O0_q_2_.Q & !O0_q_3_.Q & !O0_q_4_.Q & O0_q_5_.Q)
+	# (ADRINC & O0_N_23.Q & O0_q_0_.Q & O0_q_1_.Q & O0_q_2_.Q & O0_q_3_.Q & O0_q_4_.Q & !O0_q_5_.Q));
+
+!P1_N_22.T = ((!N_17.Q & !P1_N_22.Q & !P1_q_1_.Q & !P1_q_2_.Q & !P1_q_3_.Q & !P1_q_4_.Q & !P1_q_5_.Q)
+	# (N_17.Q & P1_N_22.Q & P1_q_1_.Q & P1_q_2_.Q & P1_q_3_.Q & P1_q_4_.Q & P1_q_5_.Q)
+	# !ADRINC);
+
+!P1_q_1_.T = ((N_17.Q & P1_q_1_.Q & P1_q_2_.Q & P1_q_3_.Q & P1_q_4_.Q & P1_q_5_.Q)
+	# (!N_17.Q & P1_N_22.Q)
+	# (N_17.Q & !P1_N_22.Q)
+	# !ADRINC
+	# (!N_17.Q & !P1_q_1_.Q & !P1_q_2_.Q & !P1_q_3_.Q & !P1_q_4_.Q & !P1_q_5_.Q));
+
+!P1_q_2_.T = ((N_17.Q & !P1_N_22.Q)
+	# XXL_421
+	# (!N_17.Q & P1_q_1_.Q));
+
+P1_q_5_.T = ((ADRINC & !N_17.Q & !P1_N_22.Q & !P1_q_1_.Q & !P1_q_2_.Q & !P1_q_3_.Q & !P1_q_4_.Q & P1_q_5_.Q)
+	# (ADRINC & N_17.Q & P1_N_22.Q & P1_q_1_.Q & P1_q_2_.Q & P1_q_3_.Q & P1_q_4_.Q & !P1_q_5_.Q));
+
+P1_q_3_.T = (XXL_422
+	# (ADRINC & !N_17.Q & !P1_N_22.Q & !P1_q_1_.Q & !P1_q_2_.Q & P1_q_3_.Q));
+
+P1_q_4_.T = ((ADRINC & !N_17.Q & !P1_N_22.Q & !P1_q_1_.Q & !P1_q_2_.Q & !P1_q_3_.Q & P1_q_5_.Q)
+	# (ADRINC & !N_17.Q & !P1_N_22.Q & !P1_q_1_.Q & !P1_q_2_.Q & !P1_q_3_.Q & P1_q_4_.Q)
+	# (ADRINC & N_17.Q & P1_N_22.Q & P1_q_1_.Q & P1_q_2_.Q & P1_q_3_.Q & !P1_q_5_.Q)
+	# (ADRINC & N_17.Q & P1_N_22.Q & P1_q_1_.Q & P1_q_2_.Q & P1_q_3_.Q & !P1_q_4_.Q));
+
+XXL_411 = ((N_13.Q & N_20.Q & P1_N_22.Q)
+	# (N_24.Q & !N_40.Q & N_43.Q)
+	# (N_24.Q & !N_40.Q & N_42.Q)
+	# (N_24.Q & !N_40.Q & N_41.Q)
+	# (!N_13.Q & N_20.Q & !P1_N_22.Q));
+
+XXL_412 = ((N_40.Q & N_41.Q)
+	# (!N_24.Q & N_41.Q)
+	# (!N_13.Q & N_20.Q & !P1_N_22.Q)
+	# (N_13.Q & N_20.Q & P1_N_22.Q)
+	# (N_24.Q & !N_40.Q & !N_41.Q & N_43.Q));
+
+XXL_413 = ((N_42.Q & N_40.Q)
+	# (N_42.Q & !N_24.Q)
+	# (!N_13.Q & N_20.Q & !P1_N_22.Q)
+	# (N_13.Q & N_20.Q & P1_N_22.Q)
+	# (N_41.Q & N_42.Q));
+
+XXL_414 = ((!N_13.Q & N_20.Q & P1_N_22.Q)
+	# (N_24.Q & !N_44.Q & N_47.Q)
+	# (N_24.Q & !N_44.Q & N_46.Q)
+	# (N_24.Q & !N_44.Q & N_45.Q)
+	# (N_13.Q & N_20.Q & !P1_N_22.Q));
+
+XXL_415 = ((P1_N_22.Q & N_24.Q & !N_40.Q & !N_41.Q & !N_42.Q)
+	# (!N_43.Q & N_13.Q & !P1_N_22.Q)
+	# (!N_43.Q & !N_20.Q)
+	# (N_24.Q & !N_40.Q & !N_41.Q & !N_42.Q & !N_20.Q)
+	# (!N_43.Q & !N_13.Q & P1_N_22.Q));
+
+XXL_416 = ((N_44.Q & N_45.Q)
+	# (!N_24.Q & N_45.Q)
+	# (N_13.Q & N_20.Q & !P1_N_22.Q)
+	# (!N_13.Q & N_20.Q & P1_N_22.Q)
+	# (N_24.Q & !N_44.Q & !N_45.Q & N_47.Q));
+
+XXL_417 = ((N_46.Q & N_44.Q)
+	# (N_46.Q & !N_24.Q)
+	# (N_13.Q & N_20.Q & !P1_N_22.Q)
+	# (!N_13.Q & N_20.Q & P1_N_22.Q)
+	# (N_45.Q & N_46.Q));
+
+XXL_418 = ((N_24.Q & !N_44.Q & !N_45.Q & !N_46.Q & !N_20.Q)
+	# (!P1_N_22.Q & !N_47.Q & !N_13.Q)
+	# (!N_47.Q & !N_20.Q)
+	# (!P1_N_22.Q & N_24.Q & !N_44.Q & !N_45.Q & !N_46.Q)
+	# (P1_N_22.Q & !N_47.Q & N_13.Q));
+
+XXL_419 = ((O0_N_23.Q & !O0_q_1_.Q)
+	# (!O0_N_23.Q & !O0_q_2_.Q & !O0_q_3_.Q & !O0_q_4_.Q & !O0_q_5_.Q)
+	# (O0_N_23.Q & O0_q_2_.Q & O0_q_3_.Q & O0_q_4_.Q & O0_q_5_.Q)
+	# !ADRINC
+	# (O0_N_23.Q & !O0_q_0_.Q));
+
+XXL_420 = ((ADRINC & O0_N_23.Q & O0_q_0_.Q & O0_q_1_.Q & O0_q_2_.Q & !O0_q_4_.Q)
+	# (ADRINC & O0_N_23.Q & O0_q_0_.Q & O0_q_1_.Q & O0_q_2_.Q & !O0_q_3_.Q)
+	# (ADRINC & !O0_N_23.Q & !O0_q_0_.Q & !O0_q_1_.Q & !O0_q_2_.Q & O0_q_5_.Q)
+	# (ADRINC & !O0_N_23.Q & !O0_q_0_.Q & !O0_q_1_.Q & !O0_q_2_.Q & O0_q_4_.Q)
+	# (ADRINC & O0_N_23.Q & O0_q_0_.Q & O0_q_1_.Q & O0_q_2_.Q & !O0_q_5_.Q));
+
+XXL_421 = (!ADRINC
+	# (!N_17.Q & !P1_q_2_.Q & !P1_q_3_.Q & !P1_q_4_.Q & !P1_q_5_.Q)
+	# (N_17.Q & P1_q_2_.Q & P1_q_3_.Q & P1_q_4_.Q & P1_q_5_.Q)
+	# (!N_17.Q & P1_N_22.Q)
+	# (N_17.Q & !P1_q_1_.Q));
+
+XXL_422 = ((ADRINC & N_17.Q & P1_N_22.Q & P1_q_1_.Q & P1_q_2_.Q & !P1_q_4_.Q)
+	# (ADRINC & N_17.Q & P1_N_22.Q & P1_q_1_.Q & P1_q_2_.Q & !P1_q_3_.Q)
+	# (ADRINC & !N_17.Q & !P1_N_22.Q & !P1_q_1_.Q & !P1_q_2_.Q & P1_q_5_.Q)
+	# (ADRINC & !N_17.Q & !P1_N_22.Q & !P1_q_1_.Q & !P1_q_2_.Q & P1_q_4_.Q)
+	# (ADRINC & N_17.Q & P1_N_22.Q & P1_q_1_.Q & P1_q_2_.Q & !P1_q_5_.Q));
+
+J0_N_7.C = ck5.Q;
+
+P0_N_5.C = ck5.Q;
+
+P0_N_4.C = ck5.Q;
+
+P0_N_6.C = ck5.Q;
+
+P0_N_18.C = ck5.Q;
+
+P0_N_20.C = ck5.Q;
+
+P0_N_19.C = ck5.Q;
+
+U0_N_32.C = ck5.Q;
+
+U0_N_31.C = ck5.Q;
+
+U0_N_33.C = ck5.Q;
+
+U0_N_34.C = ck5.Q;
+
+U0_N_35.C = ck5.Q;
+
+ck5.C = ck10;
+
+led0.C = ck5.Q;
+
+led1.C = ck5.Q;
+
+mldq0.OE = ((!H0_N_4.Q & H0_N_7.Q & N_20.Q)
+	# (!E0_N_6.Q & E0_N_10.Q & N_24.Q));
+
+mldq1.OE = mldq0.OE;
+
+mldq2.OE = mldq0.OE;
+
+mldq4.OE = mldq0.OE;
+
+mldq3.OE = mldq0.OE;
+
+mldq5.OE = mldq0.OE;
+
+mldq6.OE = mldq0.OE;
+
+mldq7.OE = mldq0.OE;
+
+nled.C = ck5.Q;
+
+vcnt_0_.C = ck5.Q;
+
+vcnt_2_.C = ck5.Q;
+
+vcnt_3_.C = ck5.Q;
+
+vcnt_4_.C = ck5.Q;
+
+vcnt_6_.C = ck5.Q;
+
+vcnt_5_.C = ck5.Q;
+
+vcnt_8_.C = ck5.Q;
+
+vcnt_7_.C = ck5.Q;
+
+vcnt_9_.C = ck5.Q;
+
+xp_3_.C = ck5.Q;
+
+xp_3_.AR = !N_24.Q;
+
+xp_4_.C = ck5.Q;
+
+xp_4_.AR = !N_24.Q;
+
+yp_0_.C = ck5.Q;
+
+yp_0_.AR = !N_24.Q;
+
+xp_5_.C = ck5.Q;
+
+xp_5_.AR = !N_24.Q;
+
+yp_1_.C = ck5.Q;
+
+yp_1_.AR = !N_24.Q;
+
+yp_2_.C = ck5.Q;
+
+yp_2_.AR = !N_24.Q;
+
+yp_3_.C = ck5.Q;
+
+yp_3_.AR = !N_24.Q;
+
+yp_4_.C = ck5.Q;
+
+yp_4_.AR = !N_24.Q;
+
+yp_5_.C = ck5.Q;
+
+yp_5_.AR = !N_24.Q;
+
+N_20.C = ck5.Q;
+
+N_24.C = ck5.Q;
+
+N_40.C = ck5.Q;
+
+N_43.C = ck5.Q;
+
+N_41.C = ck5.Q;
+
+N_42.C = ck5.Q;
+
+N_44.C = ck5.Q;
+
+N_45.C = ck5.Q;
+
+N_46.C = ck5.Q;
+
+N_47.C = ck5.Q;
+
+E0_N_6.C = ck5.Q;
+
+E0_N_6.AR = !N_24.Q;
+
+E0_N_10.C = ck5.Q;
+
+E0_N_10.AR = !N_24.Q;
+
+H0_N_4.C = ck5.Q;
+
+H0_N_4.AR = !N_20.Q;
+
+H0_N_7.C = ck5.Q;
+
+H0_N_7.AR = !N_20.Q;
+
+J0_N_6.C = ck5.Q;
+
+N_13.C = ck5.Q;
+
+N_13.AR = !N_20.Q;
+
+N_14.C = ck5.Q;
+
+N_14.AR = !N_20.Q;
+
+P0_N_10.C = ck5.Q;
+
+P0_N_14.C = ck5.Q;
+
+P0_N_17.C = ck5.Q;
+
+P0_N_16.C = ck5.Q;
+
+U0_N_37.C = ck5.Q;
+
+U0_N_36.C = ck5.Q;
+
+vcnt_1_.C = ck5.Q;
+
+xp_1_.C = ck5.Q;
+
+xp_1_.AR = !N_24.Q;
+
+xp_2_.C = ck5.Q;
+
+xp_2_.AR = !N_24.Q;
+
+O0_N_2.C = ck5.Q;
+
+N_17.C = ck5.Q;
+
+O0_N_3.C = ck5.Q;
+
+O0_N_23.C = ck5.Q;
+
+O0_q_0_.C = ck5.Q;
+
+O0_q_1_.C = ck5.Q;
+
+O0_q_4_.C = ck5.Q;
+
+O0_q_2_.C = ck5.Q;
+
+O0_q_3_.C = ck5.Q;
+
+O0_q_5_.C = ck5.Q;
+
+P1_N_22.C = ck5.Q;
+
+P1_q_1_.C = ck5.Q;
+
+P1_q_2_.C = ck5.Q;
+
+P1_q_5_.C = ck5.Q;
+
+P1_q_3_.C = ck5.Q;
+
+P1_q_4_.C = ck5.Q;
+
+
+PLCC84 Pin/Node Placement:
+------------------------------------
+Pin 14 = TDI; /* MC 32 */ 
+Pin 15 = la8; /* MC 29 */ 
+Pin 16 = la7; /* MC 27 */ 
+Pin 17 = la6; /* MC 25 */ 
+Pin 18 = la5; /* MC 24 */ 
+Pin 20 = la4; /* MC 21 */ 
+Pin 21 = la3; /* MC 19 */ 
+Pin 23 = TMS; /* MC 48 */ 
+Pin 24 = la2; /* MC 46 */ 
+Pin 25 = la1; /* MC 45 */ 
+Pin 27 = la0; /* MC 43 */ 
+Pin 31 = mldq7; /* MC 35 */ 
+Pin 33 = mldq6; /* MC 64 */ 
+Pin 34 = mldq5; /* MC 61 */ 
+Pin 35 = mldq4; /* MC 59 */ 
+Pin 36 = mldq3; /* MC 57 */ 
+Pin 37 = mldq2; /* MC 56 */ 
+Pin 39 = mldq1; /* MC 53 */ 
+Pin 40 = mldq0; /* MC 51 */ 
+Pin 62 = TCK; /* MC 96 */ 
+Pin 69 = la9; /* MC 107 */ 
+Pin 71 = TDO; /* MC 112 */ 
+Pin 74 = nled; /* MC 117 */ 
+Pin 75 = noel; /* MC 118 */ 
+Pin 76 = la10; /* MC 120 */ 
+Pin 77 = la11; /* MC 123 */ 
+Pin 79 = nwrl; /* MC 125 */ 
+Pin 80 = ncel; /* MC 126 */ 
+Pin 81 = ck5; /* MC 128 */ 
+Pin 83 = ck10;
+PINNODE 315 = N_16; /* MC 15 Foldback */
+PINNODE 316 = N_12; /* MC 16 Foldback */
+PINNODE 601 = yp_2_; /* MC 1 Feedback */
+PINNODE 602 = yp_3_; /* MC 2 Feedback */
+PINNODE 603 = P0_N_6; /* MC 3 Feedback */
+PINNODE 604 = yp_4_; /* MC 4 Feedback */
+PINNODE 605 = ADRINC; /* MC 5 Feedback */
+PINNODE 606 = xp_3_; /* MC 6 Feedback */
+PINNODE 607 = yp_5_; /* MC 7 Feedback */
+PINNODE 608 = xp_4_; /* MC 8 Feedback */
+PINNODE 609 = N_24; /* MC 9 Feedback */
+PINNODE 610 = N_20; /* MC 10 Feedback */
+PINNODE 611 = mldq0.OE; /* MC 11 Feedback */
+PINNODE 612 = xp_2_; /* MC 12 Feedback */
+PINNODE 613 = xp_5_; /* MC 13 Feedback */
+PINNODE 614 = yp_0_; /* MC 14 Feedback */
+PINNODE 615 = N_14; /* MC 15 Feedback */
+PINNODE 616 = yp_1_; /* MC 16 Feedback */
+PINNODE 617 = O0_q_3_; /* MC 17 Feedback */
+PINNODE 618 = O0_q_5_; /* MC 18 Feedback */
+PINNODE 620 = O0_N_23; /* MC 20 Feedback */
+PINNODE 622 = O0_N_2; /* MC 22 Feedback */
+PINNODE 623 = O0_q_2_; /* MC 23 Feedback */
+PINNODE 626 = O0_q_0_; /* MC 26 Feedback */
+PINNODE 628 = O0_q_4_; /* MC 28 Feedback */
+PINNODE 630 = XXL_419; /* MC 30 Feedback */
+PINNODE 631 = XXL_420; /* MC 31 Feedback */
+PINNODE 632 = O0_q_1_; /* MC 32 Feedback */
+PINNODE 633 = P1_N_22; /* MC 33 Feedback */
+PINNODE 634 = P1_q_4_; /* MC 34 Feedback */
+PINNODE 636 = XXL_418; /* MC 36 Feedback */
+PINNODE 637 = P1_q_3_; /* MC 37 Feedback */
+PINNODE 638 = P1_q_5_; /* MC 38 Feedback */
+PINNODE 639 = XXL_411; /* MC 39 Feedback */
+PINNODE 640 = N_17; /* MC 40 Feedback */
+PINNODE 641 = XXL_415; /* MC 41 Feedback */
+PINNODE 642 = XXL_422; /* MC 42 Feedback */
+PINNODE 644 = XXL_414; /* MC 44 Feedback */
+PINNODE 647 = XXL_421; /* MC 47 Feedback */
+PINNODE 648 = P1_q_1_; /* MC 48 Feedback */
+PINNODE 650 = N_40; /* MC 50 Feedback */
+PINNODE 652 = E0_N_6; /* MC 52 Feedback */
+PINNODE 654 = E0_N_10; /* MC 54 Feedback */
+PINNODE 655 = xp_1_; /* MC 55 Feedback */
+PINNODE 658 = XXL_417; /* MC 58 Feedback */
+PINNODE 660 = XXL_416; /* MC 60 Feedback */
+PINNODE 662 = XXL_413; /* MC 62 Feedback */
+PINNODE 663 = XXL_412; /* MC 63 Feedback */
+PINNODE 665 = led1; /* MC 65 Feedback */
+PINNODE 666 = vcnt_7_; /* MC 66 Feedback */
+PINNODE 667 = U0_N_35; /* MC 67 Feedback */
+PINNODE 668 = vcnt_8_; /* MC 68 Feedback */
+PINNODE 669 = U0_N_33; /* MC 69 Feedback */
+PINNODE 670 = vcnt_3_; /* MC 70 Feedback */
+PINNODE 671 = vcnt_2_; /* MC 71 Feedback */
+PINNODE 672 = U0_N_34; /* MC 72 Feedback */
+PINNODE 673 = vcnt_4_; /* MC 73 Feedback */
+PINNODE 674 = P0_N_18; /* MC 74 Feedback */
+PINNODE 675 = vcnt_5_; /* MC 75 Feedback */
+PINNODE 676 = vcnt_9_; /* MC 76 Feedback */
+PINNODE 677 = U0_N_32; /* MC 77 Feedback */
+PINNODE 678 = vcnt_0_; /* MC 78 Feedback */
+PINNODE 679 = U0_N_31; /* MC 79 Feedback */
+PINNODE 680 = vcnt_6_; /* MC 80 Feedback */
+PINNODE 681 = U0_N_37; /* MC 81 Feedback */
+PINNODE 682 = P0_N_17; /* MC 82 Feedback */
+PINNODE 683 = P0_N_4; /* MC 83 Feedback */
+PINNODE 684 = P0_N_10; /* MC 84 Feedback */
+PINNODE 685 = P0_N_5; /* MC 85 Feedback */
+PINNODE 686 = led0; /* MC 86 Feedback */
+PINNODE 687 = U0_N_36; /* MC 87 Feedback */
+PINNODE 688 = J0_N_6; /* MC 88 Feedback */
+PINNODE 689 = vcnt_1_; /* MC 89 Feedback */
+PINNODE 690 = H0_N_4; /* MC 90 Feedback */
+PINNODE 691 = P0_N_14; /* MC 91 Feedback */
+PINNODE 692 = H0_N_7; /* MC 92 Feedback */
+PINNODE 693 = P0_N_16; /* MC 93 Feedback */
+PINNODE 694 = N_44; /* MC 94 Feedback */
+PINNODE 695 = P1_q_2_; /* MC 95 Feedback */
+PINNODE 696 = N_13; /* MC 96 Feedback */
+PINNODE 698 = J0_N_7; /* MC 98 Feedback */
+PINNODE 700 = P0_N_20; /* MC 100 Feedback */
+PINNODE 702 = N_45; /* MC 102 Feedback */
+PINNODE 703 = O0_N_3; /* MC 103 Feedback */
+PINNODE 706 = N_46; /* MC 106 Feedback */
+PINNODE 708 = N_41; /* MC 108 Feedback */
+PINNODE 709 = P0_N_19; /* MC 109 Feedback */
+PINNODE 710 = N_43; /* MC 110 Feedback */
+PINNODE 711 = N_42; /* MC 111 Feedback */
+PINNODE 712 = N_47; /* MC 112 Feedback */
+
+** Resource Usage **
+
+
+DCERP Field = Summary of Allocations.
+|||||
+|||||_Preset [p,-]       ==  p = PT preset, - No Preset.
+||||
+||||__Reset [g,r,-]      ==  g= Global AR, r = PT reset, - No reset.
+|||
+|||___Clock Enable [e,-] ==  e = Product Term, - always enabled, - none.
+||
+||____Clock [c,g,-],     ==  c = Product term, g = Global term, - No Clock.
+|
+|_____Type [C,D,L,T],    ==  Register type C= combin, D=dff, L=latch, T=tff.
+
+For input only = INPUT.
+
+MCell Pin# Oe   PinDrive  DCERP  FBDrive  DCERP  Foldback  CascadeOut     TotPT output_slew
+MC1   0         --               yp_2_    Tg-r-  --        --             2     fast
+MC2   0         --               yp_3_    Tg-r-  --        --             2     fast
+MC3   12        --               P0_N_6   Tg---  --        --             1     fast
+MC4   0         --               yp_4_    Tg-r-  --        --             2     fast
+MC5   11        --               ADRINC   C----  --        --             1     fast
+MC6   10        --               xp_3_    Tg-r-  --        --             2     fast
+MC7   0         --               yp_5_    Tg-r-  --        --             2     fast
+MC8   9         --               xp_4_    Tg-r-  --        --             2     fast
+MC9   0         --               N_24     Dg---  --        --             2     fast
+MC10  0         --               N_20     Dg---  --        --             2     fast
+MC11  8         --               mldq0.OE C----  --        --             2     fast
+MC12  0         --               xp_2_    Dg-r-  --        --             3     fast
+MC13  6         --               xp_5_    Tg-r-  --        --             2     fast
+MC14  5         --               yp_0_    Tg-r-  --        --             2     fast
+MC15  0         --               N_14     Dg-r-  N_16      --             4     fast
+MC16  4         --               yp_1_    Tg-r-  N_12      --             3     fast
+MC17  22        --               O0_q_3_  Tg---  --        --             2     fast
+MC18  0         --               O0_q_5_  Tg---  --        --             2     fast
+MC19  21   on   la3       C----  --              --        --             3     fast
+MC20  0         --               O0_N_23  Tg---  --        --             2     fast
+MC21  20   on   la4       C----  --              --        --             3     fast
+MC22  0         --               O0_N_2   Dg---  --        --             2     fast
+MC23  0         --               O0_q_2_  Tg---  --        --             3     fast
+MC24  18   on   la5       C----  --              --        --             3     fast
+MC25  17   on   la6       C----  --              --        --             3     fast
+MC26  0         --               O0_q_0_  Tg---  --        --             3     fast
+MC27  16   on   la7       C----  --              --        --             3     fast
+MC28  0         --               O0_q_4_  Tg---  --        --             4     fast
+MC29  15   on   la8       C----  --              --        --             3     fast
+MC30  0         --               XXL_419  C----  NA        --             5     fast
+MC31  0         --               XXL_420  C----  NA        --             5     fast
+MC32  14   --   TDI       INPUT  O0_q_1_  Tg---  NA        --             5     fast
+MC33  0         --               P1_N_22  Tg---  --        --             3     fast
+MC34  0         --               P1_q_4_  Tg---  --        --             4     fast
+MC35  31   PT   mldq7     C----  --              --        --             2     fast
+MC36  0         --               XXL_418  C----  NA        --             5     fast
+MC37  30        --               P1_q_3_  Tg---  --        --             2     fast
+MC38  29        --               P1_q_5_  Tg---  --        --             2     fast
+MC39  0         --               XXL_411  C----  NA        --             5     fast
+MC40  28        --               N_17     Tg---  --        --             2     fast
+MC41  0         --               XXL_415  C----  NA        --             5     fast
+MC42  0         --               XXL_422  C----  NA        --             5     fast
+MC43  27   on   la0       C----  --              --        --             3     fast
+MC44  0         --               XXL_414  C----  NA        --             5     fast
+MC45  25   on   la1       C----  --              --        --             3     fast
+MC46  24   on   la2       C----  --              --        --             3     fast
+MC47  0         --               XXL_421  C----  NA        --             5     fast
+MC48  23   --   TMS       INPUT  P1_q_1_  Tg---  NA        --             5     fast
+MC49  41        --               --              --        --             0     fast
+MC50  0         --               N_40     Dg---  --        --             2     fast
+MC51  40   PT   mldq0     C----  --              --        --             3     fast
+MC52  0         --               E0_N_6   Dg-r-  --        --             3     fast
+MC53  39   PT   mldq1     C----  --              --        --             3     fast
+MC54  0         --               E0_N_10  Dg-r-  --        --             3     fast
+MC55  0         --               xp_1_    Dg-r-  --        --             3     fast
+MC56  37   PT   mldq2     C----  --              --        --             3     fast
+MC57  36   PT   mldq3     C----  --              --        --             2     fast
+MC58  0         --               XXL_417  C----  NA        --             5     fast
+MC59  35   PT   mldq4     C----  --              --        --             3     fast
+MC60  0         --               XXL_416  C----  NA        --             5     fast
+MC61  34   PT   mldq5     C----  --              --        --             3     fast
+MC62  0         --               XXL_413  C----  NA        --             5     fast
+MC63  0         --               XXL_412  C----  NA        --             5     fast
+MC64  33   PT   mldq6     C----  --              --        --             3     fast
+MC65  44        --               led1     Tg---  --        --             1     fast
+MC66  0         --               vcnt_7_  Tg---  --        --             1     fast
+MC67  45        --               U0_N_35  Tg---  --        --             1     fast
+MC68  0         --               vcnt_8_  Tg---  --        --             1     fast
+MC69  46        --               U0_N_33  Tg---  --        --             1     fast
+MC70  0         --               vcnt_3_  Tg---  --        --             2     fast
+MC71  0         --               vcnt_2_  Tg---  --        --             2     fast
+MC72  48        --               U0_N_34  Tg---  --        --             1     fast
+MC73  49        --               vcnt_4_  Tg---  --        --             1     fast
+MC74  0         --               P0_N_18  Dg---  --        --             2     fast
+MC75  50        --               vcnt_5_  Tg---  --        --             1     fast
+MC76  0         --               vcnt_9_  Tg---  --        --             2     fast
+MC77  51        --               U0_N_32  Tg---  --        --             1     fast
+MC78  0         --               vcnt_0_  Tg---  --        --             3     fast
+MC79  0         --               U0_N_31  Dg---  --        --             3     fast
+MC80  52        --               vcnt_6_  Tg---  --        --             1     fast
+MC81  0         --               U0_N_37  Dg---  --        --             2     fast
+MC82  0         --               P0_N_17  Dg---  --        --             2     fast
+MC83  54        --               P0_N_4   Tg---  --        --             1     fast
+MC84  0         --               P0_N_10  Dg---  --        --             2     fast
+MC85  55        --               P0_N_5   Tg---  --        --             1     fast
+MC86  56        --               led0     Tg---  --        --             1     fast
+MC87  0         --               U0_N_36  Dg---  --        --             2     fast
+MC88  57        --               J0_N_6   Dg---  --        --             2     fast
+MC89  0         --               vcnt_1_  Dg---  --        --             2     fast
+MC90  0         --               H0_N_4   Dg-r-  --        --             3     fast
+MC91  58        --               P0_N_14  Dg---  --        --             2     fast
+MC92  0         --               H0_N_7   Dg-r-  --        --             3     fast
+MC93  60        --               P0_N_16  Dg---  --        --             2     fast
+MC94  61        --               N_44     Dg---  --        --             2     fast
+MC95  0         --               P1_q_2_  Tg---  --        --             3     fast
+MC96  62   --   TCK       INPUT  N_13     Dg-r-  --        --             3     fast
+MC97  63        --               --              --        --             0     fast
+MC98  0         --               J0_N_7   Dg---  --        --             1     fast
+MC99  64        --               --              --        --             0     fast
+MC100 0         --               P0_N_20  Dg---  --        --             1     fast
+MC101 65        --               --              --        --             0     fast
+MC102 0         --               N_45     Dg---  --        --             2     fast
+MC103 0         --               O0_N_3   Dg---  --        --             2     fast
+MC104 67        --               --              --        --             0     fast
+MC105 68        --               --              --        --             0     fast
+MC106 0         --               N_46     Dg---  --        --             2     fast
+MC107 69   on   la9       C----  --              --        --             3     fast
+MC108 0         --               N_41     Dg---  --        --             2     fast
+MC109 70        --               P0_N_19  Dg---  --        --             1     fast
+MC110 0         --               N_43     Dg---  --        --             2     fast
+MC111 0         --               N_42     Dg---  --        --             2     fast
+MC112 71   --   TDO       INPUT  N_47     Dg---  --        --             2     fast
+MC113 0         --               --              --        --             0     fast
+MC114 0         --               --              --        --             0     fast
+MC115 73        --               --              --        --             0     fast
+MC116 0         --               --              --        --             0     fast
+MC117 74   on   nled      Tg---  --              --        --             1     fast
+MC118 75   on   noel      C----  --              --        --             2     fast
+MC119 0         --               --              --        --             0     fast
+MC120 76   on   la10      C----  --              --        --             3     fast
+MC121 0         --               --              --        --             0     fast
+MC122 0         --               --              --        --             0     fast
+MC123 77   on   la11      C----  --              --        --             0     fast
+MC124 0         --               --              --        --             0     fast
+MC125 79   on   nwrl      C----  --              --        --             2     fast
+MC126 80   on   ncel      C----  --              --        --             2     fast
+MC127 0         --               --              --        --             0     fast
+MC128 81   on   ck5       Dg---  --              --        --             1     fast
+MC0   2         --               --              --        --             0     fast
+MC0   1         --               --              --        --             0     fast
+MC0   84        --               --              --        --             0     fast
+MC0   83        ck10      INPUT  --              --        --             0     fast
+
+Logic Array Block	Logic Cells	I/O Pins	Foldbacks	TotalPT		FanIN	Cascades
+A: LC1	- LC16		16/16(100%)	0/16(0%)	2/16(12%)	34/80(42%)	(25)	0
+B: LC17	- LC32		16/16(100%)	7/16(43%)	0/16(0%)	51/80(63%)	(22)	0
+C: LC33	- LC48		16/16(100%)	5/16(31%)	0/16(0%)	59/80(73%)	(25)	0
+D: LC49	- LC64		15/16(93%)	7/16(43%)	0/16(0%)	51/80(63%)	(25)	0
+E: LC65	- LC80		16/16(100%)	0/16(0%)	0/16(0%)	24/80(30%)	(24)	0
+F: LC81	- LC96		16/16(100%)	1/16(6%)	0/16(0%)	33/80(41%)	(25)	0
+G: LC97	- LC112		11/16(68%)	2/16(12%)	0/16(0%)	20/80(25%)	(23)	0
+H: LC113- LC128		7/16(43%)	7/16(43%)	0/16(0%)	11/80(13%)	(16)	0
+
+Total dedicated input used:	1/4 	(25%)
+Total I/O pins used		29/64 	(45%)
+Total Logic cells used 		113/128 	(88%)
+Total Flip-Flop used 		76/128 	(59%)
+Total Foldback logic used 	2/128 	(1%)
+Total Nodes+FB/MCells 		115/128 	(89%)
+Total cascade used 		0
+Total input pins 		5
+Total output pins 		25
+Total Pts 			283
+Creating pla file C:\DATA\TV_DAZZLER_II\CPLD\CUPL_FILES\BLJ_TESTGEN1_V5\BLJ_TESTGEN1_V5.tt3 with 0 inputs 0 outputs, 0 pins 0 nodes and 0 pterms...
+
+----------------  End fitter, Design FITS
+$Device PLCC84 fits 
+FIT1508 completed in 0.00 seconds

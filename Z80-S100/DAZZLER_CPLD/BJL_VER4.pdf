@@ -1,0 +1,471 @@
+{COMPONENT E:\SRC\REPOS\ZOGGINS\RC2014\Z80-S100\DAZZLER_CPLD\BJL_VER4.SYM
+
+ {ENVIRONMENT
+  {PDIFvrev 3.00}
+  {Program "CUPL(WM) Version 5.0a"}
+  {DBtype "Schematic"}
+  {DBvrev 1.01}
+  {DBtime "Wed Apr 26 19:54:20 2023 "}
+  {DBunit "MIL"}
+  {DBgrid 10}
+  {Lyrstr "WIRES" 1 "BUS" 1 "GATE" 2 "IEEE" 2 "PINFUN" 3 "PINNUM" 1 
+          "PINNAM" 6 "PINCON" 4 "REFDES" 2 "ATTR" 6 "SDOT" 1 
+          "DEVICE" 5 "OUTLIN" 5 "ATTR2" 6 "NOTES" 6 "NETNAM" 4 
+          "CMPNAM" 5 "BORDER" 5}
+ }
+
+ {USER
+  {VIEW
+   {Mode SYMB}
+   {Nlst OPEN}
+   {Vw 0 0 2}
+   {Lv 12 2 2 2 0 0 2 2 2 2 0 0 2 1 2 0 0 0 0}
+   {Gs 10 10}
+  }
+ }
+
+ {DISPLAY
+  [Ly "PINNUM"]
+  [Ls "SOLID"][Wd 0]
+  [Ts 15][Tj "LC"][Tr 0][Tm "N"]
+ }
+
+ {SYMBOL
+  {PIN_DEF
+   [Ly "PINCON"]
+   {P CK {Pt "INPUT"}{Lq 0}{Ploc 100 920}}
+   {P PT0EB6IN {Pt "INPUT"}{Lq 0}{Ploc 100 880}}
+   {P BMWRT {Pt "INPUT"}{Lq 0}{Ploc 100 860}}
+   {P SELA {Pt "INPUT"}{Lq 0}{Ploc 100 840}}
+   {P JS1SPKR {Pt "INPUT"}{Lq 0}{Ploc 100 820}}
+   {P JS2SPKR {Pt "INPUT"}{Lq 0}{Ploc 100 800}}
+   {P BNPWR {Pt "INPUT"}{Lq 0}{Ploc 100 780}}
+   {P BSOUT {Pt "INPUT"}{Lq 0}{Ploc 100 760}}
+   {P BPDBIN {Pt "INPUT"}{Lq 0}{Ploc 100 740}}
+   {P BSINP {Pt "INPUT"}{Lq 0}{Ploc 100 720}}
+   {P BA15 {Pt "INPUT"}{Lq 0}{Ploc 100 700}}
+   {P BA14 {Pt "INPUT"}{Lq 0}{Ploc 100 680}}
+   {P BA13 {Pt "INPUT"}{Lq 0}{Ploc 100 660}}
+   {P BA12 {Pt "INPUT"}{Lq 0}{Ploc 100 640}}
+   {P BA11 {Pt "INPUT"}{Lq 0}{Ploc 100 620}}
+   {P BA10 {Pt "INPUT"}{Lq 0}{Ploc 100 600}}
+   {P BA9 {Pt "INPUT"}{Lq 0}{Ploc 100 580}}
+   {P BA2 {Pt "INPUT"}{Lq 0}{Ploc 100 560}}
+   {P BA1 {Pt "INPUT"}{Lq 0}{Ploc 100 540}}
+   {P BA0 {Pt "INPUT"}{Lq 0}{Ploc 100 520}}
+   {P NTVDEN {Pt "INPUT"}{Lq 0}{Ploc 100 500}}
+   {P NJSEN {Pt "INPUT"}{Lq 0}{Ploc 100 480}}
+   {P NXTADROK {Pt "INPUT"}{Lq 0}{Ploc 100 460}}
+   {P BDO7 {Pt "INPUT"}{Lq 0}{Ploc 100 440}}
+   {P BDO6 {Pt "INPUT"}{Lq 0}{Ploc 100 420}}
+   {P BDO5 {Pt "INPUT"}{Lq 0}{Ploc 100 400}}
+   {P BDO4 {Pt "INPUT"}{Lq 0}{Ploc 100 380}}
+   {P BDO3 {Pt "INPUT"}{Lq 0}{Ploc 100 360}}
+   {P BDO2 {Pt "INPUT"}{Lq 0}{Ploc 100 340}}
+   {P BDO1 {Pt "INPUT"}{Lq 0}{Ploc 100 320}}
+   {P BDO0 {Pt "INPUT"}{Lq 0}{Ploc 100 300}}
+   {P PT0EB7OU {Pt "INPUT"}{Lq 0}{Ploc 100 280}}
+   {P SELB {Pt "INPUT"}{Lq 0}{Ploc 100 260}}
+   {P COMP {Pt "INPUT"}{Lq 0}{Ploc 100 240}}
+   {P DAC1 {Pt "INPUT"}{Lq 0}{Ploc 100 220}}
+   {P DAC2 {Pt "INPUT"}{Lq 0}{Ploc 100 200}}
+   {P DAC3 {Pt "INPUT"}{Lq 0}{Ploc 100 180}}
+   {P DAC4 {Pt "INPUT"}{Lq 0}{Ploc 100 160}}
+   {P DAC5 {Pt "INPUT"}{Lq 0}{Ploc 100 140}}
+   {P DAC6 {Pt "INPUT"}{Lq 0}{Ploc 100 120}}
+   {P DAC7 {Pt "INPUT"}{Lq 0}{Ploc 100 100}}
+   {P DAC8 {Pt "INPUT"}{Lq 0}{Ploc 100 80}}
+   {P EXTRAPT {Pt "INPUT"}{Lq 0}{Ploc 100 60}}
+   {P B0_CK500 {Pt "INPUT"}{Lq 0}{Ploc 100 40}}
+   {P PT0EB7IN {Pt "INPUT"}{Lq 0}{Ploc 100 20}}
+   {P NPT0FCK {Pt "I/O"}{Lq 0}{Ploc 350 20}}
+   {P NIN {Pt "I/O"}{Lq 0}{Ploc 350 40}}
+   {P NPT18EN {Pt "I/O"}{Lq 0}{Ploc 350 60}}
+   {P LDI0 {Pt "I/O"}{Lq 0}{Ploc 350 80}}
+   {P LDI1 {Pt "I/O"}{Lq 0}{Ploc 350 100}}
+   {P LDI2 {Pt "I/O"}{Lq 0}{Ploc 350 120}}
+   {P LDI3 {Pt "I/O"}{Lq 0}{Ploc 350 140}}
+   {P LDI4 {Pt "I/O"}{Lq 0}{Ploc 350 160}}
+   {P LDI5 {Pt "I/O"}{Lq 0}{Ploc 350 180}}
+   {P LDI6 {Pt "I/O"}{Lq 0}{Ploc 350 200}}
+   {P LDI7 {Pt "I/O"}{Lq 0}{Ploc 350 220}}
+   {P MA9 {Pt "I/O"}{Lq 0}{Ploc 350 240}}
+   {P NEXPORT {Pt "I/O"}{Lq 0}{Ploc 350 260}}
+   {P NLED {Pt "I/O"}{Lq 0}{Ploc 350 280}}
+   {P NOEL {Pt "I/O"}{Lq 0}{Ploc 350 300}}
+   {P MA10 {Pt "I/O"}{Lq 0}{Ploc 350 320}}
+   {P MA11 {Pt "I/O"}{Lq 0}{Ploc 350 340}}
+   {P NWR {Pt "I/O"}{Lq 0}{Ploc 350 360}}
+   {P NCE {Pt "I/O"}{Lq 0}{Ploc 350 380}}
+  }
+
+  {PKG
+   [Ly "REFDES"]
+   [Ts 25][Tj "CB"][Tr 0][Tm "N"]
+   {Rdl 225 950}
+
+   [Ly "PINNUM"]
+   [Ts 15][Tj "RC"]
+   {Pnl 120 930}
+   [Ts 15][Tj "RC"]
+   {Pnl 120 890}
+   {Pnl 120 870}
+   {Pnl 120 850}
+   {Pnl 120 830}
+   {Pnl 120 810}
+   {Pnl 120 790}
+   {Pnl 120 770}
+   {Pnl 120 750}
+   {Pnl 120 730}
+   {Pnl 120 710}
+   {Pnl 120 690}
+   {Pnl 120 670}
+   {Pnl 120 650}
+   {Pnl 120 630}
+   {Pnl 120 610}
+   {Pnl 120 590}
+   {Pnl 120 570}
+   {Pnl 120 550}
+   {Pnl 120 530}
+   {Pnl 120 510}
+   {Pnl 120 490}
+   {Pnl 120 470}
+   {Pnl 120 450}
+   {Pnl 120 430}
+   {Pnl 120 410}
+   {Pnl 120 390}
+   {Pnl 120 370}
+   {Pnl 120 350}
+   {Pnl 120 330}
+   {Pnl 120 310}
+   {Pnl 120 290}
+   {Pnl 120 270}
+   {Pnl 120 250}
+   {Pnl 120 230}
+   {Pnl 120 210}
+   {Pnl 120 190}
+   {Pnl 120 170}
+   {Pnl 120 150}
+   {Pnl 120 130}
+   {Pnl 120 110}
+   {Pnl 120 90}
+   {Pnl 120 70}
+   {Pnl 120 50}
+   {Pnl 120 30}
+   [Ts 15][Tj "LC"]
+   {Pnl 330 30}
+   {Pnl 330 50}
+   {Pnl 330 70}
+   {Pnl 330 90}
+   {Pnl 330 110}
+   {Pnl 330 130}
+   {Pnl 330 150}
+   {Pnl 330 170}
+   {Pnl 330 190}
+   {Pnl 330 210}
+   {Pnl 330 230}
+   {Pnl 330 250}
+   {Pnl 330 270}
+   {Pnl 330 290}
+   {Pnl 330 310}
+   {Pnl 330 330}
+   {Pnl 330 350}
+   {Pnl 330 370}
+   {Pnl 330 390}
+
+   {Sd A 83 1 2 4 5 6 8 9 10 11 15 16 17 18 20 21 22 24 25 27 28 29 30 31 33 34 35 36 37 39 40 44 45 48 49 50 51 52 54 55 56 57 73 81 84 12 41 46 58 60 61 63 64 65 67 68 69 70 74 75 76 77 79 80}
+  }
+
+  {PIC
+   [Ly "GATE"]
+   [Ts 15][Tj "LC"][Tr 0][Tm "N"]
+   {R 130 940 320 0}
+   {L 130 920 100 920}
+   {L 130 930 140 920 130 910}
+   {L 130 880 100 880}
+   {L 130 860 100 860}
+   {L 130 840 100 840}
+   {L 130 820 100 820}
+   {L 130 800 100 800}
+   {L 130 780 100 780}
+   {L 130 760 100 760}
+   {L 130 740 100 740}
+   {L 130 720 100 720}
+   {L 130 700 100 700}
+   {L 130 680 100 680}
+   {L 130 660 100 660}
+   {L 130 640 100 640}
+   {L 130 620 100 620}
+   {L 130 600 100 600}
+   {L 130 580 100 580}
+   {L 130 560 100 560}
+   {L 130 540 100 540}
+   {L 130 520 100 520}
+   {L 130 500 100 500}
+   {L 130 480 100 480}
+   {L 130 460 100 460}
+   {L 130 440 100 440}
+   {L 130 420 100 420}
+   {L 130 400 100 400}
+   {L 130 380 100 380}
+   {L 130 360 100 360}
+   {L 130 340 100 340}
+   {L 130 320 100 320}
+   {L 130 300 100 300}
+   {L 130 280 100 280}
+   {L 130 260 100 260}
+   {L 130 240 100 240}
+   {L 130 220 100 220}
+   {L 130 200 100 200}
+   {L 130 180 100 180}
+   {L 130 160 100 160}
+   {L 130 140 100 140}
+   {L 130 120 100 120}
+   {L 130 100 100 100}
+   {L 130 80 100 80}
+   {L 130 60 100 60}
+   {L 130 40 100 40}
+   {L 130 20 100 20}
+   {L 320 20 350 20}
+   {L 320 40 350 40}
+   {L 320 60 350 60}
+   {L 320 80 350 80}
+   {L 320 100 350 100}
+   {L 320 120 350 120}
+   {L 320 140 350 140}
+   {L 320 160 350 160}
+   {L 320 180 350 180}
+   {L 320 200 350 200}
+   {L 320 220 350 220}
+   {L 320 240 350 240}
+   {L 320 260 350 260}
+   {L 320 280 350 280}
+   {L 320 300 350 300}
+   {L 320 320 350 320}
+   {L 320 340 350 340}
+   {L 320 360 350 360}
+   {L 320 380 350 380}
+   [Ly "PINNAM"]
+   [Tj "LC"]
+   {T "CK" 140 920}
+   {T "PT0EB6IN" 140 880}
+   {T "BMWRT" 140 860}
+   {T "SELA" 140 840}
+   {T "JS1SPKR" 140 820}
+   {T "JS2SPKR" 140 800}
+   {T "BNPWR" 140 780}
+   {T "BSOUT" 140 760}
+   {T "BPDBIN" 140 740}
+   {T "BSINP" 140 720}
+   {T "BA15" 140 700}
+   {T "BA14" 140 680}
+   {T "BA13" 140 660}
+   {T "BA12" 140 640}
+   {T "BA11" 140 620}
+   {T "BA10" 140 600}
+   {T "BA9" 140 580}
+   {T "BA2" 140 560}
+   {T "BA1" 140 540}
+   {T "BA0" 140 520}
+   {T "NTVDEN" 140 500}
+   {T "NJSEN" 140 480}
+   {T "NXTADROK" 140 460}
+   {T "BDO7" 140 440}
+   {T "BDO6" 140 420}
+   {T "BDO5" 140 400}
+   {T "BDO4" 140 380}
+   {T "BDO3" 140 360}
+   {T "BDO2" 140 340}
+   {T "BDO1" 140 320}
+   {T "BDO0" 140 300}
+   {T "PT0EB7OU" 140 280}
+   {T "SELB" 140 260}
+   {T "COMP" 140 240}
+   {T "DAC1" 140 220}
+   {T "DAC2" 140 200}
+   {T "DAC3" 140 180}
+   {T "DAC4" 140 160}
+   {T "DAC5" 140 140}
+   {T "DAC6" 140 120}
+   {T "DAC7" 140 100}
+   {T "DAC8" 140 80}
+   {T "EXTRAPT" 140 60}
+   {T "B0_CK500" 140 40}
+   {T "PT0EB7IN" 140 20}
+   [Tj "RC"]
+   {T "NPT0FCK" 310 20}
+   {T "NIN" 310 40}
+   {T "NPT18EN" 310 60}
+   {T "LDI0" 310 80}
+   {T "LDI1" 310 100}
+   {T "LDI2" 310 120}
+   {T "LDI3" 310 140}
+   {T "LDI4" 310 160}
+   {T "LDI5" 310 180}
+   {T "LDI6" 310 200}
+   {T "LDI7" 310 220}
+   {T "MA9" 310 240}
+   {T "NEXPORT" 310 260}
+   {T "NLED" 310 280}
+   {T "NOEL" 310 300}
+   {T "MA10" 310 320}
+   {T "MA11" 310 340}
+   {T "NWR" 310 360}
+   {T "NCE" 310 380}
+   [Ly "DEVICE"]
+   [Tj "CT"]
+   {T "F1508ISPPLCC84" 225 -10}
+  }
+
+  {ATR
+   {IN
+    {Org 100 20}
+    {Ty 255}
+   }
+   {EX
+    [Ly "ATTR2"]
+    [Ts 12][Tj "CT"][Tr 0][Tm "N"]
+    {At PLD E:\SRC\REPOS\ZOGGINS\RC2014\Z80-S100\DAZZLER_CPLD\BJL_VER4 225 940}
+   }
+  }
+ }
+
+ {DETAIL
+  {ANNOTATE
+  }
+
+  {NET_DEF
+   {N CK
+   }
+   {N PT0EB6IN
+   }
+   {N BMWRT
+   }
+   {N SELA
+   }
+   {N JS1SPKR
+   }
+   {N JS2SPKR
+   }
+   {N BNPWR
+   }
+   {N BSOUT
+   }
+   {N BPDBIN
+   }
+   {N BSINP
+   }
+   {N BA15
+   }
+   {N BA14
+   }
+   {N BA13
+   }
+   {N BA12
+   }
+   {N BA11
+   }
+   {N BA10
+   }
+   {N BA9
+   }
+   {N BA2
+   }
+   {N BA1
+   }
+   {N BA0
+   }
+   {N NTVDEN
+   }
+   {N NJSEN
+   }
+   {N NXTADROK
+   }
+   {N BDO7
+   }
+   {N BDO6
+   }
+   {N BDO5
+   }
+   {N BDO4
+   }
+   {N BDO3
+   }
+   {N BDO2
+   }
+   {N BDO1
+   }
+   {N BDO0
+   }
+   {N PT0EB7OU
+   }
+   {N SELB
+   }
+   {N COMP
+   }
+   {N DAC1
+   }
+   {N DAC2
+   }
+   {N DAC3
+   }
+   {N DAC4
+   }
+   {N DAC5
+   }
+   {N DAC6
+   }
+   {N DAC7
+   }
+   {N DAC8
+   }
+   {N EXTRAPT
+   }
+   {N B0_CK500
+   }
+   {N PT0EB7IN
+   }
+   {N NPT0FCK
+   }
+   {N NIN
+   }
+   {N NPT18EN
+   }
+   {N LDI0
+   }
+   {N LDI1
+   }
+   {N LDI2
+   }
+   {N LDI3
+   }
+   {N LDI4
+   }
+   {N LDI5
+   }
+   {N LDI6
+   }
+   {N LDI7
+   }
+   {N MA9
+   }
+   {N NEXPORT
+   }
+   {N NLED
+   }
+   {N NOEL
+   }
+   {N MA10
+   }
+   {N MA11
+   }
+   {N NWR
+   }
+   {N NCE
+   }
+  }
+
+  {SUBCOMP
+  }
+ }
+}

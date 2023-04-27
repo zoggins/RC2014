@@ -1,0 +1,1488 @@
+%SIGNAL
+PIN   0 =  B0_N_12 
+PIN   0 =  B0_N_13 
+PIN   0 =  B0_N_14 
+PIN   0 =  B0_N_15 
+PIN  81 =  B0_ck500 
+PIN   0 =  B0_done 
+PIN   0 =  B0_l1_0_ 
+PIN   0 =  B0_l1_1_ 
+PIN   0 =  B0_l1_2_ 
+PIN   0 =  B0_l1_3_ 
+PIN   0 =  B0_l1_4_ 
+PIN   0 =  B0_l1_5_ 
+PIN   0 =  B0_l1_6_ 
+PIN   0 =  B0_l1_7_ 
+PIN   0 =  B0_l2_0_ 
+PIN   0 =  B0_l2_1_ 
+PIN   0 =  B0_l2_2_ 
+PIN   0 =  B0_l2_3_ 
+PIN   0 =  B0_l2_4_ 
+PIN   0 =  B0_l2_5_ 
+PIN   0 =  B0_l2_6_ 
+PIN   0 =  B0_l2_7_ 
+PIN   0 =  B0_l3_0_ 
+PIN   0 =  B0_l3_1_ 
+PIN   0 =  B0_l3_2_ 
+PIN   0 =  B0_l3_3_ 
+PIN   0 =  B0_l3_4_ 
+PIN   0 =  B0_l3_5_ 
+PIN   0 =  B0_l3_6_ 
+PIN   0 =  B0_l3_7_ 
+PIN   0 =  B0_l4_0_ 
+PIN   0 =  B0_l4_1_ 
+PIN   0 =  B0_l4_2_ 
+PIN   0 =  B0_l4_3_ 
+PIN   0 =  B0_l4_4_ 
+PIN   0 =  B0_l4_5_ 
+PIN   0 =  B0_l4_6_ 
+PIN   0 =  B0_l4_7_ 
+PIN   0 =  C0_N_1 
+PIN   0 =  C0_N_6 
+PIN   0 =  C0_N_13 
+PIN   0 =  C0_N_18 
+PIN   0 =  C0_N_24 
+PIN   0 =  C0_N_31 
+PIN   0 =  C0_N_36 
+PIN   0 =  C0_N_42 
+PIN  49 =  DAC1 
+PIN  50 =  DAC2 
+PIN  51 =  DAC3 
+PIN  52 =  DAC4 
+PIN  54 =  DAC5 
+PIN  55 =  DAC6 
+PIN  56 =  DAC7 
+PIN  57 =  DAC8 
+PIN   0 =  E0_N_20 
+PIN   0 =  E0_N_25 
+PIN   0 =  E0_N_29 
+PIN   0 =  E0_N_33 
+PIN   0 =  E0_N_41 
+PIN   0 =  E0_N_43 
+PIN   0 =  I0_run 
+PIN   0 =  I0_s0 
+PIN   0 =  I0_s1 
+PIN   0 =  I0_s2 
+PIN   0 =  K0_N_2 
+PIN   0 =  K0_N_3 
+PIN   0 =  K0_N_4 
+PIN   0 =  K0_N_5 
+PIN  58 =  LDI0 
+PIN  60 =  LDI1 
+PIN  61 =  LDI2 
+PIN  63 =  LDI3 
+PIN  64 =  LDI4 
+PIN  65 =  LDI5 
+PIN  67 =  LDI6 
+PIN  68 =  LDI7 
+PIN   0 =  aq_0_ 
+PIN   0 =  aq_1_ 
+PIN   0 =  aq_2_ 
+PIN   0 =  aq_3_ 
+PIN   0 =  aq_4_ 
+PIN   0 =  aq_5_ 
+PIN   0 =  aq_6_ 
+PIN   2 =  bMWRT 
+PIN  27 =  ba0 
+PIN  25 =  ba1 
+PIN  24 =  ba2 
+PIN  22 =  ba9 
+PIN  21 =  ba10 
+PIN  20 =  ba11 
+PIN  18 =  ba12 
+PIN  17 =  ba13 
+PIN  16 =  ba14 
+PIN  15 =  ba15 
+PIN  40 =  bdo0 
+PIN  39 =  bdo1 
+PIN  37 =  bdo2 
+PIN  36 =  bdo3 
+PIN  35 =  bdo4 
+PIN  34 =  bdo5 
+PIN  33 =  bdo6 
+PIN  31 =  bdo7 
+PIN   8 =  bnpwr 
+PIN  10 =  bpdbin 
+PIN  11 =  bsinp 
+PIN   9 =  bsout 
+PIN  83 =  ck 
+PIN  48 =  comp 
+PIN  73 =  extrapt 
+PIN   0 =  js1_0_ 
+PIN   0 =  js1_1_ 
+PIN   0 =  js1_2_ 
+PIN   0 =  js1_3_ 
+PIN   0 =  js1_4_ 
+PIN   0 =  js1_5_ 
+PIN   0 =  js1_6_ 
+PIN   0 =  js1_7_ 
+PIN   5 =  js1spkr 
+PIN   0 =  js1xen 
+PIN   0 =  js1yen 
+PIN   0 =  js2_0_ 
+PIN   0 =  js2_1_ 
+PIN   0 =  js2_2_ 
+PIN   0 =  js2_3_ 
+PIN   0 =  js2_4_ 
+PIN   0 =  js2_5_ 
+PIN   0 =  js2_6_ 
+PIN   0 =  js2_7_ 
+PIN   6 =  js2spkr 
+PIN   0 =  js2xen 
+PIN   0 =  js2yen 
+PIN   0 =  ldien 
+PIN  69 =  ma9 
+PIN  76 =  ma10 
+PIN  77 =  ma11 
+PIN  80 =  nce 
+PIN  70 =  nexport 
+PIN  41 =  nin 
+PIN  29 =  njsen 
+PIN  74 =  nled 
+PIN  75 =  noel 
+PIN  12 =  npt0FCK 
+PIN  46 =  npt18en 
+PIN  28 =  ntvden 
+PIN  79 =  nwr 
+PIN  30 =  nxtadrok 
+PIN   1 =  pt0Eb6in 
+PIN  84 =  pt0Eb7in 
+PIN  44 =  pt0Eb7out 
+PIN   4 =  sela 
+PIN  45 =  selb 
+%END
+
+%FIELD
+%END
+
+%EQUATION
+B0_N_12.d  =>
+    !B0_N_12 & B0_N_13 & B0_N_14 & B0_N_15
+  # B0_N_12 & !B0_N_15
+  # B0_N_12 & !B0_N_14
+  # B0_N_12 & !B0_N_13
+
+B0_N_12.ck  =>
+    B0_ck500
+
+B0_N_13.d  =>
+    !B0_N_13 & B0_N_14 & B0_N_15
+  # B0_N_13 & !B0_N_15
+  # B0_N_13 & !B0_N_14
+
+B0_N_13.ck  =>
+    B0_ck500
+
+B0_N_14.d  =>
+    !B0_N_14 & B0_N_15
+  # B0_N_14 & !B0_N_15
+
+B0_N_14.ck  =>
+    B0_ck500
+
+B0_N_15.d  =>
+    !B0_N_15
+
+B0_N_15.ck  =>
+    B0_ck500
+
+B0_ck500.t  =>
+    K0_N_2 & K0_N_3
+
+B0_ck500.ck  =>
+    ck
+
+B0_done.d  =>
+    I0_run & I0_s0 & I0_s1 & I0_s2
+
+B0_done.ck  =>
+    B0_ck500
+
+B0_l1_0_.d  =>
+    DAC8
+
+B0_l1_0_.ce  =>
+    js1xen
+
+B0_l1_0_.ck  =>
+    B0_ck500
+
+B0_l1_1_.d  =>
+    DAC7
+
+B0_l1_1_.ce  =>
+    js1xen
+
+B0_l1_1_.ck  =>
+    B0_ck500
+
+B0_l1_2_.d  =>
+    DAC6
+
+B0_l1_2_.ce  =>
+    js1xen
+
+B0_l1_2_.ck  =>
+    B0_ck500
+
+B0_l1_3_.d  =>
+    DAC5
+
+B0_l1_3_.ce  =>
+    js1xen
+
+B0_l1_3_.ck  =>
+    B0_ck500
+
+B0_l1_4_.d  =>
+    DAC4
+
+B0_l1_4_.ce  =>
+    js1xen
+
+B0_l1_4_.ck  =>
+    B0_ck500
+
+B0_l1_5_.d  =>
+    DAC3
+
+B0_l1_5_.ce  =>
+    js1xen
+
+B0_l1_5_.ck  =>
+    B0_ck500
+
+B0_l1_6_.d  =>
+    DAC2
+
+B0_l1_6_.ce  =>
+    js1xen
+
+B0_l1_6_.ck  =>
+    B0_ck500
+
+B0_l1_7_.d  =>
+    !DAC1
+
+B0_l1_7_.ce  =>
+    js1xen
+
+B0_l1_7_.ck  =>
+    B0_ck500
+
+B0_l2_0_.d  =>
+    DAC8
+
+B0_l2_0_.ce  =>
+    js1yen
+
+B0_l2_0_.ck  =>
+    B0_ck500
+
+B0_l2_1_.d  =>
+    DAC7
+
+B0_l2_1_.ce  =>
+    js1yen
+
+B0_l2_1_.ck  =>
+    B0_ck500
+
+B0_l2_2_.d  =>
+    DAC6
+
+B0_l2_2_.ce  =>
+    js1yen
+
+B0_l2_2_.ck  =>
+    B0_ck500
+
+B0_l2_3_.d  =>
+    DAC5
+
+B0_l2_3_.ce  =>
+    js1yen
+
+B0_l2_3_.ck  =>
+    B0_ck500
+
+B0_l2_4_.d  =>
+    DAC4
+
+B0_l2_4_.ce  =>
+    js1yen
+
+B0_l2_4_.ck  =>
+    B0_ck500
+
+B0_l2_5_.d  =>
+    DAC3
+
+B0_l2_5_.ce  =>
+    js1yen
+
+B0_l2_5_.ck  =>
+    B0_ck500
+
+B0_l2_6_.d  =>
+    DAC2
+
+B0_l2_6_.ce  =>
+    js1yen
+
+B0_l2_6_.ck  =>
+    B0_ck500
+
+B0_l2_7_.d  =>
+    !DAC1
+
+B0_l2_7_.ce  =>
+    js1yen
+
+B0_l2_7_.ck  =>
+    B0_ck500
+
+B0_l3_0_.d  =>
+    DAC8
+
+B0_l3_0_.ce  =>
+    js2xen
+
+B0_l3_0_.ck  =>
+    B0_ck500
+
+B0_l3_1_.d  =>
+    DAC7
+
+B0_l3_1_.ce  =>
+    js2xen
+
+B0_l3_1_.ck  =>
+    B0_ck500
+
+B0_l3_2_.d  =>
+    DAC6
+
+B0_l3_2_.ce  =>
+    js2xen
+
+B0_l3_2_.ck  =>
+    B0_ck500
+
+B0_l3_3_.d  =>
+    DAC5
+
+B0_l3_3_.ce  =>
+    js2xen
+
+B0_l3_3_.ck  =>
+    B0_ck500
+
+B0_l3_4_.d  =>
+    DAC4
+
+B0_l3_4_.ce  =>
+    js2xen
+
+B0_l3_4_.ck  =>
+    B0_ck500
+
+B0_l3_5_.d  =>
+    DAC3
+
+B0_l3_5_.ce  =>
+    js2xen
+
+B0_l3_5_.ck  =>
+    B0_ck500
+
+B0_l3_6_.d  =>
+    DAC2
+
+B0_l3_6_.ce  =>
+    js2xen
+
+B0_l3_6_.ck  =>
+    B0_ck500
+
+B0_l3_7_.d  =>
+    !DAC1
+
+B0_l3_7_.ce  =>
+    js2xen
+
+B0_l3_7_.ck  =>
+    B0_ck500
+
+B0_l4_0_.d  =>
+    DAC8
+
+B0_l4_0_.ce  =>
+    js2yen
+
+B0_l4_0_.ck  =>
+    B0_ck500
+
+B0_l4_1_.d  =>
+    DAC7
+
+B0_l4_1_.ce  =>
+    js2yen
+
+B0_l4_1_.ck  =>
+    B0_ck500
+
+B0_l4_2_.d  =>
+    DAC6
+
+B0_l4_2_.ce  =>
+    js2yen
+
+B0_l4_2_.ck  =>
+    B0_ck500
+
+B0_l4_3_.d  =>
+    DAC5
+
+B0_l4_3_.ce  =>
+    js2yen
+
+B0_l4_3_.ck  =>
+    B0_ck500
+
+B0_l4_4_.d  =>
+    DAC4
+
+B0_l4_4_.ce  =>
+    js2yen
+
+B0_l4_4_.ck  =>
+    B0_ck500
+
+B0_l4_5_.d  =>
+    DAC3
+
+B0_l4_5_.ce  =>
+    js2yen
+
+B0_l4_5_.ck  =>
+    B0_ck500
+
+B0_l4_6_.d  =>
+    DAC2
+
+B0_l4_6_.ce  =>
+    js2yen
+
+B0_l4_6_.ck  =>
+    B0_ck500
+
+B0_l4_7_.d  =>
+    !DAC1
+
+B0_l4_7_.ce  =>
+    js2yen
+
+B0_l4_7_.ck  =>
+    B0_ck500
+
+C0_N_1.d  =>
+    !C0_N_1
+
+C0_N_1.ck  =>
+    ck
+
+C0_N_6.d  =>
+    C0_N_1 & !C0_N_6
+  # !C0_N_1 & C0_N_6
+
+C0_N_6.ck  =>
+    ck
+
+C0_N_13.d  =>
+    C0_N_1 & C0_N_6 & !C0_N_13
+  # !C0_N_6 & C0_N_13
+  # !C0_N_1 & C0_N_13
+
+C0_N_13.ck  =>
+    ck
+
+C0_N_18.d  =>
+    C0_N_1 & C0_N_6 & C0_N_13 & !C0_N_18
+  # !C0_N_13 & C0_N_18
+  # !C0_N_6 & C0_N_18
+  # !C0_N_1 & C0_N_18
+
+C0_N_18.ck  =>
+    ck
+
+C0_N_24.d  =>
+    C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & !C0_N_24
+  # !C0_N_1 & C0_N_24
+  # !C0_N_6 & C0_N_24
+  # !C0_N_13 & C0_N_24
+  # !C0_N_18 & C0_N_24
+
+C0_N_24.ck  =>
+    ck
+
+C0_N_31.t  =>
+    C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24
+
+C0_N_31.ck  =>
+    ck
+
+C0_N_36.t  =>
+    C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24 & C0_N_31
+
+C0_N_36.ck  =>
+    ck
+
+C0_N_42.t  =>
+    C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24 & C0_N_31 & C0_N_36
+
+C0_N_42.ck  =>
+    ck
+
+C0_N_24_X1 =>
+    C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18
+
+C0_N_24_X2 =>
+    C0_N_24
+
+DAC1.t  =>
+    !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !DAC1 & !I0_run
+  # DAC1 & I0_run & !I0_s0 & !I0_s1 & !I0_s2 & comp
+
+DAC1.ck  =>
+    B0_ck500
+
+DAC2.d  =>
+    DAC2 & !comp
+  # !DAC2 & I0_run & !I0_s0 & !I0_s1 & !I0_s2
+  # DAC2 & !I0_s0
+  # DAC2 & I0_s1
+  # DAC2 & I0_s2
+
+DAC2.ar  =>
+    !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run
+
+DAC2.ck  =>
+    B0_ck500
+
+DAC3.d  =>
+    I0_s0 & !I0_s1 & !I0_s2
+  # DAC3 & !comp
+  # DAC3 & I0_s0
+  # DAC3 & !I0_s1
+  # DAC3 & I0_s2
+
+DAC3.ar  =>
+    !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run
+
+DAC3.ck  =>
+    B0_ck500
+
+DAC4.d  =>
+    !I0_s0 & I0_s1 & !I0_s2
+  # DAC4 & I0_s2
+  # DAC4 & !I0_s1
+  # DAC4 & !comp
+
+DAC4.ar  =>
+    !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run
+
+DAC4.ck  =>
+    B0_ck500
+
+DAC5.d  =>
+    I0_s0 & I0_s1 & !I0_s2
+  # DAC5 & !comp
+  # DAC5 & I0_s0
+  # DAC5 & I0_s1
+  # DAC5 & !I0_s2
+
+DAC5.ar  =>
+    !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run
+
+DAC5.ck  =>
+    B0_ck500
+
+DAC6.d  =>
+    !I0_s0 & !I0_s1 & I0_s2
+  # DAC6 & !I0_s2
+  # DAC6 & I0_s1
+  # DAC6 & !comp
+
+DAC6.ar  =>
+    !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run
+
+DAC6.ck  =>
+    B0_ck500
+
+DAC7.d  =>
+    I0_s0 & !I0_s1 & I0_s2
+  # DAC7 & !comp
+  # DAC7 & I0_s0
+  # DAC7 & !I0_s1
+  # DAC7 & !I0_s2
+
+DAC7.ar  =>
+    !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run
+
+DAC7.ck  =>
+    B0_ck500
+
+DAC8.d  =>
+    !I0_s0 & I0_s1 & I0_s2
+  # DAC8 & !I0_s2
+  # DAC8 & !I0_s1
+  # DAC8 & !comp
+
+DAC8.ar  =>
+    !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run
+
+DAC8.ck  =>
+    B0_ck500
+
+DAC2_X1 =>
+    DAC2
+  # !DAC2 & I0_run & !I0_s0 & !I0_s1 & !I0_s2
+
+DAC2_X2 =>
+    DAC2 & I0_s0 & !I0_s1 & !I0_s2 & comp
+
+E0_N_20 =>
+    !aq_3_ & ba12
+  # E0_N_43 & !aq_3_
+  # E0_N_43 & ba12
+
+E0_N_25 =>
+    E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & aq_6_ & !ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & aq_6_ & ba12 & !ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & aq_6_ & !ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & aq_6_ & ba12 & !ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & aq_5_ & !aq_6_ & !ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & aq_5_ & !aq_6_ & ba12 & !ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & !ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & aq_4_ & !aq_5_ & !aq_6_ & ba12 & !ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & aq_6_ & !ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & aq_6_ & ba12 & ba13 & !ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & !ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & aq_6_ & ba12 & ba13 & ba14 & !ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & !ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & aq_5_ & !aq_6_ & ba12 & ba13 & !ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & !aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & ba12 & ba13 & ba14 & ba15
+  # !E0_N_20 & !E0_N_29 & !E0_N_33 & !E0_N_43 & aq_3_ & !aq_4_ & !aq_5_ & !aq_6_ & !ba12 & ba13 & ba14 & ba15
+
+E0_N_29 =>
+    !aq_5_ & ba14
+  # E0_N_33 & !aq_5_
+  # E0_N_33 & ba14
+
+E0_N_33 =>
+    !aq_4_ & ba13
+  # E0_N_20 & !aq_4_
+  # E0_N_20 & ba13
+
+E0_N_41 =>
+    ba9 & ba10
+  # !aq_0_ & ba10
+  # !aq_1_ & ba9
+  # !aq_1_ & ba10
+  # !aq_0_ & !aq_1_
+
+E0_N_43 =>
+    !aq_2_ & ba11
+  # E0_N_41 & !aq_2_
+  # E0_N_41 & ba11
+
+I0_run.d  =>
+    !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15
+  # I0_run & !I0_s2
+  # I0_run & !I0_s1
+  # I0_run & !I0_s0
+
+I0_run.ck  =>
+    B0_ck500
+
+I0_s0.d  =>
+    I0_run & !I0_s0
+  # !I0_run & I0_s0
+
+I0_s0.ck  =>
+    B0_ck500
+
+I0_s1.d  =>
+    I0_run & I0_s0 & !I0_s1
+  # !I0_run & I0_s1
+  # !I0_s0 & I0_s1
+
+I0_s1.ck  =>
+    B0_ck500
+
+I0_s2.d  =>
+    I0_run & I0_s0 & I0_s1 & !I0_s2
+  # !I0_run & I0_s2
+  # !I0_s1 & I0_s2
+  # !I0_s0 & I0_s2
+
+I0_s2.ck  =>
+    B0_ck500
+
+K0_N_2.t  =>
+    K0_N_3
+
+K0_N_2.ck  =>
+    ck
+
+K0_N_3.t  =>
+    K0_N_3
+  # K0_N_4 & K0_N_5
+
+K0_N_3.ck  =>
+    ck
+
+K0_N_4.t  =>
+    K0_N_5
+
+K0_N_4.ck  =>
+    ck
+
+K0_N_5.t  =>
+    !K0_N_3
+
+K0_N_5.ck  =>
+    ck
+
+LDI0 =>
+    B0_l4_0_ & !ba0 & !ba1 & ba2
+  # B0_l3_0_ & ba0 & ba1 & !ba2
+  # B0_l2_0_ & !ba0 & ba1 & !ba2
+  # B0_l1_0_ & ba0 & !ba1 & !ba2
+
+LDI0.oe  =>
+    ldien
+
+LDI1 =>
+    B0_l4_1_ & !ba0 & !ba1 & ba2
+  # B0_l3_1_ & ba0 & ba1 & !ba2
+  # B0_l2_1_ & !ba0 & ba1 & !ba2
+  # B0_l1_1_ & ba0 & !ba1 & !ba2
+
+LDI1.oe  =>
+    ldien
+
+LDI2 =>
+    B0_l4_2_ & !ba0 & !ba1 & ba2
+  # B0_l3_2_ & ba0 & ba1 & !ba2
+  # B0_l2_2_ & !ba0 & ba1 & !ba2
+  # B0_l1_2_ & ba0 & !ba1 & !ba2
+
+LDI2.oe  =>
+    ldien
+
+LDI3 =>
+    B0_l4_3_ & !ba0 & !ba1 & ba2
+  # B0_l3_3_ & ba0 & ba1 & !ba2
+  # B0_l2_3_ & !ba0 & ba1 & !ba2
+  # B0_l1_3_ & ba0 & !ba1 & !ba2
+
+LDI3.oe  =>
+    ldien
+
+LDI4 =>
+    B0_l4_4_ & !ba0 & !ba1 & ba2
+  # B0_l3_4_ & ba0 & ba1 & !ba2
+  # B0_l2_4_ & !ba0 & ba1 & !ba2
+  # B0_l1_4_ & ba0 & !ba1 & !ba2
+
+LDI4.oe  =>
+    ldien
+
+LDI5 =>
+    B0_l4_5_ & !ba0 & !ba1 & ba2
+  # B0_l3_5_ & ba0 & ba1 & !ba2
+  # B0_l2_5_ & !ba0 & ba1 & !ba2
+  # B0_l1_5_ & ba0 & !ba1 & !ba2
+
+LDI5.oe  =>
+    ldien
+
+LDI6 =>
+    B0_l4_6_ & !ba0 & !ba1 & ba2
+  # B0_l3_6_ & ba0 & ba1 & !ba2
+  # !ba0 & ba1 & ba2 & pt0Eb6in
+  # B0_l2_6_ & !ba0 & ba1 & !ba2
+  # B0_l1_6_ & ba0 & !ba1 & !ba2
+
+LDI6.oe  =>
+    ldien
+
+LDI7 =>
+    B0_l4_7_ & !ba0 & !ba1 & ba2
+  # B0_l3_7_ & ba0 & ba1 & !ba2
+  # !ba0 & ba1 & ba2 & pt0Eb7in
+  # B0_l2_7_ & !ba0 & ba1 & !ba2
+  # B0_l1_7_ & ba0 & !ba1 & !ba2
+
+LDI7.oe  =>
+    ldien
+
+aq_0_.d  =>
+    bdo0
+
+aq_0_.ck  =>
+    !bsout
+  # bnpwr
+  # ba0
+  # ntvden
+
+aq_1_.d  =>
+    bdo1
+
+aq_1_.ck  =>
+    !bsout
+  # bnpwr
+  # ba0
+  # ntvden
+
+aq_2_.d  =>
+    bdo2
+
+aq_2_.ck  =>
+    !bsout
+  # bnpwr
+  # ba0
+  # ntvden
+
+aq_3_.d  =>
+    bdo3
+
+aq_3_.ck  =>
+    !bsout
+  # bnpwr
+  # ba0
+  # ntvden
+
+aq_4_.d  =>
+    bdo4
+
+aq_4_.ck  =>
+    !bsout
+  # bnpwr
+  # ba0
+  # ntvden
+
+aq_5_.d  =>
+    bdo5
+
+aq_5_.ck  =>
+    !bsout
+  # bnpwr
+  # ba0
+  # ntvden
+
+aq_6_.d  =>
+    bdo6
+
+aq_6_.ck  =>
+    !bsout
+  # bnpwr
+  # ba0
+  # ntvden
+
+exadr =>
+    !ba0 & bsout & !extrapt
+
+js1_0_.d  =>
+    bdo0
+
+js1_0_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # ba1
+  # ba2
+  # njsen
+
+js1_1_.d  =>
+    bdo1
+
+js1_1_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # ba1
+  # ba2
+  # njsen
+
+js1_2_.d  =>
+    bdo2
+
+js1_2_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # ba1
+  # ba2
+  # njsen
+
+js1_3_.d  =>
+    bdo3
+
+js1_3_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # ba1
+  # ba2
+  # njsen
+
+js1_4_.d  =>
+    bdo4
+
+js1_4_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # ba1
+  # ba2
+  # njsen
+
+js1_5_.d  =>
+    bdo5
+
+js1_5_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # ba1
+  # ba2
+  # njsen
+
+js1_6_.d  =>
+    bdo6
+
+js1_6_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # ba1
+  # ba2
+  # njsen
+
+js1_7_.d  =>
+    !bdo7
+
+js1_7_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # ba1
+  # ba2
+  # njsen
+
+js1spkr.d  =>
+    C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24 & C0_N_31 & C0_N_36 & !C0_N_42 & js1_0_
+  # C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24 & C0_N_31 & !C0_N_36 & js1_1_
+  # C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24 & !C0_N_31 & js1_2_
+  # C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & !C0_N_24 & js1_3_
+  # C0_N_1 & C0_N_6 & C0_N_13 & !C0_N_18 & js1_4_
+  # C0_N_1 & C0_N_6 & !C0_N_13 & js1_5_
+  # C0_N_1 & !C0_N_6 & js1_6_
+  # !C0_N_1 & js1_7_
+
+js1spkr.ck  =>
+    ck
+
+js1xen =>
+    B0_done & sela & selb
+
+js1yen =>
+    B0_done & !sela & selb
+
+js2_0_.d  =>
+    bdo0
+
+js2_0_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # !ba1
+  # ba2
+  # njsen
+
+js2_1_.d  =>
+    bdo1
+
+js2_1_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # !ba1
+  # ba2
+  # njsen
+
+js2_2_.d  =>
+    bdo2
+
+js2_2_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # !ba1
+  # ba2
+  # njsen
+
+js2_3_.d  =>
+    bdo3
+
+js2_3_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # !ba1
+  # ba2
+  # njsen
+
+js2_4_.d  =>
+    bdo4
+
+js2_4_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # !ba1
+  # ba2
+  # njsen
+
+js2_5_.d  =>
+    bdo5
+
+js2_5_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # !ba1
+  # ba2
+  # njsen
+
+js2_6_.d  =>
+    bdo6
+
+js2_6_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # !ba1
+  # ba2
+  # njsen
+
+js2_7_.d  =>
+    !bdo7
+
+js2_7_.ck  =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # !ba1
+  # ba2
+  # njsen
+
+js2spkr.d  =>
+    C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24 & C0_N_31 & C0_N_36 & !C0_N_42 & js2_0_
+  # C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24 & C0_N_31 & !C0_N_36 & js2_1_
+  # C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24 & !C0_N_31 & js2_2_
+  # C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & !C0_N_24 & js2_3_
+  # C0_N_1 & C0_N_6 & C0_N_13 & !C0_N_18 & js2_4_
+  # C0_N_1 & C0_N_6 & !C0_N_13 & js2_5_
+  # C0_N_1 & !C0_N_6 & js2_6_
+  # !C0_N_1 & js2_7_
+
+js2spkr.ck  =>
+    ck
+
+js2xen =>
+    B0_done & sela & !selb
+
+js2yen =>
+    B0_done & !sela & !selb
+
+ldien =>
+    !ba0 & !ntvden
+  # ba0 & !ba2 & !njsen
+  # !ba0 & !ba1 & ba2 & !njsen
+  # ba1 & !ba2 & !njsen
+
+ma9 =>
+    !aq_0_ & ba9
+  # aq_0_ & !ba9
+
+ma10 =>
+    !aq_1_ & ba9 & ba10
+  # aq_0_ & aq_1_ & !ba9 & ba10
+  # !aq_0_ & !aq_1_ & ba10
+  # aq_1_ & ba9 & !ba10
+  # !aq_0_ & aq_1_ & !ba10
+  # aq_0_ & !aq_1_ & !ba9 & !ba10
+
+ma11 =>
+    !E0_N_41 & !aq_2_ & !ba11
+  # !E0_N_41 & aq_2_ & ba11
+  # E0_N_41 & !aq_2_ & ba11
+  # E0_N_41 & aq_2_ & !ba11
+
+ma10_X1 =>
+    !aq_1_ & ba9
+  # !aq_0_ & !aq_1_
+  # aq_0_ & aq_1_ & !ba9
+
+ma10_X2 =>
+    !ba10
+
+nce =>
+    nxtadrok
+  # !bMWRT
+  # aq_6_ & !ba15
+  # !E0_N_25
+  # !E0_N_29 & !ba15
+  # !E0_N_29 & aq_6_
+
+nexport =>
+    bnpwr
+  # ba0
+  # extrapt
+  # !bsout
+
+nin =>
+    !bsinp
+  # !bpdbin
+  # ba0 & njsen
+  # ba0 & ba2
+  # njsen & ntvden
+  # ba1 & ba2 & ntvden
+
+nled =>
+    !bsinp & !bsout & nwr
+  # ba0 & !bsout & njsen & nwr
+  # ba0 & ba2 & !bsout & nwr
+  # bnpwr & !bsinp & extrapt & nwr
+  # ba0 & bnpwr & !bsinp & nwr
+  # ba0 & bnpwr & njsen & nwr
+  # ba0 & ba2 & bnpwr & nwr
+  # extrapt & njsen & ntvden & nwr
+  # !bsout & njsen & ntvden & nwr
+  # ba0 & njsen & ntvden & nwr
+  # !ba0 & !bsinp & extrapt & ntvden & nwr
+  # ba2 & !bsinp & extrapt & ntvden & nwr
+  # ba1 & ba2 & extrapt & ntvden & nwr
+  # ba1 & ba2 & !bsout & ntvden & nwr
+  # ba0 & ba2 & ntvden & nwr
+
+noel =>
+    1 
+
+npt0FCK =>
+    !bsout
+  # bnpwr
+  # !ba0
+  # ntvden
+
+npt18en =>
+    ba0
+  # ba1
+  # ba2
+
+nwr =>
+    nxtadrok
+  # !bMWRT
+  # aq_6_ & !ba15
+  # !E0_N_25
+  # !E0_N_29 & !ba15
+  # !E0_N_29 & aq_6_
+
+pt0Eb7out.d  =>
+    bdo7
+
+pt0Eb7out.ck  =>
+    !bsout
+  # bnpwr
+  # ba0
+  # ntvden
+
+ptA0 =>
+    0 
+
+ptinp =>
+    !ba0 & bsinp & !ntvden
+  # !ba2 & bsinp & !njsen
+  # !ba0 & !ba1 & bsinp & !njsen
+
+ptout =>
+    !bnpwr & bsout & !ntvden
+  # ba0 & !ba2 & !bnpwr & bsout & !njsen
+
+sela.d  =>
+    !B0_N_12 & sela
+  # B0_N_13 & sela
+  # !B0_N_14 & sela
+  # B0_N_15 & sela
+  # B0_N_12 & !B0_N_13 & B0_N_14 & !B0_N_15 & !sela
+
+sela.ck  =>
+    B0_ck500
+
+sela_X1 =>
+    sela
+
+sela_X2 =>
+    B0_N_12 & !B0_N_13 & B0_N_14 & !B0_N_15
+
+selb.t  =>
+    B0_N_12 & !B0_N_13 & B0_N_14 & !B0_N_15 & !sela
+
+selb.ck  =>
+    B0_ck500
+
+%END

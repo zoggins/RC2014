@@ -1,0 +1,775 @@
+Name     BJL_ver4 ;
+PartNo   ATF1508AS ;
+Date     8/24/2016 ;
+Revision 04 ;         /* LOGIC ADDED TO DRIVE THE SELECT LED D3 */
+Designer Terry ;
+Company  walker systems ;
+Assembly None ;
+Location U3;
+Device   f1508ispplcc84;
+
+property ATMEL { xor_synthesis=on }; 
+/* property ATMEL { logic_doubling=on }; */ 
+property ATMEL { jtag=on }; 
+PROPERTY ATMEL { preassign keep }; 
+PROPERTY ATMEL { TMS_pullup=on }; 
+PROPERTY ATMEL { TDI_pullup=on };
+PROPERTY ATMEL {OUTPUT_FAST = ON};  /* this can be done by pins individually see Atmel docs */
+/* PROPERTY ATMEL {MC_POWER = <ON | OFF | pin_name1, pin_name2, ..>}; */
+/* When the macrocell reduced-power mode is turned on, those macrocells will use less power but they */ 
+/* will be slower. */
+PROPERTY ATMEL {PIN_KEEP = ON};
+PROPERTY ATMEL {SOFT_BUFFER = js1xen} ; /* this keeps node from collapsing - see fitter.pdf pages 54-57  */
+PROPERTY ATMEL {SOFT_BUFFER = js1yen} ; /* this keeps node from collapsing - see fitter.pdf pages 54-57  */
+PROPERTY ATMEL {SOFT_BUFFER = js2xen} ; /* this keeps node from collapsing - see fitter.pdf pages 54-57  */
+PROPERTY ATMEL {SOFT_BUFFER = js2yen} ; /* this keeps node from collapsing - see fitter.pdf pages 54-57  */
+ 
+
+/* *************** INPUT PINS *********************/
+PIN  27   =  ba0                       ; /*                                 */ 
+PIN  25   =  ba1                       ; /*                                 */ 
+PIN  21   =  ba10                      ; /*                                 */ 
+PIN  20   =  ba11                       ; /*                                 */ 
+PIN  18   =  ba12                       ; /*                                 */ 
+PIN  17   =  ba13                       ; /*                                 */ 
+PIN  16   =  ba14                       ; /*                                 */ 
+PIN  15   =  ba15                       ; /*                                 */ 
+PIN  24   =  ba2                       ; /*                                 */ 
+PIN  22   =  ba9                       ; /*                                 */ 
+PIN  40   =  bdo0                       ; /*                                 */ 
+PIN  39   =  bdo1                       ; /*                                 */ 
+PIN  37   =  bdo2                       ; /*                                 */ 
+PIN  36   =  bdo3                      ; /*                                 */ 
+PIN  35   =  bdo4                      ; /*                                 */ 
+PIN  34   =  bdo5                       ; /*                                 */ 
+PIN  33   =  bdo6                       ; /*                                 */ 
+PIN  31   =  bdo7                      ; /*                                 */ 
+PIN   8   =  bnpwr                      ; /*                                 */ 
+PIN  10   =  bpdbin                     ; /*                                 */ 
+PIN  11   =  bsinp                      ; /*                                 */ 
+PIN   9   =  bsout                      ; /*                                 */ 
+PIN  83   =  ck                       ; /*                                 */ 
+PIN  48   =  comp                       ; /*                                 */ 
+PIN  29   =  njsen                      ; /*                                 */ 
+PIN  28   =  ntvden                     ; /*                                 */ 
+PIN  30   =  nxtadrok                   ; /*                                 */ 
+PIN   1   =  pt0Eb6in                   ; /*                                 */ 
+PIN  84   =  pt0Eb7in                   ; /*                                 */ 
+PIN  73   =  extrapt                   ;  /* TP7        */ 
+PIN   2   =  bMWRT                     ; /* SAME AS !NPWR & !BSOUT FROM FRONT PANEL */
+/* *************** OUTPUT PINS *********************/
+PIN  49   =  DAC1                       ; /* MSB                             */ 
+PIN  50   =  DAC2                       ; /*                                 */ 
+PIN  51   =  DAC3                       ; /*                                 */ 
+PIN  52   =  DAC4                       ; /*                                 */ 
+PIN  54   =  DAC5                       ; /*                                 */ 
+PIN  55   =  DAC6                       ; /*                                 */ 
+PIN  56   =  DAC7                       ; /*                                 */ 
+PIN  57   =  DAC8                       ; /* LSB                             */ 
+PIN  58   =  LDI0                       ; /*                                 */ 
+PIN  60   =  LDI1                       ; /*                                 */ 
+PIN  61   =  LDI2                       ; /*                                 */ 
+PIN  63   =  LDI3                       ; /*                                 */ 
+PIN  64   =  LDI4                       ; /*                                 */ 
+PIN  65   =  LDI5                       ; /*                                 */ 
+PIN  67   =  LDI6                       ; /*                                 */ 
+PIN  68   =  LDI7                       ; /*                                 */ 
+PIN   5   =  js1spkr                    ; /*                                 */ 
+PIN   6   =  js2spkr                    ; /*                                 */ 
+PIN  76   =  ma10                       ; /*                                 */ 
+PIN  77   =  ma11                       ; /*                                 */ 
+PIN  69   =  ma9                        ; /*                                 */ 
+PIN  79   =  nwr                        ; /*                                 */ 
+PIN  80   =  nce                        ; /*                                 */ 
+PIN  41   =  nin                        ; /*                                 */ 
+PIN  12   =  npt0FCK                    ; /*                                 */ 
+PIN  46   =  npt18en                    ; /*                                 */ 
+PIN  44   =  pt0Eb7out                  ; /*                                 */ 
+PIN   4   =  sela                       ; /*                                 */ 
+PIN  45   =  selb                       ; /*                                 */ 
+PIN  81   =  B0_ck500                   ; /*                                 */ 
+PIN  70   =  nexport                    ; /* TP8        */ 
+PIN  74   =  nled      ; /* L FOR ANY MEMORY WRITE OR PORT READ OR WRITE */ 
+PIN  75   =  noel      ; /* ACT L RAM READ SELECT  */ 
+
+/* *************** PINNODES    *********************/
+PINNODE     =   B0_N_12                  ; /*                                 */ 
+PINNODE     =   B0_N_13                  ; /*                                 */ 
+PINNODE     =   B0_N_14                  ; /*                                 */ 
+PINNODE     =   B0_N_15                  ; /*                                 */ 
+PINNODE     =   B0_done                  ; /*                                 */ 
+PINNODE     =   B0_l1_0_                  ; /*                                 */ 
+PINNODE     =   B0_l1_1_                  ; /*                                 */ 
+PINNODE     =   B0_l1_2_                  ; /*                                 */ 
+PINNODE     =   B0_l1_3_                  ; /*                                 */ 
+PINNODE     =   B0_l1_4_                  ; /*                                 */ 
+PINNODE     =   B0_l1_5_                  ; /*                                 */ 
+PINNODE     =   B0_l1_6_                  ; /*                                 */ 
+PINNODE     =   B0_l1_7_                  ; /*                                 */ 
+PINNODE     =   B0_l2_0_                  ; /*                                 */ 
+PINNODE     =   B0_l2_1_                  ; /*                                 */ 
+PINNODE     =   B0_l2_2_                  ; /*                                 */ 
+PINNODE     =   B0_l2_3_                  ; /*                                 */ 
+PINNODE     =   B0_l2_4_                  ; /*                                 */ 
+PINNODE     =   B0_l2_5_                  ; /*                                 */ 
+PINNODE     =   B0_l2_6_                  ; /*                                 */ 
+PINNODE     =   B0_l2_7_                  ; /*                                 */ 
+PINNODE     =   B0_l3_0_                  ; /*                                 */ 
+PINNODE     =   B0_l3_1_                 ; /*                                 */ 
+PINNODE     =   B0_l3_2_                  ; /*                                 */ 
+PINNODE     =   B0_l3_3_                  ; /*                                 */ 
+PINNODE     =   B0_l3_4_                  ; /*                                 */ 
+PINNODE     =   B0_l3_5_                  ; /*                                 */ 
+PINNODE     =   B0_l3_6_                  ; /*                                 */ 
+PINNODE     =   B0_l3_7_                  ; /*                                 */ 
+PINNODE     =   B0_l4_0_                  ; /*                                 */ 
+PINNODE     =   B0_l4_1_                  ; /*                                 */ 
+PINNODE     =   B0_l4_2_                  ; /*                                 */ 
+PINNODE     =   B0_l4_3_                  ; /*                                 */ 
+PINNODE     =   B0_l4_4_                  ; /*                                 */ 
+PINNODE     =   B0_l4_5_                  ; /*                                 */ 
+PINNODE     =   B0_l4_6_                  ; /*                                 */ 
+PINNODE     =   B0_l4_7_                  ; /*                                 */ 
+PINNODE     =   C0_N_1                  ; /*                                 */ 
+PINNODE     =   C0_N_13                  ; /*                                 */ 
+PINNODE     =   C0_N_18                  ; /*                                 */ 
+PINNODE     =   C0_N_24                  ; /*                                 */ 
+PINNODE     =   C0_N_31                  ; /*                                 */ 
+PINNODE     =   C0_N_36                  ; /*                                 */ 
+PINNODE     =   C0_N_42                  ; /*                                 */ 
+PINNODE     =   C0_N_6                  ; /*                                 */ 
+PINNODE     =   E0_N_20                  ; /*                                 */ 
+PINNODE     =   E0_N_25                  ; /*                                 */ 
+PINNODE     =   E0_N_29                  ; /*                                 */ 
+PINNODE     =   E0_N_33                  ; /*                                 */ 
+PINNODE     =   E0_N_41                  ; /*                                 */ 
+PINNODE     =   E0_N_43                  ; /*                                 */ 
+PINNODE     =   I0_run                  ; /*                                 */ 
+PINNODE     =   I0_s0                  ; /*                                 */ 
+PINNODE     =   I0_s1                  ; /*                                 */ 
+PINNODE     =   I0_s2                  ; /*                                 */ 
+PINNODE     =   K0_N_2                  ; /*                                 */ 
+PINNODE     =   K0_N_3                  ; /*                                 */ 
+PINNODE     =   K0_N_4                  ; /*                                 */ 
+PINNODE     =   K0_N_5                  ; /*                                 */ 
+PINNODE     =   aq_0_                  ; /*                                 */ 
+PINNODE     =   aq_1_                  ; /*                                 */ 
+PINNODE     =   aq_2_                  ; /*                                 */ 
+PINNODE     =   aq_3_                  ; /*                                 */ 
+PINNODE     =   aq_4_                 ; /*                                 */ 
+PINNODE     =   aq_5_                  ; /*                                 */ 
+PINNODE     =   aq_6_                  ; /*                                 */ 
+PINNODE     =   js1xen                  ; /*                                 */ 
+PINNODE     =   js1yen                  ; /*                                 */ 
+PINNODE     =   js2xen                  ; /*                                 */ 
+PINNODE     =   js2yen                  ; /*                                 */ 
+PINNODE     =   js1_0_                  ; /*                                 */ 
+PINNODE     =   js1_1_                   ; /*                                 */ 
+PINNODE     =   js1_2_                  ; /*                                 */ 
+PINNODE     =   js1_3_                  ; /*                                 */ 
+PINNODE     =   js1_4_                  ; /*                                 */ 
+PINNODE     =   js1_5_                  ; /*                                 */ 
+PINNODE     =   js1_6_                  ; /*                                 */ 
+PINNODE     =   js1_7_                  ; /*                                 */ 
+PINNODE     =   js2_0_                  ; /*                                 */ 
+PINNODE     =   js2_1_                  ; /*                                 */ 
+PINNODE     =   js2_2_                  ; /*                                 */ 
+PINNODE     =   js2_3_                  ; /*                                 */ 
+PINNODE     =   js2_4_                  ; /*                                 */ 
+PINNODE     =   js2_5_                  ; /*                                 */ 
+PINNODE     =   js2_6_                  ; /*                                 */ 
+PINNODE     =   js2_7_                  ; /*                                 */ 
+PINNODE     =   ldien                  ; /*                                 */ 
+
+/* LOGIC EQUATIONS */
+
+noel = 'b'1 ;  /* HOLD LEFT SIDE RAM NOE AT +5V (USED ONLY BY TEST CPLD) */
+
+ptA0 = 'b'0 ;  /* SET ADDRESS LSB BIT FOR EXTRAPORT TO 0 (EVEN ADDRESS) */
+
+/* DIVIDE 10 MHZ EXTERNAL CLOCK BY 20 TO GET 500 KHZ CLOCK FOR ADC */
+
+K0_N_5.T = !K0_N_3 ;
+K0_N_5.CK = ck ; 
+
+K0_N_4.T = K0_N_5 ; 
+K0_N_4.CK = ck ; 
+
+K0_N_3.T = K0_N_3 # K0_N_4 & K0_N_5 ; 
+K0_N_3.CK = ck ; 
+
+K0_N_2.T = K0_N_3 ;
+K0_N_2.CK = ck ; 
+
+B0_ck500.T = K0_N_3 & K0_N_2 ; /* SOURCE OF 500 KHZ CLOCK FOR ADC*/
+B0_ck500.CK = ck ; 
+
+/* DIVIDE BY 16 FOR ADC SEQUENCING */
+
+B0_N_15.D = !B0_N_15 ;
+B0_N_15.CK = B0_ck500 ; 
+
+B0_N_14.D = !B0_N_14 & B0_N_15
+    # B0_N_14 & !B0_N_15 ; 
+B0_N_14.CK = B0_ck500 ; 
+
+B0_N_13.D = !B0_N_13 & B0_N_14 & B0_N_15
+    # B0_N_13 & !B0_N_15
+    # B0_N_13 & !B0_N_14 ; 
+B0_N_13.CK = B0_ck500 ; 
+
+B0_N_12.D = !B0_N_12 & B0_N_13 & B0_N_14 & B0_N_15
+    # B0_N_12 & !B0_N_15
+    # B0_N_12 & !B0_N_14
+    # B0_N_12 & !B0_N_13 ; 
+B0_N_12.CK = B0_ck500 ;
+
+/* DIVIDE BY 4 SELECTOR FOR ANALOG SOURCE TO CONVERT WITH SAR ADC */
+/* THIS IS A BINARY DOWN COUNTER SINCE EXTERNAL MULTIPLEXER FOR ANALOG DATA */
+/* HAS ITS 4 INPUTS CONNECTED IN REVERSE ORDER BY ACCIDENT*/
+
+sela_X1 = sela ; /* LSB */
+sela_X2 = B0_N_12 & !B0_N_13 & B0_N_14 & !B0_N_15 ;
+sela.D = sela_X1 $ sela_X2 ;
+sela.CK = B0_ck500 ; 
+
+selb.T = !sela & B0_N_12 & !B0_N_13 & B0_N_14 & !B0_N_15 ; /* MSB */
+selb.CK = B0_ck500 ; 
+
+
+/* LATCH FOR JOYSTICK 1 X AXIS VALUE  */
+
+js1xen = sela & selb & B0_done ; /* LATCH CLOCK ENABLE */
+
+B0_l1_0_.D = DAC8 ; /* LSB */
+B0_l1_0_.CK = B0_ck500 ; 
+B0_l1_0_.CE = js1xen ; 
+
+B0_l1_1_.D = DAC7 ;
+B0_l1_1_.CK = B0_ck500 ; 
+B0_l1_1_.CE = js1xen ; 
+
+B0_l1_2_.D = DAC6 ;
+B0_l1_2_.CK = B0_ck500 ; 
+B0_l1_2_.CE = js1xen ;
+
+B0_l1_3_.D = DAC5 ;
+B0_l1_3_.CK = B0_ck500 ; 
+B0_l1_3_.CE = js1xen ; 
+
+B0_l1_4_.D = DAC4 ; 
+B0_l1_4_.CK = B0_ck500 ;
+B0_l1_4_.CE = js1xen ; 
+
+B0_l1_5_.D = DAC3 ; 
+B0_l1_5_.CK = B0_ck500 ; 
+B0_l1_5_.CE = js1xen ;
+
+B0_l1_6_.D = DAC2 ; 
+B0_l1_6_.CK = B0_ck500 ; 
+B0_l1_6_.CE = js1xen ; 
+
+B0_l1_7_.D = !DAC1 ;  /* MSB IS INVERTED TO MAKE 2'S COMPLEMENT */
+B0_l1_7_.CK = B0_ck500 ; 
+B0_l1_7_.CE = js1xen ; 
+
+/* LATCH FOR JOYSTICK 1 Y AXIS VALUE  */
+
+js1yen = !sela & selb & B0_done ; 
+
+B0_l2_0_.D = DAC8 ; 
+B0_l2_0_.CK = B0_ck500 ; 
+B0_l2_0_.CE = js1yen ; 
+
+B0_l2_1_.D = DAC7 ; 
+B0_l2_1_.CK = B0_ck500 ; 
+B0_l2_1_.CE = js1yen ; 
+
+B0_l2_2_.D = DAC6 ;
+B0_l2_2_.CK = B0_ck500 ; 
+B0_l2_2_.CE = js1yen ; 
+
+B0_l2_3_.D = DAC5 ;
+B0_l2_3_.CK = B0_ck500 ; 
+B0_l2_3_.CE = js1yen ; 
+
+B0_l2_4_.D = DAC4 ; 
+B0_l2_4_.CK = B0_ck500 ; 
+B0_l2_4_.CE = js1yen ; 
+
+B0_l2_5_.D = DAC3 ; 
+B0_l2_5_.CK = B0_ck500 ; 
+B0_l2_5_.CE = js1yen ; 
+
+B0_l2_6_.D = DAC2 ;
+B0_l2_6_.CK = B0_ck500 ; 
+B0_l2_6_.CE = js1yen ; 
+
+B0_l2_7_.D = !DAC1 ;  /* MSB IS INVERTED TO MAKE 2'S COMPLEMENT */ 
+B0_l2_7_.CK = B0_ck500 ; 
+B0_l2_7_.CE = js1yen ;
+
+/* LATCH FOR JOYSTICK 2 X AXIS VALUE  */
+
+js2xen = sela & !selb & B0_done ; 
+
+B0_l3_0_.D = DAC8 ;
+B0_l3_0_.CK = B0_ck500 ;
+B0_l3_0_.CE = js2xen ;
+
+B0_l3_1_.D = DAC7 ; 
+B0_l3_1_.CK = B0_ck500 ; 
+B0_l3_1_.CE = js2xen ; 
+
+B0_l3_2_.D = DAC6 ;
+B0_l3_2_.CK = B0_ck500 ; 
+B0_l3_2_.CE = js2xen ;
+
+B0_l3_3_.D = DAC5 ; 
+B0_l3_3_.CK = B0_ck500 ;
+B0_l3_3_.CE = js2xen ; 
+
+B0_l3_4_.D = DAC4 ; 
+B0_l3_4_.CK = B0_ck500 ;
+B0_l3_4_.CE = js2xen ; 
+
+B0_l3_5_.D = DAC3 ; 
+B0_l3_5_.CK = B0_ck500 ;
+B0_l3_5_.CE = js2xen ; 
+
+B0_l3_6_.D = DAC2 ; 
+B0_l3_6_.CK = B0_ck500 ; 
+B0_l3_6_.CE = js2xen ;
+
+B0_l3_7_.D = !DAC1 ;  /* MSB IS INVERTED TO MAKE 2'S COMPLEMENT */
+B0_l3_7_.CK = B0_ck500 ;
+B0_l3_7_.CE = js2xen ;
+
+/* LATCH FOR JOYSTICK 2 Y AXIS VALUE  */
+
+js2yen = !sela & !selb & B0_done ; 
+
+B0_l4_0_.D = DAC8 ;
+B0_l4_0_.CK = B0_ck500 ; 
+B0_l4_0_.CE = js2yen ; 
+
+B0_l4_1_.D = DAC7 ; 
+B0_l4_1_.CK = B0_ck500 ;
+B0_l4_1_.CE = js2yen ;
+
+B0_l4_2_.D = DAC6 ;
+B0_l4_2_.CK = B0_ck500 ;
+B0_l4_2_.CE = js2yen ;
+
+B0_l4_3_.D = DAC5 ; 
+B0_l4_3_.CK = B0_ck500 ;
+B0_l4_3_.CE = js2yen ;
+
+B0_l4_4_.D = DAC4 ;
+B0_l4_4_.CK = B0_ck500 ;
+B0_l4_4_.CE = js2yen ;
+
+B0_l4_5_.D = DAC3 ; 
+B0_l4_5_.CK = B0_ck500 ; 
+B0_l4_5_.CE = js2yen ;
+
+B0_l4_6_.D = DAC2 ;
+B0_l4_6_.CK = B0_ck500 ; 
+B0_l4_6_.CE = js2yen ;
+
+B0_l4_7_.D = !DAC1 ;  /* MSB IS INVERTED TO MAKE 2'S COMPLEMENT */ 
+B0_l4_7_.CK = B0_ck500 ;
+B0_l4_7_.CE = js2yen ; 
+
+/* SAR OPERATION TIME COUNTER - COUNTS TO 8 AND STOPS */
+
+I0_run.D = !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 /* H WHEN SAR REGISTER IS RUNNING */
+    # !I0_s2 & I0_run
+    # !I0_s1 & I0_run
+    # !I0_s0 & I0_run ; 
+I0_run.CK = B0_ck500 ; 
+
+I0_s0.D = !I0_s0 & I0_run
+    # I0_s0 & !I0_run ;
+I0_s0.CK = B0_ck500 ; 
+
+I0_s1.D = I0_s0 & !I0_s1 & I0_run
+    # I0_s1 & !I0_run
+    # !I0_s0 & I0_s1 ; 
+I0_s1.CK = B0_ck500 ;
+
+I0_s2.D = I0_s0 & I0_s1 & !I0_s2 & I0_run
+    # I0_s2 & !I0_run
+    # !I0_s1 & I0_s2
+    # !I0_s0 & I0_s2 ; 
+I0_s2.CK = B0_ck500 ;  
+
+/* H TO SIGNAL VALUE IS AVAILABLE TO SAVE IN LATCH */
+
+B0_done.D = I0_s0 & I0_s1 & I0_s2 & I0_run ; 
+B0_done.CK = B0_ck500 ; 
+
+/* SUCCESSIVE APPROXIMATION REGISTER FOR ADC OPERATION */
+/* OUTPUTS DAC1 (MSB) - DAC8 (LSB) GO TO 8 BIT DAC TO APPROXIMATE ANALOG INPUT VALUE */
+/* SAR SETS VALUE OF MSB HIGH FIRST DEPENDING ON COMPARATOR, AND THEN TRIES */
+/* SUBSEQUENT BITS H ONE AT A TIME DOWN TO LSB ON DAC8 */
+
+DAC1.T = !DAC1 & !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run 
+	/* SET DAC1 H WHEN START PULSE OCCURS */
+    # comp & DAC1 & !I0_s0 & !I0_s1 & !I0_s2 & I0_run ; /* SET L IF COMP=H & RUNNING*/
+DAC1.CK = B0_ck500 ; 
+
+DAC2_X1 = DAC2 # !DAC2 & !I0_s0 & !I0_s1 & !I0_s2 & I0_run ; 
+DAC2_X2 = comp & DAC2 & I0_s0 & !I0_s1 & !I0_s2 ; 
+DAC2.D = DAC2_X1 $ DAC2_X2;
+DAC2.CK = B0_ck500 ;
+DAC2.AR = !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run ; 
+
+DAC3.D = !( comp & !I0_s0 & I0_s1 & !I0_s2
+    # !DAC3 & I0_s2
+    # !DAC3 & I0_s1
+    # !DAC3 & !I0_s0 ) ; 
+DAC3.CK = B0_ck500 ; 
+DAC3.AR = !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run ; 
+
+DAC4.D = !I0_s0 & I0_s1 & !I0_s2
+    # DAC4 & I0_s2
+    # DAC4 & !I0_s1
+    # !comp & DAC4 ; 
+DAC4.CK = B0_ck500 ; 
+DAC4.AR = !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run ; 
+
+DAC5.D = !( comp & !I0_s0 & !I0_s1 & I0_s2
+    # !DAC5 & I0_s2
+    # !DAC5 & !I0_s1
+    # !DAC5 & !I0_s0 ) ;
+DAC5.CK = B0_ck500 ; 
+DAC5.AR = !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run ; 
+
+DAC6.D = !I0_s0 & !I0_s1 & I0_s2
+    # DAC6 & !I0_s2
+    # DAC6 & I0_s1
+    # !comp & DAC6 ;
+DAC6.CK = B0_ck500 ; 
+DAC6.AR = !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run ;
+
+DAC7.D = !( comp & !I0_s0 & I0_s1 & I0_s2
+    # !DAC7 & !I0_s2
+    # !DAC7 & I0_s1
+    # !DAC7 & !I0_s0 ) ; 
+DAC7.CK = B0_ck500 ; 
+DAC7.AR = !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run ;
+
+DAC8.D = !I0_s0 & I0_s1 & I0_s2
+    # DAC8 & !I0_s2
+    # DAC8 & !I0_s1
+    # !comp & DAC8 ; 
+DAC8.CK = B0_ck500 ; 
+DAC8.AR = !B0_N_12 & !B0_N_13 & !B0_N_14 & !B0_N_15 & !I0_run ;
+
+
+/* CALCULATE MEMORY ADDRESS OFFSET AND WRITE ENABLE FOR S100 BUS WRITE */
+
+E0_N_41 = !( !ba9 & !ba10 & aq_0_  /* CARRY OUT OF I4 */
+    # !ba9 & aq_0_ & aq_1_
+    # !ba10 & aq_1_ ) ; 
+
+E0_N_43 = ba11 & !aq_2_            /* CARRY OUT OF I5 */
+    # !aq_2_ & E0_N_41
+    # ba11 & E0_N_41 ; 
+
+E0_N_20 = ba12 & !aq_3_            /* CARRY OUT OF I6 */
+    # !aq_3_ & E0_N_43
+    # ba12 & E0_N_43 ;
+
+E0_N_33 = ba13 & !aq_4_            /* CARRY OUT OF I7 */
+    # !aq_4_ & E0_N_20
+    # ba13 & E0_N_20 ; 
+
+E0_N_29 = ba14 & !aq_5_            /* CARRY OUT OF I8 */
+    # !aq_5_ & E0_N_33
+    # ba14 & E0_N_33 ; 
+
+E0_N_25 = !( !ba12 & !aq_3_ & !E0_N_43   /* I1 OUTPUT SIGNAL */
+    # ba12 & aq_3_ & !E0_N_43
+    # ba12 & !aq_3_ & E0_N_43
+    # !ba12 & aq_3_ & E0_N_43
+    # !ba14 & !aq_5_ & !E0_N_33
+    # ba14 & aq_5_ & !E0_N_33
+    # ba14 & !aq_5_ & E0_N_33
+    # !ba14 & aq_5_ & E0_N_33
+    # !ba15 & !aq_6_ & !E0_N_29
+    # ba15 & aq_6_ & !E0_N_29
+    # ba15 & !aq_6_ & E0_N_29
+    # !ba15 & aq_6_ & E0_N_29
+    # !ba13 & !aq_4_ & !E0_N_20
+    # ba13 & aq_4_ & !E0_N_20
+    # ba13 & !aq_4_ & E0_N_20
+    # !ba13 & aq_4_ & E0_N_20 ) ;
+
+/* CALCULATE OFFSET MEMORY ADDRESS FOR DUAL PORT RAM */
+
+ma9 = ba9 & !aq_0_
+    # !ba9 & aq_0_ ; 
+
+ma10_X1 = ba9 & !aq_1_
+    # !aq_0_ & !aq_1_
+    # !ba9 & aq_0_ & aq_1_ ; 
+ma10_X2 = !ba10 ; 
+ma10 = ma10_X1 $ ma10_X2;
+
+ma11 = !ba11 & !aq_2_ & !E0_N_41
+    # ba11 & aq_2_ & !E0_N_41
+    # ba11 & !aq_2_ & E0_N_41
+    # !ba11 & aq_2_ & E0_N_41 ;
+
+/* GENERATE DUAL PORT RAM WRITE CONTROL SIGNALS */
+/* SUBSTITUTED bMWRT FOR (!bnpwr & !bsout) IN EQUATIONS BELOW */
+/* ADDED bMWRT TO INPUT PIN LIST: PIN 2 = bMWRT  */  
+
+nce = !(!nxtadrok & bMWRT & ba15 & !aq_6_ & E0_N_25
+    # !nxtadrok & bMWRT & !aq_6_ & E0_N_25 & E0_N_29
+    # !nxtadrok & bMWRT & ba15 & E0_N_25 & E0_N_29) ; /* ACT L RAM CHIP ENABLE */
+
+nwr = !(!nxtadrok & bMWRT & ba15 & !aq_6_ & E0_N_25
+    # !nxtadrok & bMWRT & !aq_6_ & E0_N_25 & E0_N_29
+    # !nxtadrok & bMWRT & ba15 & E0_N_25 & E0_N_29) ; /* ACT L WRITE STB (SAME) */
+
+
+/* JOYSTICK ANALOG DATA TO CPU + PORT 0E TIMING DATA TO S100 BUS */
+/* PORT 0E BITS 0 TO 5 WILL READ AS LOW */
+
+LDI0 = !ba0 & !ba1 & ba2 & B0_l4_0_  /* JS2Y DATA LSB */
+    # ba0 & ba1 & !ba2 & B0_l3_0_    /* JS2X DATA LSB */
+    # !ba0 & ba1 & !ba2 & B0_l2_0_   /* JS1Y DATA LSB */
+    # ba0 & !ba1 & !ba2 & B0_l1_0_ ; /* JS1X DATA LSB */
+LDI0.OE = ldien ;
+
+LDI1 = !ba0 & !ba1 & ba2 & B0_l4_1_
+    # ba0 & ba1 & !ba2 & B0_l3_1_
+    # !ba0 & ba1 & !ba2 & B0_l2_1_
+    # ba0 & !ba1 & !ba2 & B0_l1_1_ ; 
+LDI1.OE = ldien ; 
+
+LDI2 = !ba0 & !ba1 & ba2 & B0_l4_2_
+    # ba0 & ba1 & !ba2 & B0_l3_2_
+    # !ba0 & ba1 & !ba2 & B0_l2_2_
+    # ba0 & !ba1 & !ba2 & B0_l1_2_ ; 
+LDI2.OE = ldien ; 
+
+LDI3 = !ba0 & !ba1 & ba2 & B0_l4_3_
+    # ba0 & ba1 & !ba2 & B0_l3_3_
+    # !ba0 & ba1 & !ba2 & B0_l2_3_
+    # ba0 & !ba1 & !ba2 & B0_l1_3_ ; 
+LDI3.OE = ldien ; 
+
+LDI4 = !ba0 & !ba1 & ba2 & B0_l4_4_
+    # ba0 & ba1 & !ba2 & B0_l3_4_
+    # !ba0 & ba1 & !ba2 & B0_l2_4_
+    # ba0 & !ba1 & !ba2 & B0_l1_4_ ; 
+LDI4.OE = ldien ; 
+
+LDI5 = !ba0 & !ba1 & ba2 & B0_l4_5_
+    # ba0 & ba1 & !ba2 & B0_l3_5_
+    # !ba0 & ba1 & !ba2 & B0_l2_5_
+    # ba0 & !ba1 & !ba2 & B0_l1_5_ ; 
+LDI5.OE = ldien ; 
+
+LDI6 = !ba0 & !ba1 & ba2 & B0_l4_6_
+    # ba0 & ba1 & !ba2 & B0_l3_6_
+    # !ba0 & ba1 & ba2 & pt0Eb6in    /* INCLUDES PORT 0E BIT 6 IN */
+    # !ba0 & ba1 & !ba2 & B0_l2_6_
+    # ba0 & !ba1 & !ba2 & B0_l1_6_ ; 
+LDI6.OE = ldien ; 
+
+LDI7 = !ba0 & !ba1 & ba2 & B0_l4_7_  /* JS2Y DATA MSB */
+    # ba0 & ba1 & !ba2 & B0_l3_7_    /* JS2X DATA MSB */
+    # !ba0 & ba1 & ba2 & pt0Eb7in    /* INCLUDES PORT 0E BIT 7 IN */
+    # !ba0 & ba1 & !ba2 & B0_l2_7_   /* JS1Y DATA MSB */
+    # ba0 & !ba1 & !ba2 & B0_l1_7_ ; /* JS1X DATA MSB */ 
+LDI7.OE = ldien ; 
+
+/* LATCH FOR DAZZLER OUT PORT 0E D7 = ENABLE, D6-D0 = RAM START ADDRESS A15-A9 */
+ 
+aq_0_.D = bdo0 ; 
+aq_0_.CK = !( bsout & !bnpwr & !ba0 & !ntvden ) ; 
+
+aq_1_.D = bdo1 ; 
+aq_1_.CK = !( bsout & !bnpwr & !ba0 & !ntvden ) ; 
+
+aq_2_.D = bdo2 ; 
+aq_2_.CK = !( bsout & !bnpwr & !ba0 & !ntvden ) ; 
+
+aq_3_.D = bdo3 ; 
+aq_3_.CK = !( bsout & !bnpwr & !ba0 & !ntvden ) ; 
+
+aq_4_.D = bdo4 ; 
+aq_4_.CK = !( bsout & !bnpwr & !ba0 & !ntvden ) ; 
+
+aq_5_.D = bdo5 ; 
+aq_5_.CK = !( bsout & !bnpwr & !ba0 & !ntvden ) ; 
+
+aq_6_.D = bdo6 ; 
+aq_6_.CK = !( bsout & !bnpwr & !ba0 & !ntvden ) ; 
+
+pt0Eb7out.D = bdo7 ; 
+pt0Eb7out.CK = !( bsout & !bnpwr & !ba0 & !ntvden ) ; /* H TO EN DISPLAY */
+
+/* 8 BIT COUNTER FOR SPEAKER PWM DAC OUTPUTS */
+
+C0_N_1.D = !C0_N_1 ; 
+C0_N_1.CK = ck ; 
+
+C0_N_6.D = C0_N_1 & !C0_N_6
+    # !C0_N_1 & C0_N_6 ; 
+C0_N_6.CK = ck ;
+
+C0_N_13.D = C0_N_1 & C0_N_6 & !C0_N_13
+    # !C0_N_6 & C0_N_13
+    # !C0_N_1 & C0_N_13 ; 
+C0_N_13.CK = ck ; 
+
+C0_N_18.D = C0_N_1 & C0_N_6 & C0_N_13 & !C0_N_18
+    # !C0_N_13 & C0_N_18
+    # !C0_N_6 & C0_N_18
+    # !C0_N_1 & C0_N_18 ; 
+C0_N_18.CK = ck ; 
+
+C0_N_24_X1 = C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 ;
+C0_N_24_X2 = C0_N_24 ;
+C0_N_24.D = C0_N_24_X1 $ C0_N_24_X2;
+C0_N_24.CK = ck ; 
+
+C0_N_31.T = C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24 ; 
+C0_N_31.CK = ck ; 
+
+C0_N_36.T = C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24
+       & C0_N_31 ; 
+C0_N_36.CK = ck ; 
+
+C0_N_42.T = C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24
+       & C0_N_31 & C0_N_36 ;
+C0_N_42.CK = ck ;
+
+/* LATCH FOR JOYSTICK 1 SPEAKER OUTPUT ANALOG VALUE */
+
+js1_0_.D = bdo0 ; /* LSB */
+js1_0_.CK = !( bsout & !bnpwr & ba0 & !ba1 & !ba2 & !njsen ) ; 
+
+js1_1_.D = bdo1 ; 
+js1_1_.CK = !( bsout & !bnpwr & ba0 & !ba1 & !ba2 & !njsen ) ; 
+
+js1_2_.D = bdo2 ; 
+js1_2_.CK = !( bsout & !bnpwr & ba0 & !ba1 & !ba2 & !njsen ) ; 
+
+js1_3_.D = bdo3 ; 
+js1_3_.CK = !( bsout & !bnpwr & ba0 & !ba1 & !ba2 & !njsen ) ; 
+
+js1_4_.D = bdo4 ;
+js1_4_.CK = !( bsout & !bnpwr & ba0 & !ba1 & !ba2 & !njsen ) ; 
+
+js1_5_.D = bdo5 ;
+js1_5_.CK = !( bsout & !bnpwr & ba0 & !ba1 & !ba2 & !njsen ) ; 
+
+js1_6_.D = bdo6 ; 
+js1_6_.CK = !( bsout & !bnpwr & ba0 & !ba1 & !ba2 & !njsen ) ; 
+
+js1_7_.D = !bdo7 ; /* MSB IS INVERTED FOR 2'S COMPLEMENT INPUT */
+js1_7_.CK = !( bsout & !bnpwr & ba0 & !ba1 & !ba2 & !njsen ) ; 
+
+/* RATE MULTIPLIER FOR SPEAKER OUTPUT PWM DAC */
+/* THE DIGITAL PULSE STREAM IS AVERAGED BY 4 KHZ LPF TO GET ANALOG SIGNAL */
+
+js1spkr.D = js1_0_ & C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24
+       & C0_N_31 & C0_N_36 & !C0_N_42
+    # js1_1_ & C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24
+       & C0_N_31 & !C0_N_36
+    # js1_2_ & C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24
+       & !C0_N_31
+    # js1_3_ & C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & !C0_N_24
+    # js1_4_ & C0_N_1 & C0_N_6 & C0_N_13 & !C0_N_18
+    # js1_5_ & C0_N_1 & C0_N_6 & !C0_N_13
+    # js1_6_ & C0_N_1 & !C0_N_6
+    # js1_7_ & !C0_N_1 ; 
+js1spkr.CK = ck;
+
+/* LATCH FOR JOYSTICK 2 SPEAKER OUTPUT ANALOG VALUE */
+
+js2_0_.D = bdo0 ; 
+js2_0_.CK = !( bsout & !bnpwr & ba0 & ba1 & !ba2 & !njsen ) ;
+
+js2_1_.D = bdo1 ; 
+js2_1_.CK = !( bsout & !bnpwr & ba0 & ba1 & !ba2 & !njsen ) ; 
+
+js2_2_.D = bdo2 ; 
+js2_2_.CK = !( bsout & !bnpwr & ba0 & ba1 & !ba2 & !njsen ) ; 
+
+js2_3_.D = bdo3 ; 
+js2_3_.CK = !( bsout & !bnpwr & ba0 & ba1 & !ba2 & !njsen ) ;
+
+js2_4_.D = bdo4 ;
+js2_4_.CK = !( bsout & !bnpwr & ba0 & ba1 & !ba2 & !njsen ) ; 
+
+js2_5_.D = bdo5 ; 
+js2_5_.CK = !( bsout & !bnpwr & ba0 & ba1 & !ba2 & !njsen ) ; 
+
+js2_6_.D = bdo6 ; 
+js2_6_.CK = !( bsout & !bnpwr & ba0 & ba1 & !ba2 & !njsen ) ; 
+
+js2_7_.D = !bdo7 ; /* MSB IS INVERTED FOR 2'S COMPLEMENT INPUT */
+js2_7_.CK = !( bsout & !bnpwr & ba0 & ba1 & !ba2 & !njsen ) ; 
+
+/* RATE MULTIPLIER FOR SPEAKER OUTPUT PWM DAC */
+/* THE DIGITAL PULSE STREAM IS AVERAGED BY 4 KHZ LPF TO GET ANALOG SIGNAL */
+
+js2spkr.D = js2_0_ & C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24
+       & C0_N_31 & C0_N_36 & !C0_N_42
+    # js2_1_ & C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24
+       & C0_N_31 & !C0_N_36
+    # js2_2_ & C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & C0_N_24
+       & !C0_N_31
+    # js2_3_ & C0_N_1 & C0_N_6 & C0_N_13 & C0_N_18 & !C0_N_24
+    # js2_4_ & C0_N_1 & C0_N_6 & C0_N_13 & !C0_N_18
+    # js2_5_ & C0_N_1 & C0_N_6 & !C0_N_13
+    # js2_6_ & C0_N_1 & !C0_N_6
+    # js2_7_ & !C0_N_1 ; 
+js2spkr.CK = ck;
+
+/* H TO OUTPUT DATA FROM CPLD FOR PORTS 0E (TIMING), */
+/* AND PORTS 19, 1A, 1B, & 1C (JOYSTICK AXIS VALUE) */
+/* NJSEN INCLUDES A3-A7, NTVDEN INCLUDES A1-A7 QUALIFIERS */
+
+ldien = (!ba0 & !ntvden
+    # (ba0 & !ba2 # ba1 & !ba2 # !ba0 & !ba1 & ba2) & !njsen) ; 
+
+/* L TO TURN ON BUS DRIVER FOR DATA FROM BOARD TO S100 BUS */
+/* NJSEN INCLUDES A3-A7, NTVDEN INCLUDES A1-A7 QUALIFIERS */
+
+nin = !(bsinp & bpdbin & ((!ba0 & !ba1 # !ba2) & !njsen  # !ba0 & !ntvden )) ; 
+
+/* L TO ENABLE DATA COUPLER FROM JOYSTICK SWITCHES TO S100 BUS DI DRIVER */
+
+npt18en = !( !ba0 & !ba1 & !ba2 ) ;
+
+/* ACT L PULSE TO LATCH TV DAZZLER CONTROL BITS AND MAP COLOR */
+
+npt0FCK = !( bsout & !bnpwr & ba0 & !ntvden ) ; 
+
+/* L TO LATCH EXTRA_PORT CONTROL BITS: D0=PAGE, D1=SPARE1, D2=ALTMAP */
+
+exadr = (!ba0 $ ptA0) & !extrapt & bsout ;
+
+nexport = !( (!ba0 $ ptA0) & !extrapt & bsout & !bnpwr) ;
+
+ptinp = bsinp & ((!ba0 & !ba1 # !ba2) & !njsen  # !ba0 & !ntvden ) ; /*NIN WITHOUT PDBIN */
+
+ptout = bsout & !bnpwr & (!ntvden # !njsen & ba0 & !ba2 ) ;
+
+nled = !( exadr # ptinp # ptout # !nwr ) ;
+
+ 
+
+
+
+
+

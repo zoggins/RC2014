@@ -1,0 +1,396 @@
+Name     display_finl3ds ;
+PartNo   ATF1504AS ;
+Date     8/20/2016 ;
+Revision 03 ;         /* THIS IS THE COMPOSITE VIDEO LOGIC */
+Designer Terry ;
+Company  walker systems ;
+Assembly None ;
+Location  ;
+Device   f1504ispplcc44 ;
+
+property ATMEL { xor_synthesis=on }; 
+/* property ATMEL { logic_doubling=on }; */ 
+property ATMEL { jtag=on }; 
+PROPERTY ATMEL { preassign keep }; 
+PROPERTY ATMEL { TMS_pullup=on }; 
+PROPERTY ATMEL { TDI_pullup=on };
+PROPERTY ATMEL {OUTPUT_FAST = ON};  /* this can be done by pins individually see Atmel docs */
+/* PROPERTY ATMEL {MC_POWER = <ON | OFF | pin_name1, pin_name2, ..>}; */
+/* When the macrocell reduced-power mode is turned on, those macrocells will use less power but they */ 
+/* will be slower. */
+/* Since external pull-ups are required for your design, then you should disable the Pin-keeper option by */ 
+/* using the following property statement. */
+PROPERTY ATMEL {PIN_KEEP = ON};
+
+/* *************** INPUT PINS *********************/
+PIN 41    =  disp0                       ; /*                                 */ 
+PIN 40    =  disp1                       ; /*                                 */ 
+PIN 39    =  disp2                       ; /*                                 */ 
+PIN 37    =  disp3                       ; /*                                 */ 
+PIN 34    =  mode0                       ; /*                                 */ 
+PIN 33    =  mode1                       ; /*                                 */ 
+PIN 29    =  pt0Fb4e                      ; /* H FOR COLOR DISPLAY              */ 
+PIN 31    =  altmape                      ; /*                                 */ 
+PIN 36    =  burstin                     ; /* U6 P10                          */ 
+PIN 2     =  ck28Mhz                     ; /* U6 P83, CK OSC                  */ 
+PIN 43    =  ck8in                       ; /* U6 P2, U6 P4                    */
+pin 28    =  disptst                     ; /* from U6 P1, P18 O1, switch  */  
+
+/* *************** OUTPUT PINS *********************/
+PIN 4    =  blue0                       ; /*                                 */ 
+PIN 5    =  blue1                       ; /*                                 */ 
+PIN 6    =  blue2                       ; /*                                 */ 
+PIN 8    =  blue3                       ; /*                                 */ 
+/* PIN 9    =  nbsy ; comes from U6 */
+PIN 11    =  green0                       ; /*                                 */ 
+PIN 12    =  green1                       ; /*                                 */ 
+PIN 14    =  green2                       ; /*                                 */ 
+PIN 16    =  green3                       ; /*                                 */ 
+/* PIN 17    =  ngsy ; comes from U6 */
+PIN 18    =  red0                       ; /*                                 */ 
+PIN 19    =  red1                       ; /*                                 */ 
+PIN 20    =  red2                       ; /*                                 */ 
+PIN 21    =  red3                       ; /*                                 */ 
+/* PIN 24    = nrsy ; comes from U6 */
+
+/* *************** PINNODES    *********************/
+PINNODE     =  F0_N_10                    ; /*                                 */ 
+PINNODE     =  F0_N_13                    ; /*                                 */ 
+PINNODE     =  F0_N_9                    ; /*                                 */ 
+PINNODE     =  M0_N_10                    ; /*                                 */ 
+PINNODE     =  M0_N_11                    ; /*                                 */ 
+PINNODE     =  M0_N_12                    ; /*                                 */ 
+PINNODE     =  M0_N_9                    ; /*                                 */ 
+PINNODE     =  M0_sb_3_                    ; /*                                 */ 
+PINNODE     =  M0_sel_0_                    ; /*                                 */ 
+PINNODE     =  M0_sel_1_                    ; /*                                 */ 
+PINNODE     =  M0_sel_2_                    ; /*                                 */ 
+PINNODE     =  M0_u_0_                    ; /*                                 */ 
+PINNODE     =  M0_u_1_                    ; /*                                 */ 
+PINNODE     =  M0_u_2_                    ; /*                                 */ 
+PINNODE     =  M0_u_3_                    ; /*                                 */ 
+PINNODE     =  M0_v_0_                    ; /*                                 */ 
+PINNODE     =  M0_v_1_                    ; /*                                 */ 
+PINNODE     =  M0_v_2_                    ; /*                                 */ 
+PINNODE     =  M0_v_3_                    ; /*                                 */ 
+PINNODE     =  Y_0_                    ; /*                                 */ 
+PINNODE     =  Y_1_                    ; /*                                 */ 
+PINNODE     =  Y_2_                    ; /*                                 */ 
+PINNODE     =  Y_3_                    ; /*                                 */ 
+PINNODE     =  comp_0_                    ; /*                                 */ 
+PINNODE     =  comp_1_                    ; /*                                 */ 
+PINNODE     =  comp_2_                    ; /*                                 */ 
+PINNODE     =  comp_3_                    ; /*                                 */
+PINNODE     =  M0_u_1_X1                    ; /*                                 */ 
+PINNODE     =  M0_u_1_X2                    ; /*                                 */ 
+PINNODE     =  M0_u_2_X1                    ; /*                                 */ 
+PINNODE     =  M0_u_2_X2                    ; /*                                 */ 
+PINNODE     =  M0_u_3_X1                    ; /*                                 */ 
+PINNODE     =  M0_u_3_X2                    ; /*                                 */ 
+PINNODE     =  M0_v_0_X1                    ; /*                                 */ 
+PINNODE     =  M0_v_0_X2                    ; /*                                 */
+PINNODE     =  M0_v_1_X1                   ; /*                                 */ 
+PINNODE     =  blue1_X1                    ; /*                                 */ 
+PINNODE     =  blue2_X1                    ; /*                                 */ 
+PINNODE     =  comp_3_X1                    ; /*                                 */
+PINNODE     =  M0_v_1_X2                   ; /*                                 */ 
+PINNODE     =  blue1_X2                    ; /*                                 */ 
+PINNODE     =  blue2_X2                    ; /*                                 */ 
+PINNODE     =  comp_3_X2                    ; /*                                 */
+
+/* LOGIC EQUATIONS */
+
+altmap = altmape # disptst ; /* TO CAUSE TEST PATTERN TO USE ALTERNATE COLOR MAP */
+
+pt0Fb4 = pt0Fb4e # disptst ; /* SO TEST PATTERN IS IN COLOR */
+
+F0_N_10 = Y_1_ & !M0_u_0_ & M0_N_9 & !M0_N_10 
+    # Y_1_ & !M0_v_0_ & !M0_N_9 & M0_N_10 
+    # Y_0_ & Y_1_ & M0_u_0_ & !M0_N_10 
+    # Y_0_ & Y_1_ & M0_v_0_ & M0_N_10 
+    # Y_0_ & M0_u_0_ & M0_u_1_ & !M0_N_9 & !M0_N_10 
+    # Y_0_ & M0_v_0_ & M0_v_1_ & M0_N_9 & M0_N_10 
+    # !M0_u_0_ & !M0_u_1_ & M0_N_9 & !M0_N_10 
+    # !M0_v_0_ & !M0_v_1_ & !M0_N_9 & M0_N_10 
+    # Y_0_ & !M0_u_1_ & M0_N_9 & !M0_N_10 
+    # Y_0_ & !M0_v_1_ & !M0_N_9 & M0_N_10 
+    # Y_1_ & M0_u_1_ & !M0_N_9 & !M0_N_10 
+    # Y_1_ & !M0_u_1_ & M0_N_9 & !M0_N_10 
+    # Y_1_ & !M0_v_1_ & !M0_N_9 & M0_N_10 
+    # Y_1_ & M0_v_1_ & M0_N_9 & M0_N_10 ; /*(14 pterms, 8 signals*/
+
+F0_N_13 = !( !Y_2_ & !Y_3_ & !M0_u_2_ & M0_u_3_ & !M0_N_9 
+       & !M0_N_10 
+    # !Y_2_ & !Y_3_ & M0_u_2_ & !M0_u_3_ & M0_N_9 & !M0_N_10 
+    # !Y_2_ & !Y_3_ & M0_v_2_ & !M0_v_3_ & !M0_N_9 & M0_N_10 
+    # !Y_2_ & !Y_3_ & !M0_v_2_ & M0_v_3_ & M0_N_9 & M0_N_10 
+    # !Y_3_ & !M0_u_2_ & M0_u_3_ & !M0_N_9 & !M0_N_10 & !F0_N_10
+    # !Y_3_ & M0_u_2_ & !M0_u_3_ & M0_N_9 & !M0_N_10 & !F0_N_10
+    # !Y_3_ & M0_v_2_ & !M0_v_3_ & !M0_N_9 & M0_N_10 & !F0_N_10
+    # !Y_3_ & !M0_v_2_ & M0_v_3_ & M0_N_9 & M0_N_10 & !F0_N_10
+    # !Y_2_ & !Y_3_ & M0_u_3_ & !M0_N_9 & !M0_N_10 & !F0_N_10
+    # !Y_2_ & !Y_3_ & !M0_u_3_ & M0_N_9 & !M0_N_10 & !F0_N_10
+    # !Y_2_ & !Y_3_ & !M0_v_3_ & !M0_N_9 & M0_N_10 & !F0_N_10
+    # !Y_2_ & !Y_3_ & M0_v_3_ & M0_N_9 & M0_N_10 & !F0_N_10 ) ; /*12 pterms, 9 signals*/
+
+F0_N_9A = !Y_2_ & !F0_N_10
+    # M0_u_2_ & !M0_N_9 & !M0_N_10 
+    # Y_2_ & F0_N_10
+    # !M0_v_2_ & !M0_N_9 & M0_N_10 
+    # !M0_u_2_ & M0_N_9 & !M0_N_10 
+    # M0_v_2_ & M0_N_9 & M0_N_10 ; /*6 pterms, 6 signals*/
+F0_N_9B = !Y_2_ & !F0_N_10 ; /*1 pterm, 2 signals*/
+F0_N_9 = F0_N_9A $ F0_N_9B ; /*to replace X1-X2 XOR term*/
+
+M0_N_10.D = M0_N_12 & !M0_N_10 
+    # !M0_N_12 & M0_N_10 ; /*2 pterms, 2 signals*/
+M0_N_10.CK = ck28Mhz ; /*1 pterm, 1 signal*/
+
+M0_N_11 = !M0_N_9 & M0_N_10 
+    # M0_N_9 & !M0_N_10 ; /*2 pterms, 2 signals*/
+
+M0_N_12.D = !M0_N_12 ; /*1 pterm, 1 signal*/
+M0_N_12.CK = ck28Mhz ; /*1 pterm, 1 signal*/
+
+M0_N_9.D = M0_N_12 & !M0_N_9 & M0_N_10 
+    # M0_N_9 & !M0_N_10 
+    # !M0_N_12 & M0_N_9 ; /*3 pterms, 3 signals*/
+M0_N_9.CK = ck28Mhz ; /*1 pterm, 1 signal*/
+
+M0_sb_3_ = M0_u_3_ & !M0_N_9 & !M0_N_10 
+    # !M0_u_3_ & M0_N_9 & !M0_N_10 
+    # !M0_v_3_ & !M0_N_9 & M0_N_10 
+    # M0_v_3_ & M0_N_9 & M0_N_10 ; /*4 pterms, 4 signals*/
+
+M0_sel_0_ = M0_u_0_ & !M0_N_10 
+    # M0_v_0_ & M0_N_10 ; /*2 pterms, 3 signals*/
+
+M0_sel_1_ = M0_u_1_ & !M0_N_10 
+    # M0_v_1_ & M0_N_10 ; /*2 pterms, 3 signals*/
+
+M0_sel_2_ = M0_u_2_ & !M0_N_10 
+    # M0_v_2_ & M0_N_10 ; /*2 pterms, 3 signals*/
+
+M0_u_0_.D = !disp2 & disp1 & !disp0 & pt0Fb4 & altmap
+    # !disp3 & !disp2 & disp0 & pt0Fb4 & !altmap
+    # disp3 & !disp2 & disp1 & disp0 & pt0Fb4
+    # disp2 & !disp1 & !disp0 & pt0Fb4 & !altmap
+    # disp3 & disp2 & !disp1 & disp0 & pt0Fb4 & altmap
+    # disp3 & !disp2 & !disp0 & pt0Fb4 & altmap
+    # !disp3 & !disp2 & !disp1 & disp0 & pt0Fb4
+    # !disp3 & disp2 & !disp0 & pt0Fb4 ; /*8 pterms, 6 signals*/
+M0_u_0_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+M0_u_1_X1 = !disp3 & !disp2 & disp1 & pt0Fb4 & !altmap
+    # !disp3 & disp2 & !disp1 & pt0Fb4 & !altmap
+    # !disp3 & disp1 & !disp0 & pt0Fb4 & altmap
+    # disp3 & disp2 & disp1 & !disp0 & pt0Fb4 & !altmap ; /*4 pterms, 6 signals*/
+M0_u_1_X2 = !disp2 & disp0 & pt0Fb4 ; /*1 pterm, 3 signals*/
+M0_u_1_.D = M0_u_1_X1 $ M0_u_1_X2 ;
+M0_u_1_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+M0_u_2_.D = !disp2 & !disp1 & disp0 & pt0Fb4
+    # disp3 & disp2 & !disp0 & pt0Fb4 & altmap
+    # !disp2 & disp1 & !disp0 & pt0Fb4 & !altmap
+    # !disp3 & disp0 & pt0Fb4 & altmap
+    # disp3 & disp2 & !disp1 & pt0Fb4
+    # disp3 & !disp1 & pt0Fb4 & altmap
+    # !disp3 & !disp2 & disp1 & pt0Fb4
+    # disp2 & !disp1 & pt0Fb4 & altmap ; /* 8 pterms, 6 signals */
+M0_u_2_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+M0_u_3_X1 = !disp2 & pt0Fb4 & !altmap
+    # !disp3 & pt0Fb4 & altmap
+    # !disp2 & !disp1 & disp0 & pt0Fb4 ; /*3 pterms, 6 signals*/
+M0_u_3_X2 = !disp2 & !disp1 & !disp0 & pt0Fb4 ; /*1 pterm, 4 signals*/
+M0_u_3_.D = M0_u_3_X1 $ M0_u_3_X2;
+M0_u_3_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+M0_v_0_.D = !disp3 & !disp2 & disp1 & pt0Fb4 & !altmap
+    # disp3 & disp1 & !disp0 & pt0Fb4 & altmap
+    # disp2 & !disp1 & disp0 & pt0Fb4 & altmap
+    # !disp2 & disp0 & pt0Fb4 & !altmap
+    # disp2 & !disp0 & pt0Fb4 & !altmap
+    # !disp3 & disp2 & pt0Fb4 & altmap ; /*6 pterms, 6 signals*/
+M0_v_0_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+M0_v_1_.D = disp2 & !disp1 & !disp0 & pt0Fb4 & !altmap
+    # disp3 & !disp2 & disp1 & !disp0 & pt0Fb4 & !altmap
+    # !disp3 & disp2 & disp1 & !disp0 & pt0Fb4
+    # disp3 & !disp2 & !disp1 & pt0Fb4 & altmap
+    # !disp2 & disp0 & pt0Fb4 & altmap
+    # disp3 & !disp1 & disp0 & pt0Fb4
+    # !disp1 & disp0 & pt0Fb4 & altmap ; /*7 pterms, 6 signals*/
+M0_v_1_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+M0_v_2_.D = disp2 & !disp1 & !disp0 & pt0Fb4
+    # !disp3 & !disp2 & disp1 & !disp0 & pt0Fb4
+    # !disp1 & disp0 & pt0Fb4 & !altmap
+    # !disp3 & disp1 & pt0Fb4 & altmap
+    # disp3 & disp2 & !disp1 & pt0Fb4
+    # disp2 & !disp0 & pt0Fb4 & altmap ; /*6 pterms, 6 signals*/
+M0_v_2_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+M0_v_3_.D = !disp3 & disp2 & disp1 & pt0Fb4 & altmap
+    # disp1 & !disp0 & pt0Fb4 & !altmap
+    # disp2 & !disp0 & pt0Fb4 & !altmap
+    # disp3 & !disp1 & pt0Fb4 & altmap
+    # disp3 & !disp2 & pt0Fb4 & altmap ; /*5 pterms, 6 signals*/
+M0_v_3_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+Y_0_.D = disp2 & disp0 & !altmap
+    # disp3 & !disp2 & !disp1 & !disp0 & pt0Fb4 & altmap
+    # !disp3 & disp1 & !disp0 & pt0Fb4 & altmap
+    # disp3 & disp1 & !disp0 & pt0Fb4 & !altmap
+    # disp3 & !disp1 & disp0 & !altmap
+    # disp3 & disp1 & disp0 & altmap
+    # !disp3 & disp2 & pt0Fb4
+    # disp0 & !pt0Fb4 ; /*8 pterms, 6 signals*/
+Y_0_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+Y_1_.D = disp2 & disp0 & pt0Fb4 & altmap
+    # !disp2 & disp1 & !disp0 & altmap
+    # disp3 & disp1 & disp0 & !altmap
+    # !disp3 & !disp1 & disp0 & pt0Fb4
+    # disp2 & !disp1 & pt0Fb4 & altmap
+    # !disp1 & disp0 & pt0Fb4 & altmap
+    # disp3 & disp2 & pt0Fb4
+    # disp1 & !pt0Fb4 ; /*8 pterms, 6 signals*/
+Y_1_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+Y_2_.D = disp3 & disp2 & disp1 & disp0
+    # !disp3 & !disp2 & disp1 & disp0 & pt0Fb4 & altmap
+    # !disp3 & disp1 & !disp0 & pt0Fb4 & !altmap
+    # disp3 & disp1 & !disp0 & pt0Fb4 & altmap
+    # disp3 & disp0 & pt0Fb4 & !altmap
+    # disp2 & !disp0 & altmap
+    # disp2 & !pt0Fb4 ; /*7 pterms, 6 signals*/
+Y_2_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+Y_3_.D = disp3 & disp1 & disp0
+    # disp3 & !disp2 & !disp1 & altmap
+    # !disp3 & disp2 & disp0 & pt0Fb4 & altmap
+    # !disp3 & disp2 & disp1 & pt0Fb4 & altmap
+    # disp1 & disp0 & pt0Fb4 & !altmap
+    # disp3 & disp1 & !altmap
+    # disp3 & !pt0Fb4 ; /*7 pterms, 6 signals*/
+Y_3_.CK = ck8in ; /*1 pterm, 1 signal*/
+
+blue0 = !mode0 & M0_u_0_ & !M0_u_1_ & !M0_u_3_ 
+    # !mode0 & !M0_u_0_ & M0_u_1_ & !M0_u_3_ 
+    # !mode0 & M0_u_0_ & M0_u_1_ & M0_u_2_ 
+    # !mode0 & !M0_u_2_ & M0_u_3_ 
+    # mode0 & comp_0_ ; /*5 pterms, 6 signals*/
+blue0.OE = mode1 ; /*1 pterm, 1 signal*/
+
+blue1_X1 = !mode0 & !M0_u_0_ & M0_u_1_ & !M0_u_2_ & !M0_u_3_ 
+    # !mode0 & M0_u_0_ & !M0_u_1_ & M0_u_2_ & M0_u_3_ 
+    # mode0 & comp_1_ ; /*3 pterms, 6 signals*/
+blue1_X2 = !mode0 & M0_u_2_ ; /*1 pterm, 2 signals*/
+blue1 = blue1_X1 $ blue1_X2;
+blue1.OE = mode1 ; /*1 pterm, 1 signal*/
+
+blue2_X1 = !mode0 & !M0_u_0_ & !M0_u_1_ & M0_u_2_ & M0_u_3_ 
+    # !mode0 & M0_u_0_ & M0_u_1_ & !M0_u_2_ & !M0_u_3_ 
+    # mode0 & comp_2_ ; /*3 pterms, 6 signals*/
+blue2_X2 = !mode0 & M0_u_2_ ; /*1 pterm, 2 signals*/
+blue2 = blue2_X1 $ blue2_X2;
+blue2.OE = mode1 ; /*1 pterm, 1 signal*/
+
+blue3 = mode0 & comp_3_ 
+    # !mode0 & !M0_u_3_ ; /*2 pterms, 3 signals*/
+blue3.OE = mode1 ; /*1 pterm, 1 signal*/
+
+comp_0_.D = !burstin & Y_0_ & !M0_sb_3_ & !M0_v_0_ & M0_N_10 
+    # !burstin & Y_0_ & Y_3_ & !M0_v_0_ & M0_N_10 
+    # !burstin & !Y_0_ & !M0_sb_3_ & M0_v_0_ & M0_N_10 
+    # !burstin & !Y_0_ & Y_3_ & M0_v_0_ & M0_N_10 
+    # !burstin & Y_0_ & !M0_v_0_ & M0_N_10 & F0_N_9
+    # !burstin & !Y_0_ & M0_v_0_ & M0_N_10 & F0_N_9
+    # Y_0_ & !M0_sb_3_ & !M0_u_0_ & !M0_N_10 
+    # Y_0_ & Y_3_ & !M0_u_0_ & !M0_N_10 
+    # !Y_0_ & !M0_sb_3_ & M0_u_0_ & !M0_N_10 
+    # !Y_0_ & Y_3_ & M0_u_0_ & !M0_N_10 
+    # Y_0_ & !M0_u_0_ & !M0_N_10 & F0_N_9
+    # !Y_0_ & M0_u_0_ & !M0_N_10 & F0_N_9
+    # !burstin & Y_3_ & !M0_sb_3_ & F0_N_9
+    # burstin & !M0_N_10 ; /*14 pterms, 8 signals*/
+comp_0_.CK = ck28Mhz ; /*1 pterm, 1 signal*/
+
+comp_1_.D = !burstin & Y_3_ & M0_u_3_ & M0_N_9 & !M0_N_10 & F0_N_9
+    # !burstin & Y_0_ & !Y_1_ & M0_sel_0_ & !M0_sel_1_ & !M0_N_11
+       & F0_N_13
+    # !burstin & Y_0_ & Y_1_ & M0_sel_0_ & M0_sel_1_ & !M0_N_11 & F0_N_13
+    # !burstin & !Y_0_ & !Y_1_ & M0_sel_0_ & !M0_sel_1_ & M0_N_11
+       & F0_N_13
+    # !burstin & !Y_0_ & Y_1_ & M0_sel_0_ & M0_sel_1_ & M0_N_11 & F0_N_13
+    # Y_3_ & !M0_u_3_ & !M0_N_9 & !M0_N_10 & F0_N_9
+    # Y_3_ & !M0_v_3_ & M0_N_9 & M0_N_10 & F0_N_9
+    # Y_3_ & M0_v_3_ & !M0_N_9 & M0_N_10 & F0_N_9
+    # !burstin & !Y_0_ & Y_1_ & !M0_sel_1_ & !M0_N_11 & F0_N_13
+    # !burstin & !Y_0_ & !Y_1_ & M0_sel_1_ & !M0_N_11 & F0_N_13
+    # !burstin & Y_0_ & Y_1_ & !M0_sel_1_ & M0_N_11 & F0_N_13
+    # !burstin & Y_0_ & !Y_1_ & M0_sel_1_ & M0_N_11 & F0_N_13
+    # !burstin & Y_1_ & !M0_sel_0_ & !M0_sel_1_ & F0_N_13
+    # !burstin & !Y_1_ & !M0_sel_0_ & M0_sel_1_ & F0_N_13
+    # burstin & M0_N_10 
+    # burstin & !M0_N_9 ; /*16 pterms, 13 signals*/
+comp_1_.CK = ck28Mhz ; /*1 pterm, 1 signal*/
+
+comp_2_.D = !burstin & Y_3_ & !M0_u_3_ & !M0_N_9 & !M0_N_10 & F0_N_9
+    # !burstin & Y_3_ & M0_u_3_ & M0_N_9 & !M0_N_10 & F0_N_9
+    # Y_3_ & M0_v_3_ & !M0_N_9 & M0_N_10 & F0_N_9
+    # Y_3_ & !M0_v_3_ & M0_N_9 & M0_N_10 & F0_N_9
+    # !burstin & Y_2_ & !M0_sel_2_ & !M0_N_11 & !F0_N_10 & F0_N_13
+    # !burstin & !Y_2_ & M0_sel_2_ & !M0_N_11 & !F0_N_10 & F0_N_13
+    # !burstin & !Y_2_ & !M0_sel_2_ & M0_N_11 & !F0_N_10 & F0_N_13
+    # !burstin & Y_2_ & M0_sel_2_ & M0_N_11 & !F0_N_10 & F0_N_13
+    # !burstin & !Y_2_ & !M0_sel_2_ & !M0_N_11 & F0_N_10 & F0_N_13
+    # !burstin & Y_2_ & M0_sel_2_ & !M0_N_11 & F0_N_10 & F0_N_13
+    # !burstin & Y_2_ & !M0_sel_2_ & M0_N_11 & F0_N_10 & F0_N_13
+    # !burstin & !Y_2_ & M0_sel_2_ & M0_N_11 & F0_N_10 & F0_N_13
+    # burstin & M0_N_10 ; /*13 pterms, 12 signals*/
+comp_2_.CK = ck28Mhz ; /*1 pterm, 1 signal*/
+
+comp_3_X1 = !burstin & Y_3_ & F0_N_9
+    # !burstin & !Y_3_ & !F0_N_9
+    # burstin & M0_N_9 & !M0_N_10 
+    # !burstin & !M0_u_3_ & !M0_N_9 & !M0_N_10 
+    # !burstin & !M0_v_3_ & M0_N_9 & M0_N_10 
+    # !burstin & M0_u_3_ & M0_N_9 & !M0_N_10 
+    # !burstin & M0_v_3_ & !M0_N_9 & M0_N_10 ; /*7 pterms, 7 signals*/
+comp_3_X2 = !burstin & !Y_3_ & !F0_N_9 ; /*1 pterm, 3 signals*/
+comp_3_.D = comp_3_X1 $ comp_3_X2;
+comp_3_.CK = ck28Mhz ; /*1 pterm, 1 signal*/
+
+green0 = mode0 & comp_0_ 
+    # !mode0 & Y_0_ ; /*2 pterms, 3 signals*/
+green0.OE = mode1 ; /*1 pterm, 1 signal*/
+
+green1 = mode0 & comp_1_ 
+    # !mode0 & Y_1_ ; /*2 pterms, 3 signals*/
+green1.OE = mode1 ; /*1 pterm, 1 signal*/
+
+green2 = mode0 & comp_2_ 
+    # !mode0 & Y_2_ ; /*2 pterms, 3 signals*/
+green2.OE = mode1 ; /*1 pterm, 1 signal*/
+
+green3 = mode0 & comp_3_ 
+    # !mode0 & Y_3_ ; /*2 pterms, 3 signals*/
+green3.OE = mode1 ; /*1 pterm, 1 signal*/
+
+red0 = mode0 & comp_0_ 
+    # !mode0 & M0_v_0_ ; /*2 pterms, 3 signals*/
+red0.OE = mode1 ; /*1 pterm, 1 signal*/
+
+red1 = mode0 & comp_1_ 
+    # !mode0 & M0_v_1_ ; /*2 pterms, 3 signals*/
+red1.OE = mode1 ; /*1 pterm, 1 signal*/
+
+red2 = mode0 & comp_2_ 
+    # !mode0 & M0_v_2_ ; /*2 pterms, 3 signals*/
+red2.OE = mode1 ; /*1 pterm, 1 signal*/
+
+red3 = mode0 & comp_3_ 
+    # !mode0 & !M0_v_3_ ; /*2 pterms, 3 signals*/
+red3.OE = mode1 ; /*1 pterm, 1 signal*/

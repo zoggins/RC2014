@@ -1,0 +1,714 @@
+Name     BJL_testgen1_V5 ;
+PartNo   ATF1508AS ;
+Date     8/24/2016 ;  /* THIS FILE DOES NOT WORK IF NOEL (RAM P6) IS VCC */
+Revision 05 ;         /* THIS VERSION HAS OUTPUT TO FLASH LED D3 AT 1 HZ */
+		/* COUNTER CHAIN CHANGED TO WORK WITH 10 MHZ CRYSTAL */
+Designer Terry ;
+Company  walker systems ;
+Assembly None ;
+Location  ;
+Device   f1508ispplcc84;
+
+property ATMEL { xor_synthesis=on }; 
+/* property ATMEL { logic_doubling=on }; */ 
+property ATMEL { jtag=on }; 
+PROPERTY ATMEL { preassign keep }; 
+PROPERTY ATMEL { TMS_pullup=on }; 
+PROPERTY ATMEL { TDI_pullup=on };
+PROPERTY ATMEL {OUTPUT_FAST = ON};  
+/* these can be done by pins individually see Atmel docs */
+PROPERTY ATMEL {PIN_KEEP = ON};
+PROPERTY ATMEL {SOFT_BUFFER = ADRINC} ; 
+
+/* *************** INPUT PINS *********************/
+PIN  83   =  ck10                     ; /*                               */ 
+ /* PIN  63   =  hdr11                        H FOR 18HZ WRITE, L FOR 9HZ  U11P9 */ 
+ /* PIN  61   =  hdr12                         PERSISTENCE BIT 1             U11P7 */ 
+ /* PIN  60   =  hdr13                         PERSISTENCE BIT 0             U11P5 */ 
+/* PIN  58   =  hdr4                      H TO RESET XY COUNTERS        U11P3 */
+
+/* following changes so header doesn't have to be used to run Spark program */
+hdr11 = 'b'1 ; /* choose 18 hz  */
+hdr12 = 'b'0 ; /* we want medium persistence */
+hdr13 = 'b'1 ; 
+hdr4 = 'b'0  ; /* turn off reset  */ 
+
+/* *************** BIDIRECTIONAL PINS *********************/
+PIN  40   =  mldq0                       ; /* SIGNALS TO TWO PORT RAM         */ 
+PIN  39   =  mldq1                       ; /*                                 */ 
+PIN  37   =  mldq2                       ; /*                                 */ 
+PIN  36   =  mldq3                       ; /*                                 */ 
+PIN  35   =  mldq4                       ; /*                                 */ 
+PIN  34   =  mldq5                       ; /*                                 */ 
+PIN  33   =  mldq6                       ; /*                                 */ 
+PIN  31   =  mldq7                       ; /*                                 */ 
+
+/* *************** OUTPUT PINS *********************/
+
+/* ******* TEST OUTPUTS DELETED********** */
+
+/* THIS FILE IS FOR USE WITH LATEST PC BOARD  */
+
+PIN  27   =  la0                         ; /* A0L                                */ 
+PIN  25   =  la1                         ; /* A1L                                */ 
+PIN  24   =  la2                         ; /* A2L                                */ 
+PIN  21   =  la3                         ; /* A3L  */ 
+PIN  20   =  la4                         ; /* A4L  */ 
+PIN  18   =  la5                         ; /* A5L  */ 
+PIN  17   =  la6                         ; /* A6L  */ 
+PIN  16   =  la7                         ; /* A7L  */ 
+PIN  15   =  la8                         ; /* A8L  */ 
+PIN  69   =  la9                         ; /* A9L                                */ 
+PIN  76   =  la10                        ; /* A10L                                */ 
+PIN  77   =  la11                        ; /* A11L used only by CY7C135          */ 
+PIN  80   =  ncel                        ; /*                                 */ 
+PIN  75   =  noel                        ; /*                                 */ 
+PIN  79   =  nwrl                        ; /*                                 */ 
+PIN  81   =   ck5                        ; /*  internal clock for most logic  */
+PIN  74   =  nled			 ; /* BOARD SELECT LED DRIVE */
+
+/**************** PINNODES    *********************/
+PINNODE     =   E0_N_10                  ; /*                                 */ 
+PINNODE     =   E0_N_6                  ; /*                                 */ 
+PINNODE     =   H0_N_4                  ; /*                                 */ 
+PINNODE     =   H0_N_7                  ; /*                                 */ 
+PINNODE     =   J0_N_6                  ; /*                                 */ 
+PINNODE     =   J0_N_7                  ; /*                                 */ 
+PINNODE     =   N_40                  ; /*                                 */ 
+PINNODE     =   N_41                  ; /*                                 */ 
+PINNODE     =   N_42                  ; /*                                 */ 
+PINNODE     =   N_43                  ; /*                                 */ 
+PINNODE     =   N_44                  ; /*                                 */ 
+PINNODE     =   N_45                  ; /*                                 */ 
+PINNODE     =   N_46                  ; /*                                 */ 
+PINNODE     =   N_47                  ; /*                                 */ 
+PINNODE     =   N_12                  ; /*                                 */ 
+PINNODE     =   N_13                  ; /*                                 */ 
+PINNODE     =   N_14                  ; /*                                 */ 
+PINNODE     =   N_16                  ; /*                                 */ 
+PINNODE     =   N_17                  ; /*                                 */ 
+PINNODE     =   N_20                  ; /*                                 */ 
+PINNODE     =   N_24                  ; /*                                 */ 
+PINNODE     =   N_29                  ; /*                                 */ 
+PINNODE     =   O0_N_2                  ; /*                                 */ 
+PINNODE     =   O0_N_23                  ; /*                                 */ 
+PINNODE     =   O0_N_3                  ; /*                                 */ 
+PINNODE     =   O0_q_0_                  ; /*                                 */ 
+PINNODE     =   O0_q_1_                  ; /*                                 */ 
+PINNODE     =   O0_q_2_                  ; /*                                 */ 
+PINNODE     =   O0_q_3_                  ; /*                                 */ 
+PINNODE     =   O0_q_4_                  ; /*                                 */ 
+PINNODE     =   O0_q_5_                  ; /*                                 */ 
+PINNODE     =   P0_N_10                  ; /*                                 */ 
+PINNODE     =   P0_N_14                  ; /*                                 */ 
+PINNODE     =   P0_N_16                  ; /*                                 */ 
+PINNODE     =   P0_N_17                  ; /*                                 */ 
+PINNODE     =   P0_N_18                  ; /*                                 */ 
+PINNODE     =   P0_N_19                  ; /*                                 */ 
+PINNODE     =   P0_N_20                  ; /*                                 */ 
+PINNODE     =   P0_N_4                  ; /*                                 */ 
+PINNODE     =   P0_N_5                  ; /*                                 */ 
+PINNODE     =   P0_N_6                  ; /*                                 */ 
+PINNODE     =   P1_N_22                  ; /*                                 */ 
+PINNODE     =   P1_q_1_                  ; /*                                 */ 
+PINNODE     =   P1_q_2_                  ; /*                                 */ 
+PINNODE     =   P1_q_3_                  ; /*                                 */ 
+PINNODE     =   P1_q_4_                  ; /*                                 */ 
+PINNODE     =   P1_q_5_                  ; /*                                 */ 
+PINNODE     =   U0_N_31                  ; /*                                 */ 
+PINNODE     =   U0_N_32                  ; /*                                 */ 
+PINNODE     =   U0_N_33                  ; /*                                 */ 
+PINNODE     =   U0_N_34                  ; /*                                 */ 
+PINNODE     =   U0_N_35                  ; /*                                 */ 
+PINNODE     =   U0_N_36                  ; /*                                 */ 
+PINNODE     =   U0_N_37                  ; /*                                 */ 
+PINNODE     =   vcnt_0_                  ; /*                                 */ 
+PINNODE     =   vcnt_1_                  ; /*                                 */ 
+PINNODE     =   vcnt_2_                  ; /*                                 */ 
+PINNODE     =   vcnt_3_                  ; /*                                 */ 
+PINNODE     =   vcnt_4_                  ; /*                                 */ 
+PINNODE     =   vcnt_5_                  ; /*                                 */ 
+PINNODE     =   vcnt_6_                  ; /*                                 */ 
+PINNODE     =   vcnt_7_                  ; /*                                 */ 
+PINNODE     =   vcnt_8_                  ; /*                                 */ 
+PINNODE     =   vcnt_9_                  ; /*                                 */ 
+PINNODE     =   xp_1_                  ; /*                                 */ 
+PINNODE     =   xp_2_                  ; /*                                 */ 
+PINNODE     =   xp_3_                  ; /*                                 */ 
+PINNODE     =   xp_4_                  ; /*                                 */ 
+PINNODE     =   xp_5_                  ; /*                                 */ 
+PINNODE     =   yp_0_                  ; /*                                 */ 
+PINNODE     =   yp_1_                  ; /*                                 */ 
+PINNODE     =   yp_2_                  ; /*                                 */ 
+PINNODE     =   yp_3_                  ; /*                                 */ 
+PINNODE     =   yp_4_                  ; /*                                 */ 
+PINNODE     =   yp_5_                  ; /*                                 */ 
+PINNODE     =   ADRINC                 ; /* ADDED TO FIX COUNTER INCREMENT  */
+PINNODE     =   led0                  ; /*  LSB FOR LED DIVIDER             */ 
+PINNODE     =   led1                  ; /*                                 */ 
+
+/*  EQUATIONS  */
+
+la11 = 'b'0 ;  /* for CY7C135 A11 */
+
+E0_N_10.D = N_24 & E0_N_6 & !E0_N_10
+    # !E0_N_6 & E0_N_10
+    # !N_24 & E0_N_10 ; /* 3 pterms, 3 signals */
+E0_N_10.CK = ck5 ; /* 1 pterm, 1 signal */
+E0_N_10.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+E0_N_6.D = N_24 & !E0_N_6
+    # !N_24 & E0_N_6 ; /* 2 pterms, 2 signals */
+E0_N_6.CK = ck5 ; /* 1 pterm, 1 signal */
+E0_N_6.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+H0_N_4.D = N_20 & !H0_N_4
+    # !N_20 & H0_N_4 ; /* 2 pterms, 2 signals */
+H0_N_4.CK = ck5 ; /* 1 pterm, 1 signal */
+H0_N_4.AR = !N_20 ; /* 1 pterm, 1 signal */
+
+H0_N_7.D = N_20 & H0_N_4 & !H0_N_7
+    # !H0_N_4 & H0_N_7
+    # !N_20 & H0_N_7 ; /* 3 pterms, 3 signals */
+H0_N_7.CK = ck5 ; /* 1 pterm, 1 signal */
+H0_N_7.AR = !N_20 ; /* 1 pterm, 1 signal */
+
+ck5.D = !ck5 ;                           /*SOURCE OF CLOCK FOR INTERNAL CIRCUITS */
+ck5.CK = ck10 ; /* 1 pterm, 1 signal */
+
+J0_N_6.D = J0_N_7 & !J0_N_6
+    # !J0_N_7 & J0_N_6 ; /* 2 pterms, 2 signals */
+J0_N_6.CK = ck5 ; /* 1 pterm, 1 signal */
+
+J0_N_7.D = !J0_N_7 ; /* 1 pterm, 1 signal */
+J0_N_7.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_40.D = mldq0.IO & !noel # N_40 & noel ; /* 1 pterm, 1 signal */
+N_40.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_41.D = mldq1.IO & !noel # N_41 & noel ; /* 1 pterm, 1 signal */
+N_41.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_42.D = mldq2.IO & !noel # N_42 & noel ; /* 1 pterm, 1 signal */
+N_42.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_43.D = mldq3.IO & !noel # N_43 & noel ; /* 1 pterm, 1 signal */
+N_43.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_44.D = mldq4.IO & !noel # N_44 & noel ; /* 1 pterm, 1 signal */
+N_44.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_45.D = mldq5.IO & !noel # N_45 & noel ; /* 1 pterm, 1 signal */
+N_45.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_46.D = mldq6.IO & !noel # N_46 & noel ; /* 1 pterm, 1 signal */
+N_46.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_47.D = mldq7.IO & !noel # N_47 & noel ; /* 1 pterm, 1 signal */
+N_47.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_12_X1 = !hdr11 & !P0_N_10
+    # !hdr12 & !hdr13 & P0_N_14 & !P0_N_19 & P0_N_20
+    # !hdr12 & P0_N_4 & P0_N_14 & !P0_N_19 & P0_N_20
+    # !hdr13 & P0_N_4 & P0_N_5 & P0_N_14 & !P0_N_19 & P0_N_20
+    # P0_N_4 & P0_N_5 & P0_N_6 & P0_N_14 & !P0_N_19 & P0_N_20 ; /* 5 pterms, 10 signals */
+N_12_X2 = !hdr11 & !P0_N_10 ; /* 1 pterm, 2 signals */
+N_12 = N_12_X1 $ N_12_X2 ;
+
+N_13.D = !N_13 & N_20 & H0_N_4 & H0_N_7
+    # N_13 & !H0_N_7
+    # N_13 & !H0_N_4
+    # N_13 & !N_20 ; /* 4 pterms, 4 signals */
+N_13.CK = ck5 ; /* 1 pterm, 1 signal */
+N_13.AR = !N_20 ; /* 1 pterm, 1 signal */
+
+N_14_X1 = N_14 ; /* 1 pterm, 1 signal */
+N_14_X2 = N_13 & N_20 & H0_N_4 & H0_N_7 ; /* 1 pterm, 4 signals */
+N_14.D = N_14_X1 $ N_14_X2 ;
+N_14.CK = ck5 ; /* 1 pterm, 1 signal */
+N_14.AR = !N_20 ; /* 1 pterm, 1 signal */
+
+N_16 = P0_N_16 & P0_N_17 & P0_N_19 & !P0_N_20
+    # hdr11 & P0_N_16 & P0_N_19 & !P0_N_20 ; /* 2 pterms, 5 signals */
+
+N_17.T = ADRINC & (N_17 & P1_q_1_ & P1_q_2_    /* DIRECTION CONTROL */
+       & P1_q_3_ & P1_q_4_ & P1_q_5_ & P1_N_22
+    # !N_17 & !P1_q_1_ & !P1_q_2_
+       & !P1_q_3_ & !P1_q_4_ & !P1_q_5_ & !P1_N_22) ; /* 2 pterms, 10 signals */
+N_17.CK = ck5 ; /* 1 pterm, 1 signal */
+N_17.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+N_20.D = !(N_13 & N_14 & !N_16 & H0_N_4 & H0_N_7
+    # !N_16 & !N_20) ; /* PIXEL WRITE RUN SIGNAL */
+N_20.CK = ck5 ; /* 1 pterm, 1 signal */
+
+ADRINC = N_13 & N_14 & !N_16 & H0_N_4 & H0_N_7 & N_20 ;
+
+N_24.D = !(xp_1_ & xp_2_ & xp_3_ & xp_4_ & xp_5_ & yp_0_
+       & yp_1_ & yp_2_ & yp_3_ & yp_4_ & yp_5_ & !N_12 & E0_N_6
+       & E0_N_10
+    # !N_12 & !N_24) ; /* PERSISTENCE RUN SIGNAL */
+N_24.CK = ck5 ; /* 1 pterm, 1 signal */
+
+N_29 = N_20 & !H0_N_4 & H0_N_7  /* RAM ENABLE FOR SPARK */
+    # N_24 & !E0_N_6 & E0_N_10 ; /* RAM ENABLE FOR PERSISTENCE ERASE */
+
+O0_N_2.D = (O0_q_0_ & O0_q_1_ & O0_q_2_ & O0_q_3_ & O0_q_4_
+       & O0_q_5_ & O0_N_23) & ADRINC 
+    # !ADRINC & O0_N_2 ; /* 2 pterm, 10 signals */
+O0_N_2.CK = ck5 ; /* 1 pterm, 1 signal */
+O0_N_2.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+O0_N_23.T = ADRINC & O0_q_0_ & O0_q_1_ & O0_q_2_
+       & O0_q_3_ & O0_q_4_ & O0_q_5_ & O0_N_23 & O0_N_2 & O0_N_3
+    # ADRINC & !O0_q_0_ & !O0_q_1_ & !O0_q_2_
+       & !O0_q_3_ & !O0_q_4_ & !O0_q_5_ & !O0_N_23 ; /* 2 pterms, 12 signals */
+O0_N_23.CK = ck5 ; /* 1 pterm, 1 signal */
+O0_N_23.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+O0_N_3.D = O0_N_2 & ADRINC
+    # O0_N_3 & !ADRINC; /* 2 pterm, 4 signals */
+O0_N_3.CK = ck5 ; /* 1 pterm, 1 signal */
+O0_N_3.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+O0_q_0_.T = ADRINC & !(!O0_q_0_ & !O0_q_1_
+       & !O0_q_2_ & !O0_q_3_ & !O0_q_4_ & !O0_q_5_ & !O0_N_23
+    # O0_q_0_ & O0_q_1_ & O0_q_2_
+       & O0_q_3_ & O0_q_4_ & O0_q_5_ & O0_N_23) ; /* 2 pterms, 10 signals */
+O0_q_0_.CK = ck5 ; /* 1 pterm, 1 signal */
+O0_q_0_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+O0_q_1_.T = !(!O0_q_1_ & !O0_q_2_ & !O0_q_3_ & !O0_q_4_ & !O0_q_5_
+       & !O0_N_23
+    # O0_q_1_ & O0_q_2_ & O0_q_3_ & O0_q_4_ & O0_q_5_ & O0_N_23
+    # O0_q_0_ & !O0_N_23
+    # !ADRINC 
+    # !O0_q_0_ & O0_N_23) ; /* 7 pterms, 10 signals */
+O0_q_1_.CK = ck5 ; /* 1 pterm, 1 signal */
+O0_q_1_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+O0_q_2_.T = ADRINC & !O0_q_0_ & !O0_q_1_
+       & O0_q_5_ & !O0_N_23
+    # ADRINC & !O0_q_0_ & !O0_q_1_ & O0_q_4_
+       & !O0_N_23
+    # ADRINC & !O0_q_0_ & !O0_q_1_ & O0_q_3_
+       & !O0_N_23
+    # ADRINC & !O0_q_0_ & !O0_q_1_ & O0_q_2_
+       & !O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & !O0_q_5_
+       & O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & !O0_q_4_
+       & O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & !O0_q_3_
+       & O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & !O0_q_2_
+       & O0_N_23 ; /* 8 pterms, 10 signals */
+O0_q_2_.CK = ck5 ; /* 1 pterm, 1 signal */
+O0_q_2_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+O0_q_3_.T = ADRINC & !O0_q_0_ & !O0_q_1_
+       & !O0_q_2_ & O0_q_5_ & !O0_N_23
+    # ADRINC & !O0_q_0_ & !O0_q_1_ & !O0_q_2_
+       & O0_q_4_ & !O0_N_23
+    # ADRINC & !O0_q_0_ & !O0_q_1_ & !O0_q_2_
+       & O0_q_3_ & !O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & O0_q_2_
+       & !O0_q_5_ & O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & O0_q_2_
+       & !O0_q_4_ & O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & O0_q_2_
+       & !O0_q_3_ & O0_N_23 ; /* 6 pterms, 10 signals */
+O0_q_3_.CK = ck5 ; /* 1 pterm, 1 signal */
+O0_q_3_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+O0_q_4_.T = ADRINC & !O0_q_0_ & !O0_q_1_
+       & !O0_q_2_ & !O0_q_3_ & O0_q_5_ & !O0_N_23
+    # ADRINC & !O0_q_0_ & !O0_q_1_ & !O0_q_2_
+       & !O0_q_3_ & O0_q_4_ & !O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & O0_q_2_
+       & O0_q_3_ & !O0_q_5_ & O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & O0_q_2_
+       & O0_q_3_ & !O0_q_4_ & O0_N_23 ; /* 4 pterms, 10 signals */
+O0_q_4_.CK = ck5 ; /* 1 pterm, 1 signal */
+O0_q_4_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+O0_q_5_.T = ADRINC & !O0_q_0_ & !O0_q_1_
+       & !O0_q_2_ & !O0_q_3_ & !O0_q_4_ & O0_q_5_ & !O0_N_23
+    # ADRINC & O0_q_0_ & O0_q_1_ & O0_q_2_
+       & O0_q_3_ & O0_q_4_ & !O0_q_5_ & O0_N_23 ; /* 2 pterms, 10 signals */
+O0_q_5_.CK = ck5 ; /* 1 pterm, 1 signal */
+O0_q_5_.AP = hdr4 ; /* 1 pterm, 1 signal */
+
+P0_N_10.D = !P0_N_10 & P0_N_14 & !P0_N_19 & P0_N_20
+    # P0_N_10 & !P0_N_20
+    # P0_N_10 & P0_N_19
+    # P0_N_10 & !P0_N_14 ; /* 4 pterms, 4 signals */
+P0_N_10.CK = ck5 ; /* 1 pterm, 1 signal */
+
+P0_N_14.D = !P0_N_14 & !P0_N_19 & P0_N_20
+    # P0_N_14 & !P0_N_20
+    # P0_N_14 & P0_N_19 ; /* 3 pterms, 3 signals */
+P0_N_14.CK = ck5 ; /* 1 pterm, 1 signal */
+
+P0_N_16.D = !P0_N_16 & P0_N_19 & !P0_N_20
+    # P0_N_16 & P0_N_20
+    # P0_N_16 & !P0_N_19 ; /* P0_N_16 IS TR3 IN TRIG_GEN 30 HZ SQ WAVE */
+P0_N_16.CK = ck5 ; /* 1 pterm, 1 signal */
+
+P0_N_17.D = P0_N_16 & !P0_N_17 & P0_N_19 & !P0_N_20
+    # P0_N_17 & P0_N_20
+    # P0_N_17 & !P0_N_19
+    # !P0_N_16 & P0_N_17 ; /* P0_N_17 IS TR4 IN TRIG_GEN 15 HZ SQ WAVE */
+P0_N_17.CK = ck5 ; /* 1 pterm, 1 signal */
+
+/* DIVIDE BY 16 FOR LED TEST FLASHER */
+
+led0.T = P0_N_16 & P0_N_17 & P0_N_19 & !P0_N_20 ;
+led0.CK = ck5 ;
+
+led1.T = P0_N_16 & P0_N_17 & led0 & P0_N_19 & !P0_N_20 ;
+led1.CK = ck5 ;
+
+nled.T = P0_N_16 & P0_N_17 & led0 & led1 & P0_N_19 & !P0_N_20 ;
+nled.CK = ck5 ; /* SIGNAL TO DRIVE 'SELECT LED' CATHODE LOW TO FLASH AT 1 HZ */
+
+P0_N_18.D = vcnt_1_ & vcnt_2_ & !vcnt_3_ & !vcnt_4_ & !vcnt_5_
+       & !vcnt_6_ & !vcnt_7_ & !vcnt_8_ & !vcnt_9_
+    # !vcnt_2_ & vcnt_3_ & !vcnt_4_ & !vcnt_5_ & !vcnt_6_
+       & !vcnt_7_ & !vcnt_8_ & !vcnt_9_ ; /* 2 pterms, 9 signals */
+P0_N_18.CK = ck5 ; /* 1 pterm, 1 signal */
+
+P0_N_19.D = P0_N_18 ; /* P0_N_19 IS TR1 IN TRIG_GEN */
+P0_N_19.CK = ck5 ; /* 1 pterm, 1 signal */
+
+P0_N_20.D = P0_N_19 ; /* P0_N_20 IS TR2 IN TRIG_GEN */
+P0_N_20.CK = ck5 ; /* 1 pterm, 1 signal */
+
+P0_N_4.T = P0_N_10 & P0_N_14 & !P0_N_19 & P0_N_20
+    # hdr11 & P0_N_14 & !P0_N_19 & P0_N_20 ; /* 2 pterms, 5 signals */
+P0_N_4.CK = ck5 ; /* 1 pterm, 1 signal */
+
+P0_N_5.T = P0_N_4 & P0_N_10 & P0_N_14 & !P0_N_19 & P0_N_20
+    # hdr11 & P0_N_4 & P0_N_14 & !P0_N_19 & P0_N_20 ; /* 2 pterms, 6 signals */
+P0_N_5.CK = ck5 ; /* 1 pterm, 1 signal */
+
+P0_N_6.T = P0_N_4 & P0_N_5 & P0_N_10 & P0_N_14 & !P0_N_19
+       & P0_N_20
+    # hdr11 & P0_N_4 & P0_N_5 & P0_N_14 & !P0_N_19 & P0_N_20 ; /* 2 pterms, 7 signals */
+P0_N_6.CK = ck5 ; /* 1 pterm, 1 signal */
+
+P1_N_22.T = ADRINC & !(!P1_N_22 & !P1_q_1_ & !P1_q_2_  /* X LSB = NIBBLE */
+       & !P1_q_3_ & !P1_q_4_ & !P1_q_5_ & !N_17
+    # P1_N_22 & P1_q_1_ & P1_q_2_
+       & P1_q_3_ & P1_q_4_ & P1_q_5_ & N_17) ; /* 2 pterms, 10 signals */
+P1_N_22.CK = ck5 ; /* 1 pterm, 1 signal */
+P1_N_22.AP = hdr4 ; /* 1 pterm, 1 signal */
+
+P1_q_1_.T = ADRINC & !(N_17 & P1_q_1_ & P1_q_2_ & P1_q_3_ & P1_q_4_ & P1_q_5_ & P1_N_22
+            # !N_17 & !P1_q_1_ & !P1_q_2_ & !P1_q_3_ & !P1_q_4_ & !P1_q_5_ & !P1_N_22)
+     & (P1_N_22 $ !N_17) ;
+
+/* P1_q_1_.T = !(!P1_q_1_ & !P1_q_2_ & !P1_q_3_ & !P1_q_4_ & !P1_q_5_
+       & !P1_N_22
+    # P1_q_1_ & P1_q_2_ & P1_q_3_ & P1_q_4_ & P1_q_5_ & P1_N_22
+    # N_17 & !P1_N_22
+    # !ADRINC
+    # !N_17 & P1_N_22)   7 pterms, 10 signals */
+P1_q_1_.CK = ck5 ; /* 1 pterm, 1 signal */
+P1_q_1_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+P1_q_2_.T = !N_17 & ADRINC & !P1_q_1_ & P1_q_5_
+       & !P1_N_22
+    # !N_17 & ADRINC & !P1_q_1_ & P1_q_4_
+       & !P1_N_22
+    # !N_17 & ADRINC & !P1_q_1_ & P1_q_3_
+       & !P1_N_22
+    # !N_17 & ADRINC & !P1_q_1_ & P1_q_2_
+       & !P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & !P1_q_5_
+       & P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & !P1_q_4_
+       & P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & !P1_q_3_
+       & P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & !P1_q_2_
+       & P1_N_22 ; /* 8 pterms, 10 signals */
+P1_q_2_.CK = ck5 ; /* 1 pterm, 1 signal */
+P1_q_2_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+P1_q_3_.T = !N_17 & ADRINC & !P1_q_1_ & !P1_q_2_
+       & P1_q_5_ & !P1_N_22
+    # !N_17 & ADRINC & !P1_q_1_ & !P1_q_2_
+       & P1_q_4_ & !P1_N_22
+    # !N_17 & ADRINC & !P1_q_1_ & !P1_q_2_
+       & P1_q_3_ & !P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & P1_q_2_
+       & !P1_q_5_ & P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & P1_q_2_
+       & !P1_q_4_ & P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & P1_q_2_
+       & !P1_q_3_ & P1_N_22 ; /* 6 pterms, 10 signals */
+P1_q_3_.CK = ck5 ; /* 1 pterm, 1 signal */
+P1_q_3_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+P1_q_4_.T = !N_17 & ADRINC & !P1_q_1_ & !P1_q_2_
+       & !P1_q_3_ & P1_q_5_ & !P1_N_22
+    # !N_17 & ADRINC & !P1_q_1_ & !P1_q_2_
+       & !P1_q_3_ & P1_q_4_ & !P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & P1_q_2_
+       & P1_q_3_ & !P1_q_5_ & P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & P1_q_2_
+       & P1_q_3_ & !P1_q_4_ & P1_N_22 ; /* 4 pterms, 10 signals */
+P1_q_4_.CK = ck5 ; /* 1 pterm, 1 signal */
+P1_q_4_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+P1_q_5_.T = !N_17 & ADRINC & !P1_q_1_ & !P1_q_2_
+       & !P1_q_3_ & !P1_q_4_ & P1_q_5_ & !P1_N_22
+    # N_17 & ADRINC & P1_q_1_ & P1_q_2_
+       & P1_q_3_ & P1_q_4_ & !P1_q_5_ & P1_N_22 ; /* 2 pterms, 10 signals */
+P1_q_5_.CK = ck5 ; /* 1 pterm, 1 signal */
+P1_q_5_.AR = hdr4 ; /* 1 pterm, 1 signal */
+
+U0_N_31.D = !U0_N_31 & U0_N_32 & U0_N_33 & U0_N_34 & U0_N_35
+       & U0_N_36 & U0_N_37 & J0_N_7 & J0_N_6
+    # U0_N_31 & !J0_N_7
+    # U0_N_31 & !J0_N_6 ; /* 3 pterms, 9 signals */
+U0_N_31.CK = ck5 ; /* 1 pterm, 1 signal */
+
+U0_N_32.T = !U0_N_31 & U0_N_33 & U0_N_34 & U0_N_35 & U0_N_36
+       & U0_N_37 & J0_N_7 & J0_N_6 ; /* 1 pterm, 8 signals */
+U0_N_32.CK = ck5 ; /* 1 pterm, 1 signal */
+
+U0_N_33.T = !U0_N_31 & U0_N_34 & U0_N_35 & U0_N_36 & U0_N_37
+       & J0_N_7 & J0_N_6 ; /* 1 pterm, 7 signals */
+U0_N_33.CK = ck5 ; /* 1 pterm, 1 signal */
+
+U0_N_34.T = !U0_N_31 & U0_N_35 & U0_N_36 & U0_N_37 & J0_N_7
+       & J0_N_6 ; /* 1 pterm, 6 signals */
+U0_N_34.CK = ck5 ; /* 1 pterm, 1 signal */
+
+U0_N_35.T = !U0_N_31 & U0_N_36 & U0_N_37 & J0_N_7 & J0_N_6 ; /* 1 pterm, 5 signals */
+U0_N_35.CK = ck5 ; /* 1 pterm, 1 signal */
+
+U0_N_36_X1 = U0_N_36 ; /* 1 pterm, 1 signal */
+U0_N_36_X2 = !U0_N_31 & U0_N_37 & J0_N_7 & J0_N_6 ; /* 1 pterm, 4 signals */
+U0_N_36.D = U0_N_36_X1 $ U0_N_36_X2 ;
+U0_N_36.CK = ck5 ; /* 1 pterm, 1 signal */
+
+U0_N_37.D = !U0_N_31 & !U0_N_37 & J0_N_7 & J0_N_6
+    # U0_N_37 & !J0_N_6
+    # U0_N_37 & !J0_N_7
+    # U0_N_31 & U0_N_37 ; /* 4 pterms, 4 signals */
+U0_N_37.CK = ck5 ; /* 1 pterm, 1 signal */
+
+la0 = N_13 & !N_24 & !P1_q_1_
+    # !N_13 & !N_24 & P1_q_1_
+    # xp_1_ & N_24 ; /* 3 pterms, 4 signals */
+
+la1 = N_13 & !N_24 & !P1_q_2_
+    # !N_13 & !N_24 & P1_q_2_
+    # xp_2_ & N_24 ; /* 3 pterms, 4 signals */
+
+la10 = N_14 & !N_24 & !O0_q_5_
+    # !N_14 & !N_24 & O0_q_5_
+    # yp_5_ & N_24 ; /* 3 pterms, 4 signals */
+
+la2 = N_13 & !N_24 & !P1_q_3_
+    # !N_13 & !N_24 & P1_q_3_
+    # xp_3_ & N_24 ; /* 3 pterms, 4 signals */
+
+la3 = N_13 & !N_24 & !P1_q_4_
+    # !N_13 & !N_24 & P1_q_4_
+    # xp_4_ & N_24 ; /* 3 pterms, 4 signals */
+
+la4 = N_14 & !N_24 & !O0_q_0_
+    # !N_14 & !N_24 & O0_q_0_
+    # yp_0_ & N_24 ; /* 3 pterms, 4 signals */
+
+la5 = N_14 & !N_24 & !O0_q_1_
+    # !N_14 & !N_24 & O0_q_1_
+    # yp_1_ & N_24 ; /* 3 pterms, 4 signals */
+
+la6 = N_14 & !N_24 & !O0_q_2_
+    # !N_14 & !N_24 & O0_q_2_
+    # yp_2_ & N_24 ; /* 3 pterms, 4 signals */
+
+la7 = N_14 & !N_24 & !O0_q_3_
+    # !N_14 & !N_24 & O0_q_3_
+    # yp_3_ & N_24 ; /* 3 pterms, 4 signals */
+
+la8 = N_14 & !N_24 & !O0_q_4_
+    # !N_14 & !N_24 & O0_q_4_
+    # yp_4_ & N_24 ; /* 3 pterms, 4 signals */
+
+la9 = N_13 & !N_24 & !P1_q_5_
+    # !N_13 & !N_24 & P1_q_5_
+    # xp_5_ & N_24 ; /* 3 pterms, 4 signals */
+
+P1_22_COMP = P1_N_22 $ N_13 ; /*COMPLEMENT X ADR 0 FOR REVERSE MOTION */
+
+mldq0 = N_24 & !N_40 & N_42
+    # N_24 & !N_40 & N_41
+    # !N_24 & N_40
+    # !P1_22_COMP & N_20
+    # N_24 & !N_40 & N_43 ; /* 5 pterms, 7 signals */
+mldq0.OE = N_29 ; /* 1 pterm, 1 signal */
+
+mldq1 = N_24 & !N_40 & !N_41 & N_42
+    # N_24 & !N_40 & !N_41 & N_43
+    # N_40 & N_41
+    # !P1_22_COMP & N_20
+    # !N_24 & N_41 ; /* 5 pterms, 7 signals */
+mldq1.OE = N_29 ; /* 1 pterm, 1 signal */
+
+mldq2 = N_24 & !N_40 & !N_41 & !N_42 & N_43
+    # N_41 & N_42
+    # N_40 & N_42
+    # !P1_22_COMP & N_20
+    # !N_24 & N_42 ; /* 5 pterms, 7 signals */
+mldq2.OE = N_29 ; /* 1 pterm, 1 signal */
+
+mldq3 = !(P1_N_22 & N_24 & !N_40 & !N_41 & !N_42
+    # !N_20 & N_24 & !N_40 & !N_41 & !N_42
+    # P1_22_COMP & !N_43
+    # !N_20 & !N_43) ; /* 4 pterms, 7 signals */
+mldq3.OE = N_29 ; /* 1 pterm, 1 signal */
+
+mldq4 = N_24 & !N_44 & N_46
+    # N_24 & !N_44 & N_45
+    # !N_24 & N_44
+    # P1_22_COMP & N_20
+    # N_24 & !N_44 & N_47 ; /* 5 pterms, 7 signals */
+mldq4.OE = N_29 ; /* 1 pterm, 1 signal */
+
+mldq5 = N_24 & !N_44 & !N_45 & N_46
+    # N_24 & !N_44 & !N_45 & N_47
+    # N_44 & N_45
+    # P1_22_COMP & N_20
+    # !N_24 & N_45 ; /* 5 pterms, 7 signals */
+mldq5.OE = N_29 ; /* 1 pterm, 1 signal */
+
+mldq6 = N_24 & !N_44 & !N_45 & !N_46 & N_47
+    # N_45 & N_46
+    # N_44 & N_46
+    # P1_22_COMP & N_20
+    # !N_24 & N_46 ; /* 5 pterms, 7 signals */
+mldq6.OE = N_29 ; /* 1 pterm, 1 signal */
+
+mldq7 = !(!P1_N_22 & N_24 & !N_44 & !N_45 & !N_46
+    # !N_20 & N_24 & !N_44 & !N_45 & !N_46
+    # !P1_22_COMP & !N_47
+    # !N_20 & !N_47) ; /* 4 pterms, 7 signals */
+mldq7.OE = N_29 ; /* 1 pterm, 1 signal */
+
+ncel = !(N_20 & !ck5 & !H0_N_4
+    # N_24 & !ck5 & !E0_N_6) ; /* 2 pterms, 5 signals */
+
+noel = !(N_24 & !ck5 & !E0_N_6 & !E0_N_10
+    # N_20 & !ck5 & !H0_N_4 & !H0_N_7) ; /* 2 pterms, 7 signals */
+
+nwrl = !(N_20 & !ck5 & !H0_N_4 & H0_N_7
+    # N_24 & !ck5 & !E0_N_6 & E0_N_10) ; /* 2 pterms, 7 signals */
+
+vcnt_0_.T = !vcnt_3_ & U0_N_31 & J0_N_7 & J0_N_6
+    # !vcnt_2_ & U0_N_31 & J0_N_7 & J0_N_6
+    # !vcnt_9_ & U0_N_31 & J0_N_7 & J0_N_6 ; /* 3 pterms, 6 signals */
+vcnt_0_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+vcnt_1_X1 = vcnt_0_ & U0_N_31 & J0_N_7 & J0_N_6 ; /* 1 pterm, 4 signals */
+vcnt_1_X2 = vcnt_1_ ; /* 1 pterm, 1 signal */
+vcnt_1_.D = vcnt_1_X1 $ vcnt_1_X2 ;
+vcnt_1_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+vcnt_2_.T = vcnt_2_ & vcnt_3_ & vcnt_9_ & U0_N_31 & J0_N_7
+       & J0_N_6
+    # vcnt_0_ & vcnt_1_ & U0_N_31 & J0_N_7 & J0_N_6 ; /* 2 pterms, 8 signals */
+vcnt_2_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+vcnt_3_.T = vcnt_0_ & vcnt_1_ & vcnt_2_ & U0_N_31 & J0_N_7
+       & J0_N_6
+    # vcnt_2_ & vcnt_3_ & vcnt_9_ & U0_N_31 & J0_N_7 & J0_N_6 ; /* 2 pterms, 8 signals */
+vcnt_3_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+vcnt_4_.T = vcnt_0_ & vcnt_1_ & vcnt_2_ & vcnt_3_ & !vcnt_9_
+       & U0_N_31 & J0_N_7 & J0_N_6 ; /* 1 pterm, 8 signals */
+vcnt_4_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+vcnt_5_.T = vcnt_0_ & vcnt_1_ & vcnt_2_ & vcnt_3_ & vcnt_4_
+       & !vcnt_9_ & U0_N_31 & J0_N_7 & J0_N_6 ; /* 1 pterm, 9 signals */
+vcnt_5_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+vcnt_6_.T = vcnt_0_ & vcnt_1_ & vcnt_2_ & vcnt_3_ & vcnt_4_
+       & vcnt_5_ & !vcnt_9_ & U0_N_31 & J0_N_7 & J0_N_6 ; /* 1 pterm, 10 signals */
+vcnt_6_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+vcnt_7_.T = vcnt_0_ & vcnt_1_ & vcnt_2_ & vcnt_3_ & vcnt_4_
+       & vcnt_5_ & vcnt_6_ & !vcnt_9_ & U0_N_31 & J0_N_7 & J0_N_6 ; /* 1 pterm, 11 signals */
+vcnt_7_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+vcnt_8_.T = vcnt_0_ & vcnt_1_ & vcnt_2_ & vcnt_3_ & vcnt_4_
+       & vcnt_5_ & vcnt_6_ & vcnt_7_ & !vcnt_9_ & U0_N_31 & J0_N_7
+       & J0_N_6 ; /* 1 pterm, 12 signals */
+vcnt_8_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+vcnt_9_.T = vcnt_0_ & vcnt_1_ & vcnt_2_ & vcnt_3_ & vcnt_4_
+       & vcnt_5_ & vcnt_6_ & vcnt_7_ & vcnt_8_ & U0_N_31 & J0_N_7
+       & J0_N_6
+    # vcnt_2_ & vcnt_3_ & vcnt_9_ & U0_N_31 & J0_N_7 & J0_N_6 ; /* 2 pterms, 13 signals */
+vcnt_9_.CK = ck5 ; /* 1 pterm, 1 signal */
+
+xp_1_.D = !xp_1_ & N_24 & E0_N_6 & E0_N_10
+    # xp_1_ & !E0_N_10
+    # xp_1_ & !E0_N_6
+    # xp_1_ & !N_24 ; /* 4 pterms, 4 signals */
+xp_1_.CK = ck5 ; /* 1 pterm, 1 signal */
+xp_1_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+xp_2_X1 = xp_2_ ; /* 1 pterm, 1 signal */
+xp_2_X2 = xp_1_ & N_24 & E0_N_6 & E0_N_10 ; /* 1 pterm, 4 signals */
+xp_2_.D = xp_2_X1 $ xp_2_X2 ; 
+xp_2_.CK = ck5 ; /* 1 pterm, 1 signal */
+xp_2_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+xp_3_.T = xp_1_ & xp_2_ & N_24 & E0_N_6 & E0_N_10 ; /* 1 pterm, 5 signals */
+xp_3_.CK = ck5 ; /* 1 pterm, 1 signal */
+xp_3_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+xp_4_.T = xp_1_ & xp_2_ & xp_3_ & N_24 & E0_N_6 & E0_N_10 ; /* 1 pterm, 6 signals */
+xp_4_.CK = ck5 ; /* 1 pterm, 1 signal */
+xp_4_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+xp_5_.T = xp_1_ & xp_2_ & xp_3_ & xp_4_ & N_24 & E0_N_6
+       & E0_N_10 ; /* 1 pterm, 7 signals */
+xp_5_.CK = ck5 ; /* 1 pterm, 1 signal */
+xp_5_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+yp_0_.T = xp_1_ & xp_2_ & xp_3_ & xp_4_ & xp_5_ & N_24 & E0_N_6
+       & E0_N_10 ; /* 1 pterm, 8 signals */
+yp_0_.CK = ck5 ; /* 1 pterm, 1 signal */
+yp_0_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+yp_1_.T = xp_1_ & xp_2_ & xp_3_ & xp_4_ & xp_5_ & yp_0_ & N_24
+       & E0_N_6 & E0_N_10 ; /* 1 pterm, 9 signals */
+yp_1_.CK = ck5 ; /* 1 pterm, 1 signal */
+yp_1_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+yp_2_.T = xp_1_ & xp_2_ & xp_3_ & xp_4_ & xp_5_ & yp_0_ & yp_1_
+       & N_24 & E0_N_6 & E0_N_10 ; /* 1 pterm, 10 signals */
+yp_2_.CK = ck5 ; /* 1 pterm, 1 signal */
+yp_2_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+yp_3_.T = xp_1_ & xp_2_ & xp_3_ & xp_4_ & xp_5_ & yp_0_ & yp_1_
+       & yp_2_ & N_24 & E0_N_6 & E0_N_10 ; /* 1 pterm, 11 signals */
+yp_3_.CK = ck5 ; /* 1 pterm, 1 signal */
+yp_3_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+yp_4_.T = xp_1_ & xp_2_ & xp_3_ & xp_4_ & xp_5_ & yp_0_ & yp_1_
+       & yp_2_ & yp_3_ & N_24 & E0_N_6 & E0_N_10 ; /* 1 pterm, 12 signals */
+yp_4_.CK = ck5 ; /* 1 pterm, 1 signal */
+yp_4_.AR = !N_24 ; /* 1 pterm, 1 signal */
+
+yp_5_.T = xp_1_ & xp_2_ & xp_3_ & xp_4_ & xp_5_ & yp_0_ & yp_1_
+       & yp_2_ & yp_3_ & yp_4_ & N_24 & E0_N_6 & E0_N_10 ; /* 1 pterm, 13 signals */
+yp_5_.CK = ck5 ; /* 1 pterm, 1 signal */
+yp_5_.AR = !N_24 ; /* 1 pterm, 1 signal */
