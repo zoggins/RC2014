@@ -420,9 +420,14 @@ FCB$NR:	DB	0,0,0
 	; SYSTEM SIGN-ON MESSAGE:
 SIGNON$MSG:
 	DB	CR,LF,LF,'64K CP/M BANKED VERSION 3.0 (John Monahan 3/16/2011)'
-	DB	CR,LF,'A: & B: = 8" Floppys,  C: = IDE CF Memory Disk,  D: = 5" Floppy.'
-	DB	CR,LF,'RTC ports at A4,A5, Serial Ports at A2,A3, PIC at 20H.'
-	DB	CR,LF,'Using a ZFDC FDC Board.'
+	DB	CR,LF,'Modified by Christopher Mallery (aka Zoggins) 05/10/2023'
+	DB	CR,LF,'A: & B: = 8" SDSS Floppies,  C: = IDE CF Memory Disk,'
+	DB	CR,LF,'D: = 5" Floppy, E: = Second IDE CF Memory Disk.'
+	; DB	CR,LF,'RTC ports at A4,A5, Serial Ports at A2,A3, PIC at 20H.'
+	DB	CR,LF,'Serial Ports at A2 & A3.'
+	; , 8259A PIC at 20H & 21H.'
+	DB	CR,LF,'Using a ZFDC FDC Board (V2.6 ROM or later).'
+	DB	CR,LF
 	DB	CR,LF,0
 
 	END

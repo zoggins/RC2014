@@ -1,16 +1,24 @@
 
 TITLE	'CPM3 MODULE FOR Seagate 6531 Hard disk Drive.'
 
-; Assume a BANKED version of CPM3
+; Assume a NON-BANKED version of CPM3
 ;
-;	12/24/09	V1.1	Corrected the High/Low byte sector R/W error
-;	03/15/2011	V1.2	Single pulse to reset IDE Board
+;	12/28/2009	Corrected high/low byte R/W of data to sectors
+;	03/15/2011	Single reset pulse to IDE board
+;	03/16/2018	Check CF card is ready after RESET before issuing CMD
+;	5/31/2019	Check CF card is ready before writing LBA
+;	5/31/2019	Restore registers before returning errors
+;	11/8/2020	Jay Jaeger corrections of CF card ready check.
+;   10/21/2021  Moved 2nd IDE Drive to E: to allow for ZFDC drives on B:, C: and D:
 
-
-	; DEFINE LOGICAL VALUES:
-TRUE		EQU	-1
+	;  DEFINE LOGICAL VALUES:
+TRUE:		EQU	-1
 FALSE		EQU	NOT TRUE
-;
+
+	;  DETERMINE IF BANKED SELECT OR NOT
+BANKED		EQU	TRUE
+
+
 BELL	EQU	07H
 CR	EQU	0DH
 LF	EQU	0AH
@@ -26,6 +34,7 @@ IDEportA	EQU	030H		;lower 8 bits of IDE interface
 IDEportB	EQU	031H		;upper 8 bits of IDE interface
 IDEportC	EQU	032H		;control lines for IDE interface
 IDEportCtrl	EQU	033H		;8255 configuration port
+IDEDrive        EQU     034H            ;Bit 0 = 0 for Drive A: = 1 for B:
 
 READcfg8255	EQU	10010010b	;Set 8255 IDEportC out, IDEportA/B input
 WRITEcfg8255	EQU	10000000b	;Set all three 8255 ports output
@@ -70,8 +79,9 @@ COMMANDid	EQU	0ECH
 COMMANDspindown	EQU	0E0H
 COMMANDspinup	EQU	0E1H
 ;
-MAXSEC		EQU	3DH	;Sectors per track for CF my Memory drive, Kingston CF 8G. (CPM format, 0-3D)
+MAXSEC		EQU	40H	;Sectors per track for CF my Memory drive, Kingston CF 8G. (CPM format, 0-3D)
 ;				;Note this will also work with a Seagate 6531 IDE drive
+DRIVE$SELECT	EQU	25	;Drive Hardware Select (Relative Dirve Offset does not work)
 ;
 ; IDE Status Register:
 ;  bit 7: Busy	1=busy, 0=not busy
@@ -84,7 +94,7 @@ MAXSEC		EQU	3DH	;Sectors per track for CF my Memory drive, Kingston CF 8G. (CPM 
 ;  bit 0: ERR	1=error occured
 ;
 	; DEFINE PUBLIC LABELS:
-	PUBLIC	DPH2			;DISK PARAMETER HEADERS
+	PUBLIC	DPH2,DPH4			;DISK PARAMETER HEADERS
 
 	; DEFINE EXTERNAL LABELS:
 	EXTRN	@ADRV,@RDRV
@@ -98,8 +108,9 @@ MAXSEC		EQU	3DH	;Sectors per track for CF my Memory drive, Kingston CF 8G. (CPM 
 	EXTRN	?PDERR			;PRINT BIOS DISK ERROR HEADER
 	EXTRN	?CONIN,?CONO		;CONSOLE IN AND OUT
 	EXTRN	?CONST			;CONSOLE STATUS
+	IF	BANKED
 	EXTRN	?BNKSL			;SELECT PROCESSOR MEMORY BANK
-	EXTRN	?SMSG			;MY ROUTINE TO SPEAK A MESSAGE
+	ENDIF
 
 	; INCLUDE CP/M 3.0 DISK DEFINITION MACROS:
 	MACLIB	CPM3
@@ -107,44 +118,72 @@ MAXSEC		EQU	3DH	;Sectors per track for CF my Memory drive, Kingston CF 8G. (CPM 
 	; INCLUDE Z-80 MACRO LIBRARY:
 	MACLIB	Z80
 
+	IF BANKED
 	DSEG			;PUT IN OP SYS BANK IF BANKING
+	ENDIF
 
 	; EXTENDED DISK PARAMETER HEADER FOR DRIVE 0:
 	DW	HDWRT		;HARD DISK WRITE ROUTINE
 	DW	HDRD		;HARD DISK READ ROUTINE
-	DW	HDLOGIN		;HARD DISK LOGIN PROCEDURE
-	DW	HDINIT		;HARD DISK DRIVE INITIALIZATION ROUTINE
+	DW	HDLOGIN$0	;HARD DISK LOGIN PROCEDURE
+	DW	HDINIT$0	;HARD DISK DRIVE INITIALIZATION ROUTINE
 	DB	0		;RELATIVE DRIVE 0 ON THIS CONTROLLER
 	DB	0		;MEDIA TYPE:
 				;  HI BIT SET : DRIVE NEEDS RECALIBRATING
-DPH2:	DPH	0,IDEHD$DPB,0,
+
+DPH2:	DPH	0,IDEHD$DPB,0,	
+        DB      0               ;Drive A: Hardware Select, (IX offset 25)
+
+        ; EXTENDED DISK PARAMETER HEADER FOR DRIVE 1:
+        DW      HDWRT           ;HARD DISK WRITE ROUTINE
+        DW      HDRD            ;HARD DISK READ ROUTINE
+        DW      HDLOGIN$1       ;HARD DISK LOGIN PROCEDURE
+        DW      HDINIT$1        ;HARD DISK DRIVE INITIALIZATION ROUTINE
+        DB      0               ;RELATIVE DRIVE 0 ON THIS CONTROLLER
+        DB      0               ;MEDIA TYPE:
+                                ;  HI BIT SET : DRIVE NEEDS RECALIBRATING
+DPH4:   DPH     0,IDEHD$DPB,0,
+        DB      1               ;Drive B: Hardware Select, (IX offset 25)
+
 
 	; MAKE SURE DPB'S ARE IN COMMON MEMORY:
 	CSEG
 
 	; 512 BYTE SECTORS ON HARD DISK (512X61X256) = 7,995,392 Bytes)
-	; with 16 heads thisis less than 16 drive cylinders!
+	; with 16 heads this is less than 16 drive cylinders!
 	
 IDEHD$DPB:
 ;	DPB	512,32,512,2048,1024,2,8000H	
 ;	DPB	256,32,1001,2048,1024,2,8000H	
 ;	DPB	512,60,256,2048,1024,1,8000H
 ;	DPB	512,62,252,2048,1024,1,8000H
-	DPB	512,61,256,2048,1024,1,8000H
+	DPB	512,64,256,2048,1024,1,8000H
 
-
+	IF BANKED
 	DSEG			;CAN SET BACK TO BANKED SEGMENT IF BANKING
-
+	ENDIF
 
 	;;;;; HDINIT:
-HDINIT	RET			;DO NOT INITILIZE HARD DISK YET
+HDINIT0	RET			;DO NOT INITILIZE HARD DISK YET
+HDINIT1	RET			;DO NOT INITILIZE HARD DISK YET
 ;
 
 
 	;;;;; HDLOGIN
 ;-----------------INITILIZE THE IDE HARD DISK  -----------------------------------------
+HDLOGIN$0:
+	PUSH	D
+        MVI     A,0
+        OUT     IDEDrive        ;Select Drive/CF card (A:)
+        JMP     COMMON$INIT
 
-HDLOGIN:			;Initilze the 8255 and drive then do a hard reset on the drive, 
+HDLOGIN$1:
+	PUSH	D
+        MVI     A,1
+        OUT     IDEDrive        ;Select Drive/CF card (B:)
+
+
+COMMON$INIT:			;Initilze the 8255 and drive then do a hard reset on the drive, 
 	MVI	A,READcfg8255		;Config 8255 chip (10010010B), read mode on return
 	OUT	IDEportCtrl		;Config 8255 chip, READ mode
 				
@@ -162,6 +201,11 @@ ResetDelay:
 	XRA	A
 	OUT	IDEportC		;No IDE control lines asserted (just bit 7 of port C)
 	CALL	DELAY$32
+
+					;****** D.Fry - 16/03/2018 *****
+	CALL	IDEwaitnotbusy		; Make sure CF drive is ready to
+	JC	SetErrorFlagD		; accept CMD - If problem abort (restoring D)
+					;*******************************
 			
 	MVI	D,11100000b		;Data for IDE SDH reg (512bytes, LBA mode,single drive,head 0000)
 					;For Trk,Sec,head (non LBA) use 10100000
@@ -171,6 +215,7 @@ ResetDelay:
 	MVI	E,REGshd		;00001110,(0EH) for CS0,A2,A1,  
 	CALL	IDEwr8D			;Write byte to select the MASTER device
 ;
+
 	MVI	B,0FFH		;<<< May need to adjust delay time
 WaitInit:	
 	MVI	E,REGstatus	;Get status after initilization
@@ -188,16 +233,18 @@ DELAY1:	DCR	D		;to speed
 	ORA	B
 	JNZ	DELAY2
 	POP	B
-;
+
 	DJNZ	WaitInit
 	CALL	SetErrorFlag	;Ret with NZ flag set if error (probably no drive)
 	LXI	H,MSG$INIT$ERR	;RESTORE FAILED
 	CALL	?PMSG
-	ORI	1
+	XRA	A
+	DCR	A
+	POP	D
+	LXI     H,0             ;This will be invalid drive from now on in the CPM BDOS
 	RET	
 DoneInit:	
-	LXI	H,SAYSIGNON
-	CALL	?SMSG		;SPEAK MESSAGE
+	POP	D
 	XRA	A		;RETURN WITH NO ERROR
 	RET
 ;	
@@ -205,44 +252,55 @@ DoneInit:
 ;------------------- SECTOR WRITE ROUTINE ----------------------------
 	; ROUTINE WRITES 1 SECTOR TO THE DISK:
 ;
-HDWRT:	XRA	A
+HDWRT:
+	PUSH    D               ;Save it just in case CPM uses it later
+        PUSHIX                  ;Save [IX]
+
+        PUSH    D               ;[DE]->[IX]
+        POPIX                   ;get XDPH address for current requested drive to [ix]
+        LDX     A,DRIVE$SELECT  ;[A] <- (IX + DRIVE$SELECT). Drive #, (IDE Board expects a 0H or 1H)
+        OUT     IDEDrive        ;Select Drive/CF card (A: or B:)
+
+	XRA	A
 	STA	ERFLG
+	CALL	IDEwaitnotbusy	;make sure drive is not busy before setting address
+	JC	SetErrorFlagIXD	;Restore IX and D, and return
 	CALL	wrlba		;Send to drive the sector we want to read. Converting
 				;CPM TRK/SEC info to Drive TRK/SEC/Head
 				;send before error check so info is updated
-	CALL	IDEwaitnotbusy	;make sure drive is ready
-	JC	SetErrorFlag
 
 	MVI	D,COMMANDwrite
 	MVI	E,REGcommand
 	CALL	IDEwr8D		;tell drive to write a sector
 	CALL	IDEwaitdrq	;wait unit it wants the data
-	JC	SetErrorFlag	;If problem abort
-;
+	JC	SetErrorFlagIXD	;If problem abort
+
 	LHLD    @DMA		;DMA address
+
+	IF	BANKED
 	JMP	ADJBNNN
 
 	CSEG
 ;=======================================
-ADJBNNN:LDA	@CBNK
-	PUSH	PSW
-	LDA	@DBNK
-	CALL	?BNKSL
-	
+ADJBNNN:LDA     @CBNK
+        PUSH    PSW
+        LDA     @DBNK
+        CALL    ?BNKSL
+	ENDIF
+
 	MVI	A,WRITEcfg8255
 	OUT	IDEportCtrl
+
 	MVI	B,0		;256X2 bytes
-	
 WRSEC1:	MOV	A,M
 	INX	H
-	OUT	IDEportA	;LOW byte on A (Was wrong order in earlier versions)
+	OUT	IDEportA	;LOW byte on A first
 	MOV	A,M
 	INX	H
-	OUT	IDEportB	;Then HIGH byte on B
+	OUT	IDEportB	;then HIGH byte on B
 	MVI	A,REGdata
 	PUSH	PSW
 	OUT	IDEportC	;Send write command
-	
 	ORI	IDEwrline	;Send WR pulse
 	OUT	IDEportC
 	POP	PSW
@@ -251,12 +309,14 @@ WRSEC1:	MOV	A,M
 
 	MVI	A,READcfg8255	;Set 8255 back to read mode
 	OUT	IDEportCtrl
-		
+
+	IF	BANKED
 	POP	PSW
 	CALL	?BNKSL
 	JMP	CHECK$RW
 ;=======================================
-	DSEG
+        DSEG
+	ENDIF
 
 CHECK$RW:
 	MVI	E,REGstatus	;Check R/W status when done
@@ -264,42 +324,64 @@ CHECK$RW:
 	MOV	A,D
 	ANI	01H
 	STA	ERFLG		;Ret Z if All OK
+	POPIX
+	POP	D
 	RZ
 SetErrorFlag:			;For now just return with error flag set
 	XRA	A
 	DCR	A
 	STA	ERFLG		;Ret NZ if problem
 	RET
+
+SetErrorFlagIXD:		;Pop IX and D, then set errorflag and return
+	POP	IX
+SetErrorFlagD:			;Pop D, then set error flag and return
+	POP	D
+	JMP	SetErrorFlag
+
 ;
 ;
 ;------------------- SECTOR READ ROUTINE ----------------------------
 	; ROUTINE READS 1 PHYSICAL SECTOR FROM THE DRIVE:
 ;
-HDRD:	XRA	A
+HDRD:  
+	PUSH    D               ;Save it just in case CPM uses it later
+        PUSHIX                  ;Save [IX]
+
+        PUSH    D               ;[DE]->[IX]
+        POPIX                   ;get XDPH address for current requested drive to [ix]
+        LDX     A,DRIVE$SELECT  ;[A] <- (IX + DRIVE$SELECT). Drive #, (IDE Board expects a 0H or 1H)
+        OUT     IDEDrive        ;Select Drive/CF card (A: or F:)
+
+	XRA	A
 	STA	ERFLG	     	;CLEAR THE ERROR FLAG
+	CALL	IDEwaitnotbusy	;make sure drive is not busy before setting the LBA
+	JC	SetErrorFlagIXD	;Restore IX and D and Return with NZ set if error
 	CALL	wrlba		;Send to drive the sector we want to read. Converting
 				;CPM TRK/SEC info to Drive TRK/SEC/Head
 				;Send before error check so info is updated
-	CALL	IDEwaitnotbusy	;make sure drive is ready
-	JC	SetErrorFlag	;Returned with NZ set if error
 
 	MVI	D,COMMANDread
 	MVI	E,REGcommand
 	CALL	IDEwr8D		;Send sec read command to drive.
 	CALL	IDEwaitdrq	;Wait until it's got the data
-	JC	SetErrorFlag	;If problem abort
-;		
+	JC	SetErrorFlagIXD	;If problem abort
+		
 	LHLD  	@DMA		;DMA address
-	JMP	ADJBNKS
 
-	CSEG			;MUST HAVE THE FOLLOWING CODE IN COMMON
+	IF	BANKED
+        JMP     ADJBNKS
+
+        CSEG                    ;MUST HAVE THE FOLLOWING CODE IN COMMON
 ;======================================================================
-ADJBNKS:LDA	@CBNK
-	PUSH 	PSW
-	LDA	@DBNK		;MUST HAVE THIS CODE IN COMMON
-	CALL	?BNKSL		;NOW DMA ADDRESS IS AT THE CORRECT BANK
-	
+ADJBNKS:LDA     @CBNK
+        PUSH    PSW
+        LDA     @DBNK           ;MUST HAVE THIS CODE IN COMMON
+        CALL    ?BNKSL          ;NOW DMA ADDRESS IS AT THE CORRECT BANK
+	ENDIF
+
 	MVI	B,0
+
 MoreRD16:
 	MVI	A,REGdata	;REG regsiter address
 	OUT	IDEportC	
@@ -307,11 +389,10 @@ MoreRD16:
 	ORI	IDErdline	;08H+40H, Pulse RD line
 	OUT	IDEportC	
 
-
-	IN	IDEportA	;read the LOW byte
+	IN	IDEportA	;READ  the LOW byte first
 	MOV	M,A
 	INX	H
-	IN	IDEportB	;THEN read the HIGH byte
+	IN	IDEportB	;THEN the HIGH byte
 	MOV	M,A
 	INX	H
 	
@@ -320,36 +401,60 @@ MoreRD16:
 
 	DJNZ	MoreRD16
 
+	IF	BANKED
 	POP	PSW
 	CALL	?BNKSL
+	ENDIF
+
 	JMP	CHECK$RW
-;======================================================================
+
+	IF	BANKED
 	DSEG
+	ENDIF
 ;
 ;      ----- SUPPORT ROUTINES --------------
 ;
-wrlba:				;Write the logical block address to the drive's registers
-	LDA	@SECT		;Get CPM requested sector
-	INR	A		;Disk sectors 1...MAXSEC
-	MOV	D,A
-	MVI	E,REGsector	;Send info to drive
-	CALL	IDEwr8D
+wrlba:
+                LHLD    @TRK            ;Get CPM requested Track Hi&Lo
+                MVI     H,00H           ;zero high track byte
+                MOV     A,L             ;load low track byte to accumulator
+                CPI     00H             ;check for 0 track and skip track loop
+                JZ      lbasec
+                MVI     B,06H           ;load counter to shift low track value 6 places to left i.e X 64
+lbatrk:
+                DAD     H               ;Add HL to itself 6 times to multiply by 64
+                DJNZ    lbatrk          ;loop around 6 times i.e x 64
 
-	LHLD	@TRK		;We have are in LBA mode so send directly
-	MOV	D,L		;Send Low TRK#
-	MVI	E,REGcylinderLSB
-	CALL	IDEwr8D
-
-	MOV	D,H		;Send High TRK#
-	MVI	E,REGcylinderMSB
-	CALL	IDEwr8D
-
-	MVI	D,1		;For now, one sector at a time
-	MVI	E,REGseccnt
-	CALL	IDEwr8D
-	RET
+lbasec:
+                LDA     @SECT           ;Get CPM requested sector
+                ADD     L               ;Add value in L to sector info in A
+                JNC     lbaoff          ;If no carry jump to lba offset correction
+                INR     H               ;carry one over to H
+lbaoff:
+                MOV     L,A             ;copy accumulator to L
+;               DCX     H               ;decrement 1 from the HL register pair
+                                        ;HL should now contain correct LBA value
 
 
+                MVI     D,0             ;Send 0 for upper cyl value
+                MVI     E,REGcylinderMSB
+                CALL    IDEwr8D         ;Send info to drive
+
+                MOV     D,H             ;load lba high byte to D from H
+                MVI     E,REGcylinderLSB
+                CALL    IDEwr8D         ;Send info to drive
+
+                MOV     D,L             ;load lba low byte to D from L
+                MVI     E,REGsector
+                CALL    IDEwr8D         ;Send info to drive
+
+                MVI     D,1             ;For now, one sector at a time
+                MVI     E,REGseccnt
+                CALL    IDEwr8D
+
+                RET
+;
+;
 IDEwaitnotbusy:			;Drive READY if 01000000
 	MVI	B,0FFH
 	MVI	C,0FFH		;Delay, must be above 80H for 4MHz Z80. Leave longer for slower drives
@@ -390,14 +495,12 @@ DoneDRQ:
 	RET
 
 
-
 DELAY$32: MVI	A,40			;DELAY ~32 MS (DOES NOT SEEM TO BE CRITICAL)
 DELAY3:	MVI	B,0
 M0:	DJNZ	M0
 	DCR	A
 	JNZ	DELAY3 
 	RET
-
 
 ;------------------------------------------------------------------
 ; Low Level 8 bit R/W to the drive controller.  These are the routines that talk
@@ -445,9 +548,7 @@ IDEwr8D:				;WRITE Data in [D] to IDE register in [E]
 	MVI	A,READcfg8255		;Config 8255 chip, read mode on return
 	OUT	IDEportCtrl
 	RET
-
-;--------------------------------------------------------------------------------
+;
 MSG$INIT$ERR DB	'Initilization of IDE drive failed.',CR,LF,0
-SAYSIGNON:   DB	'8  MEGA BYTE I D E HARD DISK ON DRIVE C',0
 ;
 ERFLG:		DB	0H
