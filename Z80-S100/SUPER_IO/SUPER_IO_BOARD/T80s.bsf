@@ -1,0 +1,164 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 2018  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel FPGA IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Intel and sold by Intel or its authorized distributors.  Please
+refer to the applicable agreement for further details.
+*/
+(header "symbol" (version "1.1"))
+(symbol
+	(rect 16 16 208 224)
+	(text "T80s" (rect 5 0 25 12)(font "Arial" ))
+	(text "inst" (rect 8 192 20 204)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "RESET_n" (rect 0 0 44 12)(font "Arial" ))
+		(text "RESET_n" (rect 21 27 65 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32)(line_width 1))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "CLK_n" (rect 0 0 30 12)(font "Arial" ))
+		(text "CLK_n" (rect 21 43 51 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "WAIT_n" (rect 0 0 37 12)(font "Arial" ))
+		(text "WAIT_n" (rect 21 59 58 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64)(line_width 1))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "INT_n" (rect 0 0 25 12)(font "Arial" ))
+		(text "INT_n" (rect 21 75 46 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80)(line_width 1))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "NMI_n" (rect 0 0 28 12)(font "Arial" ))
+		(text "NMI_n" (rect 21 91 49 103)(font "Arial" ))
+		(line (pt 0 96)(pt 16 96)(line_width 1))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "BUSRQ_n" (rect 0 0 44 12)(font "Arial" ))
+		(text "BUSRQ_n" (rect 21 107 65 119)(font "Arial" ))
+		(line (pt 0 112)(pt 16 112)(line_width 1))
+	)
+	(port
+		(pt 0 128)
+		(input)
+		(text "DI[7..0]" (rect 0 0 29 12)(font "Arial" ))
+		(text "DI[7..0]" (rect 21 123 50 135)(font "Arial" ))
+		(line (pt 0 128)(pt 16 128)(line_width 3))
+	)
+	(port
+		(pt 192 32)
+		(output)
+		(text "M1_n" (rect 0 0 22 12)(font "Arial" ))
+		(text "M1_n" (rect 149 27 171 39)(font "Arial" ))
+		(line (pt 192 32)(pt 176 32)(line_width 1))
+	)
+	(port
+		(pt 192 48)
+		(output)
+		(text "MREQ_n" (rect 0 0 41 12)(font "Arial" ))
+		(text "MREQ_n" (rect 130 43 171 55)(font "Arial" ))
+		(line (pt 192 48)(pt 176 48)(line_width 1))
+	)
+	(port
+		(pt 192 64)
+		(output)
+		(text "IORQ_n" (rect 0 0 35 12)(font "Arial" ))
+		(text "IORQ_n" (rect 136 59 171 71)(font "Arial" ))
+		(line (pt 192 64)(pt 176 64)(line_width 1))
+	)
+	(port
+		(pt 192 80)
+		(output)
+		(text "RD_n" (rect 0 0 25 12)(font "Arial" ))
+		(text "RD_n" (rect 146 75 171 87)(font "Arial" ))
+		(line (pt 192 80)(pt 176 80)(line_width 1))
+	)
+	(port
+		(pt 192 96)
+		(output)
+		(text "WR_n" (rect 0 0 29 12)(font "Arial" ))
+		(text "WR_n" (rect 142 91 171 103)(font "Arial" ))
+		(line (pt 192 96)(pt 176 96)(line_width 1))
+	)
+	(port
+		(pt 192 112)
+		(output)
+		(text "RFSH_n" (rect 0 0 37 12)(font "Arial" ))
+		(text "RFSH_n" (rect 134 107 171 119)(font "Arial" ))
+		(line (pt 192 112)(pt 176 112)(line_width 1))
+	)
+	(port
+		(pt 192 128)
+		(output)
+		(text "HALT_n" (rect 0 0 37 12)(font "Arial" ))
+		(text "HALT_n" (rect 134 123 171 135)(font "Arial" ))
+		(line (pt 192 128)(pt 176 128)(line_width 1))
+	)
+	(port
+		(pt 192 144)
+		(output)
+		(text "BUSAK_n" (rect 0 0 44 12)(font "Arial" ))
+		(text "BUSAK_n" (rect 127 139 171 151)(font "Arial" ))
+		(line (pt 192 144)(pt 176 144)(line_width 1))
+	)
+	(port
+		(pt 192 160)
+		(output)
+		(text "A[15..0]" (rect 0 0 31 12)(font "Arial" ))
+		(text "A[15..0]" (rect 140 155 171 167)(font "Arial" ))
+		(line (pt 192 160)(pt 176 160)(line_width 3))
+	)
+	(port
+		(pt 192 176)
+		(output)
+		(text "DO[7..0]" (rect 0 0 34 12)(font "Arial" ))
+		(text "DO[7..0]" (rect 137 171 171 183)(font "Arial" ))
+		(line (pt 192 176)(pt 176 176)(line_width 3))
+	)
+	(parameter
+		"Mode"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"T2Write"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"IOWait"
+		"1"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(drawing
+		(rectangle (rect 16 16 176 192)(line_width 1))
+	)
+	(annotation_block (parameter)(rect 208 -64 308 16))
+)

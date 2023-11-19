@@ -1,0 +1,429 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "FPGA_DTR",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI0",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI1",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI2",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI3",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI4",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI5",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI6",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI7",
+					"strict" : false
+				},
+				{
+					"name" : "F_BOARD_ACTIVE-",
+					"strict" : false
+				},
+				{
+					"name" : "MONITOR_CTS",
+					"strict" : false
+				},
+				{
+					"name" : "BAR7-",
+					"strict" : false
+				},
+				{
+					"name" : "BAR6-",
+					"strict" : false
+				},
+				{
+					"name" : "BAR5-",
+					"strict" : false
+				},
+				{
+					"name" : "BAR4-",
+					"strict" : false
+				},
+				{
+					"name" : "BAR3-",
+					"strict" : false
+				},
+				{
+					"name" : "BAR2-",
+					"strict" : false
+				},
+				{
+					"name" : "BAR1-",
+					"strict" : false
+				},
+				{
+					"name" : "BAR0-",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DATA_OUT-",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DATA_IN-",
+					"strict" : false
+				},
+				{
+					"name" : "RTC_CS",
+					"strict" : false
+				},
+				{
+					"name" : "RTC_SPI_CLK",
+					"strict" : false
+				},
+				{
+					"name" : "RTC_SPI_SI",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_OUT_PRN_0",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_OUT_PRN_1",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_OUT_PRN_2",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_OUT_PRN_3",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_OUT_PRN_4",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_OUT_PRN_5",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_OUT_PRN_6",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_OUT_PRN_7",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_OUT_PRN_STROBE",
+					"strict" : false
+				},
+				{
+					"name" : "BUZZER",
+					"strict" : false
+				},
+				{
+					"name" : "FX_SOUND_PORT_RX",
+					"strict" : false
+				},
+				{
+					"name" : "FX_VOL_PLUS",
+					"strict" : false
+				},
+				{
+					"name" : "FX_VOL_MINUS",
+					"strict" : false
+				},
+				{
+					"name" : "DFP_SOUND_PORT_RX",
+					"strict" : false
+				},
+				{
+					"name" : "DFP_ADKEY1",
+					"strict" : false
+				},
+				{
+					"name" : "DFP_ADKEY2",
+					"strict" : false
+				},
+				{
+					"name" : "DFP_IO1",
+					"strict" : false
+				},
+				{
+					"name" : "DFP_IO2",
+					"strict" : false
+				},
+				{
+					"name" : "MONITOR_RX",
+					"strict" : false
+				},
+				{
+					"name" : "LED_PRN_ACK-",
+					"strict" : false
+				},
+				{
+					"name" : "LED_PRN_BUSY-",
+					"strict" : false
+				},
+				{
+					"name" : "FX_RST",
+					"strict" : false
+				},
+				{
+					"name" : "WIFI_RX",
+					"strict" : false
+				},
+				{
+					"name" : "WIFI_RST",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_SERIAL_DTR-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_SERIAL_RX_A",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_SERIAL_CTS-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_SPEECH_TX",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_SPEECH_CTS-",
+					"strict" : false
+				},
+				{
+					"name" : "USB_PORT_DTR",
+					"strict" : false
+				},
+				{
+					"name" : "USB_PORT_RX",
+					"strict" : false
+				},
+				{
+					"name" : "USB_PORT_CTS",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_8255_SELECT-",
+					"strict" : false
+				},
+				{
+					"name" : "BI_OUTPUT_ENABLE-",
+					"strict" : false
+				},
+				{
+					"name" : "BI_INPUT_ENABLE-",
+					"strict" : false
+				},
+				{
+					"name" : "TEST2",
+					"strict" : false
+				},
+				{
+					"name" : "TEST1",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_S100_SERIAL_PORTS-",
+					"strict" : false
+				},
+				{
+					"name" : "S100_sOUT",
+					"strict" : false
+				},
+				{
+					"name" : "S100_pWR-",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A3",
+					"strict" : false
+				},
+				{
+					"name" : "S100_sINP",
+					"strict" : false
+				},
+				{
+					"name" : "S100_HIGH_ADDRESS_LINES-",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A1",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A0",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A2",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_UART_8255_SELECT-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_INTERFACE_PORTS-",
+					"strict" : false
+				},
+				{
+					"name" : "S100_pDBIN",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_SPI_I2C_PORTS-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_PRN_BUSY",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BOARD_RESET-",
+					"strict" : false
+				},
+				{
+					"name" : "CLK_50",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO1",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO0",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO2",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO3",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_PRN_ACK",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO7",
+					"strict" : false
+				},
+				{
+					"name" : "DFP_BUSY",
+					"strict" : false
+				},
+				{
+					"name" : "MONITOR_TX",
+					"strict" : false
+				},
+				{
+					"name" : "FX_SOUND_PORT_TX",
+					"strict" : false
+				},
+				{
+					"name" : "DFP_SOUND_PORT_TX",
+					"strict" : false
+				},
+				{
+					"name" : "WIFI_TX",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_SERIAL_TX_A",
+					"strict" : false
+				},
+				{
+					"name" : "USB_PORT_TX",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_SPEECH_RX",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP4",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP2",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO5",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO4",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP3",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP7",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO6",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP1",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP0",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP6",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP5",
+					"strict" : false
+				},
+				{
+					"name" : "RTC_SPI_SO",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_PS2_CLK",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_PS2_DATA",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

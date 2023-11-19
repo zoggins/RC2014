@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Sat Nov 18 16:21:41 2023
+Quartus Prime Version : 22.1std.2 Build 922 07/20/2023 SC Lite Edition
+Revision Name : SUPER_IO_BOARD
+Top-level Entity Name : SUPER_IO_BOARD
+Family : Cyclone IV E
+Total logic elements : 4,634
+    Total combinational functions : 4,335
+    Dedicated logic registers : 1,123
+Total registers : 1123
+Total pins : 105
+Total virtual pins : 0
+Total memory bits : 327,680
+Embedded Multiplier 9-bit elements : 0
+Total PLLs : 1

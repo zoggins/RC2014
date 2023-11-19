@@ -1,0 +1,625 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "FPGA_DTR",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDRIVE_0",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDRIVE_1",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_CTS",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A0",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A1",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A2",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A3",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A4",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A5",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A6",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A8",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A9",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A10",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A11",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A12",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A13",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A14",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A15",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_OE-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_WR-",
+					"strict" : false
+				},
+				{
+					"name" : "5V_OUT_D0",
+					"strict" : false
+				},
+				{
+					"name" : "5V_OUT_D1",
+					"strict" : false
+				},
+				{
+					"name" : "5V_OUT_D2",
+					"strict" : false
+				},
+				{
+					"name" : "5V_OUT_D3",
+					"strict" : false
+				},
+				{
+					"name" : "5V_OUT_D4",
+					"strict" : false
+				},
+				{
+					"name" : "5V_OUT_D5",
+					"strict" : false
+				},
+				{
+					"name" : "5V_OUT_D6",
+					"strict" : false
+				},
+				{
+					"name" : "5V_OUT_D7",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_5V_LOCAL_WR-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RAM_A7",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_5V_LOCAL_RD-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_5V_IDE_SEL_A",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_5V_IDE_SEL_B",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_5V_8255_RD-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_5V_8255_WR-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_5V_8255_SEL-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_DO_OE-",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI0",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI1",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI2",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI3",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI4",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI5",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI6",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DI7",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_DI_OE-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_S100_DATA_IN_STATUS",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_S100_DATA_OUT_STATUS",
+					"strict" : false
+				},
+				{
+					"name" : "LED_A-",
+					"strict" : false
+				},
+				{
+					"name" : "LED_B-",
+					"strict" : false
+				},
+				{
+					"name" : "LED_C-",
+					"strict" : false
+				},
+				{
+					"name" : "LED_D-",
+					"strict" : false
+				},
+				{
+					"name" : "LED_E-",
+					"strict" : false
+				},
+				{
+					"name" : "LED_F-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_RDY1",
+					"strict" : false
+				},
+				{
+					"name" : "RTC_CS",
+					"strict" : false
+				},
+				{
+					"name" : "RTC_SPI_CLK",
+					"strict" : false
+				},
+				{
+					"name" : "RTC_SPI_SI",
+					"strict" : false
+				},
+				{
+					"name" : "USB_RX",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDC_CS-",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_DATA_OUT-",
+					"strict" : false
+				},
+				{
+					"name" : "F_BOARD_ACTIVE-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDC_RESET-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDC_RD-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDC_WR-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_5V_LOCAL_A0",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_5V_LOCAL_A1",
+					"strict" : false
+				},
+				{
+					"name" : "LED_2",
+					"strict" : false
+				},
+				{
+					"name" : "LED_1",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDC_8_5_SEL",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDC_DENSITY_SEL",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDC_HLD",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_LOCAL_RD-",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_LOCAL_WR-",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_OUT_D0",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_OUT_D1",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_OUT_D2",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_OUT_D3",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_OUT_D4",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_OUT_D5",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_OUT_D6",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_OUT_D7",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDISK_WP-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_SIDE",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BI_D0",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BI_D1",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BI_D5",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BI_D6",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BI_D4",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BI_D7",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BI_D2",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BI_D3",
+					"strict" : false
+				},
+				{
+					"name" : "S100_sOUT",
+					"strict" : false
+				},
+				{
+					"name" : "S100_sINP",
+					"strict" : false
+				},
+				{
+					"name" : "Jumper_K1",
+					"strict" : false
+				},
+				{
+					"name" : "S100_pWR-",
+					"strict" : false
+				},
+				{
+					"name" : "S100_pDBIN",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_FDC_CIRCUIT",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IDE_CIRCUIT",
+					"strict" : false
+				},
+				{
+					"name" : "LOCAL_RESET-",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_BOARD_RESET-",
+					"strict" : false
+				},
+				{
+					"name" : "CLK_50",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO0",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO1",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO2",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO3",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO4",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO5",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO6",
+					"strict" : false
+				},
+				{
+					"name" : "S100_DO7",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A7",
+					"strict" : false
+				},
+				{
+					"name" : "S100_pSYNC",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A6",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A3",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A15",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A14",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A13",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A12",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A11",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A10",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A9",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A8",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A5",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A4",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A2",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A0",
+					"strict" : false
+				},
+				{
+					"name" : "S100_A1",
+					"strict" : false
+				},
+				{
+					"name" : "5V_IN_D0",
+					"strict" : false
+				},
+				{
+					"name" : "5V_IN_D1",
+					"strict" : false
+				},
+				{
+					"name" : "5V_IN_D2",
+					"strict" : false
+				},
+				{
+					"name" : "5V_IN_D3",
+					"strict" : false
+				},
+				{
+					"name" : "5V_IN_D4",
+					"strict" : false
+				},
+				{
+					"name" : "5V_IN_D5",
+					"strict" : false
+				},
+				{
+					"name" : "5V_IN_D6",
+					"strict" : false
+				},
+				{
+					"name" : "5V_IN_D7",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_IN_D6",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_IN_D2",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_IN_D0",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_IN_D1",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_IN_D3",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_IN_D4",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_IN_D5",
+					"strict" : false
+				},
+				{
+					"name" : "FDC_IN_D7",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP1",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP5",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP7",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP6",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP4",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP3",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP2",
+					"strict" : false
+				},
+				{
+					"name" : "FPGA_IN_DIP0",
+					"strict" : false
+				},
+				{
+					"name" : "USB_TX",
+					"strict" : false
+				},
+				{
+					"name" : "RTC_SPI_SO",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

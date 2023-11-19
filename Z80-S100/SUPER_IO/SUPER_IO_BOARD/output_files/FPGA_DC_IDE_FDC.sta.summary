@@ -1,0 +1,533 @@
+------------------------------------------------------------
+Timing Analyzer Summary
+------------------------------------------------------------
+
+Type  : Slow 1200mV 85C Model Setup 'Microcomputer:inst|cpuClock'
+Slack : -14.913
+TNS   : -3945.629
+
+Type  : Slow 1200mV 85C Model Setup '74273:inst94|14'
+Slack : -6.946
+TNS   : -119.460
+
+Type  : Slow 1200mV 85C Model Setup 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : -6.596
+TNS   : -11.164
+
+Type  : Slow 1200mV 85C Model Setup 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : -4.542
+TNS   : -299.133
+
+Type  : Slow 1200mV 85C Model Setup 'CLK_50'
+Slack : -4.178
+TNS   : -131.417
+
+Type  : Slow 1200mV 85C Model Setup 'Jumper_K1'
+Slack : -3.099
+TNS   : -80.826
+
+Type  : Slow 1200mV 85C Model Setup 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -2.650
+TNS   : -100.645
+
+Type  : Slow 1200mV 85C Model Setup 'inst4|altpll_component|auto_generated|pll1|clk[0]'
+Slack : -1.888
+TNS   : -13.514
+
+Type  : Slow 1200mV 85C Model Setup 'Microcomputer:inst|T80s:cpu1|MREQ_n'
+Slack : -1.813
+TNS   : -45.615
+
+Type  : Slow 1200mV 85C Model Setup 'inst4|altpll_component|auto_generated|pll1|clk[1]'
+Slack : 20.561
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Setup 'inst4|altpll_component|auto_generated|pll1|clk[3]'
+Slack : 21.108
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -1.050
+TNS   : -9.104
+
+Type  : Slow 1200mV 85C Model Hold 'Jumper_K1'
+Slack : -0.254
+TNS   : -0.413
+
+Type  : Slow 1200mV 85C Model Hold 'Microcomputer:inst|cpuClock'
+Slack : 0.169
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'inst4|altpll_component|auto_generated|pll1|clk[0]'
+Slack : 0.401
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'CLK_50'
+Slack : 0.453
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : 0.455
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'Microcomputer:inst|T80s:cpu1|MREQ_n'
+Slack : 0.477
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'inst4|altpll_component|auto_generated|pll1|clk[3]'
+Slack : 0.567
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : 0.726
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold 'inst4|altpll_component|auto_generated|pll1|clk[1]'
+Slack : 1.136
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Hold '74273:inst94|14'
+Slack : 3.864
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Recovery 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : -7.118
+TNS   : -15.984
+
+Type  : Slow 1200mV 85C Model Recovery 'Microcomputer:inst|cpuClock'
+Slack : -5.649
+TNS   : -919.562
+
+Type  : Slow 1200mV 85C Model Recovery 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -4.619
+TNS   : -16.844
+
+Type  : Slow 1200mV 85C Model Recovery 'Jumper_K1'
+Slack : -3.906
+TNS   : -8.969
+
+Type  : Slow 1200mV 85C Model Recovery 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : -1.062
+TNS   : -2.124
+
+Type  : Slow 1200mV 85C Model Removal 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -0.137
+TNS   : -0.137
+
+Type  : Slow 1200mV 85C Model Removal 'Jumper_K1'
+Slack : 0.743
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Removal 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : 1.482
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Removal 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : 1.563
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Removal 'Microcomputer:inst|cpuClock'
+Slack : 2.009
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'Microcomputer:inst|T80s:cpu1|MREQ_n'
+Slack : -3.201
+TNS   : -105.406
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'Jumper_K1'
+Slack : -3.000
+TNS   : -75.863
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'S100_pSYNC'
+Slack : -3.000
+TNS   : -3.000
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'Microcomputer:inst|cpuClock'
+Slack : -1.487
+TNS   : -523.424
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : -1.487
+TNS   : -118.960
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -1.487
+TNS   : -102.190
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width '74273:inst94|14'
+Slack : -1.487
+TNS   : -35.688
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : -1.487
+TNS   : -5.948
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'CLK_50'
+Slack : 9.740
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'inst4|altpll_component|auto_generated|pll1|clk[3]'
+Slack : 12.193
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'inst4|altpll_component|auto_generated|pll1|clk[1]'
+Slack : 49.660
+TNS   : 0.000
+
+Type  : Slow 1200mV 85C Model Minimum Pulse Width 'inst4|altpll_component|auto_generated|pll1|clk[0]'
+Slack : 249.718
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Setup 'Microcomputer:inst|cpuClock'
+Slack : -13.992
+TNS   : -3696.030
+
+Type  : Slow 1200mV 0C Model Setup '74273:inst94|14'
+Slack : -6.436
+TNS   : -110.125
+
+Type  : Slow 1200mV 0C Model Setup 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : -6.124
+TNS   : -10.253
+
+Type  : Slow 1200mV 0C Model Setup 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : -4.221
+TNS   : -274.191
+
+Type  : Slow 1200mV 0C Model Setup 'CLK_50'
+Slack : -4.020
+TNS   : -123.645
+
+Type  : Slow 1200mV 0C Model Setup 'Jumper_K1'
+Slack : -2.730
+TNS   : -72.584
+
+Type  : Slow 1200mV 0C Model Setup 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -2.593
+TNS   : -93.230
+
+Type  : Slow 1200mV 0C Model Setup 'Microcomputer:inst|T80s:cpu1|MREQ_n'
+Slack : -1.603
+TNS   : -41.397
+
+Type  : Slow 1200mV 0C Model Setup 'inst4|altpll_component|auto_generated|pll1|clk[0]'
+Slack : -1.484
+TNS   : -10.286
+
+Type  : Slow 1200mV 0C Model Setup 'inst4|altpll_component|auto_generated|pll1|clk[1]'
+Slack : 21.028
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Setup 'inst4|altpll_component|auto_generated|pll1|clk[3]'
+Slack : 21.530
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -1.020
+TNS   : -11.399
+
+Type  : Slow 1200mV 0C Model Hold 'Jumper_K1'
+Slack : -0.372
+TNS   : -1.064
+
+Type  : Slow 1200mV 0C Model Hold 'Microcomputer:inst|cpuClock'
+Slack : 0.088
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'inst4|altpll_component|auto_generated|pll1|clk[0]'
+Slack : 0.272
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'Microcomputer:inst|T80s:cpu1|MREQ_n'
+Slack : 0.362
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'CLK_50'
+Slack : 0.401
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : 0.405
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'inst4|altpll_component|auto_generated|pll1|clk[3]'
+Slack : 0.481
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : 0.671
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold 'inst4|altpll_component|auto_generated|pll1|clk[1]'
+Slack : 1.004
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Hold '74273:inst94|14'
+Slack : 3.619
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Recovery 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : -6.776
+TNS   : -14.940
+
+Type  : Slow 1200mV 0C Model Recovery 'Microcomputer:inst|cpuClock'
+Slack : -5.151
+TNS   : -851.936
+
+Type  : Slow 1200mV 0C Model Recovery 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -4.265
+TNS   : -15.161
+
+Type  : Slow 1200mV 0C Model Recovery 'Jumper_K1'
+Slack : -3.709
+TNS   : -8.702
+
+Type  : Slow 1200mV 0C Model Recovery 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : -0.875
+TNS   : -1.750
+
+Type  : Slow 1200mV 0C Model Removal 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -0.321
+TNS   : -0.530
+
+Type  : Slow 1200mV 0C Model Removal 'Jumper_K1'
+Slack : 0.694
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Removal 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : 1.338
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Removal 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : 1.430
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Removal 'Microcomputer:inst|cpuClock'
+Slack : 1.982
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'Microcomputer:inst|T80s:cpu1|MREQ_n'
+Slack : -3.201
+TNS   : -105.406
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'Jumper_K1'
+Slack : -3.000
+TNS   : -75.863
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'S100_pSYNC'
+Slack : -3.000
+TNS   : -3.000
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'Microcomputer:inst|cpuClock'
+Slack : -1.487
+TNS   : -523.424
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : -1.487
+TNS   : -118.960
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -1.487
+TNS   : -95.329
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width '74273:inst94|14'
+Slack : -1.487
+TNS   : -35.688
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : -1.487
+TNS   : -5.948
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'CLK_50'
+Slack : 9.751
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'inst4|altpll_component|auto_generated|pll1|clk[3]'
+Slack : 12.092
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'inst4|altpll_component|auto_generated|pll1|clk[1]'
+Slack : 49.562
+TNS   : 0.000
+
+Type  : Slow 1200mV 0C Model Minimum Pulse Width 'inst4|altpll_component|auto_generated|pll1|clk[0]'
+Slack : 249.717
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Setup 'Microcomputer:inst|cpuClock'
+Slack : -6.002
+TNS   : -1536.950
+
+Type  : Fast 1200mV 0C Model Setup 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : -3.077
+TNS   : -4.282
+
+Type  : Fast 1200mV 0C Model Setup '74273:inst94|14'
+Slack : -2.475
+TNS   : -38.143
+
+Type  : Fast 1200mV 0C Model Setup 'Jumper_K1'
+Slack : -1.662
+TNS   : -43.509
+
+Type  : Fast 1200mV 0C Model Setup 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : -1.392
+TNS   : -84.388
+
+Type  : Fast 1200mV 0C Model Setup 'CLK_50'
+Slack : -1.228
+TNS   : -36.164
+
+Type  : Fast 1200mV 0C Model Setup 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -0.804
+TNS   : -24.852
+
+Type  : Fast 1200mV 0C Model Setup 'inst4|altpll_component|auto_generated|pll1|clk[0]'
+Slack : -0.788
+TNS   : -5.581
+
+Type  : Fast 1200mV 0C Model Setup 'Microcomputer:inst|T80s:cpu1|MREQ_n'
+Slack : -0.377
+TNS   : -6.280
+
+Type  : Fast 1200mV 0C Model Setup 'inst4|altpll_component|auto_generated|pll1|clk[1]'
+Slack : 23.006
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Setup 'inst4|altpll_component|auto_generated|pll1|clk[3]'
+Slack : 23.245
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -0.158
+TNS   : -1.194
+
+Type  : Fast 1200mV 0C Model Hold 'Jumper_K1'
+Slack : -0.051
+TNS   : -0.077
+
+Type  : Fast 1200mV 0C Model Hold 'Microcomputer:inst|cpuClock'
+Slack : 0.120
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : 0.145
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'Microcomputer:inst|T80s:cpu1|MREQ_n'
+Slack : 0.169
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'inst4|altpll_component|auto_generated|pll1|clk[3]'
+Slack : 0.180
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'CLK_50'
+Slack : 0.186
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'inst4|altpll_component|auto_generated|pll1|clk[0]'
+Slack : 0.261
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : 0.281
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold 'inst4|altpll_component|auto_generated|pll1|clk[1]'
+Slack : 0.419
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Hold '74273:inst94|14'
+Slack : 1.642
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Recovery 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : -2.782
+TNS   : -5.564
+
+Type  : Fast 1200mV 0C Model Recovery 'Microcomputer:inst|cpuClock'
+Slack : -2.730
+TNS   : -440.792
+
+Type  : Fast 1200mV 0C Model Recovery 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -2.299
+TNS   : -7.791
+
+Type  : Fast 1200mV 0C Model Recovery 'Jumper_K1'
+Slack : -1.038
+TNS   : -2.293
+
+Type  : Fast 1200mV 0C Model Recovery 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : 0.095
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Removal 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : 0.148
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Removal 'Jumper_K1'
+Slack : 0.248
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Removal 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : 0.638
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Removal 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : 0.678
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Removal 'Microcomputer:inst|cpuClock'
+Slack : 0.718
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'Jumper_K1'
+Slack : -3.000
+TNS   : -87.331
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'S100_pSYNC'
+Slack : -3.000
+TNS   : -7.787
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'Microcomputer:inst|cpuClock'
+Slack : -1.000
+TNS   : -352.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]'
+Slack : -1.000
+TNS   : -80.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'Microcomputer:inst|T80s:cpu1|MREQ_n'
+Slack : -1.000
+TNS   : -34.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'Microcomputer:inst|T80s:cpu1|IORQ_n'
+Slack : -1.000
+TNS   : -29.841
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width '74273:inst94|14'
+Slack : -1.000
+TNS   : -24.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[16]'
+Slack : -1.000
+TNS   : -4.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'CLK_50'
+Slack : 9.262
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'inst4|altpll_component|auto_generated|pll1|clk[3]'
+Slack : 12.166
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'inst4|altpll_component|auto_generated|pll1|clk[1]'
+Slack : 49.689
+TNS   : 0.000
+
+Type  : Fast 1200mV 0C Model Minimum Pulse Width 'inst4|altpll_component|auto_generated|pll1|clk[0]'
+Slack : 249.798
+TNS   : 0.000
+
+------------------------------------------------------------

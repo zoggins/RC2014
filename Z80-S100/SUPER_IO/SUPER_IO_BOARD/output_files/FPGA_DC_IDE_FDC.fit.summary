@@ -1,0 +1,16 @@
+Fitter Status : Successful - Fri Nov 12 16:24:09 2021
+Quartus Prime Version : 18.0.0 Build 614 04/24/2018 SJ Lite Edition
+Revision Name : FPGA_DC_IDE_FDC
+Top-level Entity Name : FPGA_DC_IDE_FDC
+Family : Cyclone IV E
+Device : EP4CE10F17C8
+Timing Models : Final
+Total logic elements : 2,876 / 10,320 ( 28 % )
+    Total combinational functions : 2,766 / 10,320 ( 27 % )
+    Dedicated logic registers : 643 / 10,320 ( 6 % )
+Total registers : 643
+Total pins : 159 / 180 ( 88 % )
+Total virtual pins : 0
+Total memory bits : 262,144 / 423,936 ( 62 % )
+Embedded Multiplier 9-bit elements : 0 / 46 ( 0 % )
+Total PLLs : 1 / 2 ( 50 % )

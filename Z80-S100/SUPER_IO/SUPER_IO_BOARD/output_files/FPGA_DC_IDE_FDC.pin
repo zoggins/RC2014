@@ -1,0 +1,326 @@
+ -- Copyright (C) 2018  Intel Corporation. All rights reserved.
+ -- Your use of Intel Corporation's design tools, logic functions 
+ -- and other software and tools, and its AMPP partner logic 
+ -- functions, and any output files from any of the foregoing 
+ -- (including device programming or simulation files), and any 
+ -- associated documentation or information are expressly subject 
+ -- to the terms and conditions of the Intel Program License 
+ -- Subscription Agreement, the Intel Quartus Prime License Agreement,
+ -- the Intel FPGA IP License Agreement, or other applicable license
+ -- agreement, including, without limitation, that your use is for
+ -- the sole purpose of programming logic devices manufactured by
+ -- Intel and sold by Intel or its authorized distributors.  Please
+ -- refer to the applicable agreement for further details.
+ -- 
+ -- This is a Quartus Prime output file. It is for reporting purposes only, and is
+ -- not intended for use as a Quartus Prime input file. This file cannot be used
+ -- to make Quartus Prime pin assignments - for instructions on how to make pin
+ -- assignments, please see Quartus Prime help.
+ ---------------------------------------------------------------------------------
+
+
+
+ ---------------------------------------------------------------------------------
+ -- NC            : No Connect. This pin has no internal connection to the device.
+ -- DNU           : Do Not Use. This pin MUST NOT be connected.
+ -- VCCINT        : Dedicated power pin, which MUST be connected to VCC  (1.2V).
+ -- VCCIO         : Dedicated power pin, which MUST be connected to VCC
+ --                 of its bank.
+ --                  Bank 1:       3.3V
+ --                  Bank 2:       3.3V
+ --                  Bank 3:       3.3V
+ --                  Bank 4:       3.3V
+ --                  Bank 5:       3.3V
+ --                  Bank 6:       3.3V
+ --                  Bank 7:       3.3V
+ --                  Bank 8:       3.3V
+ -- GND           : Dedicated ground pin. Dedicated GND pins MUST be connected to GND.
+ --                  It can also be used to report unused dedicated pins. The connection
+ --                  on the board for unused dedicated pins depends on whether this will
+ --                  be used in a future design. One example is device migration. When
+ --                  using device migration, refer to the device pin-tables. If it is a
+ --                  GND pin in the pin table or if it will not be used in a future design
+ --                  for another purpose the it MUST be connected to GND. If it is an unused
+ --                  dedicated pin, then it can be connected to a valid signal on the board
+ --                  (low, high, or toggling) if that signal is required for a different
+ --                  revision of the design.
+ -- GND+          : Unused input pin. It can also be used to report unused dual-purpose pins.
+ --                  This pin should be connected to GND. It may also be connected  to a
+ --                  valid signal  on the board  (low, high, or toggling)  if that signal
+ --                  is required for a different revision of the design.
+ -- GND*          : Unused  I/O  pin. Connect each pin marked GND* directly to GND
+ --                  or leave it unconnected.
+ -- RESERVED      : Unused I/O pin, which MUST be left unconnected.
+ -- RESERVED_INPUT    : Pin is tri-stated and should be connected to the board.
+ -- RESERVED_INPUT_WITH_WEAK_PULLUP    : Pin is tri-stated with internal weak pull-up resistor.
+ -- RESERVED_INPUT_WITH_BUS_HOLD       : Pin is tri-stated with bus-hold circuitry.
+ -- RESERVED_OUTPUT_DRIVEN_HIGH        : Pin is output driven high.
+ ---------------------------------------------------------------------------------
+
+
+
+ ---------------------------------------------------------------------------------
+ -- Pin directions (input, output or bidir) are based on device operating in user mode.
+ ---------------------------------------------------------------------------------
+
+Quartus Prime Version 18.0.0 Build 614 04/24/2018 SJ Lite Edition
+CHIP  "FPGA_DC_IDE_FDC"  ASSIGNED TO AN: EP4CE10F17C8
+
+Pin Name/Usage               : Location  : Dir.   : I/O Standard      : Voltage : I/O Bank  : User Assignment
+-------------------------------------------------------------------------------------------------------------
+VCCIO8                       : A1        : power  :                   : 3.3V    : 8         :                
+FPGA_IN_DIP2                 : A2        : input  : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_IN_DIP1                 : A3        : input  : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_IN_DIP0                 : A4        : input  : 3.3-V LVTTL       :         : 8         : Y              
+S100_A0                      : A5        : input  : 3.3-V LVTTL       :         : 8         : Y              
+S100_A1                      : A6        : input  : 3.3-V LVTTL       :         : 8         : Y              
+Jumper_K1                    : A7        : input  : 3.3-V LVTTL       :         : 8         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : A8        :        :                   :         : 8         :                
+FPGA_RDY1                    : A9        : output : 3.3-V LVTTL       :         : 7         : Y              
+5V_OUT_D2                    : A10       : output : 3.3-V LVTTL       :         : 7         : Y              
+5V_OUT_D3                    : A11       : output : 3.3-V LVTTL       :         : 7         : Y              
+RTC_SPI_CLK                  : A12       : output : 3.3-V LVTTL       :         : 7         : Y              
+FDC_OUT_D2                   : A13       : output : 3.3-V LVTTL       :         : 7         : Y              
+FDC_OUT_D3                   : A14       : output : 3.3-V LVTTL       :         : 7         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : A15       :        :                   :         : 7         :                
+VCCIO7                       : A16       : power  :                   : 3.3V    : 7         :                
+FPGA_RAM_A14                 : B1        : output : 3.3-V LVTTL       :         : 1         : Y              
+GND                          : B2        : gnd    :                   :         :           :                
+FPGA_RAM_A15                 : B3        : output : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_RAM_A16                 : B4        : output : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_RAM_A17                 : B5        : output : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_RAM_A18                 : B6        : output : 3.3-V LVTTL       :         : 8         : Y              
+LED_1                        : B7        : output : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_5V_LOCAL_A0             : B8        : output : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_5V_LOCAL_A1             : B9        : output : 3.3-V LVTTL       :         : 7         : Y              
+LED_2                        : B10       : output : 3.3-V LVTTL       :         : 7         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : B11       :        :                   :         : 7         :                
+5V_OUT_D4                    : B12       : output : 3.3-V LVTTL       :         : 7         : Y              
+5V_OUT_D5                    : B13       : output : 3.3-V LVTTL       :         : 7         : Y              
+RTC_CS                       : B14       : output : 3.3-V LVTTL       :         : 7         : Y              
+GND                          : B15       : gnd    :                   :         :           :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : B16       :        :                   :         : 6         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : C1        :        :                   :         : 1         :                
+LED_D-                       : C2        : output : 3.3-V LVTTL       :         : 1         : Y              
+FPGA_RAM_WR-                 : C3        : output : 3.3-V LVTTL       :         : 8         : Y              
+VCCIO8                       : C4        : power  :                   : 3.3V    : 8         :                
+GND                          : C5        : gnd    :                   :         :           :                
+FPGA_5V_8255_WR-             : C6        : output : 3.3-V LVTTL       :         : 8         : Y              
+VCCIO8                       : C7        : power  :                   : 3.3V    : 8         :                
+5V_OUT_D0                    : C8        : output : 3.3-V LVTTL       :         : 8         : Y              
+5V_OUT_D1                    : C9        : output : 3.3-V LVTTL       :         : 7         : Y              
+VCCIO7                       : C10       : power  :                   : 3.3V    : 7         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : C11       :        :                   :         : 7         :                
+GND                          : C12       : gnd    :                   :         :           :                
+VCCIO7                       : C13       : power  :                   : 3.3V    : 7         :                
+S100_A15                     : C14       : input  : 3.3-V LVTTL       :         : 7         : Y              
+S100_A14                     : C15       : input  : 3.3-V LVTTL       :         : 6         : Y              
+FDC_OUT_D5                   : C16       : output : 3.3-V LVTTL       :         : 6         : Y              
+FPGA_RAM_A13                 : D1        : output : 3.3-V LVTTL       :         : 1         : Y              
+~ALTERA_FLASH_nCE_nCSO~ / RESERVED_INPUT_WITH_WEAK_PULLUP : D2        : input  : 3.3-V LVTTL       :         : 1         : N              
+S100_A2                      : D3        : input  : 3.3-V LVTTL       :         : 8         : Y              
+S100_A3                      : D4        : input  : 3.3-V LVTTL       :         : 1         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : D5        :        :                   :         : 8         :                
+FDC_OUT_D1                   : D6        : output : 3.3-V LVTTL       :         : 8         : Y              
+GND                          : D7        : gnd    :                   :         :           :                
+RTC_SPI_SO                   : D8        : input  : 3.3-V LVTTL       :         : 8         : Y              
+S100_pWR-                    : D9        : input  : 3.3-V LVTTL       :         : 7         : Y              
+GND                          : D10       : gnd    :                   :         :           :                
+5V_OUT_D7                    : D11       : output : 3.3-V LVTTL       :         : 7         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : D12       :        :                   :         : 7         :                
+VCCD_PLL2                    : D13       : power  :                   : 1.2V    :           :                
+FDC_OUT_D6                   : D14       : output : 3.3-V LVTTL       :         : 7         : Y              
+S100_A13                     : D15       : input  : 3.3-V LVTTL       :         : 6         : Y              
+FDC_OUT_D4                   : D16       : output : 3.3-V LVTTL       :         : 6         : Y              
+GND+                         : E1        :        :                   :         : 1         :                
+GND                          : E2        : gnd    :                   :         :           :                
+VCCIO1                       : E3        : power  :                   : 3.3V    : 1         :                
+GND                          : E4        : gnd    :                   :         :           :                
+S100_A7                      : E5        : input  : 3.3-V LVTTL       :         : 1         : Y              
+F_BOARD_ACTIVE-              : E6        : output : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_5V_8255_RD-             : E7        : output : 3.3-V LVTTL       :         : 8         : Y              
+RTC_SPI_SI                   : E8        : output : 3.3-V LVTTL       :         : 8         : Y              
+S100_pSYNC                   : E9        : input  : 3.3-V LVTTL       :         : 7         : Y              
+FPGA_5V_LOCAL_WR-            : E10       : output : 3.3-V LVTTL       :         : 7         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : E11       :        :                   :         : 7         :                
+GNDA2                        : E12       : gnd    :                   :         :           :                
+GND                          : E13       : gnd    :                   :         :           :                
+VCCIO6                       : E14       : power  :                   : 3.3V    : 6         :                
+GND+                         : E15       :        :                   :         : 6         :                
+CLK_50                       : E16       : input  : 3.3-V LVTTL       :         : 6         : Y              
+LED_C-                       : F1        : output : 3.3-V LVTTL       :         : 1         : Y              
+FPGA_RAM_A12                 : F2        : output : 3.3-V LVTTL       :         : 1         : Y              
+FPGA_RAM_OE-                 : F3        : output : 3.3-V LVTTL       :         : 1         : Y              
+nSTATUS                      : F4        :        :                   :         : 1         :                
+S100_A6                      : F5        : input  : 3.3-V LVTTL       :         : 1         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : F6        :        :                   :         : 8         :                
+FPGA_BOARD_RESET-            : F7        : input  : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_5V_8255_SEL-            : F8        : output : 3.3-V LVTTL       :         : 8         : Y              
+FPGA_5V_LOCAL_RD-            : F9        : output : 3.3-V LVTTL       :         : 7         : Y              
+5V_OUT_D6                    : F10       : output : 3.3-V LVTTL       :         : 7         : Y              
+S100_sOUT                    : F11       : input  : 3.3-V LVTTL       :         : 7         : Y              
+VCCA2                        : F12       : power  :                   : 2.5V    :           :                
+S100_sINP                    : F13       : input  : 3.3-V LVTTL       :         : 6         : Y              
+S100_A12                     : F14       : input  : 3.3-V LVTTL       :         : 6         : Y              
+S100_DI0                     : F15       : output : 3.3-V LVTTL       :         : 6         : Y              
+LED_E-                       : F16       : output : 3.3-V LVTTL       :         : 6         : Y              
+FPGA_IN_DIP6                 : G1        : input  : 3.3-V LVTTL       :         : 1         : Y              
+FPGA_RAM_A11                 : G2        : output : 3.3-V LVTTL       :         : 1         : Y              
+VCCIO1                       : G3        : power  :                   : 3.3V    : 1         :                
+GND                          : G4        : gnd    :                   :         :           :                
+S100_A5                      : G5        : input  : 3.3-V LVTTL       :         : 1         : Y              
+VCCINT                       : G6        : power  :                   : 1.2V    :           :                
+VCCINT                       : G7        : power  :                   : 1.2V    :           :                
+VCCINT                       : G8        : power  :                   : 1.2V    :           :                
+VCCINT                       : G9        : power  :                   : 1.2V    :           :                
+VCCINT                       : G10       : power  :                   : 1.2V    :           :                
+S100_pDBIN                   : G11       : input  : 3.3-V LVTTL       :         : 6         : Y              
+MSEL2                        : G12       :        :                   :         : 6         :                
+GND                          : G13       : gnd    :                   :         :           :                
+VCCIO6                       : G14       : power  :                   : 3.3V    : 6         :                
+FPGA_DI_OE-                  : G15       : output : 3.3-V LVTTL       :         : 6         : Y              
+FPGA_FDISK_WP-               : G16       : output : 3.3-V LVTTL       :         : 6         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : H1        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : H2        :        :                   :         : 1         :                
+TCK                          : H3        : input  :                   :         : 1         :                
+TDI                          : H4        : input  :                   :         : 1         :                
+nCONFIG                      : H5        :        :                   :         : 1         :                
+VCCINT                       : H6        : power  :                   : 1.2V    :           :                
+GND                          : H7        : gnd    :                   :         :           :                
+GND                          : H8        : gnd    :                   :         :           :                
+GND                          : H9        : gnd    :                   :         :           :                
+GND                          : H10       : gnd    :                   :         :           :                
+VCCINT                       : H11       : power  :                   : 1.2V    :           :                
+MSEL1                        : H12       :        :                   :         : 6         :                
+MSEL0                        : H13       :        :                   :         : 6         :                
+CONF_DONE                    : H14       :        :                   :         : 6         :                
+GND                          : H15       : gnd    :                   :         :           :                
+GND                          : H16       : gnd    :                   :         :           :                
+FPGA_IN_DIP5                 : J1        : input  : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_RAM_A10                 : J2        : output : 3.3-V LVTTL       :         : 2         : Y              
+nCE                          : J3        :        :                   :         : 1         :                
+TDO                          : J4        : output :                   :         : 1         :                
+TMS                          : J5        : input  :                   :         : 1         :                
+LOCAL_RESET-                 : J6        : input  : 3.3-V LVTTL       :         : 2         : Y              
+GND                          : J7        : gnd    :                   :         :           :                
+GND                          : J8        : gnd    :                   :         :           :                
+GND                          : J9        : gnd    :                   :         :           :                
+GND                          : J10       : gnd    :                   :         :           :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : J11       :        :                   :         : 5         :                
+S100_DI7                     : J12       : output : 3.3-V LVTTL       :         : 5         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : J13       :        :                   :         : 5         :                
+S100_A11                     : J14       : input  : 3.3-V LVTTL       :         : 5         : Y              
+LED_F-                       : J15       : output : 3.3-V LVTTL       :         : 5         : Y              
+FPGA_DO_OE-                  : J16       : output : 3.3-V LVTTL       :         : 5         : Y              
+FPGA_IN_DIP4                 : K1        : input  : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_RAM_A9                  : K2        : output : 3.3-V LVTTL       :         : 2         : Y              
+VCCIO2                       : K3        : power  :                   : 3.3V    : 2         :                
+GND                          : K4        : gnd    :                   :         :           :                
+S100_A4                      : K5        : input  : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_RAM_CS-                 : K6        : output : 3.3-V LVTTL       :         : 2         : Y              
+VCCINT                       : K7        : power  :                   : 1.2V    :           :                
+USB_TX                       : K8        : input  : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_FDC_RD-                 : K9        : output : 3.3-V LVTTL       :         : 4         : Y              
+S100_A10                     : K10       : input  : 3.3-V LVTTL       :         : 4         : Y              
+S100_A9                      : K11       : input  : 3.3-V LVTTL       :         : 5         : Y              
+S100_A8                      : K12       : input  : 3.3-V LVTTL       :         : 5         : Y              
+GND                          : K13       : gnd    :                   :         :           :                
+VCCIO5                       : K14       : power  :                   : 3.3V    : 5         :                
+5V_IN_D7                     : K15       : input  : 3.3-V LVTTL       :         : 5         : Y              
+S100_DO7                     : K16       : input  : 3.3-V LVTTL       :         : 5         : Y              
+FPGA_IN_DIP3                 : L1        : input  : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_RAM_A8                  : L2        : output : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_BI_D4                   : L3        : bidir  : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_RAM_A4                  : L4        : output : 3.3-V LVTTL       :         : 2         : Y              
+VCCA1                        : L5        : power  :                   : 2.5V    :           :                
+FPGA_RAM_A0                  : L6        : output : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_DTR                     : L7        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_FDC_CS-                 : L8        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_CTS                     : L9        : output : 3.3-V LVTTL       :         : 4         : Y              
+FPGA_IN_DIP7                 : L10       : input  : 3.3-V LVTTL       :         : 4         : Y              
+S100_DI6                     : L11       : output : 3.3-V LVTTL       :         : 4         : Y              
+FDC_DATA_OUT-                : L12       : output : 3.3-V LVTTL       :         : 5         : Y              
+FDC_OUT_D7                   : L13       : output : 3.3-V LVTTL       :         : 5         : Y              
+S100_DI5                     : L14       : output : 3.3-V LVTTL       :         : 5         : Y              
+5V_IN_D6                     : L15       : input  : 3.3-V LVTTL       :         : 5         : Y              
+S100_DO6                     : L16       : input  : 3.3-V LVTTL       :         : 5         : Y              
+GND+                         : M1        :        :                   :         : 2         :                
+GND+                         : M2        :        :                   :         : 2         :                
+VCCIO2                       : M3        : power  :                   : 3.3V    : 2         :                
+GND                          : M4        : gnd    :                   :         :           :                
+GNDA1                        : M5        : gnd    :                   :         :           :                
+FPGA_FDC_RESET-              : M6        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_FDC_WR-                 : M7        : output : 3.3-V LVTTL       :         : 3         : Y              
+USB_RX                       : M8        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_FDC_2MHz                : M9        : output : 3.3-V LVTTL       :         : 4         : Y              
+S100_DI1                     : M10       : output : 3.3-V LVTTL       :         : 4         : Y              
+FPGA_IDE_CIRCUIT             : M11       : input  : 3.3-V LVTTL       :         : 4         : Y              
+S100_DI4                     : M12       : output : 3.3-V LVTTL       :         : 5         : Y              
+GND                          : M13       : gnd    :                   :         :           :                
+VCCIO5                       : M14       : power  :                   : 3.3V    : 5         :                
+GND+                         : M15       :        :                   :         : 5         :                
+GND+                         : M16       :        :                   :         : 5         :                
+FPGA_BI_D7                   : N1        : bidir  : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_RAM_A7                  : N2        : output : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_BI_D3                   : N3        : bidir  : 3.3-V LVTTL       :         : 3         : Y              
+VCCD_PLL1                    : N4        : power  :                   : 1.2V    :           :                
+FPGA_BI_D2                   : N5        : bidir  : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_RAM_A2                  : N6        : output : 3.3-V LVTTL       :         : 3         : Y              
+GND                          : N7        : gnd    :                   :         :           :                
+FPGA_BI_D0                   : N8        : bidir  : 3.3-V LVTTL       :         : 3         : Y              
+FDC_IN_D5                    : N9        : input  : 3.3-V LVTTL       :         : 4         : Y              
+GND                          : N10       : gnd    :                   :         :           :                
+FDC_LOCAL_WR-                : N11       : output : 3.3-V LVTTL       :         : 4         : Y              
+FDC_LOCAL_RD-                : N12       : output : 3.3-V LVTTL       :         : 4         : Y              
+S100_DI2                     : N13       : output : 3.3-V LVTTL       :         : 5         : Y              
+S100_DI3                     : N14       : output : 3.3-V LVTTL       :         : 5         : Y              
+5V_IN_D5                     : N15       : input  : 3.3-V LVTTL       :         : 5         : Y              
+S100_DO5                     : N16       : input  : 3.3-V LVTTL       :         : 5         : Y              
+FPGA_BI_D6                   : P1        : bidir  : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_RAM_A6                  : P2        : output : 3.3-V LVTTL       :         : 2         : Y              
+FPGA_RAM_A3                  : P3        : output : 3.3-V LVTTL       :         : 3         : Y              
+VCCIO3                       : P4        : power  :                   : 3.3V    : 3         :                
+GND                          : P5        : gnd    :                   :         :           :                
+FPGA_BI_D1                   : P6        : bidir  : 3.3-V LVTTL       :         : 3         : Y              
+VCCIO3                       : P7        : power  :                   : 3.3V    : 3         :                
+FPGA_RAM_A1                  : P8        : output : 3.3-V LVTTL       :         : 3         : Y              
+FDC_IN_D2                    : P9        : input  : 3.3-V LVTTL       :         : 4         : Y              
+VCCIO4                       : P10       : power  :                   : 3.3V    : 4         :                
+FDC_IN_D3                    : P11       : input  : 3.3-V LVTTL       :         : 4         : Y              
+GND                          : P12       : gnd    :                   :         :           :                
+VCCIO4                       : P13       : power  :                   : 3.3V    : 4         :                
+FPGA_FDC_CIRCUIT             : P14       : input  : 3.3-V LVTTL       :         : 4         : Y              
+5V_IN_D4                     : P15       : input  : 3.3-V LVTTL       :         : 5         : Y              
+S100_DO4                     : P16       : input  : 3.3-V LVTTL       :         : 5         : Y              
+FPGA_BI_D5                   : R1        : bidir  : 3.3-V LVTTL       :         : 2         : Y              
+GND                          : R2        : gnd    :                   :         :           :                
+FPGA_FDC_8_5_SEL             : R3        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_FDC_DENSITY_SEL         : R4        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_FDC_HLD                 : R5        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_FDRIVE_0                : R6        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_FDRIVE_1                : R7        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_SIDE                    : R8        : output : 3.3-V LVTTL       :         : 3         : Y              
+FDC_IN_D0                    : R9        : input  : 3.3-V LVTTL       :         : 4         : Y              
+FDC_IN_D1                    : R10       : input  : 3.3-V LVTTL       :         : 4         : Y              
+FDC_IN_D4                    : R11       : input  : 3.3-V LVTTL       :         : 4         : Y              
+S100_DO0                     : R12       : input  : 3.3-V LVTTL       :         : 4         : Y              
+S100_DO1                     : R13       : input  : 3.3-V LVTTL       :         : 4         : Y              
+S100_DO2                     : R14       : input  : 3.3-V LVTTL       :         : 4         : Y              
+GND                          : R15       : gnd    :                   :         :           :                
+S100_DO3                     : R16       : input  : 3.3-V LVTTL       :         : 5         : Y              
+VCCIO3                       : T1        : power  :                   : 3.3V    : 3         :                
+FPGA_RAM_A5                  : T2        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_S100_DATA_IN_STATUS     : T3        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_S100_DATA_OUT_STATUS    : T4        : output : 3.3-V LVTTL       :         : 3         : Y              
+LED_A-                       : T5        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_5V_IDE_SEL_A            : T6        : output : 3.3-V LVTTL       :         : 3         : Y              
+LED_B-                       : T7        : output : 3.3-V LVTTL       :         : 3         : Y              
+FPGA_5V_IDE_SEL_B            : T8        : output : 3.3-V LVTTL       :         : 3         : Y              
+FDC_OUT_D0                   : T9        : output : 3.3-V LVTTL       :         : 4         : Y              
+FDC_IN_D7                    : T10       : input  : 3.3-V LVTTL       :         : 4         : Y              
+FDC_IN_D6                    : T11       : input  : 3.3-V LVTTL       :         : 4         : Y              
+5V_IN_D0                     : T12       : input  : 3.3-V LVTTL       :         : 4         : Y              
+5V_IN_D1                     : T13       : input  : 3.3-V LVTTL       :         : 4         : Y              
+5V_IN_D2                     : T14       : input  : 3.3-V LVTTL       :         : 4         : Y              
+5V_IN_D3                     : T15       : input  : 3.3-V LVTTL       :         : 4         : Y              
+VCCIO4                       : T16       : power  :                   : 3.3V    : 4         :                
