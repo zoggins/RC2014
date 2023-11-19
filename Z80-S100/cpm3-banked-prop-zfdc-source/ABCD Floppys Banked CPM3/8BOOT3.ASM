@@ -422,7 +422,7 @@ SIGNON$MSG:
 	DB	CR,LF,LF,'64K CP/M BANKED VERSION 3.0 (John Monahan 3/16/2011)'
 	DB	CR,LF,'Modified by Christopher Mallery (aka Zoggins) 05/10/2023'
 	DB	CR,LF,'A: & B: = 8" SDSS Floppies,  C: = IDE CF Memory Disk,'
-	DB	CR,LF,'D: = 5" Floppy, E: = Second IDE CF Memory Disk.'
+	DB	CR,LF,'D: = Second IDE CF Memory Disk, E: = 5" Floppy.'
 	; DB	CR,LF,'RTC ports at A4,A5, Serial Ports at A2,A3, PIC at 20H.'
 	DB	CR,LF,'Serial Ports at A2 & A3.'
 	; , 8259A PIC at 20H & 21H.'

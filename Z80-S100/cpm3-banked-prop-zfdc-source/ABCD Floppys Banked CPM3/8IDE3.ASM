@@ -94,7 +94,7 @@ DRIVE$SELECT	EQU	25	;Drive Hardware Select (Relative Dirve Offset does not work)
 ;  bit 0: ERR	1=error occured
 ;
 	; DEFINE PUBLIC LABELS:
-	PUBLIC	DPH2,DPH4			;DISK PARAMETER HEADERS
+	PUBLIC	DPH2,DPH3			;DISK PARAMETER HEADERS
 
 	; DEFINE EXTERNAL LABELS:
 	EXTRN	@ADRV,@RDRV
@@ -142,7 +142,7 @@ DPH2:	DPH	0,IDEHD$DPB,0,
         DB      0               ;RELATIVE DRIVE 0 ON THIS CONTROLLER
         DB      0               ;MEDIA TYPE:
                                 ;  HI BIT SET : DRIVE NEEDS RECALIBRATING
-DPH4:   DPH     0,IDEHD$DPB,0,
+DPH3:   DPH     0,IDEHD$DPB,0,
         DB      1               ;Drive B: Hardware Select, (IX offset 25)
 
 

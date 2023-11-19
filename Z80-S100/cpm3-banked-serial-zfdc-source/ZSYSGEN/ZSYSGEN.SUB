@@ -1,0 +1,55 @@
+
+
+; This program (ZSYSGEN) can be used to write the CPM3 loader (CPMLDR)
+; (also included in this program) on the system tracks of a 8" Floppy disk 
+; using a ZFDC Controller. 
+
+;r Z80ASM.com
+;r RMAC.com
+;r LINK.COM
+;r SID.COM
+r CPM3.LIB
+r Z80.LIB
+
+R ZSYSGEN.Z80
+Z80ASM ZSYSGEN FH
+
+r ZLDRBIOS.ASM
+RMAC ZLDRBIOS.ASM 
+r CPMLDR.REL
+LINK CPMLDR[L100]=CPMLDR,ZLDRBIOS
+
+; CPMLDR.COM will reside from 100H to ~0FFFH
+; Note if your BIOS is larger adjust values below
+
+; Put in Clear screen instead of 26 CR's for signon
+; If your CRT does not have a Clear Screen CMD (1AH), skip
+
+SID CPMLDR.COM
+<F226,23D,0D
+<F225,226,1A
+<WCPMLDR.COM,100,0FFF
+<^C
+; 
+W CPMLDR.COM 
+; Note:- You can check CPMLDR.COM itself with ZSID CPMLDR.COM 
+; Use the G command.
+
+; Now we will place ZSYSGEN.HEX at 100H to < ~980H
+; This will have the first boot sector data at 900H to < 980H
+; We place CPMLDR.COM at 880+100H = 980H to ~197FH (980H+0FFFH)
+; We write the whole image (100H to 1FFF) as a .COM file
+; This ZSYSGEN program will the write the CPMLDR to system tracks
+; starting from 900H in RAM upwards, (52 sectors), extra sectors
+; just contain junk info.
+;
+SID ZSYSGEN.HEX
+<RCPMLDR.COM,880
+<WZSYSGEN.COM,100,1FFF
+<^C
+W ZSYSGEN.COM B
+;
+;ZSYSGEN.COM is a file to put the CPMLDR on an 8" SSSD Floppy disk
+;This is for a CPM3 floppy system with a ZFDC FDC
+
+
