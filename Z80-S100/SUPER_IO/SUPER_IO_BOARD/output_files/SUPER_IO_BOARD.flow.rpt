@@ -1,5 +1,5 @@
 Flow report for SUPER_IO_BOARD
-Sat Nov 18 16:23:45 2023
+Sat Nov 18 16:53:06 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 
 
@@ -41,7 +41,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------------------------------------------------------+
 ; Flow Summary                                                                        ;
 +------------------------------------+------------------------------------------------+
-; Flow Status                        ; Successful - Sat Nov 18 16:23:23 2023          ;
+; Flow Status                        ; Successful - Sat Nov 18 16:52:59 2023          ;
 ; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Lite Edition ;
 ; Revision Name                      ; SUPER_IO_BOARD                                 ;
 ; Top-level Entity Name              ; SUPER_IO_BOARD                                 ;
@@ -65,7 +65,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 11/18/2023 16:20:25 ;
+; Start date & time ; 11/18/2023 16:52:04 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; SUPER_IO_BOARD      ;
 +-------------------+---------------------+
@@ -76,7 +76,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------+----------------------------------------+---------------+-------------+------------+
 ; Assignment Name                     ; Value                                  ; Default Value ; Entity Name ; Section Id ;
 +-------------------------------------+----------------------------------------+---------------+-------------+------------+
-; COMPILER_SIGNATURE_ID               ; 186419522419.170035322465056           ; --            ; --          ; --         ;
+; COMPILER_SIGNATURE_ID               ; 238300913719757.170035512436828        ; --            ; --          ; --         ;
 ; MAX_CORE_JUNCTION_TEMP              ; 85                                     ; --            ; --          ; --         ;
 ; MIN_CORE_JUNCTION_TEMP              ; 0                                      ; --            ; --          ; --         ;
 ; MISC_FILE                           ; LOCAL_RAM.bsf                          ; --            ; --          ; --         ;
@@ -100,11 +100,11 @@ https://fpgasoftware.intel.com/eula.
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:01:16     ; 1.0                     ; 4891 MB             ; 00:00:30                           ;
-; Fitter               ; 00:01:31     ; 1.1                     ; 5504 MB             ; 00:00:20                           ;
-; Assembler            ; 00:00:03     ; 1.0                     ; 4726 MB             ; 00:00:00                           ;
-; Timing Analyzer      ; 00:00:18     ; 1.2                     ; 4824 MB             ; 00:00:03                           ;
-; Total                ; 00:03:08     ; --                      ; --                  ; 00:00:53                           ;
+; Analysis & Synthesis ; 00:00:22     ; 1.0                     ; 4926 MB             ; 00:00:15                           ;
+; Fitter               ; 00:00:28     ; 1.2                     ; 5870 MB             ; 00:00:13                           ;
+; Assembler            ; 00:00:01     ; 1.0                     ; 4726 MB             ; 00:00:00                           ;
+; Timing Analyzer      ; 00:00:05     ; 1.2                     ; 4883 MB             ; 00:00:02                           ;
+; Total                ; 00:00:56     ; --                      ; --                  ; 00:00:30                           ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
@@ -113,10 +113,10 @@ https://fpgasoftware.intel.com/eula.
 +----------------------+------------------+------------+------------+----------------+
 ; Module Name          ; Machine Hostname ; OS Name    ; OS Version ; Processor type ;
 +----------------------+------------------+------------+------------+----------------+
-; Analysis & Synthesis ; NOTSURE          ; Windows 10 ; 10.0       ; x86_64         ;
-; Fitter               ; NOTSURE          ; Windows 10 ; 10.0       ; x86_64         ;
-; Assembler            ; NOTSURE          ; Windows 10 ; 10.0       ; x86_64         ;
-; Timing Analyzer      ; NOTSURE          ; Windows 10 ; 10.0       ; x86_64         ;
+; Analysis & Synthesis ; LEGION           ; Windows 10 ; 10.0       ; x86_64         ;
+; Fitter               ; LEGION           ; Windows 10 ; 10.0       ; x86_64         ;
+; Assembler            ; LEGION           ; Windows 10 ; 10.0       ; x86_64         ;
+; Timing Analyzer      ; LEGION           ; Windows 10 ; 10.0       ; x86_64         ;
 +----------------------+------------------+------------+------------+----------------+
 
 

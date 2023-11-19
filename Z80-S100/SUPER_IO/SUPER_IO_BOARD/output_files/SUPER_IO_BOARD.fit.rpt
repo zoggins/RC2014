@@ -1,5 +1,5 @@
 Fitter report for SUPER_IO_BOARD
-Sat Nov 18 16:23:14 2023
+Sat Nov 18 16:52:56 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 
 
@@ -73,7 +73,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------------------------------------------------------+
 ; Fitter Summary                                                                      ;
 +------------------------------------+------------------------------------------------+
-; Fitter Status                      ; Successful - Sat Nov 18 16:23:14 2023          ;
+; Fitter Status                      ; Successful - Sat Nov 18 16:52:56 2023          ;
 ; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Lite Edition ;
 ; Revision Name                      ; SUPER_IO_BOARD                                 ;
 ; Top-level Entity Name              ; SUPER_IO_BOARD                                 ;
@@ -158,17 +158,21 @@ https://fpgasoftware.intel.com/eula.
 +----------------------------+-------------+
 ; Processors                 ; Number      ;
 +----------------------------+-------------+
-; Number detected on machine ; 8           ;
-; Maximum allowed            ; 4           ;
+; Number detected on machine ; 16          ;
+; Maximum allowed            ; 8           ;
 ;                            ;             ;
-; Average used               ; 1.11        ;
-; Maximum used               ; 4           ;
+; Average used               ; 1.18        ;
+; Maximum used               ; 8           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;   4.3%      ;
-;     Processor 3            ;   3.2%      ;
-;     Processor 4            ;   3.1%      ;
+;     Processor 2            ;   3.0%      ;
+;     Processor 3            ;   2.7%      ;
+;     Processor 4            ;   2.6%      ;
+;     Processor 5            ;   2.6%      ;
+;     Processor 6            ;   2.5%      ;
+;     Processor 7            ;   2.5%      ;
+;     Processor 8            ;   2.4%      ;
 +----------------------------+-------------+
 
 
@@ -210,7 +214,7 @@ https://fpgasoftware.intel.com/eula.
 +--------------+
 ; Pin-Out File ;
 +--------------+
-The pin-out file can be found in C:/Users/zoggi/Downloads/SUPER_IO_BOARD/output_files/SUPER_IO_BOARD.pin.
+The pin-out file can be found in E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/output_files/SUPER_IO_BOARD.pin.
 
 
 +--------------------------------------------------------------------------+
@@ -6722,12 +6726,12 @@ Note: This table only shows the top 100 path(s) that have the largest delay adde
 ; Fitter Messages ;
 +-----------------+
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
-Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
+Info (20030): Parallel compilation is enabled and will use 8 of the 8 processors detected
 Info (119006): Selected device EP4CE10F17C8 for design "SUPER_IO_BOARD"
 Info (21077): Low junction temperature is 0 degrees C
 Info (21077): High junction temperature is 85 degrees C
-Info (15535): Implemented PLL "PLL01_50:inst4|altpll:altpll_component|PLL01_50_altpll1:auto_generated|pll1" as Cyclone IV E PLL type File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 44
-    Info (15099): Implementing clock multiplication of 1, clock division of 25, and phase shift of 0 degrees (0 ps) for PLL01_50:inst4|altpll:altpll_component|PLL01_50_altpll1:auto_generated|wire_pll1_clk[0] port File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 44
+Info (15535): Implemented PLL "PLL01_50:inst4|altpll:altpll_component|PLL01_50_altpll1:auto_generated|pll1" as Cyclone IV E PLL type File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 44
+    Info (15099): Implementing clock multiplication of 1, clock division of 25, and phase shift of 0 degrees (0 ps) for PLL01_50:inst4|altpll:altpll_component|PLL01_50_altpll1:auto_generated|wire_pll1_clk[0] port File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 44
     Info (15099): Implementing clock multiplication of 2, clock division of 5, and phase shift of 0 degrees (0 ps) for 21mux:inst294|5 port
 Info (171003): Fitter is performing an Auto Fit compilation, which may decrease Fitter effort to reduce compilation time
 Warning (292013): Feature LogicLock is only available with a valid subscription license. You can purchase a software subscription to gain full access to this feature.
@@ -6749,30 +6753,30 @@ Info (332144): No user constrained base clocks found in the design
 Info (332143): No user constrained clock uncertainty found in the design. Calling "derive_clock_uncertainty"
 Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
 Info (332130): Timing requirements not specified -- quality metrics such as performance may be sacrificed to reduce compilation time.
-Info (176353): Automatically promoted node 21mux:inst294|5 (placed in counter C1 of PLL_2) File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 78
+Info (176353): Automatically promoted node 21mux:inst294|5 (placed in counter C1 of PLL_2) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 78
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock CLKCTRL_G9
 Info (176353): Automatically promoted node CLK_50~input (placed in PIN E16 (CLK5, DIFFCLK_2n))
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock CLKCTRL_G7
-Info (176353): Automatically promoted node PLL01_50:inst4|altpll:altpll_component|PLL01_50_altpll1:auto_generated|wire_pll1_clk[0] (placed in counter C0 of PLL_2) File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 78
+Info (176353): Automatically promoted node PLL01_50:inst4|altpll:altpll_component|PLL01_50_altpll1:auto_generated|wire_pll1_clk[0] (placed in counter C0 of PLL_2) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 78
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock CLKCTRL_G8
-Info (176353): Automatically promoted node Microcomputer:inst|cpuClock  File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/microcomputer.vhd Line: 53
+Info (176353): Automatically promoted node Microcomputer:inst|cpuClock  File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/microcomputer.vhd Line: 53
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|WR_n File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/T80s.vhd Line: 90
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|RD_n File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/T80s.vhd Line: 89
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[0] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/t80.vhd Line: 347
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[1] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/t80.vhd Line: 347
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[2] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/t80.vhd Line: 347
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[3] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/t80.vhd Line: 347
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[4] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/t80.vhd Line: 347
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[5] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/t80.vhd Line: 347
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[6] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/t80.vhd Line: 347
-        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[7] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/t80.vhd Line: 347
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|WR_n File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 90
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|RD_n File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 89
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[0] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 347
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[1] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 347
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[2] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 347
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[3] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 347
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[4] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 347
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[5] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 347
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[6] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 347
+        Info (176357): Destination node Microcomputer:inst|T80s:cpu1|T80:u0|A[7] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 347
         Info (176358): Non-global destination nodes limited to 10 nodes
-Info (176353): Automatically promoted node Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]  File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/db/cntr_rqh.tdf Line: 192
+Info (176353): Automatically promoted node Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_reg_bit[8]  File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/cntr_rqh.tdf Line: 192
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_comb_bita8 File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/db/cntr_rqh.tdf Line: 72
+        Info (176357): Destination node Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated|counter_comb_bita8 File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/cntr_rqh.tdf Line: 72
 Info (176353): Automatically promoted node inst7 
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
@@ -6786,19 +6790,19 @@ Info (176353): Automatically promoted node inst7
         Info (176357): Destination node 74244:inst255|31~2
         Info (176357): Destination node 74244:inst264|6~4
         Info (176357): Destination node inst159[7]~18
-Info (176353): Automatically promoted node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|debounce:debounce_ps2_clk|result  File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/debounce.vhd Line: 33
+Info (176353): Automatically promoted node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|debounce:debounce_ps2_clk|result  File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/debounce.vhd Line: 33
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[0] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[1] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[2] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[3] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[4] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[5] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[6] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[7] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[8] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
-        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[9] File: C:/Users/zoggi/Downloads/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[0] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[1] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[2] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[3] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[4] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[5] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[6] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[7] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[8] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
+        Info (176357): Destination node ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[9] File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 90
         Info (176358): Non-global destination nodes limited to 10 nodes
 Info (176353): Automatically promoted node inst257 
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
@@ -6813,26 +6817,26 @@ Info (176353): Automatically promoted node inst15~0
 Info (176233): Starting register packing
 Info (176235): Finished register packing
     Extra Info (176219): No registers were packed into other blocks
-Info (171121): Fitter preparation operations ending: elapsed time is 00:00:08
+Info (171121): Fitter preparation operations ending: elapsed time is 00:00:01
 Info (14896): Fitter has disabled Advanced Physical Optimization because it is not supported for the current family.
 Info (170189): Fitter placement preparation operations beginning
-Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:03
+Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:01
 Info (170191): Fitter placement operations beginning
 Info (170137): Fitter placement was successful
-Info (170192): Fitter placement operations ending: elapsed time is 00:00:20
+Info (170192): Fitter placement operations ending: elapsed time is 00:00:05
 Info (170193): Fitter routing operations beginning
 Info (170089): 3e+03 ns of routing delay (approximately 8.8% of available device routing delay) has been added to meet hold timing. For more information, refer to the Estimated Delay Added for Hold Timing section in the Fitter report.
 Info (170195): Router estimated average interconnect usage is 15% of the available device resources
     Info (170196): Router estimated peak interconnect usage is 25% of the available device resources in the region that extends from location X11_Y12 to location X22_Y24
 Info (170199): The Fitter performed an Auto Fit compilation.  Optimizations were skipped to reduce compilation time.
     Info (170201): Optimizations that may affect the design's routability were skipped
-Info (170194): Fitter routing operations ending: elapsed time is 00:00:42
-Info (11888): Total time spent on timing analysis during the Fitter is 14.78 seconds.
+Info (170194): Fitter routing operations ending: elapsed time is 00:00:15
+Info (11888): Total time spent on timing analysis during the Fitter is 5.00 seconds.
 Info (334003): Started post-fitting delay annotation
 Info (334004): Delay annotation completed successfully
 Info (334003): Started post-fitting delay annotation
 Info (334004): Delay annotation completed successfully
-Info (11218): Fitter post-fit operations ending: elapsed time is 00:00:06
+Info (11218): Fitter post-fit operations ending: elapsed time is 00:00:03
 Warning (169177): 53 pins must meet Intel FPGA requirements for 3.3-, 3.0-, and 2.5-V interfaces. For more information, refer to AN 447: Interfacing Cyclone IV E Devices with 3.3/3.0/2.5-V LVTTL/LVCMOS I/O Systems.
     Info (169178): Pin S100_DI0 uses I/O standard 3.3-V LVTTL at D11
     Info (169178): Pin S100_DI1 uses I/O standard 3.3-V LVTTL at F10
@@ -6887,17 +6891,17 @@ Warning (169177): 53 pins must meet Intel FPGA requirements for 3.3-, 3.0-, and 
     Info (169178): Pin RTC_SPI_SO uses I/O standard 3.3-V LVTTL at F9
     Info (169178): Pin FPGA_IN_PS2_CLK uses I/O standard 3.3-V LVTTL at T8
     Info (169178): Pin FPGA_IN_PS2_DATA uses I/O standard 3.3-V LVTTL at T7
-Info (144001): Generated suppressed messages file C:/Users/zoggi/Downloads/SUPER_IO_BOARD/output_files/SUPER_IO_BOARD.fit.smsg
+Info (144001): Generated suppressed messages file E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/output_files/SUPER_IO_BOARD.fit.smsg
 Info: Quartus Prime Fitter was successful. 0 errors, 6 warnings
-    Info: Peak virtual memory: 5504 megabytes
-    Info: Processing ended: Sat Nov 18 16:23:17 2023
-    Info: Elapsed time: 00:01:34
-    Info: Total CPU time (on all processors): 00:00:21
+    Info: Peak virtual memory: 5870 megabytes
+    Info: Processing ended: Sat Nov 18 16:52:57 2023
+    Info: Elapsed time: 00:00:29
+    Info: Total CPU time (on all processors): 00:00:14
 
 
 +----------------------------+
 ; Fitter Suppressed Messages ;
 +----------------------------+
-The suppressed messages can be found in C:/Users/zoggi/Downloads/SUPER_IO_BOARD/output_files/SUPER_IO_BOARD.fit.smsg.
+The suppressed messages can be found in E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/output_files/SUPER_IO_BOARD.fit.smsg.
 
 
