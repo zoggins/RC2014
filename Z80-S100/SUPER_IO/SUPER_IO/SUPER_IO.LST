@@ -1,0 +1,2088 @@
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   1
+SUPER_IOZ80
+
+    1                   ;	FPGA SUPER IO BOARD Monitor
+    2                   ;
+    3                   ;	03/17/2021    John Monahan
+    4                   ;
+    5                   ;	This is a very modified version of the main FPGA FPGA_DC Board Z80 Monitor programs. 
+    6                   ;
+    7                   ;	Assemble and SLR's Z80ASM Assembler (Can also use the Cromemco Assembler)
+    8                   ;	Use:- Z80ASM SBC-MON FH
+    9                   ;
+   10                   ;	NOTE. This board initially utilizes an 32K FPGA ROM module (which behaves the same as a "real" 28C256 EEPROM)
+   11                   ;	The monitor starts at 0H and can run up to 7FFFH. 
+   12                   ;
+   13                   ;	To assemble under windows...
+   14                   ;	Load Altair.EXE in Windows CMD box
+   15                   ;	do cpm3
+   16                   ;	I:  
+   17                   ;	I:>Submit FPFGA_DC.SUB etc.  (or a shortcut xxx.sub)
+   18                   ;
+   19                   ;	FPFGA_DC.HEX  is written back to the same windows folder that the PC file "altair.exe" is in.
+   20                   ;	This HEX file must be converted to base 0000H to be loaded by Quartus
+   21                   ;	Please see here for a discription as to how to do this.
+   22                   ;	http://s100computers.com/My%20System%20Pages/FPGA%20Z80%20SBC/FPGA%20Z80%20SBC.htm
+   23                   ;
+   24                   ;	Recent History...
+   25                   ;
+   26                   ;	V0.1	11/12/2021	Internal ROM version
+   27                   ;	V1.0	03/17/2021	For V1.0 Board 
+   28                   
+   29                   
+   30                   ;	>>>>>>> Remember ANY Read or Write to a sector requires that the current drive, track
+   31                   ;	>>>>>>> and sector is already setup in the IX drive table.
+   32                   ;
+   33         0000      FALSE		EQU	0
+   34         FFFF      TRUE		EQU	NOT FALSE
+   35         0000      DEBUG		EQU	FALSE			;For a display of error codes returned from CF-Card drive
+   36                   ;
+   37                   ;
+   38         0000      H_TEST1		EQU	FALSE			;Test USB output 
+   39         0000      H_TEST1A	EQU	FALSE			;Test USB output 
+   40         0000      H_TEST2		EQU	FALSE			;Test RAM
+   41         0000      H_TEST3		EQU	FALSE			;Test Console IO routine
+   42                   
+   43                   
+   44         0000      MONITOR_BASE	EQU	0000H			;Start of monitor after a reset								
+   45         8000      RAM_BASE	EQU	8000H			;Default location of RAM buffer area for IDE/CF card diagnostic routines
+   46         80FF      STACK		EQU	80FFH			;Near start of available RAM
+   47         9000      PRINTER_BUFFER	EQU	9000H			;Printer buffer to BFFFH
+   48                   						
+   49                   
+   50         0001      SCROLL		EQU	01H					
+   51         0007      BELL		EQU	07H
+   52         0020      SPACE		EQU	20H
+   53         0009      TAB		EQU	09H			;TAB ACROSS (8 SPACES FOR SD-BOARD)
+   54         000D      CR		EQU	0DH
+   55         000A      LF		EQU	0AH
+   56         000C      FF		EQU	0CH
+   57         0011      QUIT		EQU	11H			;Turns off any screen enhancements (flashing, underline etc).
+   58         0017      NO_ENH		EQU 	17H			;Turns off whatever is on
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   2
+SUPER_IOZ80
+
+   59         0010      FAST		EQU	10H			;High speed scroll
+   60         001B      ESC		EQU	1BH
+   61         007F      DELETE		EQU	7FH
+   62         0008      BACKS		EQU	08H	
+   63         001A      CLEAR		EQU	1AH			;TO CLEAR SCREEN
+   64         0038      RST7		EQU	38H			;RST 7 (LOCATION FOR TRAP)
+   65         0000      NN		EQU	0H			;[I] INITIAL VALUE
+   66         0001      SOH		EQU	1			;For XModem etc.
+   67         0004      EOT		EQU	4
+   68         0006      ACK		EQU	6
+   69         0015      NAK		EQU	15H
+   70                   ;
+   71                   
+   72                   ; Note on the mapping below: The DIP switches on the physical board connect to GND with pull up resistors 
+   73                   ; OPEN/OFF switches are '1's and CLOSED/ON DIP switches are '0's
+   74                   ;
+   75                   ; BIT MAP OF IOBYTE BASE_PORT + 6H:- X X X X  X X X X  (if xxxxxxx0  = No USB CONSOLE IN/OUT DATA)
+   76                   ;	Note only lowest 8 bits used |.................(if xxxx0xxx  = JMP directly to onboard monitor on reset
+   77                   ;	                                            													
+   78                   ;
+   79                   ;
+   80                   ;
+   81                   
+   82                   
+   83                   							;-------- 40H  S100 Bus Ports Interface and USB Port Interface within FPGA Z80 ---
+   84         0040      BASE_PORT1		EQU	40H		
+   85         0040      STATUS_BUS_PORT		EQU	BASE_PORT1		;40H
+   86         0041      DATA_BUS_PORT		EQU	BASE_PORT1+1H		;41H
+   87         0042      FPGA_RESET_PORT		EQU	BASE_PORT1+2H		;42H  To reset Z80, outputting anything hardware resets the FPGA Z80
+   88         0043      SET_ERROR_FLAG_PORT	EQU	BASE_PORT1+3H		;43H  04H is sent to this port if the is an error
+   89         0044      MONITOR_STATUS		EQU	BASE_PORT1+4H		;44H  Status port for USB console input port
+   90         0045      MONITOR_DATA		EQU	BASE_PORT1+5H		;45H  Data port for USB console port
+   91         0046      IOBYTE			EQU	BASE_PORT1+6H		;46H  Configuration port 
+   92         0047      LEDS_PORT		EQU	BASE_PORT1+7H		;47H  LED's
+   93                   
+   94                   
+   95                   
+   96                   							;---------- 50H   RTC Port Interface-------------------------------
+   97         0050      BASE_PORT2		EQU	50H		
+   98         0050      RTC_ADDRESS		EQU	BASE_PORT2		;50H  SPI data to RTC (16 bits wide)
+   99         0051      RTC_DATA_OUT		EQU	BASE_PORT2+1H		;51H  SPI data to RTC (8 bits)
+  100         0051      RTC_DATA_IN		EQU	BASE_PORT2+1H		;51H  SPI data from RTC
+  101         0052      RTC_CS			EQU	BASE_PORT2+2H		;52H  RTC Chip Select
+  102         0052      RTC_STATUS		EQU	BASE_PORT2+2H		;52H  00H or FFH
+  103                   
+  104         0053      RTC_READ		EQU	BASE_PORT2+3H		;53H  Read pulse to SPI module
+  105         0053      RTC_WRITE		EQU	BASE_PORT2+3H		;53H  Write pulse to SPI module
+  106                   
+  107         0054      CPU_SPEED_PORT		EQU	BASE_PORT2+4H		;54H  Z80 CPU Clock speed setting port
+  108                   
+  109         0055      PRINTER_STATUS		EQU	BASE_PORT2+5H		;55H  Printer status IN
+  110         0055      PRINTER_STROBE		EQU	BASE_PORT2+5H		;55H  Printer strobe OUT
+  111         0056      PRINTER_OUT		EQU	BASE_PORT2+6H		;56H  Printer data port OUT
+  112         0057      BUZZER_PORT		EQU	BASE_PORT2+7H		;57H  Buzzer/Bell port OUT
+  113                   
+  114                   
+  115         0000      RTC_CS_LOW		EQU	00H			; Bit 0 has CS  (Note, HIGH to select chip)
+  116         0001      RTC_CS_HIGH		EQU	01H			
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   3
+SUPER_IOZ80
+
+  117                   
+  118         0000      RTC_SECONDS		EQU	0H			;All registers OR 80H for WRITE Address
+  119         0001      RTC_MINUTES		EQU	1H
+  120         0002      RTC_HOURS		EQU	2H
+  121         0003      RTC_DAY			EQU	3H
+  122         0004      RTC_DATE		EQU	4H
+  123         0005      RTC_MONTH		EQU	5H
+  124         0006      RTC_YEAR		EQU	6H
+  125                   
+  126         000F      RTC_CTL_REG		EQU	0FH
+  127         0010      RTC_STATUS_REG		EQU	10H
+  128         0020      RTC_RAM			EQU	20H			;20H -- 7FH
+  129                   	
+  130         0080      ENABLE_OSC		EQU	80H			;Bit to enable/start the RTC chip (0=start, 1=stop)
+  131         0040      WP			EQU	40H			;Write Protect. Bit must be 0 to alter any other register. 
+  132                   							;Note alarms etc are not implemented in this simple example.
+  133                   
+  134                   
+  135                   
+  136         0001      FPGA_RTS		EQU	01H			;01H if DC Board is reqesting to send data
+  137         0080      S100_RTS		EQU	80H			;80H if S100 Bus is requesting to send data
+  138                   
+  139                   ;
+  140                   ;--------------------------------------------------------------------------------
+  141                   ;	Commands for the SUPER IO Board:-
+  142                   ;	Note these commands are a sub-set of the old ZFDC and FPGA_DC Board commands
+  143                   
+  144         0080      CMD$GET$TIME		EQU	80H		;Get Time and Data from FPGA DC Board RTC
+  145         0081      CMD$SET$TIME		EQU	81H		;Set Time and Data on FPGA DC Board RTC
+  146                   
+  147         0082      CMD$PRINT$STRING	EQU	82H		;Send a character string to printer.
+  148                   
+  149         00FF      CMD$FAILED		EQU	0FFH		;CMD failed to exicute completely
+  150         00F0      CMD$COMPLETE		EQU	0F0H		;Flag returned by DC board to signal the previous CMD was completed OK
+  151         00E0      CMD$ABORT		EQU	0E0H		;CMD to abort the current process
+  152                   
+  153                   
+  154                   ;===============================================================================================================
+  155                   
+  156         0000      	ORG	MONITOR_BASE			;<--------<<<<<< LOCATION OF START OF MONITOR (000H) >>>>>>>>>>>>>>>>>
+  157                   
+  158         0000      IF H_TEST1
+  164                   ENDIF
+  165                   
+  166                   ;-------------------------------------------------------------------------------------------------------------
+  167                   
+  168 0000              SETUP_STACK:
+  169 0000  31 80FF     	LD	SP,STACK			;Stack always at 0FFF0H (must be valid for debugging)
+  170                   
+  171         0000      IF H_TEST1A
+  180                   ENDIF
+  181                   
+  182                   
+  183 0003              BEGIN:						;Can use the next 3 lines initially to debug hardware
+  184 0003  ED 56       	IM1					;Set Z80 to Interrupt mode 1
+  185 0005  AF          	XOR	A
+  186 0006  ED 47       	LD	I,A				;Set Interrupt Reg to 0H for any Interrupes (Currently not uesd)
+  187 0008  F3          	DI					;Disable for now
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   4
+SUPER_IOZ80
+
+  188 0009  21 0068     	LD	HL,DEFAULT_NMI
+  189 000C  22 8100     	LD	(@NMI_ADDRESS),HL		;Setup the default NMI Interrupt jump address 
+  190 000F  21 003F     	LD	HL,DEFAULT_INTERRUPT
+  191 0012  22 8102     	LD	(@INTR_ADDRESS),HL		;Setup the default Interrupt jump address 
+  192 0015  C3 0100     	JP	SETUP				;Jump over interrupt vector routines
+  193                   
+  194                   ;------------------------------------------------------------------------------------------------------------
+  195                   						; <<<< Be sure the code above does not overflow past 38H >>>>
+  196         0038      	ORG	38H			
+  197 0038              MODE_1_INTERRUPT:
+  198 0038  F3          	DI					;<-- DISABLLE INTERRUPTS -- Must be enabled later
+  199 0039  08          	EX	AF,AF'				;So as not to mess up any of the main registers
+  200 003A  D9          	EXX
+  201 003B  2A 8102     	LD	HL,(@INTR_ADDRESS)		;Jump to the interrupt routine required for that timeout condition
+  202 003E  E9          	JP	(HL)
+  203                   
+  204                   
+  205 003F              DEFAULT_INTERRUPT:
+  206 003F              DONE_INT:
+  207 003F  FB          	EI
+  208 0040  C9          	RET
+  209                   	
+  210                   	
+  211         0066      	ORG	66H				;<<<<< Z80 will also jump here for all NMI's
+  212 0066              NMI_INT:					
+  213 0066  ED 45       	RETN					;Jump to new location
+  214                   
+  215 0068              DEFAULT_NMI:					;For debugging, trap any unwanted NMI's here
+  216 0068  08          	EX	AF,AF'				;So as not to mess up any of the main registers
+  217 0069  D9          	EXX
+  218 006A  0E 4E       	LD	C,'N'
+  219 006C  CD 09FB     	CALL	ZCO
+  220 006F  0E 4D       	LD	C,'M'
+  221 0071  CD 09FB     	CALL	ZCO
+  222 0074  0E 49       	LD	C,'I'
+  223 0076  CD 09FB     	CALL	ZCO
+  224 0079  0E 3F       	LD	C,'?'
+  225 007B  CD 09FB     	CALL	ZCO
+  226 007E  0E 3F       	LD	C,'?'
+  227 0080  CD 09FB     	CALL	ZCO
+  228 0083  0E 3F       	LD	C,'?'
+  229 0085  CD 09FB     	CALL	ZCO
+  230 0088  D9          	EXX
+  231 0089  08          	EX	AF,AF'				;Return to "normal" register set
+  232                   
+  233                   
+  234                   ;------------------------------------------------------------------------------------------------------------
+  235                   
+  236         0100      	ORG	MONITOR_BASE +100H		;<<<<<<<< The EEPROM code will go directly to here (0100H) >>>>>>>>
+  237                   
+  238 0100              SETUP:
+  239                   
+  240         0000      IF H_TEST2				
+  255                   ENDIF
+  256                   
+  257                   
+  258         0000      IF H_TEST3					;Test Console I/O to USB port
+  282                   ENDIF
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   5
+SUPER_IOZ80
+
+  283                   
+  284 0100  3E 01       	LD	A,1				;Allow all Consol output to appear on USB port/terminal
+  285 0102  D3 44       	OUT	(MONITOR_STATUS),A		;Raise bit 0 to activate USB terminal 
+  286 0104  AF          	XOR	A
+  287 0105  D3 47       	OUT	(LEDS_PORT),A			;All LED's off
+  288                   
+  289 0107  CD 0554     	CALL	CRLF
+  290 010A  11 0A84     	LD	DE,SIGNON_MSG			;'FPGA SUPER IO Board MONITOR (@ 0000H) V0.1D J.Monahan, 4/1/2021$'
+  291 010D  CD 032F     	CALL	PRINT_STRING			;Have a valid Stack, so now we can use CALL
+  292                   	
+  293 0110  DB 46       	IN	A,IOBYTE
+  294 0112  CB 7F       	BIT	7,A
+  295 0114  C2 0298     	JP	NZ,MONITOR_MENU			;If Bit 7 of IOBYTE Port is 0 the jump to monitor immediatly	
+  296                   	
+  297 0117              SKIP_CMD_DISPLAY:
+  298 0117  CD 0554     	CALL	CRLF
+  299 011A  11 0E29     	LD	DE,CMD_MODE_MSG			;'FPGA SUPER IO Board MONITOR in CMD Mode
+  300 011D  CD 032F     	CALL	PRINT_STRING			;Have a valid Stack, so now we can use CALL
+  301                   
+  302                   ;-------------------------------- MAIN CMD LOOP -----------------------------------------------------------------------
+  303                   
+  304 0120              START_CMD:					;THE MAIN COMMAND LOOP
+  305 0120  DB 47       	IN	A,(LEDS_PORT)			;47H
+  306 0122  CB C7       	SET	0,A				;Set Bit 0 to indicate we are not in command mode
+  307 0124  CB 8F       	RES	1,A				;Reset Bit 1 to indicate we are not in Monitor mode
+  308 0126  D3 47       	OUT	(LEDS_PORT),A
+  309                   	
+  310 0128  AF          	XOR	A,A
+  311 0129  D3 54       	OUT	(CPU_SPEED_PORT),A		; Set to high speed (40 MHz)
+  312                   
+  313 012B  31 80FF     	LD	SP,STACK			;Just in case of a software stack imbalance/screw-up. Reset each time
+  314 012E  CD 0A5F     	CALL	GET_S100_STATUS
+  315 0131  CA 0120     	JP	Z,START_CMD			;<<<<<<<<<<<< Do any requested SD Card S100 Bus commands first. 
+  316                   
+  317 0134  CD 0A64     	CALL	GET_S100_TO_FPGA		;Get the actual command
+  318 0137  B7          	OR	A
+  319 0138  28 E6       	JR	Z,START_CMD
+  320 013A  47          	LD	B,A				;Store it in B
+  321                   	
+  322 013B  11 0E54     	LD	DE,CMD_MSG			;CR,LF,'CMD=
+  323 013E  CD 032F     	CALL	PRINT_STRING
+  324 0141  78          	LD	A,B				;Show the CMD
+  325 0142  CD 0597     	CALL	HEXOUT
+  326 0145  11 0B22     	LD	DE,H_MSG			;'H  '
+  327 0148  CD 032F     	CALL	PRINT_STRING
+  328                   
+  329 014B  78          	LD	A,B				;Get the command
+  330                   
+  331 014C  FE 80       	CP	A,CMD$GET$TIME			;<<<<<<<<<<<<<<<<< 80H  Get Time CMD 
+  332 014E  CA 0164     	JP	Z,DO_GET_TIME		
+  333                   
+  334 0151  FE 81       	CP	CMD$SET$TIME			;<<<<<<<<<<<<<<<<<  81H	Set Time and Data 
+  335 0153  CA 01E5     	JP	Z,DO_SET_TIME		
+  336                   
+  337 0156  FE 82       	CP	CMD$PRINT$STRING		;<<<<<<<<<<<<<<<<<  85H Print a string to parallel port (0H Terminator)
+  338 0158  CA 0264     	JP	Z,DO_PRINT_STRING		
+  339                   
+  340 015B  11 0E5B     	LD	DE,UNKNOWN_CMD_MSG
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   6
+SUPER_IOZ80
+
+  341 015E  CD 032F     	CALL	PRINT_STRING
+  342                   
+  343 0161  C3 0120     	JP	START_CMD
+  344                   
+  345                   
+  346                   ;------------------------------- COMMANDS -------------------------------------------------------------------------	
+  347                   
+  348 0164              DO_GET_TIME:					;Return Date and Time to S100 Bus
+  349 0164  11 1214     	LD	DE,GET_DATE_TIME_MSG		;' Date and Time to S100 Bus$'
+  350 0167  CD 032F     	CALL	PRINT_STRING
+  351                   
+  352                   		
+  353 016A  3E 80       	LD	A,80H			
+  354 016C  D3 54       	OUT	(CPU_SPEED_PORT),A		; Set to low speed (10 MHz)
+  355                   
+  356 016E  0E 20       	LD	C,20H				;Force 20xx
+  357 0170  CD 0A6D     	CALL	SEND_FPGA_TO_S100
+  358                   
+  359 0173  06 06       	LD	B,RTC_YEAR			; Year Register address + READ
+  360 0175  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+  361 0178  CD 0597     	CALL	HEXOUT
+  362 017B  4F          	LD	C,A
+  363 017C  CD 0A6D     	CALL	SEND_FPGA_TO_S100
+  364 017F  0E 2F       	LD	C,'/'
+  365 0181  CD 09FB     	CALL	ZCO
+  366                   
+  367 0184  06 05       	LD	B,RTC_MONTH			; Month Register address + READ
+  368 0186  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+  369 0189  CD 0597     	CALL	HEXOUT
+  370 018C  4F          	LD	C,A
+  371 018D  CD 0A6D     	CALL	SEND_FPGA_TO_S100
+  372 0190  0E 2F       	LD	C,'/'
+  373 0192  CD 09FB     	CALL	ZCO
+  374                   
+  375 0195  06 04       	LD	B,RTC_DATE			; Date Register address + READ
+  376 0197  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+  377 019A  CD 0597     	CALL	HEXOUT
+  378 019D  4F          	LD	C,A
+  379 019E  CD 0A6D     	CALL	SEND_FPGA_TO_S100
+  380 01A1  0E 20       	LD	C,' '
+  381 01A3  CD 09FB     	CALL	ZCO
+  382 01A6  CD 09FB     	CALL	ZCO
+  383 01A9  CD 09FB     	CALL	ZCO
+  384                   
+  385 01AC  06 02       	LD	B,RTC_HOURS			; Hours Register address + READ
+  386 01AE  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+  387 01B1  CD 0597     	CALL	HEXOUT
+  388 01B4  4F          	LD	C,A
+  389 01B5  CD 0A6D     	CALL	SEND_FPGA_TO_S100
+  390 01B8  0E 3A       	LD	C,':'
+  391 01BA  CD 09FB     	CALL	ZCO
+  392                   
+  393 01BD  06 01       	LD	B,RTC_MINUTES			; Minutes Register address + READ
+  394 01BF  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+  395 01C2  CD 0597     	CALL	HEXOUT
+  396 01C5  4F          	LD	C,A
+  397 01C6  CD 0A6D     	CALL	SEND_FPGA_TO_S100
+  398 01C9  0E 3A       	LD	C,':'
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   7
+SUPER_IOZ80
+
+  399 01CB  CD 09FB     	CALL	ZCO
+  400                   
+  401 01CE  06 00       	LD	B,RTC_SECONDS			; Seconds Register address + READ
+  402 01D0  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+  403 01D3  CD 0597     	CALL	HEXOUT
+  404 01D6  4F          	LD	C,A
+  405 01D7  CD 0A6D     	CALL	SEND_FPGA_TO_S100
+  406                   
+  407 01DA  AF          	XOR	A,A
+  408 01DB  D3 54       	OUT	(CPU_SPEED_PORT),A		; Set to high speed (40 MHz)
+  409                   
+  410 01DD  0E F0       	LD	C,CMD$COMPLETE			;Flag we are done
+  411 01DF  CD 0A6D     	CALL	SEND_FPGA_TO_S100
+  412 01E2  C3 0120     	JP	START_CMD			;Back to main loop
+  413                   
+  414                   
+  415                   
+  416                   ;--------------------------------------------------------------------------------------------------------	
+  417                   
+  418 01E5              DO_SET_TIME:					;Return Date and Time to S100 Bus
+  419 01E5  11 1234     	LD	DE,SET_DATE_TIME_MSG		;' Date and Time from S100 Bus$'
+  420 01E8  CD 032F     	CALL	PRINT_STRING
+  421                   
+  422 01EB  3E 80       	LD	A,80H			
+  423 01ED  D3 54       	OUT	(CPU_SPEED_PORT),A		; Set to low speed (10 MHz)
+  424                   
+  425 01EF  CD 0A64     	CALL	GET_S100_TO_FPGA		;Get Enter Year (00-99)
+  426 01F2  32 8104     	LD	(@YEAR),A
+  427 01F5  CD 0597     	CALL	HEXOUT	
+  428 01F8  06 86       	LD	B,RTC_YEAR OR 80H		; RTC Register address + Write
+  429 01FA  4F          	LD	C,A				; DATA
+  430 01FB  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+  431 01FE  0E 2F       	LD	C,'/'
+  432 0200  CD 09FB     	CALL	ZCO
+  433                   
+  434 0203  CD 0A64     	CALL	GET_S100_TO_FPGA		;Get Month (01-12)
+  435 0206  CD 0597     	CALL	HEXOUT	
+  436 0209  06 85       	LD	B,RTC_MONTH OR 80H		; RTC Register address + Write
+  437 020B  4F          	LD	C,A		
+  438 020C  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+  439 020F  0E 2F       	LD	C,'/'
+  440 0211  CD 09FB     	CALL	ZCO
+  441                   
+  442 0214  CD 0A64     	CALL	GET_S100_TO_FPGA		;Get Date (01-31) 
+  443 0217  CD 0597     	CALL	HEXOUT	
+  444 021A  06 84       	LD	B,RTC_DATE OR 80H		; RTC Register address + Write
+  445 021C  4F          	LD	C,A		
+  446 021D  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+  447 0220  0E 20       	LD	C,' '
+  448 0222  CD 09FB     	CALL	ZCO
+  449 0225  CD 09FB     	CALL	ZCO
+  450 0228  CD 09FB     	CALL	ZCO
+  451                   
+  452 022B  CD 0A64     	CALL	GET_S100_TO_FPGA		;Get Hours (00-23) 
+  453 022E  CD 0597     	CALL	HEXOUT	
+  454 0231  06 82       	LD	B,RTC_HOURS OR 80H		; RTC Register address + Write
+  455 0233  4F          	LD	C,A		
+  456 0234  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   8
+SUPER_IOZ80
+
+  457 0237  0E 3A       	LD	C,':'
+  458 0239  CD 09FB     	CALL	ZCO
+  459                   
+  460 023C  CD 0A64     	CALL	GET_S100_TO_FPGA		;Get Minutes (00-59)
+  461 023F  CD 0597     	CALL	HEXOUT	
+  462 0242  06 81       	LD	B,RTC_MINUTES OR 80H		; RTC Register address + Write
+  463 0244  4F          	LD	C,A		
+  464 0245  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+  465 0248  0E 3A       	LD	C,':'
+  466 024A  CD 09FB     	CALL	ZCO
+  467                   
+  468 024D  CD 0A64     	CALL	GET_S100_TO_FPGA		;Get Seconds (00-59)
+  469 0250  CD 0597     	CALL	HEXOUT	
+  470 0253  06 80       	LD	B,RTC_SECONDS OR 80H		; RTC Register address + Write
+  471 0255  4F          	LD	C,A		
+  472 0256  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+  473                   
+  474 0259  AF          	XOR	A,A
+  475 025A  D3 54       	OUT	(CPU_SPEED_PORT),A		; Set to high speed (40 MHz)
+  476                   
+  477 025C  0E F0       	LD	C,CMD$COMPLETE			;Flag we are done
+  478 025E  CD 0A6D     	CALL	SEND_FPGA_TO_S100
+  479 0261  C3 0120     	JP	START_CMD			;Back to main loop
+  480                   
+  481                   
+  482                   
+  483                   
+  484                   ;--------------------------------------------------------------------------------------------------	
+  485                   
+  486 0264              DO_PRINT_STRING:				;Print string on parallel port
+  487 0264  11 1256     	LD	DE,PRINT_STRING_MSG		;Printing string on parallel port$'
+  488 0267  CD 032F     	CALL	PRINT_STRING
+  489                   	
+  490 026A              PRN_LOOP1:	
+  491 026A  21 9000     	LD	HL,PRINTER_BUFFER		;Will cash data untill end of string, then print.
+  492 026D              PRN_LOOP:
+  493 026D  CD 0A64     	CALL	GET_S100_TO_FPGA		;Get character
+  494 0270  77          	LD	(HL),A
+  495 0271  B7          	OR	A,A
+  496 0272  CA 0280     	JP	Z,PRINT_DONE
+  497 0275  23          	INC	HL
+  498 0276  7C          	LD	A,H
+  499 0277  FE BF       	CP	A,0BFH				;Is buffer full
+  500 0279  20 F2       	JR	NZ,PRN_LOOP
+  501 027B  CD 0286     	CALL	PRINT_BUFFER			;Buffer is full, print it.
+  502 027E  18 EA       	JR	PRN_LOOP1			;Back to the start of buffer again
+  503                   	
+  504 0280              PRINT_DONE:
+  505 0280  CD 0286     	CALL	PRINT_BUFFER
+  506 0283  C3 0120     	JP	START_CMD			;Back to main loop
+  507                   	
+  508 0286              PRINT_BUFFER:
+  509 0286  21 9000     	LD	HL,PRINTER_BUFFER			;Will cash data untill end of string, then print.
+  510 0289              PRINT_BUFFER1:
+  511 0289  7E          	LD	A,(HL)
+  512 028A  B7          	OR	A,A
+  513 028B  20 04       	JR	NZ,MORE_PRINT
+  514 028D  CD 0A47     	CALL	FLUSH_PRINTER
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page   9
+SUPER_IOZ80
+
+  515 0290  C9          	RET
+  516 0291              MORE_PRINT:
+  517 0291  4F          	LD	C,A
+  518 0292  CD 0A2A     	CALL	LO				;Send [C] to printer
+  519 0295  23          	INC	HL
+  520 0296  18 F1       	JR	PRINT_BUFFER1
+  521                   
+  522                   	
+  523                   ;===========================================================================================================	
+  524                   ;===========================================================================================================	
+  525                   ;======================================= MAIN MONITOR MENU =================================================	
+  526                   ;===========================================================================================================	
+  527                   ;===========================================================================================================	
+  528                   	
+  529 0298              MONITOR_MENU:
+  530 0298  31 80FF     	LD	SP,STACK			;To be safe reset Stackat 0FFF0H (must be valid for debugging)
+  531                   
+  532 029B  DB 47       	IN	A,(LEDS_PORT)			;47H
+  533 029D  CB 87       	RES	0,A				;Reset bit 0 to inducate we are in CMD Mode
+  534 029F  CB CF       	SET	1,A				;Set Bit 1 to indicate we are not in Monitor mode
+  535 02A1  D3 47       	OUT	(LEDS_PORT),A
+  536                   
+  537 02A3  11 0AE1     	LD	DE,Z80_MENU_MSG1		;Print 'FPGA onboard Z80 CPU Monitor Menu.  RAM 0-7FFFH,
+  538 02A6  CD 032F     	CALL	PRINT_STRING
+  539                   
+  540 02A9  11 0B1E     	LD	DE,SP_MSG			;Print 'SP=$'
+  541 02AC  CD 032F     	CALL	PRINT_STRING
+  542 02AF  21 80FF     	LD	HL,STACK
+  543 02B2  CD 03D1     	CALL	PRINT_HL			;Print HL
+  544 02B5  11 0B22     	LD	DE,H_MSG			;'H '
+  545 02B8  CD 032F     	CALL	PRINT_STRING	
+  546                   	
+  547 02BB  CD 0554     	CALL	CRLF
+  548 02BE  11 0B25     	LD	DE,Z80_MENU_MSG2		;Then Z80 Menu Message
+  549 02C1  CD 032F     	CALL	PRINT_STRING
+  550                   	
+  551 02C4  CD 0A0F     	CALL	ZCSTS				;Check if garbage at keyboard
+  552 02C7  C4 0A1F     	CALL	NZ,ZCI				;If so flush it
+  553 02CA  CD 0A0F     	CALL	ZCSTS				;Flush CI status port
+  554                   	
+  555                   
+  556                   ;------------------------------- THIS IS THE START ON THE MAIN SBC-Z80 LOOP--------------------------------
+  557                   
+  558 02CD              Z80_MENU_LOOP:
+  559 02CD  31 80FF     	LD	SP,STACK			;Just to be safe, redo stack at 0FFF0H
+  560 02D0  11 02CD     	LD	DE,Z80_MENU_LOOP
+  561 02D3  D5          	PUSH	DE				;FOR ALL COMMANDS, ANY EXTRA UNBALANCED POP & [DE] WOULD END UP IN [PC]
+  562 02D4  CD 0554     	CALL	CRLF
+  563 02D7  0E 2D       	LD	C,'-'
+  564 02D9  CD 09FB     	CALL	ZCO
+  565 02DC  0E 3E       	LD	C,'>'	   
+  566 02DE  CD 09FB     	CALL	ZCO
+  567                   
+  568 02E1  CD 0A0F     STARO:	CALL	ZCSTS				;Need to check status first because IOBYTE may have changed
+  569 02E4  28 FB       	JR	Z,STARO
+  570                   	
+  571 02E6  CD 041F     	CALL	TI				;Get character and echo 
+  572 02E9  FE 1B       	cp	ESC				;ESC back to main menu
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  10
+SUPER_IOZ80
+
+  573 02EB  CA 0003     	jp	z,BEGIN			
+  574 02EE  E6 7F       	AND	7FH
+  575 02F0  28 EF       	JR	Z,STARO
+  576 02F2  D6 40       	SUB	'@'				;Commands @ to Z only
+  577 02F4  F8          	RET	M
+  578 02F5  FE 1B       	CP	1BH				;A-Z only
+  579 02F7  D0          	RET	NC
+  580 02F8  87          	ADD	A
+  581 02F9  21 0D00     	LD	HL,MON_CMD_TABLE
+  582 02FC  85          	ADD	A,L
+  583 02FD  6F          	LD	L,A
+  584 02FE  7E          	LD	A,(HL)
+  585 02FF  23          	INC	HL
+  586 0300  66          	LD	H,(HL)
+  587 0301  6F          	LD	L,A
+  588 0302  0E 02       	LD	C,02H
+  589 0304  E9          	JP	(HL)				;JUMP TO COMMAND TO COMMAND (from TABLE)
+  590                   ;
+  591                   ;
+  592                   ;
+  593                   ;PRINT MAIN SBC-Z80 MENU ON CRT
+  594                   
+  595 0305  11 0A84     KCMD:	LD	DE,SIGNON_MSG			;Menu Option "Y", List Menu Options
+  596 0308  CD 032F     	CALL	PRINT_STRING
+  597 030B  11 0B25     	LD	DE,Z80_MENU_MSG2		;Then Menu Message
+  598 030E  C3 032F     	JP	PRINT_STRING
+  599                   
+  600                   
+  601 0311              INVALID_DATA:
+  602 0311  11 0D4B     	LD	DE,Invalid_Msg
+  603 0314  CD 032F     	CALL	PRINT_STRING
+  604 0317  C3 0003     	JP	BEGIN		
+  605                   
+  606                   
+  607                   
+  608                   
+  609                   ;Diagnostic test of S100 Bus data In/out port. Runs continously until reset
+  610                   
+  611 031A              S100_DATA_IN:
+  612 031A  11 0DB3     	LD	DE,H_MENU_MSG			;Continously display S100 Data In Port. Reset to abort."
+  613 031D  CD 032F     	CALL	PRINT_STRING
+  614 0320  CD 0554     MORE1:	CALL	CRLF
+  615 0323  DB 40       	IN	A,(STATUS_BUS_PORT)
+  616 0325  F5          	PUSH	AF
+  617 0326  CD 0452     	CALL	PRINT_BITS
+  618 0329  F1          	POP	AF
+  619 032A  D3 41       	OUT	(DATA_BUS_PORT),A
+  620 032C  C3 0320     	JP	MORE1
+  621                   
+  622                   
+  623                   
+  624 032F              PRINT_STRING:					;A ROUTINE TO PRINT OUT A STRING @ [DE]
+  625 032F  1A          	LD	A,(DE)				;UP TO THE FIRST '$' ---- IF IOBYTE BIT 0 is 0
+  626 0330  13          	INC	DE			
+  627 0331  FE 24       	CP	'$'
+  628 0333  C8          	RET	Z
+  629 0334  4F          	LD	C,A
+  630 0335  CD 09FB     	CALL	ZCO				;Note will go to USB Port -- If bit 0 of IOBYTE = 1
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  11
+SUPER_IOZ80
+
+  631 0338  18 F5       	JR	PRINT_STRING
+  632                   
+  633                   
+  634                   ;ABORT IF ESC AT CONSOL, PAUSE IF ^S AT CONSOL
+  635                   
+  636 033A  CD 0A0F     CCHK:	CALL	ZCSTS				;FIRST IS THERE ANYTHING THERE
+  637 033D  C8          	RET	Z
+  638 033E  CD 0A1F     	CALL	ZCI
+  639 0341  FE 13       	CP	'S'-40H
+  640 0343  20 05       	JR	NZ,CCHK1
+  641 0345  CD 0A0F     CCHK2:	CALL	ZCSTS				;WAIT HERE UNTIL ANOTHER INPUT IS GIVEN
+  642 0348  28 FB       	JR	Z,CCHK2
+  643 034A  FE 1B       CCHK1:	CP	ESC
+  644 034C  C0          	RET	NZ				;RETURN EXECPT IF ESC
+  645                   
+  646                   ;RESTORE SYSTEM AFTER ERROR
+  647                   
+  648 034D  CD 03E9     ERROR:	CALL	MEMSIZ				;GET RAM AVAILABLE - WORKSPACE IN [HL]
+  649 0350  F9          	LD	SP,HL				;SET STACK UP IN WORKSPACE AREA
+  650 0351  0E 2A       	LD	C,'*'
+  651 0353  CD 09FB     	CALL	ZCO
+  652 0356  C3 02CD     	JP	Z80_MENU_LOOP
+  653                   
+  654                   ;PRINT HIGHEST RAM MEMORY FROM BOTTOM
+  655                   
+  656 0359  CD 03E9     SIZE:	CALL	MEMSIZ				;RETURNS WITH [HL]= RAM AVAILABLE-WORKSPACE
+  657                   
+  658 035C  CD 0554     LFADR:	CALL	CRLF				;Print CR/LF + HL + SPACE
+  659                   
+  660 035F              PRINT_HL_SPACE:	
+  661 035F  E5          	PUSH	HL				;PRINT [HL] AND A SPACE
+  662 0360  C5          	PUSH	BC
+  663 0361  CD 03D1     	CALL	PRINT_HL			;Print [HL] with no space afterwards
+  664 0364  0E 20       	LD	C,SPACE
+  665 0366  CD 09FB     	CALL	ZCO
+  666 0369  C1          	POP	BC
+  667 036A  E1          	POP	HL
+  668 036B  C9          	RET
+  669                   
+  670                   
+  671 036C              PRINT_SPACE:	
+  672 036C  0E 20       	LD	C,SPACE				;PRINT A SPACE
+  673 036E  CD 09FB     	CALL	ZCO
+  674 0371  C9          	RET
+  675                   
+  676 0372  E6 0F       CONV:	AND	0FH				;CONVERT HEX TO ASCII
+  677                   
+  678 0374  C6 90       	ADD	A,90H
+  679 0376  27          	DAA 
+  680 0377  CE 40       	ADC	A,40H
+  681 0379  27          	DAA 
+  682 037A  4F          	LD	C,A
+  683 037B  CD 09FB     	call	ZCO
+  684 037E  C9          	RET
+  685                   
+  686                   
+  687 037F              GET_HL_DE:					;GET TWO PARAMETERS AND PUT THEM IN [HL] & [DE] THEN CRLF
+  688 037F  CD 0392     	CALL	HEXSP	
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  12
+SUPER_IOZ80
+
+  689 0382  D1          	POP	DE
+  690 0383  E1          	POP	HL
+  691 0384  C9          	RET
+  692                   
+  693                   						;PUT THREE PARAMETERS IN [BC] [DE] [HL] THEN CR/LF
+  694 0385  0C          EXPR3:	INC	C				;ALREADY HAD [C]=2 FROM START
+  695 0386  CD 0392     	CALL	HEXSP
+  696 0389  CD 0554     	CALL	CRLF
+  697 038C  C1          	POP	BC
+  698 038D  D1          	POP	DE
+  699 038E  E1          	POP	HL
+  700 038F  C9          	RET 
+  701                   	
+  702                   
+  703 0390  0E 01       EXPR1:	LD	C,01H			
+  704 0392  21 0000     HEXSP:	LD	HL,0000				;GET # OF PARAMETERS in C
+  705 0395  CD 041F     EX0:	CALL	TI
+  706 0398  47          EX1:	LD	B,A
+  707 0399  CD 03FB     	CALL	NIBBLE
+  708 039C  38 08       	JR	C,EX2X
+  709 039E  29          	ADD	HL,HL
+  710 039F  29          	ADD	HL,HL
+  711 03A0  29          	ADD	HL,HL
+  712 03A1  29          	ADD	HL,HL
+  713 03A2  B5          	OR	L
+  714 03A3  6F          	LD	L,A
+  715 03A4  18 EF       	JR	EX0
+  716 03A6  E3          EX2X:	EX	(SP),HL
+  717 03A7  E5          	PUSH	HL
+  718 03A8  78          	LD	A,B
+  719 03A9  CD 0413     	CALL	QCHK
+  720 03AC  30 02       	JR	NC,SF560
+  721 03AE  0D          	DEC	C
+  722 03AF  C8          	RET	Z
+  723 03B0  C2 034D     SF560:	JP	NZ,ERROR
+  724 03B3  0D          	DEC	C
+  725 03B4  20 DC       	JR	NZ,HEXSP
+  726 03B6  C9          	RET 
+  727 03B7  0E 01       EXF:	LD	C,01H
+  728 03B9  21 0000     	LD	HL,0000H
+  729 03BC  18 DA       	JR	EX1
+  730                   
+  731                   
+  732 03BE  CD 033A     HILOX:	CALL	CCHK				;RANGE TEST ROUTINE CARRY SET = RANGE EXCEEDED
+  733 03C1  CD 03C7     	CALL	HILO
+  734 03C4  D0          	RET	NC
+  735 03C5  D1          	POP	DE				;DROP ONE LEVEL BACK TO START
+  736 03C6  C9          	RET 
+  737 03C7  23          HILO:	INC	HL				;RANGE CHECK SET CARRY IF [DE]=[HL]
+  738 03C8  7C          	LD	A,H
+  739 03C9  B5          	OR	L
+  740 03CA  37          	SCF
+  741 03CB  C8          	RET	Z
+  742 03CC  7B          	LD	A,E
+  743 03CD  95          	SUB	L
+  744 03CE  7A          	LD	A,D
+  745 03CF  9C          	SBC	A,H
+  746 03D0  C9          	RET 
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  13
+SUPER_IOZ80
+
+  747                   
+  748                   
+  749 03D1              PRINT_HL:					;PRINT [HL] ON CONSOL
+  750 03D1  F5          	PUSH	AF
+  751 03D2  7C          	LD	A,H
+  752 03D3  CD 03DC     	CALL	LBYTE
+  753 03D6  7D          	LD	A,L
+  754 03D7  CD 03DC     	CALL	LBYTE
+  755 03DA  F1          	POP	AF
+  756 03DB  C9          	RET
+  757                   	
+  758 03DC  F5          LBYTE:	PUSH	AF
+  759 03DD  0F          	RRCA
+  760 03DE  0F          	RRCA
+  761 03DF  0F          	RRCA
+  762 03E0  0F          	RRCA
+  763 03E1  CD 03E5     	CALL	SF598
+  764 03E4  F1          	POP	AF
+  765 03E5  CD 0372     SF598:	CALL	CONV				;Convert to ASCII AND print it
+  766 03E8  C9          	RET
+  767                   
+  768                   						;THIS IS A CALLED ROUTINE USED TO CALCULATE TOP OF RAM IS USED BY
+  769                   						;THE ERROR ROUTINE TO RESET THE STACK. 
+  770                   						;Returns top of RAM in [HL]
+  771 03E9  C5          MEMSIZ:	PUSH	BC				;SAVE [BC]
+  772 03EA  21 FFFF     MEMSZ1:	LD	HL,0FFFFH			;START FROM THE TOP DOWN
+  773 03ED  7E          MEMSZ2:	LD	A,(HL)
+  774 03EE  2F          	CPL 
+  775 03EF  77          	LD	(HL),A
+  776 03F0  BE          	CP	(HL)
+  777 03F1  2F          	CPL 					;PUT BACK WHAT WAS THERE
+  778 03F2  77          	LD	(HL),A
+  779 03F3  CA 03F9     	JP	Z,GOTTOP
+  780 03F6  25          	DEC	H				;TRY 100H BYTES LOWER
+  781 03F7  18 F4       	JR	MEMSZ2				;KEEP LOOKING FOR RAM
+  782 03F9  C1          GOTTOP:	POP	BC				;RESTORE [BC]
+  783 03FA  C9          	RET 
+  784                   
+  785 03FB  D6 30       NIBBLE:	SUB	30H
+  786 03FD  D8          	RET	C
+  787 03FE  FE 17       	CP	17H
+  788 0400  3F          	CCF
+  789 0401  D8          	RET	C
+  790 0402  FE 0A       	CP	LF
+  791 0404  3F          	CCF
+  792 0405  D0          	RET	NC
+  793 0406  D6 07       	SUB	07H
+  794 0408  FE 0A       	CP	LF
+  795 040A  C9          	RET
+  796                   
+  797 040B  0E 2D       COPCK:	LD	C,'-'
+  798 040D  CD 09FB     	CALL	ZCO
+  799                   
+  800                   
+  801 0410  CD 041F     PCHK:	CALL	TI
+  802 0413  FE 20       QCHK:	CP	SPACE				;TEST FOR DELIMITERS
+  803 0415  C8          	RET	Z
+  804 0416  FE 2C       	CP	','
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  14
+SUPER_IOZ80
+
+  805 0418  C8          	RET	Z
+  806 0419  FE 0D       	CP	CR
+  807 041B  37          	SCF
+  808 041C  C8          	RET	Z
+  809 041D  3F          	CCF
+  810 041E  C9          	RET 
+  811                   
+  812                   
+  813                   						;KEYBOARD HANDELING ROUTINE (WILL NOT ECHO CR/LF or ESC)
+  814                   						;IT CONVERTS LOWER CASE TO UPPER CASE FOR LOOKUP COMMANDS
+  815                   						;ALL OTHERE CHARACTERS ARE ECHOED ON CONSOL
+  816 041F  CD 0A1F     TI:	CALL	ZCI
+  817 0422  FE 0D       	CP	CR
+  818 0424  C8          	RET	Z
+  819 0425  FE 1B       	CP	ESC
+  820 0427  C8          	RET	Z
+  821 0428  FE 40       	CP	40H				;LC->UC
+  822 042A  38 06       	JR	C,TI1
+  823 042C  FE 7B       	CP	7BH
+  824 042E  30 02       	JR	NC,TI1
+  825 0430  E6 5F       	AND	5FH
+  826 0432              TI1:
+  827 0432  C5          	PUSH	BC
+  828 0433  4F          	LD	C,A
+  829 0434  CD 09FB     	CALL	ZCO
+  830 0437  79          	LD	A,C
+  831 0438  C1          	POP	BC
+  832 0439  C9          	RET
+  833                   	
+  834                   	
+  835                   						;NO ECHO KEYBOARD HANDELING ROUTINE
+  836                   						;IT CONVERTS LOWER CASE TO UPPER CASE FOR LOOKUP COMMANDS
+  837                   						;ALL OTHERE CHARACTERS ARE ECHOED ON CONSOL
+  838 043A              TI_NO_ECHO:	
+  839 043A  CD 0A1F     	CALL	ZCI
+  840 043D  FE 0D       	CP	CR
+  841 043F  C8          	RET	Z
+  842 0440  FE 40       	CP	40H				;LC->UC
+  843 0442  D8          	RET	C
+  844 0443  FE 7B       	CP	7BH
+  845 0445  D0          	RET	NC
+  846 0446  E6 5F       	AND	5FH
+  847 0448  C9          	RET 
+  848                   
+  849                   
+  850 0449  C5          GETHL:	PUSH	BC				;Return a HEX value in [HL]
+  851 044A  0E 01       	LD	C,1				;1 paramater
+  852 044C  CD 0392     	CALL	HEXSP
+  853 044F  E1          	POP	HL
+  854 0450  C1          	POP	BC
+  855 0451  C9          	RET
+  856                   
+  857                   
+  858 0452              PRINT_BITS:					;DISPLAY 8 BITS OF [A] (No registers changed)
+  859 0452  D5          	PUSH	DE			
+  860 0453  C5          	PUSH	BC
+  861 0454  5F          	LD	E,A
+  862 0455  CD 045B     	CALL	BITS
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  15
+SUPER_IOZ80
+
+  863 0458  C1          	POP	BC
+  864 0459  D1          	POP	DE
+  865 045A  C9          	RET
+  866                   
+  867                   
+  868 045B  06 08       BITS:	LD	B,08H				;DISPLAY 8 BITS IN [E] (B & C registers changed)
+  869 045D  CD 036C     	CALL	PRINT_SPACE
+  870 0460  CB 23       SF76E:	SLA	E
+  871 0462  3E 18       	LD	A,18H
+  872 0464  8F          	ADC	A
+  873 0465  4F          	LD	C,A
+  874 0466  CD 09FB     	CALL	ZCO
+  875 0469  10 F5       	DJNZ	SF76E
+  876 046B  C9          	RET 
+  877                   	
+  878                   						;MEMORY MAP PROGRAM CF.DR.DOBBS VOL 31 P40.
+  879                   						;IT WILL SHOW ON CONSOL TOTAL MEMORY SUMMARY OF RAM,PROM, AND NO MEMORY
+  880 046C              MEMMAP:
+  881 046C  CD 0554     	CALL	CRLF
+  882 046F  21 0000     	LD	HL,0
+  883 0472  06 01       	LD	B,1
+  884 0474  1E 52       MAP1:	LD	E,'R'				;PRINT R FOR RAM
+  885 0476  7E          	LD	A,(HL)
+  886 0477  2F          	CPL
+  887 0478  77          	LD	(HL),A
+  888 0479  BE          	CP	(HL)
+  889 047A  2F          	CPL
+  890 047B  77          	LD	(HL),A
+  891 047C  20 03       	JR	NZ,MAP2
+  892 047E  BE          	CP	(HL)
+  893 047F  28 0E       	JR	Z,PRINT
+  894 0481  1E 70       MAP2:	LD	E,'p'
+  895 0483  3E FF       MAP3:	LD	A,0FFH
+  896 0485  BE          	CP	(HL)
+  897 0486  20 07       	JR	NZ,PRINT
+  898 0488  2C          	INC	L
+  899 0489  AF          	XOR	A
+  900 048A  BD          	CP	L
+  901 048B  20 F6       	JR	NZ,MAP3
+  902 048D  1E 2E       	LD	E,'.'
+  903 048F  2E 00       PRINT:	LD	L,0
+  904 0491  05          	DEC	B
+  905 0492  20 08       	JR	NZ,NLINE
+  906 0494  06 10       	LD	B,16
+  907 0496  CD 0554     	CALL	CRLF
+  908 0499  CD 04B1     	CALL	HXOT4
+  909 049C  3E 20       NLINE:	LD	A,SPACE
+  910 049E  CD 04C9     	CALL	OTA
+  911 04A1  7B          	LD	A,E
+  912 04A2  CD 04C9     	CALL	OTA
+  913 04A5  24          	INC	H
+  914 04A6  20 CC       	JR	NZ,MAP1
+  915 04A8  CD 0554     	CALL	CRLF
+  916 04AB  CD 0554     	CALL	CRLF
+  917 04AE  C3 02CD     	JP	Z80_MENU_LOOP
+  918                   
+  919                   ;16 HEX OUTPUT ROUTINE
+  920                   
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  16
+SUPER_IOZ80
+
+  921 04B1  4C          HXOT4:	LD	C,H
+  922 04B2  CD 04B6     	CALL	HXO2
+  923 04B5  4D          	LD	C,L
+  924 04B6  79          HXO2:	LD	A,C
+  925 04B7  1F          	RRA
+  926 04B8  1F          	RRA
+  927 04B9  1F          	RRA
+  928 04BA  1F          	RRA
+  929 04BB  CD 04BF     	CALL	HXO3
+  930 04BE  79          	LD	A,C
+  931 04BF  E6 0F       HXO3:	AND	0FH
+  932 04C1  FE 0A       	CP	10
+  933 04C3  38 02       	JR	C,HADJ
+  934 04C5  C6 07       	ADD	A,7
+  935 04C7  C6 30       HADJ:	ADD	A,30H
+  936 04C9  C5          OTA:	PUSH	BC
+  937 04CA  4F          	LD	C,A
+  938 04CB  CD 09FB     	CALL	ZCO				;SEND TO CONSOL
+  939 04CE  C1          	POP	BC
+  940 04CF  C9          	RET
+  941                   
+  942                   ;DISPLAY MEMORY IN HEX
+  943                   
+  944 04D0  CD 037F     DISP:	CALL	GET_HL_DE			;GET PARAMETERS IN [HL],[DE]
+  945 04D3  7D          	LD	A,L				;ROUND OFF ADDRESSES TO XX00H
+  946 04D4  E6 F0       	AND	0F0H
+  947 04D6  6F          	LD	L,A
+  948 04D7  7B          	LD	A,E				;FINAL ADDRESS LOWER HALF
+  949 04D8  E6 F0       	AND	0F0H
+  950 04DA  C6 10       	ADD	A,10H				;FINISH TO END 0F LINE
+  951 04DC  CD 035C     SF172A:	CALL	LFADR				;Print Address + CRLF
+  952 04DF  CD 060E     SF175A:	CALL	BLANK
+  953                   
+  954                   ;	CALL	ZCSTS				;For debugging		
+  955                   ;	CALL	PROP_CI
+  956                   					
+  957 04E2  7E          	LD	A,(HL)
+  958 04E3  CD 03DC     	CALL	LBYTE
+  959 04E6  CD 03BE     	CALL	HILOX
+  960 04E9  7D          	LD	A,L
+  961 04EA  E6 0F       	AND	0FH
+  962 04EC  20 F1       	JR	NZ,SF175A
+  963 04EE  0E 09       	LD	C,TAB				;INSERT A TAB BETWEEN DATA
+  964 04F0  CD 09FB     	CALL	ZCO
+  965 04F3  06 04       	LD	B,4H				;ALSO 1 SPACE
+  966 04F5  0E 20       TA11:	LD	C,SPACE
+  967 04F7  CD 09FB     	CALL	ZCO
+  968 04FA  10 F9       	DJNZ	TA11
+  969                   
+  970                   ;	IN	A,IOBYTE			;For some reason ASCII display only on VGA display is
+  971                   ;	BIT	2,A				;not working. Skip it for now!
+  972                   ;	JR	Z,SF172A
+  973                   		
+  974 04FC  06 10       	LD	B,16				;NOW PRINT ASCII (16 CHARACTERS)
+  975 04FE  D5          	PUSH	DE				;TEMPORLY SAVE [DE]
+  976 04FF  11 0010     	LD	DE,0010H
+  977 0502  ED 52       	SBC	HL,DE
+  978 0504  D1          	POP	DE
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  17
+SUPER_IOZ80
+
+  979 0505  7E          T11:	LD	A,(HL)
+  980 0506  E6 7F       	AND	7FH
+  981 0508  FE 20       	CP	' ' 				;FILTER OUT CONTROL CHARACTERS'
+  982 050A  30 02       	JR	NC,T33
+  983 050C  3E 2E       T22:	LD	A,'.'
+  984 050E  FE 7C       T33:	CP	07CH
+  985 0510  30 FA       	JR	NC,T22
+  986 0512  4F          	LD	C,A				;SET UP TO SEND
+  987 0513  CD 09FB     	CALL	ZCO
+  988 0516  23          	INC	HL
+  989 0517  10 EC       	DJNZ	T11				;REPEAT FOR WHOLE LINE
+  990 0519  18 C1       	JR	SF172A
+  991                   
+  992                   
+  993                   
+  994 051B  0E 01       SUBS:	LD	C,1				;INSPECT AND / OR MODIFY MEMORY
+  995 051D  CD 0392     	CALL	HEXSP
+  996 0520  E1          	POP	HL
+  997 0521  7E          SF2E3:	LD	A,(HL)
+  998 0522  CD 03DC     	CALL	LBYTE
+  999 0525  0E 2D       	LD	C,'-'
+ 1000 0527  CD 09FB     	CALL	ZCO
+ 1001 052A  CD 0410     	CALL	PCHK
+ 1002 052D  D8          	RET	C
+ 1003 052E  28 0F       	JR	Z,SF2FC
+ 1004 0530  FE 5F       	CP	5FH
+ 1005 0532  28 14       	JR	Z,SF305
+ 1006 0534  E5          	PUSH	HL
+ 1007 0535  CD 03B7     	CALL	EXF
+ 1008 0538  D1          	POP	DE
+ 1009 0539  E1          	POP	HL
+ 1010 053A  73          	LD	(HL),E
+ 1011 053B  78          	LD	A,B
+ 1012 053C  FE 0D       	CP	CR
+ 1013 053E  C8          	RET	Z	
+ 1014 053F  23          SF2FC:	INC	HL
+ 1015 0540  7D          SF2FD:	LD	A,L
+ 1016 0541  E6 07       	AND	07H
+ 1017 0543  CC 035C     	CALL	Z,LFADR
+ 1018 0546  18 D9       	JR	SF2E3
+ 1019 0548  2B          SF305:	DEC	HL
+ 1020 0549  18 F5       	JR	SF2FD
+ 1021                   
+ 1022 054B  F5          HCRLF:	PUSH	AF
+ 1023 054C  C5          	PUSH	BC
+ 1024 054D  0E 48       	LD	C,'H'				;Finish current line with a 'H' first
+ 1025 054F  CD 09FB     	CALL	ZCO
+ 1026 0552  18 02       	JR	CRLF1
+ 1027                   	
+ 1028 0554  F5          CRLF:	PUSH	AF
+ 1029 0555  C5          	PUSH	BC
+ 1030 0556  0E 0A       CRLF1:	LD	C,LF
+ 1031 0558  CD 09FB     	CALL	ZCO
+ 1032 055B  0E 0D       	LD	C,CR
+ 1033 055D  CD 09FB     	CALL	ZCO
+ 1034 0560  C1          	POP	BC
+ 1035 0561  F1          	POP	AF
+ 1036 0562  C9          	RET
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  18
+SUPER_IOZ80
+
+ 1037                   ;
+ 1038                   ;
+ 1039                   
+ 1040 0563              GETHEX:
+ 1041 0563  CD 05DE     	call	GETCMD				;Get a character from keyboard & ECHO
+ 1042 0566  FE 1B       	cp	ESC
+ 1043 0568  CA 0595     	jp	z,HEXABORT
+ 1044 056B  FE 2F       	cp	'/'				;check 0-9, A-F
+ 1045 056D  DA 0595     	jp	c,HEXABORT
+ 1046 0570  FE 47       	cp	'F'+1
+ 1047 0572  D2 0595     	jp	nc,HEXABORT
+ 1048 0575  CD 05F9     	call	ASBIN				;Convert to binary
+ 1049 0578  07          	rlca					;Shift to high nibble
+ 1050 0579  07          	rlca
+ 1051 057A  07          	rlca
+ 1052 057B  07          	rlca
+ 1053 057C  47          	ld	b,A				;Store it
+ 1054 057D  CD 05DE     	call	GETCMD				;Get 2nd character from keyboard & ECHO
+ 1055 0580  FE 1B       	cp	ESC
+ 1056 0582  CA 0595     	jp	z,HEXABORT
+ 1057 0585  FE 2F       	cp	'/'				;check 0-9, A-F
+ 1058 0587  DA 0595     	jp	c,HEXABORT
+ 1059 058A  FE 47       	cp	'F'+1
+ 1060 058C  D2 0595     	jp	nc,HEXABORT
+ 1061 058F  CD 05F9     	call	ASBIN				;Convert to binary
+ 1062 0592  B0          	or	B				;add in the first digit
+ 1063 0593  B7          	or	A				;To return NC
+ 1064 0594  C9          	ret
+ 1065 0595              HEXABORT:
+ 1066 0595  37          	scf					;Set Carry flag
+ 1067 0596  C9          	ret
+ 1068                   ;
+ 1069                   
+ 1070                   ;						;>>>>>> Print [A] in HEX-ASCII. (No Resisters altered) 
+ 1071 0597  F5          HEXOUT:	PUSH	AF	
+ 1072 0598  C5          	PUSH	BC
+ 1073 0599  F5          	PUSH	AF
+ 1074 059A  0F          	RRCA
+ 1075 059B  0F          	RRCA
+ 1076 059C  0F          	RRCA
+ 1077 059D  0F          	RRCA
+ 1078 059E  CD 0601     	CALL	ZCONV
+ 1079 05A1  F1          	POP	AF
+ 1080 05A2  CD 0601     	CALL	ZCONV
+ 1081 05A5  C1          	POP	BC
+ 1082 05A6  F1          	POP	AF
+ 1083 05A7  C9          	RET
+ 1084                   ;
+ 1085                   ;
+ 1086                   ;
+ 1087 05A8  F5          HHEXOUT:PUSH	AF				; Same + H at the end	
+ 1088 05A9  C5          	PUSH	BC
+ 1089 05AA  F5          	PUSH	AF
+ 1090 05AB  0F          	RRCA
+ 1091 05AC  0F          	RRCA
+ 1092 05AD  0F          	RRCA
+ 1093 05AE  0F          	RRCA
+ 1094 05AF  CD 0601     	CALL	ZCONV
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  19
+SUPER_IOZ80
+
+ 1095 05B2  F1          	POP	AF
+ 1096 05B3  CD 0601     	CALL	ZCONV
+ 1097 05B6  0E 48       	LD	C,'H'
+ 1098 05B8  CD 09FB     	CALL	ZCO
+ 1099 05BB  C1          	POP	BC
+ 1100 05BC  F1          	POP	AF
+ 1101 05BD  C9          	RET
+ 1102                   ;
+ 1103 05BE              HHEXOUT_CR:
+ 1104 05BE  F5          	PUSH	AF				; Same + H + CR+LF at the end	
+ 1105 05BF  C5          	PUSH	BC
+ 1106 05C0  F5          	PUSH	AF
+ 1107 05C1  0F          	RRCA
+ 1108 05C2  0F          	RRCA
+ 1109 05C3  0F          	RRCA
+ 1110 05C4  0F          	RRCA
+ 1111 05C5  CD 0601     	CALL	ZCONV
+ 1112 05C8  F1          	POP	AF
+ 1113 05C9  CD 0601     	CALL	ZCONV
+ 1114 05CC  0E 48       	LD	C,'H'
+ 1115 05CE  CD 09FB     	CALL	ZCO
+ 1116 05D1  0E 0D       	LD	C,CR
+ 1117 05D3  CD 09FB     	CALL	ZCO
+ 1118 05D6  0E 0A       	LD	C,LF
+ 1119 05D8  CD 09FB     	CALL	ZCO
+ 1120 05DB  C1          	POP	BC
+ 1121 05DC  F1          	POP	AF
+ 1122 05DD  C9          	RET
+ 1123                   ;
+ 1124                   ;
+ 1125 05DE  CD 0A1F     GETCMD:	call	ZCI				;GET A CHARACTER, convert to UC, ECHO it
+ 1126 05E1  CD 05F0     	call	UPPER
+ 1127 05E4  FE 1B       	cp	ESC
+ 1128 05E6  C8          	ret	z				;Don't echo an ESC
+ 1129 05E7  F5          	push	af				;Save it
+ 1130 05E8  C5          	push	bc
+ 1131 05E9  4F           	ld	c,A
+ 1132 05EA  CD 09FB     	call	ZCO				;Echo it
+ 1133 05ED  C1          	pop	bc
+ 1134 05EE  F1          	pop	af				;get it back
+ 1135 05EF  C9          	ret
+ 1136                   
+ 1137                   						;Convert LC to UC
+ 1138 05F0  FE 61       UPPER:	cp	'a'				;must be >= lowercase a
+ 1139 05F2  D8          	ret	c				; else go back...
+ 1140 05F3  FE 7B       	cp	'z'+1				;must be <= lowercase z
+ 1141 05F5  D0          	ret	nc				; else go back...
+ 1142 05F6  D6 20       	sub	'a'-'A'				;subtract lowercase bias
+ 1143 05F8  C9          	ret	
+ 1144                   
+ 1145                   						;ASCII TO BINARY CONVERSION ROUTINE
+ 1146 05F9  D6 30       ASBIN:	sub	30H
+ 1147 05FB  FE 0A       	cp	0AH
+ 1148 05FD  F8          	ret	m
+ 1149 05FE  D6 07       	sub	07H
+ 1150 0600  C9          	ret
+ 1151                   ;
+ 1152                   	
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  20
+SUPER_IOZ80
+
+ 1153                   
+ 1154 0601  E6 0F       ZCONV:	AND	A,0FH				;HEX to ASCII
+ 1155 0603  C6 90       	ADD	90H
+ 1156 0605  27          	DAA
+ 1157 0606  CE 40       	ADC	40H
+ 1158 0608  27          	DAA
+ 1159 0609  4F          	LD	C,A
+ 1160 060A  CD 09FB     	CALL	ZCO
+ 1161 060D  C9          	RET			
+ 1162                   
+ 1163                   
+ 1164 060E  F5          BLANK:	PUSH	AF
+ 1165 060F  C5          	PUSH	BC				;Print a space on screen
+ 1166 0610  E5          	PUSH	HL
+ 1167 0611  0E 20       	LD	C,' '
+ 1168 0613  CD 09FB     	CALL	ZCO
+ 1169 0616  E1          	POP	HL
+ 1170 0617  C1          	POP	BC
+ 1171 0618  F1          	POP	AF
+ 1172 0619  C9          	RET
+ 1173                   
+ 1174                   
+ 1175 061A  CD 0385     FILL:	CALL	EXPR3				;FILL A BLOCK OF MEMORY WITH A VALUE
+ 1176 061D  71          SF1A5:	LD	(HL),C
+ 1177 061E  CD 03BE     	CALL	HILOX
+ 1178 0621  30 FA       	JR	NC,SF1A5
+ 1179 0623  D1          	POP	DE
+ 1180 0624  C3 02CD     	JP	Z80_MENU_LOOP
+ 1181                   
+ 1182                   						;GO TO A RAM LOCATION
+ 1183 0627  0E 01       GOTO:	LD	C,1				;SIMPLE GOTO FIRST GET PARMS.
+ 1184 0629  CD 0392     	CALL	HEXSP
+ 1185 062C  CD 0554     	CALL	CRLF
+ 1186 062F  E1          	POP	HL				;GET PARAMETER PUSHED BY EXF
+ 1187 0630  E9          	JP	(HL)
+ 1188                   						; GET OR OUTPUT TO A PORT
+ 1189 0631  CD 0410     QUERY:	CALL	PCHK
+ 1190 0634  FE 4F       	CP	'O'				;OUTPUT TO PORT
+ 1191 0636  28 15       	JR	Z,OUT_PORT
+ 1192 0638  FE 49       	CP	'I'				;INPUT FROM PORT
+ 1193 063A  CA 0642     	JP	Z,IN_PORT
+ 1194 063D  0E 2A       	LD	C,'*'
+ 1195 063F  C3 09FB     	JP	ZCO				;WILL ABORT IF NOT 'I' OR 'O'
+ 1196                   
+ 1197                   
+ 1198 0642              IN_PORT:
+ 1199 0642  0E 01       	LD	C,1				;IN Port
+ 1200 0644  CD 0392     	CALL	HEXSP
+ 1201 0647  C1          	POP	BC
+ 1202 0648  ED 78       	IN	A,(C)
+ 1203 064A  C3 0452     	JP	PRINT_BITS
+ 1204                   ;
+ 1205 064D              OUT_PORT:
+ 1206 064D  CD 0392     	CALL	HEXSP				;OUT Port
+ 1207 0650  D1          	POP	DE
+ 1208 0651  C1          	POP	BC
+ 1209 0652  ED 59       	OUT	(C),E
+ 1210 0654  C9          	RET
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  21
+SUPER_IOZ80
+
+ 1211                   
+ 1212                   
+ 1213                   
+ 1214 0655              RAMTEST:					; MEMORY TEST
+ 1215 0655  D5          	PUSH	DE
+ 1216 0656  C5          	PUSH	BC
+ 1217 0657  11 0D73     	LD	DE,RAM_TEST_MSG
+ 1218 065A  CD 032F     	CALL	PRINT_STRING
+ 1219 065D  C1          	POP	BC
+ 1220 065E  D1          	POP	DE
+ 1221 065F  CD 037F     	CALL	GET_HL_DE
+ 1222 0662  7E          SF200:	LD	A,(HL)
+ 1223 0663  47          	LD	B,A
+ 1224 0664  2F          	CPL 
+ 1225 0665  77          	LD	(HL),A
+ 1226 0666  AE          	XOR	(HL)
+ 1227 0667  28 12       	JR	Z,SF215
+ 1228 0669  D5          	PUSH	DE
+ 1229 066A  50          	LD	D,B
+ 1230 066B  5F          	LD	E,A				;TEMP STORE BITS
+ 1231 066C  CD 035F     	CALL	PRINT_HL_SPACE
+ 1232 066F  CD 060E     	CALL	BLANK
+ 1233 0672  7B          	LD	A,E
+ 1234 0673  CD 0452     	CALL	PRINT_BITS
+ 1235 0676  CD 0554     	CALL	CRLF
+ 1236 0679  42          	LD	B,D
+ 1237 067A  D1          	POP	DE
+ 1238 067B  70          SF215:	LD	(HL),B
+ 1239 067C  CD 03BE     	CALL	HILOX
+ 1240 067F  18 E1       	JR	SF200
+ 1241                   
+ 1242                   
+ 1243 0681  CD 0385     MOVE:	CALL	EXPR3				;MOVE A BLOCK OF MEMORY TO ANOTHER LOCATION
+ 1244 0684  7E          SF21E:	LD	A,(HL)
+ 1245 0685  02          	LD	(BC),A
+ 1246 0686  03          	INC	BC
+ 1247 0687  CD 03BE     	CALL	HILOX
+ 1248 068A  18 F8       	JR	SF21E
+ 1249                   
+ 1250                    
+ 1251 068C  CD 0385     VERIFY:	CALL	EXPR3				;VERIFY ONE BLOCK OF MEMORY WITH ANOTHER
+ 1252 068F  0A          VERIO:	LD	A,(BC)
+ 1253 0690  BE          	CP	(HL)
+ 1254 0691  28 05       	JR	Z,SF78E
+ 1255 0693  C5          	PUSH	BC
+ 1256 0694  CD 069F     	CALL	CERR
+ 1257 0697  C1          	POP	BC
+ 1258 0698  03          SF78E:	INC	BC
+ 1259 0699  CD 03BE     	CALL	HILOX
+ 1260 069C  18 F1       	JR	VERIO
+ 1261 069E  C9          	RET
+ 1262                   ;
+ 1263 069F  47          CERR:	LD	B,A
+ 1264 06A0  CD 035F     	CALL	PRINT_HL_SPACE
+ 1265 06A3  7E          	LD	A,(HL)
+ 1266 06A4  CD 03DC     	CALL	LBYTE
+ 1267 06A7  CD 060E     	CALL	BLANK
+ 1268 06AA  78          	LD	A,B
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  22
+SUPER_IOZ80
+
+ 1269 06AB  CD 03DC     	CALL	LBYTE
+ 1270 06AE  C3 0554     	JP	CRLF
+ 1271                   
+ 1272 06B1  11 0D92     ECHO:	LD	DE,ECHO_MSG
+ 1273 06B4  CD 032F     	CALL	PRINT_STRING	
+ 1274 06B7  CD 0A1F     ECHO1:	CALL	ZCI				;Routeen to check keyboard etc.
+ 1275 06BA  FE 03       	CP	'C'-40H				;Loop until  ^C
+ 1276 06BC  C8          	RET	Z
+ 1277 06BD  FE 1A       	CP	'Z'-40H
+ 1278 06BF  C8          	RET	Z
+ 1279 06C0  4F          	LD	C,A
+ 1280 06C1  CD 09FB     	CALL	ZCO
+ 1281 06C4  18 F1       	JR	ECHO1
+ 1282                   
+ 1283                   
+ 1284                   
+ 1285 06C6  CD 037F     TYPE:	CALL	GET_HL_DE			;READ ASCII FROM MEMORY
+ 1286 06C9  CD 035C     SF30B:	CALL	LFADR
+ 1287 06CC  06 38       	LD	B,56
+ 1288 06CE  7E          SF310:	LD	A,(HL)
+ 1289 06CF  E6 7F       	AND	7FH
+ 1290 06D1  FE 20       	CP	SPACE
+ 1291 06D3  30 02       	JR	NC,SF319
+ 1292 06D5  3E 2E       SF317:	LD	A,2EH
+ 1293 06D7  FE 7C       SF319:	CP	7CH
+ 1294 06D9  30 FA       	JR	NC,SF317
+ 1295 06DB  4F          	LD	C,A
+ 1296 06DC  CD 09FB     	CALL	ZCO
+ 1297 06DF  CD 03BE     	CALL	HILOX
+ 1298 06E2  10 EA       	DJNZ	SF310
+ 1299 06E4  18 E3       	JR	SF30B
+ 1300                   
+ 1301                   
+ 1302                   ;
+ 1303 06E6              INPORTS:					;Display all active IO input ports in the system
+ 1304 06E6  11 0D36     	LD	DE,ALL_PORTS
+ 1305 06E9  CD 032F     	CALL	PRINT_STRING
+ 1306 06EC  CD 0554     	CALL	CRLF	
+ 1307 06EF  06 00       	LD	B,0				;Now loop through all ports (0-FF)
+ 1308 06F1  16 06       	LD	D,6				;Display 6 ports across
+ 1309 06F3  1E FF       	LD	E,0FFH				;Will contain port number
+ 1310 06F5  4B          LOOPIO:	LD	C,E
+ 1311 06F6  7B          	LD	A,E
+ 1312 06F7  ED 78       	IN	A,(C)				;Remember  [ZASMB does not work with this opcode,SLR is OK]
+ 1313 06F9  FE FF       	CP	A,0FFH				;No need for 0FF's
+ 1314 06FB  28 20       	JR	Z,SKIP
+ 1315 06FD  67          	LD	H,A				;store port data in H for below
+ 1316 06FE  7B          	LD	A,E				;Need to print port # first
+ 1317 06FF  CD 03DC     	CALL	LBYTE				;Print port number
+ 1318 0702  0E 2D       	LD	C,'-'
+ 1319 0704  CD 09FB     	CALL	ZCO
+ 1320 0707  0E 3E       	LD	C,'>'
+ 1321 0709  CD 09FB     	CALL	ZCO
+ 1322 070C  7C          	LD	A,H				;get back port data
+ 1323 070D  CD 03DC     	CALL	LBYTE				;print it
+ 1324 0710  0E 09       	LD	C,TAB
+ 1325 0712  CD 09FB     	CALL	ZCO
+ 1326 0715  15          	DEC	D				;6 ports per line
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  23
+SUPER_IOZ80
+
+ 1327 0716  20 05       	JR	NZ,SKIP
+ 1328 0718  16 06       	LD	D,6
+ 1329 071A  CD 0554     	CALL	CRLF
+ 1330 071D  1D          SKIP:	DEC	E				;Next Port
+ 1331 071E  10 D5       	DJNZ	LOOPIO
+ 1332 0720  CD 0554     	CALL	CRLF
+ 1333 0723  C9          	RET
+ 1334                   
+ 1335                   ;
+ 1336                   ;
+ 1337                   ;
+ 1338                   ;
+ 1339                   ;
+ 1340                   
+ 1341 0724              NOT_DONE:
+ 1342 0724  11 0D5B     	LD	DE,NOT_DONE_MSG			;Routine not written yet
+ 1343 0727  CD 032F     	CALL	PRINT_STRING
+ 1344 072A  C9          	RET
+ 1345                   
+ 1346                   
+ 1347                   
+ 1348                   
+ 1349                   
+ 1350                   ;------------------------------------  TIME DATE ROUTINES ------------------------------
+ 1351                   
+ 1352 072B              TIME_MENU:
+ 1353 072B  31 80FF     	LD	SP,STACK			;Just to be safe, redo stack at 0FFF0H
+ 1354 072E  11 0E6E     	ld	de,TIME_MENU_MSG		;List Time menu options
+ 1355 0731  CD 032F     	call	PRINT_STRING
+ 1356                   
+ 1357 0734  3E 80       	LD	A,80H			
+ 1358 0736  D3 54       	OUT	(CPU_SPEED_PORT),A		; Set to low speed (10 MHz)
+ 1359                   
+ 1360 0738              TIME_LOOP:
+ 1361 0738  3E 00       	LD	A,RTC_CS_LOW			;Deselect RTC chip SPI interface (Note HIGH for CS to select chip)
+ 1362 073A  D3 52       	OUT	(RTC_CS),A
+ 1363                   
+ 1364 073C  11 1270     	ld	de,Prompt			;'Please enter a command >'
+ 1365 073F  CD 032F     	call	PRINT_STRING
+ 1366                   
+ 1367 0742  CD 043A     	call	TI_NO_ECHO			;Simple UC character Input (Note, no fancy checking)
+ 1368 0745  FE 1B       	cp	ESC				;ESC back to main menu
+ 1369 0747  CA 0770     	jp	z,FINISH_TIME			
+ 1370                   	
+ 1371 074A  FE 41       	cp	a,'A'
+ 1372 074C  CA 077F     	JP	Z,ACTIVATE_RTC
+ 1373 074F  FE 53       	CP	A,'S'
+ 1374 0751  CA 078F     	JP	Z,READ_SECONDS
+ 1375 0754  FE 57       	CP	A,'W'
+ 1376 0756  CA 07AB     	JP	Z,WRITE_RTC_RAM
+ 1377 0759  FE 4D       	CP	A,'M'
+ 1378 075B  CA 07EE     	JP	Z,READ_RTC_RAM
+ 1379 075E  FE 54       	CP	A,'T'
+ 1380 0760  CA 0820     	JP	Z,SET_TIME
+ 1381 0763  FE 52       	CP	A,'R'
+ 1382 0765  CA 08EB     	JP	Z,READ_TIME
+ 1383 0768  FE 58       	CP	A,'X'
+ 1384 076A  CA 0941     	JP	Z,DISPLAY_RGS
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  24
+SUPER_IOZ80
+
+ 1385 076D  C3 0776     	JP	TIME_MENU_ERROR
+ 1386                   
+ 1387 0770              FINISH_TIME:
+ 1388 0770  AF          	XOR	A,A			
+ 1389 0771  D3 54       	OUT	(CPU_SPEED_PORT),A		; Set to High speed (40 MHz)
+ 1390 0773  C3 0298     	JP	MONITOR_MENU
+ 1391                   	
+ 1392 0776              TIME_MENU_ERROR:
+ 1393 0776  11 1283     	LD	DE,MENU_ERR_MSG			;"Menu error"
+ 1394 0779  CD 032F     	CALL	PRINT_STRING
+ 1395 077C  C3 072B     	JP	TIME_MENU
+ 1396                   
+ 1397                   ;-------------------------------------------------------------------------------------------------
+ 1398                   
+ 1399 077F              ACTIVATE_RTC:
+ 1400 077F  21 0FE4     	LD	HL,MSG0				; "Activate RTC Chip"
+ 1401 0782  CD 09EA     	CALL	RTC_PMSG
+ 1402                   	
+ 1403 0785  06 8F       	LD	B,RTC_CTL_REG OR 80H		; RTC Register address + Write
+ 1404 0787  0E 00       	LD	C,00000000B			; ENABLE_OSC, Bit 7 to enable/start the RTC chip (0=start, 1=stop)
+ 1405 0789  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+ 1406 078C  C3 072B     	JP	TIME_MENU
+ 1407                   
+ 1408                   ;-------------------------------------------------------------------------------------------------
+ 1409                   	
+ 1410 078F              READ_SECONDS:
+ 1411 078F  21 1002     	LD	HL,MSG1				; "1 = Read Seconds Register from RTC Chip"
+ 1412 0792  CD 09EA     	CALL	RTC_PMSG
+ 1413                   	
+ 1414 0795  06 00       	LD	B,RTC_SECONDS			; Seconds Register address + READ
+ 1415 0797  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1416                   
+ 1417 079A  F5          	PUSH	AF				; Save it
+ 1418 079B  21 102D     	LD	HL,MSG2				; "RTC Seconds Register = "
+ 1419 079E  CD 09EA     	CALL	RTC_PMSG
+ 1420 07A1  F1          	POP	AF
+ 1421 07A2  CD 0597     	CALL	HEXOUT				; Display Returned SPI PROM Byte
+ 1422 07A5  CD 0554     	CALL	CRLF
+ 1423 07A8  C3 072B     	JP	TIME_MENU
+ 1424                   
+ 1425                   ;-------------------------------------------------------------------------------------------------
+ 1426                   
+ 1427 07AB              WRITE_RTC_RAM:
+ 1428 07AB  21 1047     	LD	HL,MSG3				; "2",CR,LF,Enter RAM location (20H-7FH) "
+ 1429 07AE  CD 09EA     	CALL	RTC_PMSG
+ 1430                   	
+ 1431 07B1  CD 0563     	CALL	GETHEX
+ 1432 07B4  DA 09E1     	JP	C,DATA_ERROR
+ 1433 07B7  F6 80       	OR	A,80H				; Add write bit
+ 1434 07B9  57          	LD	D,A				; RAM Location to D (with Write bit)
+ 1435 07BA  21 1068     	LD	HL,MSG4				; 'Enter Byte value " 
+ 1436 07BD  CD 09EA     	CALL	RTC_PMSG
+ 1437 07C0  CD 0563     	CALL	GETHEX
+ 1438 07C3  DA 09E1     	JP	C,DATA_ERROR
+ 1439 07C6  5F          	LD	E,A				; Save above values in DE
+ 1440                   
+ 1441 07C7  4F          	LD	C,A				; Value to write to RAM
+ 1442 07C8  42          	LD	B,D				; Get the above saved address			
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  25
+SUPER_IOZ80
+
+ 1443 07C9  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<  Send Write pulse (Address in B, data in C)
+ 1444                   
+ 1445 07CC  21 107C     	LD	HL,MSG5				; "Wrote" 
+ 1446 07CF  CD 09EA     	CALL	RTC_PMSG
+ 1447 07D2  7B          	LD	A,E
+ 1448 07D3  CD 0597     	CALL	HEXOUT
+ 1449 07D6  21 1085     	LD	HL,MSG6				; " to RAM location 	
+ 1450 07D9  CD 09EA     	CALL	RTC_PMSG
+ 1451 07DC  7A          	LD	A,D
+ 1452 07DD  E6 7F       	AND	A,7FH				; Strip Write bit
+ 1453 07DF  CD 0597     	CALL	HEXOUT
+ 1454 07E2  21 1098     	LD	HL,MSG7				; "  in RTC"	
+ 1455 07E5  CD 09EA     	CALL	RTC_PMSG
+ 1456 07E8  CD 0554     	CALL	CRLF
+ 1457 07EB  C3 072B     	JP	TIME_MENU
+ 1458                   	
+ 1459 07EE              READ_RTC_RAM:
+ 1460 07EE  21 10A1     	LD	HL,MSG8				; "3 CR,LF,Enter RAM location (20H-7FH) "
+ 1461 07F1  CD 09EA     	CALL	RTC_PMSG
+ 1462                   
+ 1463 07F4  CD 0563     	CALL	GETHEX
+ 1464 07F7  DA 09E1     	JP	C,DATA_ERROR
+ 1465 07FA  57          	LD	D,A				; Save RAM Location to D
+ 1466                   
+ 1467 07FB  47          	LD	B,A				; RAM Location to B
+ 1468 07FC  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1469                   
+ 1470 07FF  F5          	PUSH	AF				; Save data
+ 1471 0800  21 10C2     	LD	HL,MSG9				; "RAM location "
+ 1472 0803  CD 09EA     	CALL	RTC_PMSG
+ 1473 0806  7A          	LD	A,D
+ 1474 0807  CD 0597     	CALL	HEXOUT
+ 1475 080A  21 10D2     	LD	HL,MSG10			; " H = "	
+ 1476 080D  CD 09EA     	CALL	RTC_PMSG
+ 1477 0810  F1          	POP	AF
+ 1478 0811  CD 0597     	CALL	HEXOUT
+ 1479 0814  21 10D7     	LD	HL,MSG11			; "  in RTC"	
+ 1480 0817  CD 09EA     	CALL	RTC_PMSG
+ 1481 081A  CD 0554     	CALL	CRLF
+ 1482 081D  C3 072B     	JP	TIME_MENU
+ 1483                   
+ 1484                   ;-------------------------------------------------------------------------------------------------
+ 1485                   	
+ 1486 0820              SET_TIME:
+ 1487 0820  21 10E0     	LD	HL,MSG12			; "4",CR,LF,'Enter Year (00-99) '
+ 1488 0823  CD 09EA     	CALL	RTC_PMSG
+ 1489 0826  CD 0563     	CALL	GETHEX
+ 1490 0829  DA 09E1     	JP	C,DATA_ERROR
+ 1491 082C  32 8104     	LD	(@YEAR),A
+ 1492 082F  CD 0597     	CALL	HEXOUT	
+ 1493 0832  06 86       	LD	B,RTC_YEAR OR 80H		; RTC Register address + Write
+ 1494 0834  4F          	LD	C,A				; DATA
+ 1495 0835  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+ 1496                   
+ 1497 0838  21 10F7     	LD	HL,MSG13			; CR,LF,'Enter Month (01-12) '
+ 1498 083B  CD 09EA     	CALL	RTC_PMSG
+ 1499 083E  CD 0563     	CALL	GETHEX
+ 1500 0841  DA 09E1     	JP	C,DATA_ERROR
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  26
+SUPER_IOZ80
+
+ 1501 0844  32 8106     	LD	(@MONTH),A
+ 1502 0847  06 85       	LD	B,RTC_MONTH OR 80H		; RTC Register address + Write
+ 1503 0849  4F          	LD	C,A		
+ 1504 084A  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+ 1505                   
+ 1506 084D  21 110E     	LD	HL,MSG14			; CR,LF,'Enter Date (01-31) '
+ 1507 0850  CD 09EA     	CALL	RTC_PMSG
+ 1508 0853  CD 0563     	CALL	GETHEX
+ 1509 0856  DA 09E1     	JP	C,DATA_ERROR
+ 1510 0859  32 8108     	LD	(@DATE),A
+ 1511 085C  06 84       	LD	B,RTC_DATE OR 80H		; RTC Register address + Write
+ 1512 085E  4F          	LD	C,A		
+ 1513 085F  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+ 1514                   	
+ 1515 0862  21 1124     	LD	HL,MSG15			; CR,LF,'Enter Hours (00-23) '
+ 1516 0865  CD 09EA     	CALL	RTC_PMSG
+ 1517 0868  CD 0563     	CALL	GETHEX
+ 1518 086B  DA 09E1     	JP	C,DATA_ERROR
+ 1519 086E  32 810A     	LD	(@HOURS),A
+ 1520 0871  06 82       	LD	B,RTC_HOURS OR 80H		; RTC Register address + Write
+ 1521 0873  4F          	LD	C,A		
+ 1522 0874  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+ 1523                   	
+ 1524 0877  21 113B     	LD	HL,MSG16			; CR,LF,'Enter Minutes (00-59) '
+ 1525 087A  CD 09EA     	CALL	RTC_PMSG
+ 1526 087D  CD 0563     	CALL	GETHEX
+ 1527 0880  DA 09E1     	JP	C,DATA_ERROR
+ 1528 0883  32 810C     	LD	(@MINUTES),A
+ 1529 0886  06 81       	LD	B,RTC_MINUTES OR 80H		; RTC Register address + Write
+ 1530 0888  4F          	LD	C,A		
+ 1531 0889  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+ 1532                   	
+ 1533 088C  21 1154     	LD	HL,MSG17			; CR,LF,'Enter Seconds (00-59) '
+ 1534 088F  CD 09EA     	CALL	RTC_PMSG
+ 1535 0892  CD 0563     	CALL	GETHEX
+ 1536 0895  DA 09E1     	JP	C,DATA_ERROR
+ 1537 0898  32 810E     	LD	(@SECONDS),A
+ 1538 089B  06 80       	LD	B,RTC_SECONDS OR 80H		; RTC Register address + Write
+ 1539 089D  4F          	LD	C,A		
+ 1540 089E  CD 09A1     	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+ 1541                   	
+ 1542 08A1  21 116D     	LD	HL,MSG18			; CR,LF,'Entered:- 20'
+ 1543 08A4  CD 09EA     	CALL	RTC_PMSG
+ 1544 08A7  3A 8104     	LD	A,(@YEAR)
+ 1545 08AA  CD 0597     	CALL	HEXOUT
+ 1546 08AD  0E 2F       	LD	C,'/'
+ 1547 08AF  CD 09FB     	CALL	ZCO
+ 1548 08B2  3A 8106     	LD	A,(@MONTH)
+ 1549 08B5  CD 0597     	CALL	HEXOUT
+ 1550 08B8  0E 2F       	LD	C,'/'
+ 1551 08BA  CD 09FB     	CALL	ZCO
+ 1552 08BD  3A 8108     	LD	A,(@DATE)
+ 1553 08C0  CD 0597     	CALL	HEXOUT
+ 1554 08C3  21 117D     	LD	HL,MSG19			; '  Time= '
+ 1555 08C6  CD 09EA     	CALL	RTC_PMSG
+ 1556 08C9  3A 810A     	LD	A,(@HOURS)
+ 1557 08CC  CD 0597     	CALL	HEXOUT
+ 1558 08CF  0E 2F       	LD	C,'/'
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  27
+SUPER_IOZ80
+
+ 1559 08D1  CD 09FB     	CALL	ZCO
+ 1560 08D4  3A 810C     	LD	A,(@MINUTES)
+ 1561 08D7  CD 0597     	CALL	HEXOUT
+ 1562 08DA  0E 2F       	LD	C,'/'
+ 1563 08DC  CD 09FB     	CALL	ZCO
+ 1564 08DF  3A 810E     	LD	A,(@SECONDS)
+ 1565 08E2  CD 0597     	CALL	HEXOUT
+ 1566 08E5  CD 0554     	CALL	CRLF
+ 1567 08E8  C3 072B     	JP	TIME_MENU
+ 1568                   	
+ 1569                   	
+ 1570 08EB              READ_TIME:
+ 1571 08EB  21 1187     	LD	HL,MSG20			; "5",CR,LF,'Date = '
+ 1572 08EE  CD 09EA     	CALL	RTC_PMSG
+ 1573                   
+ 1574 08F1  06 06       	LD	B,RTC_YEAR			; Year Register address + READ
+ 1575 08F3  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1576 08F6  CD 0597     	CALL	HEXOUT
+ 1577 08F9  0E 2F       	LD	C,'/'
+ 1578 08FB  CD 09FB     	CALL	ZCO
+ 1579                   
+ 1580 08FE  06 05       	LD	B,RTC_MONTH			; Month Register address + READ
+ 1581 0900  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1582 0903  CD 0597     	CALL	HEXOUT
+ 1583 0906  0E 2F       	LD	C,'/'
+ 1584 0908  CD 09FB     	CALL	ZCO
+ 1585                   
+ 1586 090B  06 04       	LD	B,RTC_DATE			; Date Register address + READ
+ 1587 090D  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1588 0910  CD 0597     	CALL	HEXOUT
+ 1589                   
+ 1590 0913  21 117D     	LD	HL,MSG19			; '  Time= '
+ 1591 0916  CD 09EA     	CALL	RTC_PMSG
+ 1592                   
+ 1593 0919  06 02       	LD	B,RTC_HOURS			; Hours Register address + READ
+ 1594 091B  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1595 091E  CD 0597     	CALL	HEXOUT
+ 1596 0921  0E 2F       	LD	C,'/'
+ 1597 0923  CD 09FB     	CALL	ZCO
+ 1598                   
+ 1599 0926  06 01       	LD	B,RTC_MINUTES			; Minutes Register address + READ
+ 1600 0928  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1601 092B  CD 0597     	CALL	HEXOUT
+ 1602 092E  0E 2F       	LD	C,'/'
+ 1603 0930  CD 09FB     	CALL	ZCO
+ 1604                   
+ 1605 0933  06 00       	LD	B,RTC_SECONDS			; Seconds Register address + READ
+ 1606 0935  CD 09B5     	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1607 0938  CD 0597     	CALL	HEXOUT
+ 1608                   
+ 1609 093B  CD 0554     	CALL	CRLF
+ 1610 093E  C3 072B     	JP	TIME_MENU
+ 1611                   
+ 1612                   
+ 1613 0941              DISPLAY_RGS:
+ 1614 0941  21 1194     	LD	HL,MSG21			; "6",CR,LF,'Register Dump:-'
+ 1615 0944  CD 09EA     	CALL	RTC_PMSG
+ 1616 0947  21 11A7     	LD	HL,MSG22			; 'Register (00H - 06H)  '
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  28
+SUPER_IOZ80
+
+ 1617 094A  CD 09EA     	CALL	RTC_PMSG
+ 1618                   
+ 1619 094D  16 07       	LD	D,07H				;Count
+ 1620 094F  06 00       	LD	B,00H				;Register pointer
+ 1621 0951  CD 09B5     REGS_1:	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1622 0954  CD 0597     	CALL	HEXOUT	
+ 1623 0957  0E 20       	LD	C,' '
+ 1624 0959  CD 09FB     	CALL	ZCO
+ 1625 095C  04          	INC	B																				
+ 1626 095D  15          	DEC	D
+ 1627 095E  7A          	LD	A,D
+ 1628 095F  B7          	OR	A,A
+ 1629 0960  C2 0951     	JP	NZ,REGS_1
+ 1630                   
+ 1631 0963  21 11C1     	LD	HL,MSG23			; 'Register (07H - 0EH)  '
+ 1632 0966  CD 09EA     	CALL	RTC_PMSG
+ 1633                   
+ 1634 0969  16 08       	LD	D,08H				;Count
+ 1635 096B  06 09       	LD	B,09H				;Register pointer
+ 1636 096D  CD 09B5     REGS_2:	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1637 0970  CD 0597     	CALL	HEXOUT
+ 1638 0973  0E 20       	LD	C,' '
+ 1639 0975  CD 09FB     	CALL	ZCO
+ 1640 0978  04          	INC	B																				
+ 1641 0979  15          	DEC	D
+ 1642 097A  7A          	LD	A,D
+ 1643 097B  B7          	OR	A,A
+ 1644 097C  C2 096D     	JP	NZ,REGS_2
+ 1645                   
+ 1646 097F  21 11DB     	LD	HL,MSG24			; 'Register (0FH - 11H)  '
+ 1647 0982  CD 09EA     	CALL	RTC_PMSG
+ 1648                   
+ 1649 0985  16 03       	LD	D,03H				;Count
+ 1650 0987  06 0F       	LD	B,0FH				;Register pointer
+ 1651 0989  CD 09B5     REGS_3:	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+ 1652 098C  CD 0597     	CALL	HEXOUT
+ 1653 098F  0E 20       	LD	C,' '
+ 1654 0991  CD 09FB     	CALL	ZCO
+ 1655 0994  04          	INC	B																				
+ 1656 0995  15          	DEC	D
+ 1657 0996  7A          	LD	A,D
+ 1658 0997  B7          	OR	A,A
+ 1659 0998  C2 0989     	JP	NZ,REGS_3
+ 1660 099B  CD 0554     	CALL	CRLF
+ 1661 099E  C3 072B     	JP	TIME_MENU
+ 1662                   
+ 1663                   
+ 1664                   
+ 1665                   
+ 1666                   
+ 1667                   ;------------------------ RTC SPI CORE ROUTINES ---------------------------------------------------------
+ 1668                   
+ 1669 09A1              WRITE_RTC_SPI:					; [C] contains DATA, [B] contains Register address
+ 1670 09A1  3E 01       	LD	A,RTC_CS_HIGH			; Select RTC
+ 1671 09A3  D3 52       	OUT	(RTC_CS),A			; 52H
+ 1672                   			
+ 1673                    
+ 1674 09A5  78          	LD	A,B				; <<<---- Send address   (Low Byte)
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  29
+SUPER_IOZ80
+
+ 1675 09A6  D3 51       	OUT	(RTC_DATA_OUT),A
+ 1676                   	
+ 1677 09A8  79          	LD	A,C				; <<<---- Send data (High Byte)
+ 1678 09A9  D3 50       	OUT	(RTC_ADDRESS),A
+ 1679                   
+ 1680 09AB  D3 53       	OUT	(RTC_WRITE),A			; (Port 53H) Send Write pulse 
+ 1681                   
+ 1682 09AD  CD 09CD     	CALL	RTC_DELAY
+ 1683                   	
+ 1684 09B0  3E 00       	LD	A,RTC_CS_LOW			; De-select RTC
+ 1685 09B2  D3 52       	OUT	(RTC_CS),A	
+ 1686 09B4  C9          	RET
+ 1687                   
+ 1688                   
+ 1689                   
+ 1690 09B5              READ_RTC_SPI:
+ 1691 09B5  3E 01       	LD	A,RTC_CS_HIGH			; Select RTC
+ 1692 09B7  D3 52       	OUT	(RTC_CS),A			; 52H
+ 1693                   
+ 1694 09B9  78          	LD	A,B				; <<<---- Send address (only)
+ 1695 09BA  D3 51       	OUT	(RTC_DATA_OUT),A
+ 1696 09BC  DB 53       	IN	A,(RTC_READ)			; Send Read pulse (Port 6B)
+ 1697                   
+ 1698 09BE  CD 09CD     	CALL	RTC_DELAY
+ 1699                   	
+ 1700 09C1  DB 51       	IN	A,(RTC_DATA_IN)			; 51H, <<< Get RTC SPI data returned in [A]
+ 1701 09C3  F5          	PUSH	AF
+ 1702                   
+ 1703 09C4  CD 09CD     	CALL	RTC_DELAY
+ 1704                   
+ 1705 09C7  3E 00       	LD	A,RTC_CS_LOW			; De-select RTC
+ 1706 09C9  D3 52       	OUT	(RTC_CS),A
+ 1707 09CB  F1          	POP	AF
+ 1708 09CC  C9          	RET					;Return with value in [A]
+ 1709                   
+ 1710                   
+ 1711 09CD              RTC_DELAY:	
+ 1712 09CD  F5          	PUSH	AF
+ 1713 09CE  C5          	PUSH	BC
+ 1714 09CF  E5          	PUSH	HL
+ 1715 09D0  21 0080     	LD	HL,080H				;Extra time required for RTC to write multiple data bytes
+ 1716 09D3  2B          DELAY6:	DEC	HL				;before Status is valid	
+ 1717 09D4  7C          	LD	A,H
+ 1718 09D5  B5          	OR	A,L
+ 1719 09D6  20 FB       	JR	NZ,DELAY6
+ 1720 09D8  E1          	POP	HL
+ 1721 09D9  DB 52       DELAY7:	IN	A,(RTC_STATUS)			; Wait until busy is low
+ 1722 09DB  B7          	OR	A
+ 1723 09DC  20 FB       	JR	NZ,DELAY7
+ 1724 09DE  C1          	POP	BC
+ 1725 09DF  F1          	POP	AF
+ 1726 09E0  C9          	RET
+ 1727                   
+ 1728 09E1               DATA_ERROR:
+ 1729 09E1  21 129C     	LD	HL,FORMAT_ERR_MSG		; "DATA  error"
+ 1730 09E4  CD 09EA     	CALL	RTC_PMSG
+ 1731 09E7  C3 072B     	JP	TIME_MENU
+ 1732                   
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  30
+SUPER_IOZ80
+
+ 1733                   
+ 1734                   ;<<<<<<<<<<<<<<<<<<<<<<<<< SUPPORT ROUTINES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ 1735                   
+ 1736 09EA              RTC_PMSG:	
+ 1737 09EA  C5          	PUSH	BC				; Only [A] and [HL] is changed
+ 1738 09EB              RTC_PMSG1:		
+ 1739 09EB  7E          	LD	A,(HL)				; A ROUTINE TO PRINT OUT A STRING @ [HL]
+ 1740 09EC  23          	INC	HL				; UP TO THE FIRST 0.
+ 1741 09ED  FE 24       	CP	A,'$'
+ 1742 09EF  CA 09F9     	JP	Z,RTC_PMSG_DONE
+ 1743 09F2  4F          	LD	C,A
+ 1744 09F3  CD 09FB     	CALL	ZCO
+ 1745 09F6  C3 09EB     	JP	RTC_PMSG1
+ 1746 09F9              RTC_PMSG_DONE:
+ 1747 09F9  C1          	POP	BC
+ 1748 09FA  C9          	RET
+ 1749                   
+ 1750                   
+ 1751                   
+ 1752                   ;<<<<<<<<<<<<<<<<<<<<<< MAIN CONSOL I/O ROUTINES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ 1753                   
+ 1754 09FB  DB 44       ZCO:	IN	A,(MONITOR_STATUS)		;USB Port for Console OUT
+ 1755                   ;	OUT	(LEDS_PORT),A			;LED's display
+ 1756 09FD  E6 02       	AND	00000010B
+ 1757 09FF  20 FA       	JR	NZ,ZCO	
+ 1758 0A01  79          	LD	A,C				
+ 1759 0A02  E6 7F       	AND	7FH				
+ 1760 0A04  FE 07       	CP	A,BELL
+ 1761 0A06  28 04       	JR	Z,BUZZER
+ 1762 0A08  D3 45       	OUT	(MONITOR_DATA),A
+ 1763 0A0A  79          	LD	A,C				;Return with char in A
+ 1764 0A0B  C9          	RET
+ 1765                   
+ 1766                   	
+ 1767 0A0C  D3 57       BUZZER:	OUT	(BUZZER_PORT),A
+ 1768 0A0E  C9          	RET
+ 1769                   
+ 1770                   
+ 1771                   ;<<<<<<<<<<<<<<<<<<< MAIN CONSOL STATUS ROUTINE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ 1772                   
+ 1773 0A0F  DB 44       ZCSTS:	IN	A,(MONITOR_STATUS)
+ 1774 0A11  E6 01       	AND	01H
+ 1775 0A13  28 03       	JR	Z,NO_CSTS			;Zero if nothing
+ 1776 0A15  AF          	XOR	A
+ 1777 0A16  3D          	DEC	A				;RETURN WITH 0FFH IN [A] IF SOMETHING
+ 1778 0A17  C9          	RET
+ 1779 0A18              NO_CSTS:
+ 1780 0A18  AF          	XOR	A			
+ 1781 0A19  C9          	RET					;RETURN WITH 0 IN A IF NOTHING THERE
+ 1782                   
+ 1783 0A1A              QUICK_CSTS:	
+ 1784 0A1A  DB 44       	IN	A,(MONITOR_STATUS)	
+ 1785 0A1C  E6 01       	AND	01H
+ 1786 0A1E  C9          	RET					;Ret Z if nothing
+ 1787                   
+ 1788                   ;<<<<<<<<<<<<<<<<<<<< MAIN CONSOL INPUT ROUTINE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ 1789                   
+ 1790                   
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  31
+SUPER_IOZ80
+
+ 1791 0A1F  DB 44       ZCI:	IN 	A,(MONITOR_STATUS)		;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
+ 1792 0A21  E6 01       	AND	01H
+ 1793 0A23  28 FA       	JR	Z,ZCI				;Wait until something there
+ 1794 0A25  DB 45       	IN	A,(MONITOR_DATA)
+ 1795 0A27  E6 7F       	AND	7FH				;Always 7 bits only.
+ 1796 0A29  C9          	RET
+ 1797                   	
+ 1798                   	
+ 1799                   	
+ 1800                   	
+ 1801                   ;>>>>>>>>>>>>>>>>>>>> MAIN PRINTER OUTPUT ROUTINE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ 1802                   
+ 1803 0A2A  79          LO:	LD	A,C
+ 1804 0A2B  D3 56       	OUT	(PRINTER_OUT),A		;56H, Send Data
+ 1805                   	
+ 1806 0A2D  3E FF       	LD	A,0FFH			;55H, Setup strobe High -> Low -> High
+ 1807 0A2F  D3 55       	OUT	(PRINTER_STROBE),A
+ 1808 0A31  AF          	XOR	A	 		;Send STROBE FOR CENTRONICS
+ 1809 0A32  D3 55       	OUT	(PRINTER_STROBE),A
+ 1810                   
+ 1811 0A34  C5          	PUSH	BC
+ 1812 0A35  06 FF       	LD	B,0FFH
+ 1813 0A37  DB 55       LO1:	IN	A,(PRINTER_STATUS)   	
+ 1814 0A39  E6 01       	AND	00000001B    		;Z if last char was acknowledged
+ 1815 0A3B  28 02       	JR	Z,LO2
+ 1816 0A3D  10 F8       	DJNZ	LO1			;Try 255 times
+ 1817                   	
+ 1818 0A3F  C1          LO2:	POP	BC
+ 1819 0A40  3E FF       	LD	A,0FFH			;55H, Raise strobe again
+ 1820 0A42  D3 55       	OUT	(PRINTER_STROBE),A
+ 1821 0A44  C3 0A4D     	JP	LSTAT			;Remain until printer is NOT Busy
+ 1822                   	
+ 1823                   
+ 1824 0A47              FLUSH_PRINTER:	
+ 1825 0A47  0E 0C       	LD	C,FF			;Send a Form Feed to LaserJet Printer
+ 1826 0A49  CD 0A2A     	CALL	LO			;This forces a partial page to be printed
+ 1827 0A4C  C9          	RET
+ 1828                   
+ 1829                   
+ 1830                   ;>>>>>>>>>>>>>>>>>>>>>> PRINTER STATUS ROUTINE <<<<<<<<<<<<<<<<<<<<<<<<
+ 1831 0A4D  C5          LSTAT:	PUSH	BC
+ 1832 0A4E  06 FF       	LD	B,0FFH
+ 1833 0A50  DB 55       LSTAT1:	IN	A,(PRINTER_STATUS)	;55H 
+ 1834 0A52  E6 03       	AND	A,00000011B
+ 1835 0A54  28 06       	JR	Z,LSTAT2
+ 1836 0A56  10 F8       	DJNZ	LSTAT1			;Keep trying
+ 1837 0A58  C1          	POP	BC
+ 1838 0A59  AF          	XOR	A
+ 1839 0A5A  3D          	DEC	A			;BUSY = HIGH, or ACK = HIGH,  NON-ZERO FLAG, PRINTER BUSY
+ 1840 0A5B  C9          	RET	
+ 1841 0A5C  C1          LSTAT2:	POP	BC
+ 1842 0A5D  AF          	XOR	A	     		;BUSY = LOW, ACK = LOW,  ZERO FLAG, PRINTER READY
+ 1843 0A5E  C9          	RET	
+ 1844                   	
+ 1845                   
+ 1846                   
+ 1847                   ;<<<<<<<<<<<<<<<<<<<< MAIN I/O ROUTINES TO SEND/GET DATA TO/FROM S100 BUS PORT S100_DATA_PORT (81H) >>>>>>>>>>>>>
+ 1848                   	
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  32
+SUPER_IOZ80
+
+ 1849 0A5F              GET_S100_STATUS:
+ 1850 0A5F  DB 40       	IN	A,(STATUS_BUS_PORT)		;Get S100 Status Port - Bit 7, 1 = data present, 0, no data present
+ 1851 0A61  E6 80       	AND	A,S100_RTS			;80H, Bit 7
+ 1852 0A63  C9          	RET					;Ret Z if nothing, 80H if data
+ 1853                   
+ 1854                   	
+ 1855                   
+ 1856 0A64              GET_S100_TO_FPGA:
+ 1857 0A64  DB 40       	IN	A,(STATUS_BUS_PORT)		;Get S100 Status Port - Bit 7, 1 = data present, 0, no data present
+ 1858 0A66  E6 80       	AND	A,S100_RTS			;80H, Bit 7
+ 1859 0A68  28 FA       	JR	Z,GET_S100_TO_FPGA		;Wait until data is available
+ 1860 0A6A  DB 41       	IN	A,(DATA_BUS_PORT)		;Return Data in [A], FPGA "hardware" will lower bit 7 of S100 Bus port 30H
+ 1861 0A6C  C9          	RET
+ 1862                   
+ 1863                   	
+ 1864 0A6D              SEND_FPGA_TO_S100:
+ 1865 0A6D  DB 40       	IN	A,(STATUS_BUS_PORT)		;Has previous data been read by S100 bus
+ 1866 0A6F  E6 01       	AND	A,FPGA_RTS			;01H, Bit 0
+ 1867 0A71  20 FA       	JR	NZ,SEND_FPGA_TO_S100
+ 1868 0A73  79          	LD	A,C	
+ 1869 0A74  D3 41       	OUT	(DATA_BUS_PORT),A
+ 1870 0A76  F5          	PUSH	AF
+ 1871 0A77              SEND_FPGA1:
+ 1872 0A77  DB 40       	IN	A,(STATUS_BUS_PORT)		;Wait until accepted by S100 system, this will (in hardware) lower bit 0 of status port
+ 1873 0A79  E6 01       	AND	A,FPGA_RTS			;01H, Has bit 0 returned low yet by a S100 bus read
+ 1874 0A7B  20 FA       	JR	NZ,SEND_FPGA1
+ 1875 0A7D  F1          	POP	AF				;Return with sent character in A	
+ 1876 0A7E  C9          	RET				
+ 1877                   	
+ 1878 0A7F              SET_ERROR_FLAG:
+ 1879 0A7F  3E 04       	LD	A,04H				;Indicate to S100 Bus that the FPGA has detected an error with a CMD
+ 1880 0A81  D3 43       	OUT	(SET_ERROR_FLAG_PORT),A
+ 1881 0A83  C9          	RET
+ 1882                   
+ 1883                   
+ 1884                   
+ 1885                   
+ 1886                   ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><
+ 1887                   ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><
+ 1888                   ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  MESAGES <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ 1889                   ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><
+ 1890                   ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><
+ 1891                   ;
+ 1892 0A84  0D 0A 0A 07 SIGNON_MSG	DB	CR,LF,LF,BELL,'FPGA SUPER IO Board MONITOR -- V0.1c John Monahan, 12/04/2021$' 	
+ 1893 0AC6  0D 0A 0A 53 DRIVE_MSG	DB	CR,LF,LF,'Select Drive Sub-Menu:-$' 	
+ 1894                   
+ 1895 0AE1  0D 0A 46 50 Z80_MENU_MSG1	DB	CR,LF,'FPGA onboard Z80 CPU Monitor Menu.  V0.1  RAM 8000-FFFFH, $'
+ 1896 0B1E  53 50 3D 24 SP_MSG		DB	'SP=$'
+ 1897 0B22  48 20 24    H_MSG		DB	'H $'
+ 1898                   
+ 1899 0B25  0D 0A       Z80_MENU_MSG2:	DB	CR,LF
+ 1900 0B27  41 20 4D 65   		DB	'A Memmap       B Time/Date Menu   D Show RAM    E Echo Text'
+ 1901 0B62  0D 0A       		DB	CR,LF
+ 1902 0B64  46 20 46 69 		DB	'F Fill RAM     G Goto Location    H Data Port   I'
+ 1903 0B95  0D 0A       		DB	CR,LF  
+ 1904 0B97  4A 20 54 65 		DB	'J Test RAM     K Z80 Menu         M Move RAM    QI,O Port'
+ 1905 0BD0  0D 0A       		DB	CR,LF
+ 1906 0BD2  52 20 53 68 		DB	'R Show Ports   S Subs RAM         T RAM Ascii   U' 
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  33
+SUPER_IOZ80
+
+ 1907 0C03  0D 0A       		DB	CR,LF 
+ 1908 0C05  58 20 20 20 		DB      'X              V Verify RAM       Z Top Of RAM  (ESC) Main menu'
+ 1909 0C44  0D 0A 0A 24 		DB	CR,LF,LF,'$'  
+ 1910                   		
+ 1911                   ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ 1912                   ;
+ 1913                   
+ 1914         0D00      MON_CMD_TABLE	EQU	($ & 0FF00H) + 100H
+ 1915                   	
+ 1916                   ;	NOTE TABLE MUST BE WITHIN 0-FFH BOUNDRY (CHECK YOUR LISTING)
+ 1917                   
+ 1918         0D00      		ORG	MON_CMD_TABLE
+ 1919                   ;
+ 1920                   ;COMMAND BRANCH TABLE
+ 1921 0D00  0724        			DW  NOT_DONE ;FLUSH		; "@"  
+ 1922 0D02  046C        			DW  MEMMAP			; "A"  DISPLAY A MAP OF MEMORY
+ 1923 0D04  072B        			DW  TIME_MENU			; "B"  TIME_DATE SUB-MENU
+ 1924 0D06  0003        			DW  BEGIN			; "C"  
+ 1925 0D08  04D0        			DW  DISP			; "D"  DISPLAY MEMORY (IN HEX & ASCII)
+ 1926 0D0A  06B1        			DW  ECHO			; "E"  ECHO CHAR IN TO CHAR OUT
+ 1927 0D0C  061A        			DW  FILL			; "F"  FILL MEMORY WITH A CONSTANT
+ 1928 0D0E  0627        			DW  GOTO			; "G"  GO TO [ADDRESS]
+ 1929 0D10  031A        			DW  S100_DATA_IN		; "H"  Display S100 Bus Data In port
+ 1930 0D12  0724        			DW  NOT_DONE 			; "I" 
+ 1931 0D14  0655        			DW  RAMTEST			; "J"  NON-DESTRUCTIVE MEMORY TEST 
+ 1932 0D16  0305        			DW  KCMD			; "K"  DISPLAY THE LIST OF SBC-Z80 COMMANDS
+ 1933 0D18  0003        			DW  BEGIN			; "L"  
+ 1934 0D1A  0681        			DW  MOVE			; "M"  MOVE BLOCK OF MEMORY (START,FINISH,DESTINATION)
+ 1935 0D1C  0724        			DW  NOT_DONE ;CPM_BOOT_SD	; "N"  Boot up CPM on SD card 
+ 1936 0D1E  0724        			DW  NOT_DONE			; "O"  Boot up 8086 (if present)
+ 1937 0D20  0724        			DW  NOT_DONE ;CPM_BOOT_IDE	; "P"  Boot up CPM on IDE Drive
+ 1938 0D22  0631        			DW  QUERY			; "Q"  QUERY PORT (IN OR OUT)
+ 1939 0D24  06E6        			DW  INPORTS			; "R"  Read ALL Input Ports
+ 1940 0D26  051B        			DW  SUBS			; "S"  SUBSTITUTE &/OR EXAMINE MEMORY
+ 1941 0D28  06C6        			DW  TYPE			; "T"  TYPE ASCII PRESENT IN MEMORY 
+ 1942 0D2A  0724        			DW  NOT_DONE 			; "U"  
+ 1943 0D2C  068C        			DW  VERIFY			; "V"  COMPARE MEMORY
+ 1944 0D2E  0724        			DW  NOT_DONE ;INTS_OK		; "W"  Allow Interrupts
+ 1945 0D30  0724        			DW  NOT_DONE			; "X"  
+ 1946 0D32  0724        			DW  NOT_DONE 			; "Y"  
+ 1947 0D34  0359        			DW  SIZE			; "Z"  FIND HIGHEST R/W RAM
+ 1948                   
+ 1949                   	
+ 1950 0D36  0D 0A 41 63 ALL_PORTS		DB	CR,LF,'Active I/O Ports:-$'
+ 1951 0D4B  0D 0A 07 49 Invalid_Msg		DB	CR,LF,BELL,'Invalid Data$'
+ 1952 0D5B  0D 0A 07 52 NOT_DONE_MSG		DB	CR,LF,BELL,'Routine not written!$'
+ 1953 0D73  0D 0A 45 6E RAM_TEST_MSG		DB	CR,LF,'Enter RAM range (xxxx,yyyy) $'
+ 1954 0D92  0D 0A 54 79 ECHO_MSG		DB	CR,LF,'Type characters. (^C to abort)$'
+ 1955                   
+ 1956 0DB3  0D 0A 43 6F H_MENU_MSG		DB	CR,LF,'Continously display S100 Data In Port. Reset to abort.$' 	
+ 1957 0DEC  0D 0A 4E 6F NO_STATUS_MESSAGES	DB	CR,LF,'Note: Bit 0 of SW1 is open, so no runtime status messages!$'
+ 1958                   
+ 1959 0E29  0D 0A 46 50 CMD_MODE_MSG		DB	CR,LF,'FPGA SUPER IO Board MONITOR in CMD Mode.$'
+ 1960 0E54  0D 0A 43 4D CMD_MSG			DB	CR,LF,'CMD=$'
+ 1961 0E5B  07 20 20 49 UNKNOWN_CMD_MSG		DB	BELL,'  Invalid Command$'
+ 1962                   
+ 1963 0E6E  0D 0A 0A 2D TIME_MENU_MSG		DB	CR,LF,LF,'---------- Time/Date Menu ---------------'
+ 1964 0E9A  0D 0A 41 2E 			DB	CR,LF,'A.   Activate Maxim DS1305 RTC chip.'
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  34
+SUPER_IOZ80
+
+ 1965 0EC0  0D 0A 53 2E 			DB	CR,LF,'S.   Read Seconds Register from RTC Chip.'
+ 1966 0EEB  0D 0A 57 2E 			DB	CR,LF,'W.   Write byte to RAM at a specified location in RTC.'
+ 1967 0F23  0D 0A 4D 2E 			DB	CR,LF,'M.   Read byte from RAM at a specified location in RTC.'
+ 1968 0F5C  0D 0A 54 2E 			DB	CR,LF,'T.   Set Time & Date.'
+ 1969 0F73  0D 0A 52 2E 			DB	CR,LF,'R.   Read Time & Date.'
+ 1970 0F8B  0D 0A 58 2E 			DB	CR,LF,'X.   Display all RTC Registers.'
+ 1971 0FAC  0D 0A 45 53 			DB	CR,LF,'ESC  Abort to startup program.',CR,LF,'$'
+ 1972                   
+ 1973                   
+ 1974 0FCF  0D 0A 5A 20 Z_MENU_MSG		DB	CR,LF,'Z = Go to Z80 Menu$'
+ 1975                   
+ 1976 0FE4  41 0D 0A 41 MSG0:		DB	'A',CR,LF,'Activating the RTC Chip.',CR,LF,'$'	
+ 1977                   
+ 1978 1002  53 0D 0A 52 MSG1:		DB	'S',CR,LF,'Reading Seconds Register from RTC Chip.$'
+ 1979 102D  0D 0A 52 54 MSG2:		DB	CR,LF,'RTC Seconds Register = $'	
+ 1980 1047  57 0D 0A 45 MSG3:		DB	'W',CR,LF,'Enter RAM location (20H-7FH) $'
+ 1981 1068  0D 0A 45 6E MSG4:		DB	CR,LF,'Enter Byte value $'
+ 1982 107C  0D 0A 57 72 MSG5:		DB	CR,LF,'Wrote $'
+ 1983 1085  48 20 74 6F MSG6:		DB	'H to RAM location $'
+ 1984 1098  48 20 69 6E MSG7:		DB	'H in RTC$'
+ 1985 10A1  4D 0D 0A 45 MSG8:		DB	'M',CR,LF,'Enter RAM location (20H-7FH) $'
+ 1986 10C2  0D 0A 52 41 MSG9:		DB	CR,LF,'RAM location $'
+ 1987 10D2  48 20 3D 20 MSG10:		DB	'H = $'
+ 1988 10D7  48 20 69 6E MSG11:		DB	'H in RTC$'
+ 1989 10E0  54 0D 0A 45 MSG12:		DB	'T',CR,LF,'Enter Year (00-99) $'
+ 1990 10F7  0D 0A 45 6E MSG13:		DB	CR,LF,'Enter Month (01-12) $'
+ 1991 110E  0D 0A 45 6E MSG14:		DB	CR,LF,'Enter Date (01-31) $'
+ 1992 1124  0D 0A 45 6E MSG15:		DB	CR,LF,'Enter Hours (00-23) $'
+ 1993 113B  0D 0A 45 6E MSG16:		DB	CR,LF,'Enter Minutes (00-59) $'
+ 1994 1154  0D 0A 45 6E MSG17:		DB	CR,LF,'Enter Seconds (00-59) $'
+ 1995 116D  0D 0A 0A 45 MSG18:		DB	CR,LF,LF,'Entered:- 20$'
+ 1996 117D  20 20 54 69 MSG19:		DB	'  Time = $'
+ 1997 1187  52 0D 0A 44 MSG20:		DB	'R',CR,LF,'Date = 20$'
+ 1998 1194  58 0D 0A 52 MSG21		DB	'X',CR,LF,'Register Dump:-$'
+ 1999 11A7  0D 0A 52 65 MSG22		DB	CR,LF,'Registers (00H - 06H)  $'
+ 2000 11C1  0D 0A 52 65 MSG23		DB	CR,LF,'Registers (07H - 0EH)  $'
+ 2001 11DB  0D 0A 52 65 MSG24		DB	CR,LF,'Registers (0FH - 11H)  $'
+ 2002                   
+ 2003 11F5  52 65 61 64 RTC_CMD_GET_MSG	DB	'Read Date/Time $'
+ 2004 1205  53 65 74 20 RTC_CMD_SET_MSG	DB	'Set Date/Time $'
+ 2005                   
+ 2006 1214  20 44 61 74 GET_DATE_TIME_MSG DB	' Date and Time to S100 Bus:- 20$'
+ 2007 1234  20 44 61 74 SET_DATE_TIME_MSG DB	' Date and Time from S100 Bus:- 20$'
+ 2008                   
+ 2009 1256  20 50 72 69 PRINT_STRING_MSG DB	' Print string on printer $'
+ 2010                   
+ 2011 1270  0D 0A 0A 45 Prompt		DB	CR,LF,LF,'Enter command >$'
+ 2012 1283  0D 0A 07 49 MENU_ERR_MSG	DB	CR,LF,BELL,'Invalid Menu Command!$'
+ 2013 129C  0D 0A 07 49 FORMAT_ERR_MSG	DB	CR,LF,BELL,'Incorrect keyboard data format entered.$'
+ 2014                   
+ 2015                   
+ 2016                   
+ 2017                   ; -------------------------- RAM usage for various Routines  -----------------------------------------
+ 2018                   
+ 2019         8100      @NMI_ADDRESS		EQU	RAM_BASE + 100H		;(8100H)
+ 2020         8102      @INTR_ADDRESS		EQU	RAM_BASE + 102H
+ 2021                   
+ 2022         8104      @YEAR:			EQU	RAM_BASE + 104H	
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.30 Page  35
+SUPER_IOZ80
+
+ 2023         8106      @MONTH:			EQU	RAM_BASE + 106H	
+ 2024         8108      @DATE:			EQU	RAM_BASE + 108H	
+ 2025         810A      @HOURS:			EQU	RAM_BASE + 10AH	
+ 2026         810C      @MINUTES:		EQU	RAM_BASE + 10CH	
+ 2027         810E      @SECONDS:		EQU	RAM_BASE + 10EH	
+ 2028                   
+ 2029         9000      PRINTER_BUFFER		EQU	RAM_BASE + 1000H	;9000H
+ 2030                   ;END
+ 0 Error(s) Detected.
+ 4807 Absolute Bytes. 303 Symbols Detected.
+

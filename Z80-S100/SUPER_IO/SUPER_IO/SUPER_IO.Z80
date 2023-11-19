@@ -1,0 +1,2030 @@
+;	FPGA SUPER IO BOARD Monitor
+;
+;	03/17/2021    John Monahan
+;
+;	This is a very modified version of the main FPGA FPGA_DC Board Z80 Monitor programs. 
+;
+;	Assemble and SLR's Z80ASM Assembler (Can also use the Cromemco Assembler)
+;	Use:- Z80ASM SBC-MON FH
+;
+;	NOTE. This board initially utilizes an 32K FPGA ROM module (which behaves the same as a "real" 28C256 EEPROM)
+;	The monitor starts at 0H and can run up to 7FFFH. 
+;
+;	To assemble under windows...
+;	Load Altair.EXE in Windows CMD box
+;	do cpm3
+;	I:  
+;	I:>Submit FPFGA_DC.SUB etc.  (or a shortcut xxx.sub)
+;
+;	FPFGA_DC.HEX  is written back to the same windows folder that the PC file "altair.exe" is in.
+;	This HEX file must be converted to base 0000H to be loaded by Quartus
+;	Please see here for a discription as to how to do this.
+;	http://s100computers.com/My%20System%20Pages/FPGA%20Z80%20SBC/FPGA%20Z80%20SBC.htm
+;
+;	Recent History...
+;
+;	V0.1	11/12/2021	Internal ROM version
+;	V1.0	03/17/2021	For V1.0 Board 
+
+
+;	>>>>>>> Remember ANY Read or Write to a sector requires that the current drive, track
+;	>>>>>>> and sector is already setup in the IX drive table.
+;
+FALSE		EQU	0
+TRUE		EQU	NOT FALSE
+DEBUG		EQU	FALSE			;For a display of error codes returned from CF-Card drive
+;
+;
+H_TEST1		EQU	FALSE			;Test USB output 
+H_TEST1A	EQU	FALSE			;Test USB output 
+H_TEST2		EQU	FALSE			;Test RAM
+H_TEST3		EQU	FALSE			;Test Console IO routine
+
+
+MONITOR_BASE	EQU	0000H			;Start of monitor after a reset								
+RAM_BASE	EQU	8000H			;Default location of RAM buffer area for IDE/CF card diagnostic routines
+STACK		EQU	80FFH			;Near start of available RAM
+PRINTER_BUFFER	EQU	9000H			;Printer buffer to BFFFH
+						
+
+SCROLL		EQU	01H					
+BELL		EQU	07H
+SPACE		EQU	20H
+TAB		EQU	09H			;TAB ACROSS (8 SPACES FOR SD-BOARD)
+CR		EQU	0DH
+LF		EQU	0AH
+FF		EQU	0CH
+QUIT		EQU	11H			;Turns off any screen enhancements (flashing, underline etc).
+NO_ENH		EQU 	17H			;Turns off whatever is on
+FAST		EQU	10H			;High speed scroll
+ESC		EQU	1BH
+DELETE		EQU	7FH
+BACKS		EQU	08H	
+CLEAR		EQU	1AH			;TO CLEAR SCREEN
+RST7		EQU	38H			;RST 7 (LOCATION FOR TRAP)
+NN		EQU	0H			;[I] INITIAL VALUE
+SOH		EQU	1			;For XModem etc.
+EOT		EQU	4
+ACK		EQU	6
+NAK		EQU	15H
+;
+
+; Note on the mapping below: The DIP switches on the physical board connect to GND with pull up resistors 
+; OPEN/OFF switches are '1's and CLOSED/ON DIP switches are '0's
+;
+; BIT MAP OF IOBYTE BASE_PORT + 6H:- X X X X  X X X X  (if xxxxxxx0  = No USB CONSOLE IN/OUT DATA)
+;	Note only lowest 8 bits used |.................(if xxxx0xxx  = JMP directly to onboard monitor on reset
+;	                                            													
+;
+;
+;
+
+
+							;-------- 40H  S100 Bus Ports Interface and USB Port Interface within FPGA Z80 ---
+BASE_PORT1		EQU	40H		
+STATUS_BUS_PORT		EQU	BASE_PORT1		;40H
+DATA_BUS_PORT		EQU	BASE_PORT1+1H		;41H
+FPGA_RESET_PORT		EQU	BASE_PORT1+2H		;42H  To reset Z80, outputting anything hardware resets the FPGA Z80
+SET_ERROR_FLAG_PORT	EQU	BASE_PORT1+3H		;43H  04H is sent to this port if the is an error
+MONITOR_STATUS		EQU	BASE_PORT1+4H		;44H  Status port for USB console input port
+MONITOR_DATA		EQU	BASE_PORT1+5H		;45H  Data port for USB console port
+IOBYTE			EQU	BASE_PORT1+6H		;46H  Configuration port 
+LEDS_PORT		EQU	BASE_PORT1+7H		;47H  LED's
+
+
+
+							;---------- 50H   RTC Port Interface-------------------------------
+BASE_PORT2		EQU	50H		
+RTC_ADDRESS		EQU	BASE_PORT2		;50H  SPI data to RTC (16 bits wide)
+RTC_DATA_OUT		EQU	BASE_PORT2+1H		;51H  SPI data to RTC (8 bits)
+RTC_DATA_IN		EQU	BASE_PORT2+1H		;51H  SPI data from RTC
+RTC_CS			EQU	BASE_PORT2+2H		;52H  RTC Chip Select
+RTC_STATUS		EQU	BASE_PORT2+2H		;52H  00H or FFH
+
+RTC_READ		EQU	BASE_PORT2+3H		;53H  Read pulse to SPI module
+RTC_WRITE		EQU	BASE_PORT2+3H		;53H  Write pulse to SPI module
+
+CPU_SPEED_PORT		EQU	BASE_PORT2+4H		;54H  Z80 CPU Clock speed setting port
+
+PRINTER_STATUS		EQU	BASE_PORT2+5H		;55H  Printer status IN
+PRINTER_STROBE		EQU	BASE_PORT2+5H		;55H  Printer strobe OUT
+PRINTER_OUT		EQU	BASE_PORT2+6H		;56H  Printer data port OUT
+BUZZER_PORT		EQU	BASE_PORT2+7H		;57H  Buzzer/Bell port OUT
+
+
+RTC_CS_LOW		EQU	00H			; Bit 0 has CS  (Note, HIGH to select chip)
+RTC_CS_HIGH		EQU	01H			
+
+RTC_SECONDS		EQU	0H			;All registers OR 80H for WRITE Address
+RTC_MINUTES		EQU	1H
+RTC_HOURS		EQU	2H
+RTC_DAY			EQU	3H
+RTC_DATE		EQU	4H
+RTC_MONTH		EQU	5H
+RTC_YEAR		EQU	6H
+
+RTC_CTL_REG		EQU	0FH
+RTC_STATUS_REG		EQU	10H
+RTC_RAM			EQU	20H			;20H -- 7FH
+	
+ENABLE_OSC		EQU	80H			;Bit to enable/start the RTC chip (0=start, 1=stop)
+WP			EQU	40H			;Write Protect. Bit must be 0 to alter any other register. 
+							;Note alarms etc are not implemented in this simple example.
+
+
+
+FPGA_RTS		EQU	01H			;01H if DC Board is reqesting to send data
+S100_RTS		EQU	80H			;80H if S100 Bus is requesting to send data
+
+;
+;--------------------------------------------------------------------------------
+;	Commands for the SUPER IO Board:-
+;	Note these commands are a sub-set of the old ZFDC and FPGA_DC Board commands
+
+CMD$GET$TIME		EQU	80H		;Get Time and Data from FPGA DC Board RTC
+CMD$SET$TIME		EQU	81H		;Set Time and Data on FPGA DC Board RTC
+
+CMD$PRINT$STRING	EQU	82H		;Send a character string to printer.
+
+CMD$FAILED		EQU	0FFH		;CMD failed to exicute completely
+CMD$COMPLETE		EQU	0F0H		;Flag returned by DC board to signal the previous CMD was completed OK
+CMD$ABORT		EQU	0E0H		;CMD to abort the current process
+
+
+;===============================================================================================================
+
+	ORG	MONITOR_BASE			;<--------<<<<<< LOCATION OF START OF MONITOR (000H) >>>>>>>>>>>>>>>>>
+
+IF H_TEST1
+ZAPPLE1:	
+	LD	A,33H
+	OUT	(LEDS_PORT),A			;LED's display
+	OUT	(MONITOR_DATA),A		;USB Monitor port should show 3's...
+	JR	ZAPPLE1
+ENDIF
+
+;-------------------------------------------------------------------------------------------------------------
+
+SETUP_STACK:
+	LD	SP,STACK			;Stack always at 0FFF0H (must be valid for debugging)
+
+IF H_TEST1A
+	LD	SP,080F0H			;For initial hardware debugging
+ZAPPLE1:	
+	LD	A,33H
+	OUT	(LEDS_PORT),A			;LED's display
+	OUT	(MONITOR_DATA),A		;USB Monitor port should show 3's...
+	LD	C,A
+	CALL	ZCO				;Need RAM/Stack to call routine
+	JR	ZAPPLE1
+ENDIF
+
+
+BEGIN:						;Can use the next 3 lines initially to debug hardware
+	IM1					;Set Z80 to Interrupt mode 1
+	XOR	A
+	LD	I,A				;Set Interrupt Reg to 0H for any Interrupes (Currently not uesd)
+	DI					;Disable for now
+	LD	HL,DEFAULT_NMI
+	LD	(@NMI_ADDRESS),HL		;Setup the default NMI Interrupt jump address 
+	LD	HL,DEFAULT_INTERRUPT
+	LD	(@INTR_ADDRESS),HL		;Setup the default Interrupt jump address 
+	JP	SETUP				;Jump over interrupt vector routines
+
+;------------------------------------------------------------------------------------------------------------
+						; <<<< Be sure the code above does not overflow past 38H >>>>
+	ORG	38H			
+MODE_1_INTERRUPT:
+	DI					;<-- DISABLLE INTERRUPTS -- Must be enabled later
+	EX	AF,AF'				;So as not to mess up any of the main registers
+	EXX
+	LD	HL,(@INTR_ADDRESS)		;Jump to the interrupt routine required for that timeout condition
+	JP	(HL)
+
+
+DEFAULT_INTERRUPT:
+DONE_INT:
+	EI
+	RET
+	
+	
+	ORG	66H				;<<<<< Z80 will also jump here for all NMI's
+NMI_INT:					
+	RETN					;Jump to new location
+
+DEFAULT_NMI:					;For debugging, trap any unwanted NMI's here
+	EX	AF,AF'				;So as not to mess up any of the main registers
+	EXX
+	LD	C,'N'
+	CALL	ZCO
+	LD	C,'M'
+	CALL	ZCO
+	LD	C,'I'
+	CALL	ZCO
+	LD	C,'?'
+	CALL	ZCO
+	LD	C,'?'
+	CALL	ZCO
+	LD	C,'?'
+	CALL	ZCO
+	EXX
+	EX	AF,AF'				;Return to "normal" register set
+
+
+;------------------------------------------------------------------------------------------------------------
+
+	ORG	MONITOR_BASE +100H		;<<<<<<<< The EEPROM code will go directly to here (0100H) >>>>>>>>
+
+SETUP:
+
+IF H_TEST2				
+	LD	SP,80F0H			;For initial hardware debugging
+	LD	C,34H				;Test RAM. Stack is called. Will return if RAM is OK
+	LD	A,C
+ZAPPLE:	
+	OUT	(MONITOR_DATA),A		;And USB port device
+	PUSH	AF
+	CALL	DELAY_X				;Check RAM
+	POP	AF
+	JR	ZAPPLE
+
+DELAY_X:					;Call to here checks RAM/Stack
+	LD	B,0
+XX1:	DJNZ	XX1
+	RET
+ENDIF
+
+
+IF H_TEST3					;Test Console I/O to USB port
+	LD	SP,80F0H			;For initial hardware debugging
+	LD	C,30H
+	LD	A,C
+	LD	A,1
+	OUT	(MONITOR_STATUS),A		;Raise bit 0 to activate USB terminal 
+ZAPPLE:	
+	AND	A,0FH
+	OR	A,10H
+	OUT	(LEDS_DATA),A			;The number '0...F' should appear 
+	PUSH	AF
+	LD	C,'@'
+	CALL	ZCO				;Consol should show '@,char,@,char,@,char....
+	CALL	ZCI				;The low sector Hex display should show '0,1,2...E,F,0,1...
+	LD	C,A
+	CALL	ZCO	
+	CALL	DELAY_X				;Check RAM as well
+	POP	AF	
+	INC	A
+	JR	ZAPPLE
+DELAY_X:					;Call to here checks RAM/Stack
+	LD	B,0
+XX1:	DJNZ	XX1
+	RET
+ENDIF
+
+	LD	A,1				;Allow all Consol output to appear on USB port/terminal
+	OUT	(MONITOR_STATUS),A		;Raise bit 0 to activate USB terminal 
+	XOR	A
+	OUT	(LEDS_PORT),A			;All LED's off
+
+	CALL	CRLF
+	LD	DE,SIGNON_MSG			;'FPGA SUPER IO Board MONITOR (@ 0000H) V0.1D J.Monahan, 4/1/2021$'
+	CALL	PRINT_STRING			;Have a valid Stack, so now we can use CALL
+	
+	IN	A,IOBYTE
+	BIT	7,A
+	JP	NZ,MONITOR_MENU			;If Bit 7 of IOBYTE Port is 0 the jump to monitor immediatly	
+	
+SKIP_CMD_DISPLAY:
+	CALL	CRLF
+	LD	DE,CMD_MODE_MSG			;'FPGA SUPER IO Board MONITOR in CMD Mode
+	CALL	PRINT_STRING			;Have a valid Stack, so now we can use CALL
+
+;-------------------------------- MAIN CMD LOOP -----------------------------------------------------------------------
+
+START_CMD:					;THE MAIN COMMAND LOOP
+	IN	A,(LEDS_PORT)			;47H
+	SET	0,A				;Set Bit 0 to indicate we are not in command mode
+	RES	1,A				;Reset Bit 1 to indicate we are not in Monitor mode
+	OUT	(LEDS_PORT),A
+	
+	XOR	A,A
+	OUT	(CPU_SPEED_PORT),A		; Set to high speed (40 MHz)
+
+	LD	SP,STACK			;Just in case of a software stack imbalance/screw-up. Reset each time
+	CALL	GET_S100_STATUS
+	JP	Z,START_CMD			;<<<<<<<<<<<< Do any requested SD Card S100 Bus commands first. 
+
+	CALL	GET_S100_TO_FPGA		;Get the actual command
+	OR	A
+	JR	Z,START_CMD
+	LD	B,A				;Store it in B
+	
+	LD	DE,CMD_MSG			;CR,LF,'CMD=
+	CALL	PRINT_STRING
+	LD	A,B				;Show the CMD
+	CALL	HEXOUT
+	LD	DE,H_MSG			;'H  '
+	CALL	PRINT_STRING
+
+	LD	A,B				;Get the command
+
+	CP	A,CMD$GET$TIME			;<<<<<<<<<<<<<<<<< 80H  Get Time CMD 
+	JP	Z,DO_GET_TIME		
+
+	CP	CMD$SET$TIME			;<<<<<<<<<<<<<<<<<  81H	Set Time and Data 
+	JP	Z,DO_SET_TIME		
+
+	CP	CMD$PRINT$STRING		;<<<<<<<<<<<<<<<<<  85H Print a string to parallel port (0H Terminator)
+	JP	Z,DO_PRINT_STRING		
+
+	LD	DE,UNKNOWN_CMD_MSG
+	CALL	PRINT_STRING
+
+	JP	START_CMD
+
+
+;------------------------------- COMMANDS -------------------------------------------------------------------------	
+
+DO_GET_TIME:					;Return Date and Time to S100 Bus
+	LD	DE,GET_DATE_TIME_MSG		;' Date and Time to S100 Bus$'
+	CALL	PRINT_STRING
+
+		
+	LD	A,80H			
+	OUT	(CPU_SPEED_PORT),A		; Set to low speed (10 MHz)
+
+	LD	C,20H				;Force 20xx
+	CALL	SEND_FPGA_TO_S100
+
+	LD	B,RTC_YEAR			; Year Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,A
+	CALL	SEND_FPGA_TO_S100
+	LD	C,'/'
+	CALL	ZCO
+
+	LD	B,RTC_MONTH			; Month Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,A
+	CALL	SEND_FPGA_TO_S100
+	LD	C,'/'
+	CALL	ZCO
+
+	LD	B,RTC_DATE			; Date Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,A
+	CALL	SEND_FPGA_TO_S100
+	LD	C,' '
+	CALL	ZCO
+	CALL	ZCO
+	CALL	ZCO
+
+	LD	B,RTC_HOURS			; Hours Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,A
+	CALL	SEND_FPGA_TO_S100
+	LD	C,':'
+	CALL	ZCO
+
+	LD	B,RTC_MINUTES			; Minutes Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,A
+	CALL	SEND_FPGA_TO_S100
+	LD	C,':'
+	CALL	ZCO
+
+	LD	B,RTC_SECONDS			; Seconds Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,A
+	CALL	SEND_FPGA_TO_S100
+
+	XOR	A,A
+	OUT	(CPU_SPEED_PORT),A		; Set to high speed (40 MHz)
+
+	LD	C,CMD$COMPLETE			;Flag we are done
+	CALL	SEND_FPGA_TO_S100
+	JP	START_CMD			;Back to main loop
+
+
+
+;--------------------------------------------------------------------------------------------------------	
+
+DO_SET_TIME:					;Return Date and Time to S100 Bus
+	LD	DE,SET_DATE_TIME_MSG		;' Date and Time from S100 Bus$'
+	CALL	PRINT_STRING
+
+	LD	A,80H			
+	OUT	(CPU_SPEED_PORT),A		; Set to low speed (10 MHz)
+
+	CALL	GET_S100_TO_FPGA		;Get Enter Year (00-99)
+	LD	(@YEAR),A
+	CALL	HEXOUT	
+	LD	B,RTC_YEAR OR 80H		; RTC Register address + Write
+	LD	C,A				; DATA
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	LD	C,'/'
+	CALL	ZCO
+
+	CALL	GET_S100_TO_FPGA		;Get Month (01-12)
+	CALL	HEXOUT	
+	LD	B,RTC_MONTH OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	LD	C,'/'
+	CALL	ZCO
+
+	CALL	GET_S100_TO_FPGA		;Get Date (01-31) 
+	CALL	HEXOUT	
+	LD	B,RTC_DATE OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	LD	C,' '
+	CALL	ZCO
+	CALL	ZCO
+	CALL	ZCO
+
+	CALL	GET_S100_TO_FPGA		;Get Hours (00-23) 
+	CALL	HEXOUT	
+	LD	B,RTC_HOURS OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	LD	C,':'
+	CALL	ZCO
+
+	CALL	GET_S100_TO_FPGA		;Get Minutes (00-59)
+	CALL	HEXOUT	
+	LD	B,RTC_MINUTES OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	LD	C,':'
+	CALL	ZCO
+
+	CALL	GET_S100_TO_FPGA		;Get Seconds (00-59)
+	CALL	HEXOUT	
+	LD	B,RTC_SECONDS OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+
+	XOR	A,A
+	OUT	(CPU_SPEED_PORT),A		; Set to high speed (40 MHz)
+
+	LD	C,CMD$COMPLETE			;Flag we are done
+	CALL	SEND_FPGA_TO_S100
+	JP	START_CMD			;Back to main loop
+
+
+
+
+;--------------------------------------------------------------------------------------------------	
+
+DO_PRINT_STRING:				;Print string on parallel port
+	LD	DE,PRINT_STRING_MSG		;Printing string on parallel port$'
+	CALL	PRINT_STRING
+	
+PRN_LOOP1:	
+	LD	HL,PRINTER_BUFFER		;Will cash data untill end of string, then print.
+PRN_LOOP:
+	CALL	GET_S100_TO_FPGA		;Get character
+	LD	(HL),A
+	OR	A,A
+	JP	Z,PRINT_DONE
+	INC	HL
+	LD	A,H
+	CP	A,0BFH				;Is buffer full
+	JR	NZ,PRN_LOOP
+	CALL	PRINT_BUFFER			;Buffer is full, print it.
+	JR	PRN_LOOP1			;Back to the start of buffer again
+	
+PRINT_DONE:
+	CALL	PRINT_BUFFER
+	JP	START_CMD			;Back to main loop
+	
+PRINT_BUFFER:
+	LD	HL,PRINTER_BUFFER			;Will cash data untill end of string, then print.
+PRINT_BUFFER1:
+	LD	A,(HL)
+	OR	A,A
+	JR	NZ,MORE_PRINT
+	CALL	FLUSH_PRINTER
+	RET
+MORE_PRINT:
+	LD	C,A
+	CALL	LO				;Send [C] to printer
+	INC	HL
+	JR	PRINT_BUFFER1
+
+	
+;===========================================================================================================	
+;===========================================================================================================	
+;======================================= MAIN MONITOR MENU =================================================	
+;===========================================================================================================	
+;===========================================================================================================	
+	
+MONITOR_MENU:
+	LD	SP,STACK			;To be safe reset Stackat 0FFF0H (must be valid for debugging)
+
+	IN	A,(LEDS_PORT)			;47H
+	RES	0,A				;Reset bit 0 to inducate we are in CMD Mode
+	SET	1,A				;Set Bit 1 to indicate we are not in Monitor mode
+	OUT	(LEDS_PORT),A
+
+	LD	DE,Z80_MENU_MSG1		;Print 'FPGA onboard Z80 CPU Monitor Menu.  RAM 0-7FFFH,
+	CALL	PRINT_STRING
+
+	LD	DE,SP_MSG			;Print 'SP=$'
+	CALL	PRINT_STRING
+	LD	HL,STACK
+	CALL	PRINT_HL			;Print HL
+	LD	DE,H_MSG			;'H '
+	CALL	PRINT_STRING	
+	
+	CALL	CRLF
+	LD	DE,Z80_MENU_MSG2		;Then Z80 Menu Message
+	CALL	PRINT_STRING
+	
+	CALL	ZCSTS				;Check if garbage at keyboard
+	CALL	NZ,ZCI				;If so flush it
+	CALL	ZCSTS				;Flush CI status port
+	
+
+;------------------------------- THIS IS THE START ON THE MAIN SBC-Z80 LOOP--------------------------------
+
+Z80_MENU_LOOP:
+	LD	SP,STACK			;Just to be safe, redo stack at 0FFF0H
+	LD	DE,Z80_MENU_LOOP
+	PUSH	DE				;FOR ALL COMMANDS, ANY EXTRA UNBALANCED POP & [DE] WOULD END UP IN [PC]
+	CALL	CRLF
+	LD	C,'-'
+	CALL	ZCO
+	LD	C,'>'	   
+	CALL	ZCO
+
+STARO:	CALL	ZCSTS				;Need to check status first because IOBYTE may have changed
+	JR	Z,STARO
+	
+	CALL	TI				;Get character and echo 
+	cp	ESC				;ESC back to main menu
+	jp	z,BEGIN			
+	AND	7FH
+	JR	Z,STARO
+	SUB	'@'				;Commands @ to Z only
+	RET	M
+	CP	1BH				;A-Z only
+	RET	NC
+	ADD	A
+	LD	HL,MON_CMD_TABLE
+	ADD	A,L
+	LD	L,A
+	LD	A,(HL)
+	INC	HL
+	LD	H,(HL)
+	LD	L,A
+	LD	C,02H
+	JP	(HL)				;JUMP TO COMMAND TO COMMAND (from TABLE)
+;
+;
+;
+;PRINT MAIN SBC-Z80 MENU ON CRT
+
+KCMD:	LD	DE,SIGNON_MSG			;Menu Option "Y", List Menu Options
+	CALL	PRINT_STRING
+	LD	DE,Z80_MENU_MSG2		;Then Menu Message
+	JP	PRINT_STRING
+
+
+INVALID_DATA:
+	LD	DE,Invalid_Msg
+	CALL	PRINT_STRING
+	JP	BEGIN		
+
+
+
+
+;Diagnostic test of S100 Bus data In/out port. Runs continously until reset
+
+S100_DATA_IN:
+	LD	DE,H_MENU_MSG			;Continously display S100 Data In Port. Reset to abort."
+	CALL	PRINT_STRING
+MORE1:	CALL	CRLF
+	IN	A,(STATUS_BUS_PORT)
+	PUSH	AF
+	CALL	PRINT_BITS
+	POP	AF
+	OUT	(DATA_BUS_PORT),A
+	JP	MORE1
+
+
+
+PRINT_STRING:					;A ROUTINE TO PRINT OUT A STRING @ [DE]
+	LD	A,(DE)				;UP TO THE FIRST '$' ---- IF IOBYTE BIT 0 is 0
+	INC	DE			
+	CP	'$'
+	RET	Z
+	LD	C,A
+	CALL	ZCO				;Note will go to USB Port -- If bit 0 of IOBYTE = 1
+	JR	PRINT_STRING
+
+
+;ABORT IF ESC AT CONSOL, PAUSE IF ^S AT CONSOL
+
+CCHK:	CALL	ZCSTS				;FIRST IS THERE ANYTHING THERE
+	RET	Z
+	CALL	ZCI
+	CP	'S'-40H
+	JR	NZ,CCHK1
+CCHK2:	CALL	ZCSTS				;WAIT HERE UNTIL ANOTHER INPUT IS GIVEN
+	JR	Z,CCHK2
+CCHK1:	CP	ESC
+	RET	NZ				;RETURN EXECPT IF ESC
+
+;RESTORE SYSTEM AFTER ERROR
+
+ERROR:	CALL	MEMSIZ				;GET RAM AVAILABLE - WORKSPACE IN [HL]
+	LD	SP,HL				;SET STACK UP IN WORKSPACE AREA
+	LD	C,'*'
+	CALL	ZCO
+	JP	Z80_MENU_LOOP
+
+;PRINT HIGHEST RAM MEMORY FROM BOTTOM
+
+SIZE:	CALL	MEMSIZ				;RETURNS WITH [HL]= RAM AVAILABLE-WORKSPACE
+
+LFADR:	CALL	CRLF				;Print CR/LF + HL + SPACE
+
+PRINT_HL_SPACE:	
+	PUSH	HL				;PRINT [HL] AND A SPACE
+	PUSH	BC
+	CALL	PRINT_HL			;Print [HL] with no space afterwards
+	LD	C,SPACE
+	CALL	ZCO
+	POP	BC
+	POP	HL
+	RET
+
+
+PRINT_SPACE:	
+	LD	C,SPACE				;PRINT A SPACE
+	CALL	ZCO
+	RET
+
+CONV:	AND	0FH				;CONVERT HEX TO ASCII
+
+	ADD	A,90H
+	DAA 
+	ADC	A,40H
+	DAA 
+	LD	C,A
+	call	ZCO
+	RET
+
+
+GET_HL_DE:					;GET TWO PARAMETERS AND PUT THEM IN [HL] & [DE] THEN CRLF
+	CALL	HEXSP	
+	POP	DE
+	POP	HL
+	RET
+
+						;PUT THREE PARAMETERS IN [BC] [DE] [HL] THEN CR/LF
+EXPR3:	INC	C				;ALREADY HAD [C]=2 FROM START
+	CALL	HEXSP
+	CALL	CRLF
+	POP	BC
+	POP	DE
+	POP	HL
+	RET 
+	
+
+EXPR1:	LD	C,01H			
+HEXSP:	LD	HL,0000				;GET # OF PARAMETERS in C
+EX0:	CALL	TI
+EX1:	LD	B,A
+	CALL	NIBBLE
+	JR	C,EX2X
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	L
+	LD	L,A
+	JR	EX0
+EX2X:	EX	(SP),HL
+	PUSH	HL
+	LD	A,B
+	CALL	QCHK
+	JR	NC,SF560
+	DEC	C
+	RET	Z
+SF560:	JP	NZ,ERROR
+	DEC	C
+	JR	NZ,HEXSP
+	RET 
+EXF:	LD	C,01H
+	LD	HL,0000H
+	JR	EX1
+
+
+HILOX:	CALL	CCHK				;RANGE TEST ROUTINE CARRY SET = RANGE EXCEEDED
+	CALL	HILO
+	RET	NC
+	POP	DE				;DROP ONE LEVEL BACK TO START
+	RET 
+HILO:	INC	HL				;RANGE CHECK SET CARRY IF [DE]=[HL]
+	LD	A,H
+	OR	L
+	SCF
+	RET	Z
+	LD	A,E
+	SUB	L
+	LD	A,D
+	SBC	A,H
+	RET 
+
+
+PRINT_HL:					;PRINT [HL] ON CONSOL
+	PUSH	AF
+	LD	A,H
+	CALL	LBYTE
+	LD	A,L
+	CALL	LBYTE
+	POP	AF
+	RET
+	
+LBYTE:	PUSH	AF
+	RRCA
+	RRCA
+	RRCA
+	RRCA
+	CALL	SF598
+	POP	AF
+SF598:	CALL	CONV				;Convert to ASCII AND print it
+	RET
+
+						;THIS IS A CALLED ROUTINE USED TO CALCULATE TOP OF RAM IS USED BY
+						;THE ERROR ROUTINE TO RESET THE STACK. 
+						;Returns top of RAM in [HL]
+MEMSIZ:	PUSH	BC				;SAVE [BC]
+MEMSZ1:	LD	HL,0FFFFH			;START FROM THE TOP DOWN
+MEMSZ2:	LD	A,(HL)
+	CPL 
+	LD	(HL),A
+	CP	(HL)
+	CPL 					;PUT BACK WHAT WAS THERE
+	LD	(HL),A
+	JP	Z,GOTTOP
+	DEC	H				;TRY 100H BYTES LOWER
+	JR	MEMSZ2				;KEEP LOOKING FOR RAM
+GOTTOP:	POP	BC				;RESTORE [BC]
+	RET 
+
+NIBBLE:	SUB	30H
+	RET	C
+	CP	17H
+	CCF
+	RET	C
+	CP	LF
+	CCF
+	RET	NC
+	SUB	07H
+	CP	LF
+	RET
+
+COPCK:	LD	C,'-'
+	CALL	ZCO
+
+
+PCHK:	CALL	TI
+QCHK:	CP	SPACE				;TEST FOR DELIMITERS
+	RET	Z
+	CP	','
+	RET	Z
+	CP	CR
+	SCF
+	RET	Z
+	CCF
+	RET 
+
+
+						;KEYBOARD HANDELING ROUTINE (WILL NOT ECHO CR/LF or ESC)
+						;IT CONVERTS LOWER CASE TO UPPER CASE FOR LOOKUP COMMANDS
+						;ALL OTHERE CHARACTERS ARE ECHOED ON CONSOL
+TI:	CALL	ZCI
+	CP	CR
+	RET	Z
+	CP	ESC
+	RET	Z
+	CP	40H				;LC->UC
+	JR	C,TI1
+	CP	7BH
+	JR	NC,TI1
+	AND	5FH
+TI1:
+	PUSH	BC
+	LD	C,A
+	CALL	ZCO
+	LD	A,C
+	POP	BC
+	RET
+	
+	
+						;NO ECHO KEYBOARD HANDELING ROUTINE
+						;IT CONVERTS LOWER CASE TO UPPER CASE FOR LOOKUP COMMANDS
+						;ALL OTHERE CHARACTERS ARE ECHOED ON CONSOL
+TI_NO_ECHO:	
+	CALL	ZCI
+	CP	CR
+	RET	Z
+	CP	40H				;LC->UC
+	RET	C
+	CP	7BH
+	RET	NC
+	AND	5FH
+	RET 
+
+
+GETHL:	PUSH	BC				;Return a HEX value in [HL]
+	LD	C,1				;1 paramater
+	CALL	HEXSP
+	POP	HL
+	POP	BC
+	RET
+
+
+PRINT_BITS:					;DISPLAY 8 BITS OF [A] (No registers changed)
+	PUSH	DE			
+	PUSH	BC
+	LD	E,A
+	CALL	BITS
+	POP	BC
+	POP	DE
+	RET
+
+
+BITS:	LD	B,08H				;DISPLAY 8 BITS IN [E] (B & C registers changed)
+	CALL	PRINT_SPACE
+SF76E:	SLA	E
+	LD	A,18H
+	ADC	A
+	LD	C,A
+	CALL	ZCO
+	DJNZ	SF76E
+	RET 
+	
+						;MEMORY MAP PROGRAM CF.DR.DOBBS VOL 31 P40.
+						;IT WILL SHOW ON CONSOL TOTAL MEMORY SUMMARY OF RAM,PROM, AND NO MEMORY
+MEMMAP:
+	CALL	CRLF
+	LD	HL,0
+	LD	B,1
+MAP1:	LD	E,'R'				;PRINT R FOR RAM
+	LD	A,(HL)
+	CPL
+	LD	(HL),A
+	CP	(HL)
+	CPL
+	LD	(HL),A
+	JR	NZ,MAP2
+	CP	(HL)
+	JR	Z,PRINT
+MAP2:	LD	E,'p'
+MAP3:	LD	A,0FFH
+	CP	(HL)
+	JR	NZ,PRINT
+	INC	L
+	XOR	A
+	CP	L
+	JR	NZ,MAP3
+	LD	E,'.'
+PRINT:	LD	L,0
+	DEC	B
+	JR	NZ,NLINE
+	LD	B,16
+	CALL	CRLF
+	CALL	HXOT4
+NLINE:	LD	A,SPACE
+	CALL	OTA
+	LD	A,E
+	CALL	OTA
+	INC	H
+	JR	NZ,MAP1
+	CALL	CRLF
+	CALL	CRLF
+	JP	Z80_MENU_LOOP
+
+;16 HEX OUTPUT ROUTINE
+
+HXOT4:	LD	C,H
+	CALL	HXO2
+	LD	C,L
+HXO2:	LD	A,C
+	RRA
+	RRA
+	RRA
+	RRA
+	CALL	HXO3
+	LD	A,C
+HXO3:	AND	0FH
+	CP	10
+	JR	C,HADJ
+	ADD	A,7
+HADJ:	ADD	A,30H
+OTA:	PUSH	BC
+	LD	C,A
+	CALL	ZCO				;SEND TO CONSOL
+	POP	BC
+	RET
+
+;DISPLAY MEMORY IN HEX
+
+DISP:	CALL	GET_HL_DE			;GET PARAMETERS IN [HL],[DE]
+	LD	A,L				;ROUND OFF ADDRESSES TO XX00H
+	AND	0F0H
+	LD	L,A
+	LD	A,E				;FINAL ADDRESS LOWER HALF
+	AND	0F0H
+	ADD	A,10H				;FINISH TO END 0F LINE
+SF172A:	CALL	LFADR				;Print Address + CRLF
+SF175A:	CALL	BLANK
+
+;	CALL	ZCSTS				;For debugging		
+;	CALL	PROP_CI
+					
+	LD	A,(HL)
+	CALL	LBYTE
+	CALL	HILOX
+	LD	A,L
+	AND	0FH
+	JR	NZ,SF175A
+	LD	C,TAB				;INSERT A TAB BETWEEN DATA
+	CALL	ZCO
+	LD	B,4H				;ALSO 1 SPACE
+TA11:	LD	C,SPACE
+	CALL	ZCO
+	DJNZ	TA11
+
+;	IN	A,IOBYTE			;For some reason ASCII display only on VGA display is
+;	BIT	2,A				;not working. Skip it for now!
+;	JR	Z,SF172A
+		
+	LD	B,16				;NOW PRINT ASCII (16 CHARACTERS)
+	PUSH	DE				;TEMPORLY SAVE [DE]
+	LD	DE,0010H
+	SBC	HL,DE
+	POP	DE
+T11:	LD	A,(HL)
+	AND	7FH
+	CP	' ' 				;FILTER OUT CONTROL CHARACTERS'
+	JR	NC,T33
+T22:	LD	A,'.'
+T33:	CP	07CH
+	JR	NC,T22
+	LD	C,A				;SET UP TO SEND
+	CALL	ZCO
+	INC	HL
+	DJNZ	T11				;REPEAT FOR WHOLE LINE
+	JR	SF172A
+
+
+
+SUBS:	LD	C,1				;INSPECT AND / OR MODIFY MEMORY
+	CALL	HEXSP
+	POP	HL
+SF2E3:	LD	A,(HL)
+	CALL	LBYTE
+	LD	C,'-'
+	CALL	ZCO
+	CALL	PCHK
+	RET	C
+	JR	Z,SF2FC
+	CP	5FH
+	JR	Z,SF305
+	PUSH	HL
+	CALL	EXF
+	POP	DE
+	POP	HL
+	LD	(HL),E
+	LD	A,B
+	CP	CR
+	RET	Z	
+SF2FC:	INC	HL
+SF2FD:	LD	A,L
+	AND	07H
+	CALL	Z,LFADR
+	JR	SF2E3
+SF305:	DEC	HL
+	JR	SF2FD
+
+HCRLF:	PUSH	AF
+	PUSH	BC
+	LD	C,'H'				;Finish current line with a 'H' first
+	CALL	ZCO
+	JR	CRLF1
+	
+CRLF:	PUSH	AF
+	PUSH	BC
+CRLF1:	LD	C,LF
+	CALL	ZCO
+	LD	C,CR
+	CALL	ZCO
+	POP	BC
+	POP	AF
+	RET
+;
+;
+
+GETHEX:
+	call	GETCMD				;Get a character from keyboard & ECHO
+	cp	ESC
+	jp	z,HEXABORT
+	cp	'/'				;check 0-9, A-F
+	jp	c,HEXABORT
+	cp	'F'+1
+	jp	nc,HEXABORT
+	call	ASBIN				;Convert to binary
+	rlca					;Shift to high nibble
+	rlca
+	rlca
+	rlca
+	ld	b,A				;Store it
+	call	GETCMD				;Get 2nd character from keyboard & ECHO
+	cp	ESC
+	jp	z,HEXABORT
+	cp	'/'				;check 0-9, A-F
+	jp	c,HEXABORT
+	cp	'F'+1
+	jp	nc,HEXABORT
+	call	ASBIN				;Convert to binary
+	or	B				;add in the first digit
+	or	A				;To return NC
+	ret
+HEXABORT:
+	scf					;Set Carry flag
+	ret
+;
+
+;						;>>>>>> Print [A] in HEX-ASCII. (No Resisters altered) 
+HEXOUT:	PUSH	AF	
+	PUSH	BC
+	PUSH	AF
+	RRCA
+	RRCA
+	RRCA
+	RRCA
+	CALL	ZCONV
+	POP	AF
+	CALL	ZCONV
+	POP	BC
+	POP	AF
+	RET
+;
+;
+;
+HHEXOUT:PUSH	AF				; Same + H at the end	
+	PUSH	BC
+	PUSH	AF
+	RRCA
+	RRCA
+	RRCA
+	RRCA
+	CALL	ZCONV
+	POP	AF
+	CALL	ZCONV
+	LD	C,'H'
+	CALL	ZCO
+	POP	BC
+	POP	AF
+	RET
+;
+HHEXOUT_CR:
+	PUSH	AF				; Same + H + CR+LF at the end	
+	PUSH	BC
+	PUSH	AF
+	RRCA
+	RRCA
+	RRCA
+	RRCA
+	CALL	ZCONV
+	POP	AF
+	CALL	ZCONV
+	LD	C,'H'
+	CALL	ZCO
+	LD	C,CR
+	CALL	ZCO
+	LD	C,LF
+	CALL	ZCO
+	POP	BC
+	POP	AF
+	RET
+;
+;
+GETCMD:	call	ZCI				;GET A CHARACTER, convert to UC, ECHO it
+	call	UPPER
+	cp	ESC
+	ret	z				;Don't echo an ESC
+	push	af				;Save it
+	push	bc
+ 	ld	c,A
+	call	ZCO				;Echo it
+	pop	bc
+	pop	af				;get it back
+	ret
+
+						;Convert LC to UC
+UPPER:	cp	'a'				;must be >= lowercase a
+	ret	c				; else go back...
+	cp	'z'+1				;must be <= lowercase z
+	ret	nc				; else go back...
+	sub	'a'-'A'				;subtract lowercase bias
+	ret	
+
+						;ASCII TO BINARY CONVERSION ROUTINE
+ASBIN:	sub	30H
+	cp	0AH
+	ret	m
+	sub	07H
+	ret
+;
+	
+
+ZCONV:	AND	A,0FH				;HEX to ASCII
+	ADD	90H
+	DAA
+	ADC	40H
+	DAA
+	LD	C,A
+	CALL	ZCO
+	RET			
+
+
+BLANK:	PUSH	AF
+	PUSH	BC				;Print a space on screen
+	PUSH	HL
+	LD	C,' '
+	CALL	ZCO
+	POP	HL
+	POP	BC
+	POP	AF
+	RET
+
+
+FILL:	CALL	EXPR3				;FILL A BLOCK OF MEMORY WITH A VALUE
+SF1A5:	LD	(HL),C
+	CALL	HILOX
+	JR	NC,SF1A5
+	POP	DE
+	JP	Z80_MENU_LOOP
+
+						;GO TO A RAM LOCATION
+GOTO:	LD	C,1				;SIMPLE GOTO FIRST GET PARMS.
+	CALL	HEXSP
+	CALL	CRLF
+	POP	HL				;GET PARAMETER PUSHED BY EXF
+	JP	(HL)
+						; GET OR OUTPUT TO A PORT
+QUERY:	CALL	PCHK
+	CP	'O'				;OUTPUT TO PORT
+	JR	Z,OUT_PORT
+	CP	'I'				;INPUT FROM PORT
+	JP	Z,IN_PORT
+	LD	C,'*'
+	JP	ZCO				;WILL ABORT IF NOT 'I' OR 'O'
+
+
+IN_PORT:
+	LD	C,1				;IN Port
+	CALL	HEXSP
+	POP	BC
+	IN	A,(C)
+	JP	PRINT_BITS
+;
+OUT_PORT:
+	CALL	HEXSP				;OUT Port
+	POP	DE
+	POP	BC
+	OUT	(C),E
+	RET
+
+
+
+RAMTEST:					; MEMORY TEST
+	PUSH	DE
+	PUSH	BC
+	LD	DE,RAM_TEST_MSG
+	CALL	PRINT_STRING
+	POP	BC
+	POP	DE
+	CALL	GET_HL_DE
+SF200:	LD	A,(HL)
+	LD	B,A
+	CPL 
+	LD	(HL),A
+	XOR	(HL)
+	JR	Z,SF215
+	PUSH	DE
+	LD	D,B
+	LD	E,A				;TEMP STORE BITS
+	CALL	PRINT_HL_SPACE
+	CALL	BLANK
+	LD	A,E
+	CALL	PRINT_BITS
+	CALL	CRLF
+	LD	B,D
+	POP	DE
+SF215:	LD	(HL),B
+	CALL	HILOX
+	JR	SF200
+
+
+MOVE:	CALL	EXPR3				;MOVE A BLOCK OF MEMORY TO ANOTHER LOCATION
+SF21E:	LD	A,(HL)
+	LD	(BC),A
+	INC	BC
+	CALL	HILOX
+	JR	SF21E
+
+ 
+VERIFY:	CALL	EXPR3				;VERIFY ONE BLOCK OF MEMORY WITH ANOTHER
+VERIO:	LD	A,(BC)
+	CP	(HL)
+	JR	Z,SF78E
+	PUSH	BC
+	CALL	CERR
+	POP	BC
+SF78E:	INC	BC
+	CALL	HILOX
+	JR	VERIO
+	RET
+;
+CERR:	LD	B,A
+	CALL	PRINT_HL_SPACE
+	LD	A,(HL)
+	CALL	LBYTE
+	CALL	BLANK
+	LD	A,B
+	CALL	LBYTE
+	JP	CRLF
+
+ECHO:	LD	DE,ECHO_MSG
+	CALL	PRINT_STRING	
+ECHO1:	CALL	ZCI				;Routeen to check keyboard etc.
+	CP	'C'-40H				;Loop until  ^C
+	RET	Z
+	CP	'Z'-40H
+	RET	Z
+	LD	C,A
+	CALL	ZCO
+	JR	ECHO1
+
+
+
+TYPE:	CALL	GET_HL_DE			;READ ASCII FROM MEMORY
+SF30B:	CALL	LFADR
+	LD	B,56
+SF310:	LD	A,(HL)
+	AND	7FH
+	CP	SPACE
+	JR	NC,SF319
+SF317:	LD	A,2EH
+SF319:	CP	7CH
+	JR	NC,SF317
+	LD	C,A
+	CALL	ZCO
+	CALL	HILOX
+	DJNZ	SF310
+	JR	SF30B
+
+
+;
+INPORTS:					;Display all active IO input ports in the system
+	LD	DE,ALL_PORTS
+	CALL	PRINT_STRING
+	CALL	CRLF	
+	LD	B,0				;Now loop through all ports (0-FF)
+	LD	D,6				;Display 6 ports across
+	LD	E,0FFH				;Will contain port number
+LOOPIO:	LD	C,E
+	LD	A,E
+	IN	A,(C)				;Remember  [ZASMB does not work with this opcode,SLR is OK]
+	CP	A,0FFH				;No need for 0FF's
+	JR	Z,SKIP
+	LD	H,A				;store port data in H for below
+	LD	A,E				;Need to print port # first
+	CALL	LBYTE				;Print port number
+	LD	C,'-'
+	CALL	ZCO
+	LD	C,'>'
+	CALL	ZCO
+	LD	A,H				;get back port data
+	CALL	LBYTE				;print it
+	LD	C,TAB
+	CALL	ZCO
+	DEC	D				;6 ports per line
+	JR	NZ,SKIP
+	LD	D,6
+	CALL	CRLF
+SKIP:	DEC	E				;Next Port
+	DJNZ	LOOPIO
+	CALL	CRLF
+	RET
+
+;
+;
+;
+;
+;
+
+NOT_DONE:
+	LD	DE,NOT_DONE_MSG			;Routine not written yet
+	CALL	PRINT_STRING
+	RET
+
+
+
+
+
+;------------------------------------  TIME DATE ROUTINES ------------------------------
+
+TIME_MENU:
+	LD	SP,STACK			;Just to be safe, redo stack at 0FFF0H
+	ld	de,TIME_MENU_MSG		;List Time menu options
+	call	PRINT_STRING
+
+	LD	A,80H			
+	OUT	(CPU_SPEED_PORT),A		; Set to low speed (10 MHz)
+
+TIME_LOOP:
+	LD	A,RTC_CS_LOW			;Deselect RTC chip SPI interface (Note HIGH for CS to select chip)
+	OUT	(RTC_CS),A
+
+	ld	de,Prompt			;'Please enter a command >'
+	call	PRINT_STRING
+
+	call	TI_NO_ECHO			;Simple UC character Input (Note, no fancy checking)
+	cp	ESC				;ESC back to main menu
+	jp	z,FINISH_TIME			
+	
+	cp	a,'A'
+	JP	Z,ACTIVATE_RTC
+	CP	A,'S'
+	JP	Z,READ_SECONDS
+	CP	A,'W'
+	JP	Z,WRITE_RTC_RAM
+	CP	A,'M'
+	JP	Z,READ_RTC_RAM
+	CP	A,'T'
+	JP	Z,SET_TIME
+	CP	A,'R'
+	JP	Z,READ_TIME
+	CP	A,'X'
+	JP	Z,DISPLAY_RGS
+	JP	TIME_MENU_ERROR
+
+FINISH_TIME:
+	XOR	A,A			
+	OUT	(CPU_SPEED_PORT),A		; Set to High speed (40 MHz)
+	JP	MONITOR_MENU
+	
+TIME_MENU_ERROR:
+	LD	DE,MENU_ERR_MSG			;"Menu error"
+	CALL	PRINT_STRING
+	JP	TIME_MENU
+
+;-------------------------------------------------------------------------------------------------
+
+ACTIVATE_RTC:
+	LD	HL,MSG0				; "Activate RTC Chip"
+	CALL	RTC_PMSG
+	
+	LD	B,RTC_CTL_REG OR 80H		; RTC Register address + Write
+	LD	C,00000000B			; ENABLE_OSC, Bit 7 to enable/start the RTC chip (0=start, 1=stop)
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	JP	TIME_MENU
+
+;-------------------------------------------------------------------------------------------------
+	
+READ_SECONDS:
+	LD	HL,MSG1				; "1 = Read Seconds Register from RTC Chip"
+	CALL	RTC_PMSG
+	
+	LD	B,RTC_SECONDS			; Seconds Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+
+	PUSH	AF				; Save it
+	LD	HL,MSG2				; "RTC Seconds Register = "
+	CALL	RTC_PMSG
+	POP	AF
+	CALL	HEXOUT				; Display Returned SPI PROM Byte
+	CALL	CRLF
+	JP	TIME_MENU
+
+;-------------------------------------------------------------------------------------------------
+
+WRITE_RTC_RAM:
+	LD	HL,MSG3				; "2",CR,LF,Enter RAM location (20H-7FH) "
+	CALL	RTC_PMSG
+	
+	CALL	GETHEX
+	JP	C,DATA_ERROR
+	OR	A,80H				; Add write bit
+	LD	D,A				; RAM Location to D (with Write bit)
+	LD	HL,MSG4				; 'Enter Byte value " 
+	CALL	RTC_PMSG
+	CALL	GETHEX
+	JP	C,DATA_ERROR
+	LD	E,A				; Save above values in DE
+
+	LD	C,A				; Value to write to RAM
+	LD	B,D				; Get the above saved address			
+	CALL	WRITE_RTC_SPI			; <<<  Send Write pulse (Address in B, data in C)
+
+	LD	HL,MSG5				; "Wrote" 
+	CALL	RTC_PMSG
+	LD	A,E
+	CALL	HEXOUT
+	LD	HL,MSG6				; " to RAM location 	
+	CALL	RTC_PMSG
+	LD	A,D
+	AND	A,7FH				; Strip Write bit
+	CALL	HEXOUT
+	LD	HL,MSG7				; "  in RTC"	
+	CALL	RTC_PMSG
+	CALL	CRLF
+	JP	TIME_MENU
+	
+READ_RTC_RAM:
+	LD	HL,MSG8				; "3 CR,LF,Enter RAM location (20H-7FH) "
+	CALL	RTC_PMSG
+
+	CALL	GETHEX
+	JP	C,DATA_ERROR
+	LD	D,A				; Save RAM Location to D
+
+	LD	B,A				; RAM Location to B
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+
+	PUSH	AF				; Save data
+	LD	HL,MSG9				; "RAM location "
+	CALL	RTC_PMSG
+	LD	A,D
+	CALL	HEXOUT
+	LD	HL,MSG10			; " H = "	
+	CALL	RTC_PMSG
+	POP	AF
+	CALL	HEXOUT
+	LD	HL,MSG11			; "  in RTC"	
+	CALL	RTC_PMSG
+	CALL	CRLF
+	JP	TIME_MENU
+
+;-------------------------------------------------------------------------------------------------
+	
+SET_TIME:
+	LD	HL,MSG12			; "4",CR,LF,'Enter Year (00-99) '
+	CALL	RTC_PMSG
+	CALL	GETHEX
+	JP	C,DATA_ERROR
+	LD	(@YEAR),A
+	CALL	HEXOUT	
+	LD	B,RTC_YEAR OR 80H		; RTC Register address + Write
+	LD	C,A				; DATA
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+
+	LD	HL,MSG13			; CR,LF,'Enter Month (01-12) '
+	CALL	RTC_PMSG
+	CALL	GETHEX
+	JP	C,DATA_ERROR
+	LD	(@MONTH),A
+	LD	B,RTC_MONTH OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+
+	LD	HL,MSG14			; CR,LF,'Enter Date (01-31) '
+	CALL	RTC_PMSG
+	CALL	GETHEX
+	JP	C,DATA_ERROR
+	LD	(@DATE),A
+	LD	B,RTC_DATE OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	
+	LD	HL,MSG15			; CR,LF,'Enter Hours (00-23) '
+	CALL	RTC_PMSG
+	CALL	GETHEX
+	JP	C,DATA_ERROR
+	LD	(@HOURS),A
+	LD	B,RTC_HOURS OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	
+	LD	HL,MSG16			; CR,LF,'Enter Minutes (00-59) '
+	CALL	RTC_PMSG
+	CALL	GETHEX
+	JP	C,DATA_ERROR
+	LD	(@MINUTES),A
+	LD	B,RTC_MINUTES OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	
+	LD	HL,MSG17			; CR,LF,'Enter Seconds (00-59) '
+	CALL	RTC_PMSG
+	CALL	GETHEX
+	JP	C,DATA_ERROR
+	LD	(@SECONDS),A
+	LD	B,RTC_SECONDS OR 80H		; RTC Register address + Write
+	LD	C,A		
+	CALL	WRITE_RTC_SPI			; <<<< Send Write pulse (Address + DATA)
+	
+	LD	HL,MSG18			; CR,LF,'Entered:- 20'
+	CALL	RTC_PMSG
+	LD	A,(@YEAR)
+	CALL	HEXOUT
+	LD	C,'/'
+	CALL	ZCO
+	LD	A,(@MONTH)
+	CALL	HEXOUT
+	LD	C,'/'
+	CALL	ZCO
+	LD	A,(@DATE)
+	CALL	HEXOUT
+	LD	HL,MSG19			; '  Time= '
+	CALL	RTC_PMSG
+	LD	A,(@HOURS)
+	CALL	HEXOUT
+	LD	C,'/'
+	CALL	ZCO
+	LD	A,(@MINUTES)
+	CALL	HEXOUT
+	LD	C,'/'
+	CALL	ZCO
+	LD	A,(@SECONDS)
+	CALL	HEXOUT
+	CALL	CRLF
+	JP	TIME_MENU
+	
+	
+READ_TIME:
+	LD	HL,MSG20			; "5",CR,LF,'Date = '
+	CALL	RTC_PMSG
+
+	LD	B,RTC_YEAR			; Year Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,'/'
+	CALL	ZCO
+
+	LD	B,RTC_MONTH			; Month Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,'/'
+	CALL	ZCO
+
+	LD	B,RTC_DATE			; Date Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+
+	LD	HL,MSG19			; '  Time= '
+	CALL	RTC_PMSG
+
+	LD	B,RTC_HOURS			; Hours Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,'/'
+	CALL	ZCO
+
+	LD	B,RTC_MINUTES			; Minutes Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,'/'
+	CALL	ZCO
+
+	LD	B,RTC_SECONDS			; Seconds Register address + READ
+	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+
+	CALL	CRLF
+	JP	TIME_MENU
+
+
+DISPLAY_RGS:
+	LD	HL,MSG21			; "6",CR,LF,'Register Dump:-'
+	CALL	RTC_PMSG
+	LD	HL,MSG22			; 'Register (00H - 06H)  '
+	CALL	RTC_PMSG
+
+	LD	D,07H				;Count
+	LD	B,00H				;Register pointer
+REGS_1:	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT	
+	LD	C,' '
+	CALL	ZCO
+	INC	B																				
+	DEC	D
+	LD	A,D
+	OR	A,A
+	JP	NZ,REGS_1
+
+	LD	HL,MSG23			; 'Register (07H - 0EH)  '
+	CALL	RTC_PMSG
+
+	LD	D,08H				;Count
+	LD	B,09H				;Register pointer
+REGS_2:	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,' '
+	CALL	ZCO
+	INC	B																				
+	DEC	D
+	LD	A,D
+	OR	A,A
+	JP	NZ,REGS_2
+
+	LD	HL,MSG24			; 'Register (0FH - 11H)  '
+	CALL	RTC_PMSG
+
+	LD	D,03H				;Count
+	LD	B,0FH				;Register pointer
+REGS_3:	CALL	READ_RTC_SPI			; <<< Send Read pulse (Address, get DATA), return result in [A]
+	CALL	HEXOUT
+	LD	C,' '
+	CALL	ZCO
+	INC	B																				
+	DEC	D
+	LD	A,D
+	OR	A,A
+	JP	NZ,REGS_3
+	CALL	CRLF
+	JP	TIME_MENU
+
+
+
+
+
+;------------------------ RTC SPI CORE ROUTINES ---------------------------------------------------------
+
+WRITE_RTC_SPI:					; [C] contains DATA, [B] contains Register address
+	LD	A,RTC_CS_HIGH			; Select RTC
+	OUT	(RTC_CS),A			; 52H
+			
+ 
+	LD	A,B				; <<<---- Send address   (Low Byte)
+	OUT	(RTC_DATA_OUT),A
+	
+	LD	A,C				; <<<---- Send data (High Byte)
+	OUT	(RTC_ADDRESS),A
+
+	OUT	(RTC_WRITE),A			; (Port 53H) Send Write pulse 
+
+	CALL	RTC_DELAY
+	
+	LD	A,RTC_CS_LOW			; De-select RTC
+	OUT	(RTC_CS),A	
+	RET
+
+
+
+READ_RTC_SPI:
+	LD	A,RTC_CS_HIGH			; Select RTC
+	OUT	(RTC_CS),A			; 52H
+
+	LD	A,B				; <<<---- Send address (only)
+	OUT	(RTC_DATA_OUT),A
+	IN	A,(RTC_READ)			; Send Read pulse (Port 6B)
+
+	CALL	RTC_DELAY
+	
+	IN	A,(RTC_DATA_IN)			; 51H, <<< Get RTC SPI data returned in [A]
+	PUSH	AF
+
+	CALL	RTC_DELAY
+
+	LD	A,RTC_CS_LOW			; De-select RTC
+	OUT	(RTC_CS),A
+	POP	AF
+	RET					;Return with value in [A]
+
+
+RTC_DELAY:	
+	PUSH	AF
+	PUSH	BC
+	PUSH	HL
+	LD	HL,080H				;Extra time required for RTC to write multiple data bytes
+DELAY6:	DEC	HL				;before Status is valid	
+	LD	A,H
+	OR	A,L
+	JR	NZ,DELAY6
+	POP	HL
+DELAY7:	IN	A,(RTC_STATUS)			; Wait until busy is low
+	OR	A
+	JR	NZ,DELAY7
+	POP	BC
+	POP	AF
+	RET
+
+ DATA_ERROR:
+	LD	HL,FORMAT_ERR_MSG		; "DATA  error"
+	CALL	RTC_PMSG
+	JP	TIME_MENU
+
+
+;<<<<<<<<<<<<<<<<<<<<<<<<< SUPPORT ROUTINES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+RTC_PMSG:	
+	PUSH	BC				; Only [A] and [HL] is changed
+RTC_PMSG1:		
+	LD	A,(HL)				; A ROUTINE TO PRINT OUT A STRING @ [HL]
+	INC	HL				; UP TO THE FIRST 0.
+	CP	A,'$'
+	JP	Z,RTC_PMSG_DONE
+	LD	C,A
+	CALL	ZCO
+	JP	RTC_PMSG1
+RTC_PMSG_DONE:
+	POP	BC
+	RET
+
+
+
+;<<<<<<<<<<<<<<<<<<<<<< MAIN CONSOL I/O ROUTINES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+ZCO:	IN	A,(MONITOR_STATUS)		;USB Port for Console OUT
+;	OUT	(LEDS_PORT),A			;LED's display
+	AND	00000010B
+	JR	NZ,ZCO	
+	LD	A,C				
+	AND	7FH				
+	CP	A,BELL
+	JR	Z,BUZZER
+	OUT	(MONITOR_DATA),A
+	LD	A,C				;Return with char in A
+	RET
+
+	
+BUZZER:	OUT	(BUZZER_PORT),A
+	RET
+
+
+;<<<<<<<<<<<<<<<<<<< MAIN CONSOL STATUS ROUTINE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+ZCSTS:	IN	A,(MONITOR_STATUS)
+	AND	01H
+	JR	Z,NO_CSTS			;Zero if nothing
+	XOR	A
+	DEC	A				;RETURN WITH 0FFH IN [A] IF SOMETHING
+	RET
+NO_CSTS:
+	XOR	A			
+	RET					;RETURN WITH 0 IN A IF NOTHING THERE
+
+QUICK_CSTS:	
+	IN	A,(MONITOR_STATUS)	
+	AND	01H
+	RET					;Ret Z if nothing
+
+;<<<<<<<<<<<<<<<<<<<< MAIN CONSOL INPUT ROUTINE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+ZCI:	IN 	A,(MONITOR_STATUS)		;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
+	AND	01H
+	JR	Z,ZCI				;Wait until something there
+	IN	A,(MONITOR_DATA)
+	AND	7FH				;Always 7 bits only.
+	RET
+	
+	
+	
+	
+;>>>>>>>>>>>>>>>>>>>> MAIN PRINTER OUTPUT ROUTINE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+LO:	LD	A,C
+	OUT	(PRINTER_OUT),A		;56H, Send Data
+	
+	LD	A,0FFH			;55H, Setup strobe High -> Low -> High
+	OUT	(PRINTER_STROBE),A
+	XOR	A	 		;Send STROBE FOR CENTRONICS
+	OUT	(PRINTER_STROBE),A
+
+	PUSH	BC
+	LD	B,0FFH
+LO1:	IN	A,(PRINTER_STATUS)   	
+	AND	00000001B    		;Z if last char was acknowledged
+	JR	Z,LO2
+	DJNZ	LO1			;Try 255 times
+	
+LO2:	POP	BC
+	LD	A,0FFH			;55H, Raise strobe again
+	OUT	(PRINTER_STROBE),A
+	JP	LSTAT			;Remain until printer is NOT Busy
+	
+
+FLUSH_PRINTER:	
+	LD	C,FF			;Send a Form Feed to LaserJet Printer
+	CALL	LO			;This forces a partial page to be printed
+	RET
+
+
+;>>>>>>>>>>>>>>>>>>>>>> PRINTER STATUS ROUTINE <<<<<<<<<<<<<<<<<<<<<<<<
+LSTAT:	PUSH	BC
+	LD	B,0FFH
+LSTAT1:	IN	A,(PRINTER_STATUS)	;55H 
+	AND	A,00000011B
+	JR	Z,LSTAT2
+	DJNZ	LSTAT1			;Keep trying
+	POP	BC
+	XOR	A
+	DEC	A			;BUSY = HIGH, or ACK = HIGH,  NON-ZERO FLAG, PRINTER BUSY
+	RET	
+LSTAT2:	POP	BC
+	XOR	A	     		;BUSY = LOW, ACK = LOW,  ZERO FLAG, PRINTER READY
+	RET	
+	
+
+
+;<<<<<<<<<<<<<<<<<<<< MAIN I/O ROUTINES TO SEND/GET DATA TO/FROM S100 BUS PORT S100_DATA_PORT (81H) >>>>>>>>>>>>>
+	
+GET_S100_STATUS:
+	IN	A,(STATUS_BUS_PORT)		;Get S100 Status Port - Bit 7, 1 = data present, 0, no data present
+	AND	A,S100_RTS			;80H, Bit 7
+	RET					;Ret Z if nothing, 80H if data
+
+	
+
+GET_S100_TO_FPGA:
+	IN	A,(STATUS_BUS_PORT)		;Get S100 Status Port - Bit 7, 1 = data present, 0, no data present
+	AND	A,S100_RTS			;80H, Bit 7
+	JR	Z,GET_S100_TO_FPGA		;Wait until data is available
+	IN	A,(DATA_BUS_PORT)		;Return Data in [A], FPGA "hardware" will lower bit 7 of S100 Bus port 30H
+	RET
+
+	
+SEND_FPGA_TO_S100:
+	IN	A,(STATUS_BUS_PORT)		;Has previous data been read by S100 bus
+	AND	A,FPGA_RTS			;01H, Bit 0
+	JR	NZ,SEND_FPGA_TO_S100
+	LD	A,C	
+	OUT	(DATA_BUS_PORT),A
+	PUSH	AF
+SEND_FPGA1:
+	IN	A,(STATUS_BUS_PORT)		;Wait until accepted by S100 system, this will (in hardware) lower bit 0 of status port
+	AND	A,FPGA_RTS			;01H, Has bit 0 returned low yet by a S100 bus read
+	JR	NZ,SEND_FPGA1
+	POP	AF				;Return with sent character in A	
+	RET				
+	
+SET_ERROR_FLAG:
+	LD	A,04H				;Indicate to S100 Bus that the FPGA has detected an error with a CMD
+	OUT	(SET_ERROR_FLAG_PORT),A
+	RET
+
+
+
+
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  MESAGES <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><
+;
+SIGNON_MSG	DB	CR,LF,LF,BELL,'FPGA SUPER IO Board MONITOR -- V0.1c John Monahan, 12/04/2021$' 	
+DRIVE_MSG	DB	CR,LF,LF,'Select Drive Sub-Menu:-$' 	
+
+Z80_MENU_MSG1	DB	CR,LF,'FPGA onboard Z80 CPU Monitor Menu.  V0.1  RAM 8000-FFFFH, $'
+SP_MSG		DB	'SP=$'
+H_MSG		DB	'H $'
+
+Z80_MENU_MSG2:	DB	CR,LF
+  		DB	'A Memmap       B Time/Date Menu   D Show RAM    E Echo Text'
+		DB	CR,LF
+		DB	'F Fill RAM     G Goto Location    H Data Port   I'
+		DB	CR,LF  
+		DB	'J Test RAM     K Z80 Menu         M Move RAM    QI,O Port'
+		DB	CR,LF
+		DB	'R Show Ports   S Subs RAM         T RAM Ascii   U' 
+		DB	CR,LF 
+		DB      'X              V Verify RAM       Z Top Of RAM  (ESC) Main menu'
+		DB	CR,LF,LF,'$'  
+		
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;
+
+MON_CMD_TABLE	EQU	($ & 0FF00H) + 100H
+	
+;	NOTE TABLE MUST BE WITHIN 0-FFH BOUNDRY (CHECK YOUR LISTING)
+
+		ORG	MON_CMD_TABLE
+;
+;COMMAND BRANCH TABLE
+			DW  NOT_DONE ;FLUSH		; "@"  
+			DW  MEMMAP			; "A"  DISPLAY A MAP OF MEMORY
+			DW  TIME_MENU			; "B"  TIME_DATE SUB-MENU
+			DW  BEGIN			; "C"  
+			DW  DISP			; "D"  DISPLAY MEMORY (IN HEX & ASCII)
+			DW  ECHO			; "E"  ECHO CHAR IN TO CHAR OUT
+			DW  FILL			; "F"  FILL MEMORY WITH A CONSTANT
+			DW  GOTO			; "G"  GO TO [ADDRESS]
+			DW  S100_DATA_IN		; "H"  Display S100 Bus Data In port
+			DW  NOT_DONE 			; "I" 
+			DW  RAMTEST			; "J"  NON-DESTRUCTIVE MEMORY TEST 
+			DW  KCMD			; "K"  DISPLAY THE LIST OF SBC-Z80 COMMANDS
+			DW  BEGIN			; "L"  
+			DW  MOVE			; "M"  MOVE BLOCK OF MEMORY (START,FINISH,DESTINATION)
+			DW  NOT_DONE ;CPM_BOOT_SD	; "N"  Boot up CPM on SD card 
+			DW  NOT_DONE			; "O"  Boot up 8086 (if present)
+			DW  NOT_DONE ;CPM_BOOT_IDE	; "P"  Boot up CPM on IDE Drive
+			DW  QUERY			; "Q"  QUERY PORT (IN OR OUT)
+			DW  INPORTS			; "R"  Read ALL Input Ports
+			DW  SUBS			; "S"  SUBSTITUTE &/OR EXAMINE MEMORY
+			DW  TYPE			; "T"  TYPE ASCII PRESENT IN MEMORY 
+			DW  NOT_DONE 			; "U"  
+			DW  VERIFY			; "V"  COMPARE MEMORY
+			DW  NOT_DONE ;INTS_OK		; "W"  Allow Interrupts
+			DW  NOT_DONE			; "X"  
+			DW  NOT_DONE 			; "Y"  
+			DW  SIZE			; "Z"  FIND HIGHEST R/W RAM
+
+	
+ALL_PORTS		DB	CR,LF,'Active I/O Ports:-$'
+Invalid_Msg		DB	CR,LF,BELL,'Invalid Data$'
+NOT_DONE_MSG		DB	CR,LF,BELL,'Routine not written!$'
+RAM_TEST_MSG		DB	CR,LF,'Enter RAM range (xxxx,yyyy) $'
+ECHO_MSG		DB	CR,LF,'Type characters. (^C to abort)$'
+
+H_MENU_MSG		DB	CR,LF,'Continously display S100 Data In Port. Reset to abort.$' 	
+NO_STATUS_MESSAGES	DB	CR,LF,'Note: Bit 0 of SW1 is open, so no runtime status messages!$'
+
+CMD_MODE_MSG		DB	CR,LF,'FPGA SUPER IO Board MONITOR in CMD Mode.$'
+CMD_MSG			DB	CR,LF,'CMD=$'
+UNKNOWN_CMD_MSG		DB	BELL,'  Invalid Command$'
+
+TIME_MENU_MSG		DB	CR,LF,LF,'---------- Time/Date Menu ---------------'
+			DB	CR,LF,'A.   Activate Maxim DS1305 RTC chip.'
+			DB	CR,LF,'S.   Read Seconds Register from RTC Chip.'
+			DB	CR,LF,'W.   Write byte to RAM at a specified location in RTC.'
+			DB	CR,LF,'M.   Read byte from RAM at a specified location in RTC.'
+			DB	CR,LF,'T.   Set Time & Date.'
+			DB	CR,LF,'R.   Read Time & Date.'
+			DB	CR,LF,'X.   Display all RTC Registers.'
+			DB	CR,LF,'ESC  Abort to startup program.',CR,LF,'$'
+
+
+Z_MENU_MSG		DB	CR,LF,'Z = Go to Z80 Menu$'
+
+MSG0:		DB	'A',CR,LF,'Activating the RTC Chip.',CR,LF,'$'	
+
+MSG1:		DB	'S',CR,LF,'Reading Seconds Register from RTC Chip.$'
+MSG2:		DB	CR,LF,'RTC Seconds Register = $'	
+MSG3:		DB	'W',CR,LF,'Enter RAM location (20H-7FH) $'
+MSG4:		DB	CR,LF,'Enter Byte value $'
+MSG5:		DB	CR,LF,'Wrote $'
+MSG6:		DB	'H to RAM location $'
+MSG7:		DB	'H in RTC$'
+MSG8:		DB	'M',CR,LF,'Enter RAM location (20H-7FH) $'
+MSG9:		DB	CR,LF,'RAM location $'
+MSG10:		DB	'H = $'
+MSG11:		DB	'H in RTC$'
+MSG12:		DB	'T',CR,LF,'Enter Year (00-99) $'
+MSG13:		DB	CR,LF,'Enter Month (01-12) $'
+MSG14:		DB	CR,LF,'Enter Date (01-31) $'
+MSG15:		DB	CR,LF,'Enter Hours (00-23) $'
+MSG16:		DB	CR,LF,'Enter Minutes (00-59) $'
+MSG17:		DB	CR,LF,'Enter Seconds (00-59) $'
+MSG18:		DB	CR,LF,LF,'Entered:- 20$'
+MSG19:		DB	'  Time = $'
+MSG20:		DB	'R',CR,LF,'Date = 20$'
+MSG21		DB	'X',CR,LF,'Register Dump:-$'
+MSG22		DB	CR,LF,'Registers (00H - 06H)  $'
+MSG23		DB	CR,LF,'Registers (07H - 0EH)  $'
+MSG24		DB	CR,LF,'Registers (0FH - 11H)  $'
+
+RTC_CMD_GET_MSG	DB	'Read Date/Time $'
+RTC_CMD_SET_MSG	DB	'Set Date/Time $'
+
+GET_DATE_TIME_MSG DB	' Date and Time to S100 Bus:- 20$'
+SET_DATE_TIME_MSG DB	' Date and Time from S100 Bus:- 20$'
+
+PRINT_STRING_MSG DB	' Print string on printer $'
+
+Prompt		DB	CR,LF,LF,'Enter command >$'
+MENU_ERR_MSG	DB	CR,LF,BELL,'Invalid Menu Command!$'
+FORMAT_ERR_MSG	DB	CR,LF,BELL,'Incorrect keyboard data format entered.$'
+
+
+
+; -------------------------- RAM usage for various Routines  -----------------------------------------
+
+@NMI_ADDRESS		EQU	RAM_BASE + 100H		;(8100H)
+@INTR_ADDRESS		EQU	RAM_BASE + 102H
+
+@YEAR:			EQU	RAM_BASE + 104H	
+@MONTH:			EQU	RAM_BASE + 106H	
+@DATE:			EQU	RAM_BASE + 108H	
+@HOURS:			EQU	RAM_BASE + 10AH	
+@MINUTES:		EQU	RAM_BASE + 10CH	
+@SECONDS:		EQU	RAM_BASE + 10EH	
+
+PRINTER_BUFFER		EQU	RAM_BASE + 1000H	;9000H
+;END
