@@ -1,5 +1,5 @@
 Analysis & Synthesis report for SUPER_IO_BOARD
-Sat Nov 18 16:52:27 2023
+Sun Nov 19 12:41:51 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 
 
@@ -91,7 +91,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                        ;
 +------------------------------------+------------------------------------------------+
-; Analysis & Synthesis Status        ; Successful - Sat Nov 18 16:52:27 2023          ;
+; Analysis & Synthesis Status        ; Successful - Sun Nov 19 12:41:51 2023          ;
 ; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Lite Edition ;
 ; Revision Name                      ; SUPER_IO_BOARD                                 ;
 ; Top-level Entity Name              ; SUPER_IO_BOARD                                 ;
@@ -199,21 +199,17 @@ https://fpgasoftware.intel.com/eula.
 +----------------------------+-------------+
 ; Processors                 ; Number      ;
 +----------------------------+-------------+
-; Number detected on machine ; 16          ;
-; Maximum allowed            ; 8           ;
+; Number detected on machine ; 8           ;
+; Maximum allowed            ; 4           ;
 ;                            ;             ;
 ; Average used               ; 1.00        ;
-; Maximum used               ; 8           ;
+; Maximum used               ; 4           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
 ;     Processor 2            ;   0.1%      ;
 ;     Processor 3            ;   0.1%      ;
 ;     Processor 4            ;   0.1%      ;
-;     Processor 5            ;   0.1%      ;
-;     Processor 6            ;   0.1%      ;
-;     Processor 7            ;   0.1%      ;
-;     Processor 8            ;   0.1%      ;
 +----------------------------+-------------+
 
 
@@ -222,29 +218,29 @@ https://fpgasoftware.intel.com/eula.
 +----------------------------------+-----------------+----------------------------------------+-----------------------------------------------------------------------------------------+---------+
 ; File Name with User-Entered Path ; Used in Netlist ; File Type                              ; File Name with Absolute Path                                                            ; Library ;
 +----------------------------------+-----------------+----------------------------------------+-----------------------------------------------------------------------------------------+---------+
-; SUPER_IO_BOARD.bdf               ; yes             ; User Block Diagram/Schematic File      ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/SUPER_IO_BOARD.bdf         ;         ;
-; LOCAL_RAM.v                      ; yes             ; User Wizard-Generated File             ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v                ;         ;
-; T80s.vhd                         ; yes             ; User VHDL File                         ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd                   ;         ;
-; T80_Pack.vhd                     ; yes             ; User VHDL File                         ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80_Pack.vhd               ;         ;
+; SUPER_IO_BOARD.bdf               ; yes             ; User Block Diagram/Schematic File      ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/SUPER_IO_BOARD.bdf         ;         ;
+; LOCAL_RAM.v                      ; yes             ; User Wizard-Generated File             ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v                ;         ;
+; T80s.vhd                         ; yes             ; User VHDL File                         ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd                   ;         ;
+; T80_Pack.vhd                     ; yes             ; User VHDL File                         ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80_Pack.vhd               ;         ;
 ; 74164.bdf                        ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/others/maxplus2/74164.bdf                   ;         ;
-; uart.v                           ; yes             ; Auto-Found Verilog HDL File            ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v                     ;         ;
+; uart.v                           ; yes             ; Auto-Found Verilog HDL File            ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v                     ;         ;
 ; 74138.bdf                        ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/others/maxplus2/74138.bdf                   ;         ;
-; microcomputer.vhd                ; yes             ; Auto-Found VHDL File                   ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/microcomputer.vhd          ;         ;
-; t80.vhd                          ; yes             ; Auto-Found VHDL File                   ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd                    ;         ;
-; t80_mcode.vhd                    ; yes             ; Auto-Found VHDL File                   ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_mcode.vhd              ;         ;
-; t80_alu.vhd                      ; yes             ; Auto-Found VHDL File                   ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_alu.vhd                ;         ;
-; t80_reg.vhd                      ; yes             ; Auto-Found VHDL File                   ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_reg.vhd                ;         ;
+; microcomputer.vhd                ; yes             ; Auto-Found VHDL File                   ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/microcomputer.vhd          ;         ;
+; t80.vhd                          ; yes             ; Auto-Found VHDL File                   ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd                    ;         ;
+; t80_mcode.vhd                    ; yes             ; Auto-Found VHDL File                   ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_mcode.vhd              ;         ;
+; t80_alu.vhd                      ; yes             ; Auto-Found VHDL File                   ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_alu.vhd                ;         ;
+; t80_reg.vhd                      ; yes             ; Auto-Found VHDL File                   ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_reg.vhd                ;         ;
 ; 74373.bdf                        ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/others/maxplus2/74373.bdf                   ;         ;
 ; 21mux.bdf                        ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/others/maxplus2/21mux.bdf                   ;         ;
 ; 74684.bdf                        ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/others/maxplus2/74684.bdf                   ;         ;
-; pll01_50.v                       ; yes             ; Auto-Found Wizard-Generated File       ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v                 ;         ;
+; pll01_50.v                       ; yes             ; Auto-Found Wizard-Generated File       ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v                 ;         ;
 ; altpll.tdf                       ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/altpll.tdf                    ;         ;
 ; aglobal221.inc                   ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/aglobal221.inc                ;         ;
 ; stratix_pll.inc                  ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/stratix_pll.inc               ;         ;
 ; stratixii_pll.inc                ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/stratixii_pll.inc             ;         ;
 ; cycloneii_pll.inc                ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/cycloneii_pll.inc             ;         ;
-; db/pll01_50_altpll1.v            ; yes             ; Auto-Generated Megafunction            ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v      ;         ;
-; fpga_rom_32k.v                   ; yes             ; Auto-Found Wizard-Generated File       ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v             ;         ;
+; db/pll01_50_altpll1.v            ; yes             ; Auto-Generated Megafunction            ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v      ;         ;
+; fpga_rom_32k.v                   ; yes             ; Auto-Found Wizard-Generated File       ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v             ;         ;
 ; altsyncram.tdf                   ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/altsyncram.tdf                ;         ;
 ; stratix_ram_block.inc            ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/stratix_ram_block.inc         ;         ;
 ; lpm_mux.inc                      ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/lpm_mux.inc                   ;         ;
@@ -253,16 +249,16 @@ https://fpgasoftware.intel.com/eula.
 ; altrom.inc                       ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/altrom.inc                    ;         ;
 ; altram.inc                       ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/altram.inc                    ;         ;
 ; altdpram.inc                     ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/altdpram.inc                  ;         ;
-; db/altsyncram_inb1.tdf           ; yes             ; Auto-Generated Megafunction            ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_inb1.tdf     ;         ;
-; rom_hex_files/super_io.hex       ; yes             ; Auto-Found Memory Initialization File  ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/rom_hex_files/super_io.hex ;         ;
-; db/decode_f8a.tdf                ; yes             ; Auto-Generated Megafunction            ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/decode_f8a.tdf          ;         ;
-; db/mux_6nb.tdf                   ; yes             ; Auto-Generated Megafunction            ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/mux_6nb.tdf             ;         ;
-; db/altsyncram_lhf1.tdf           ; yes             ; Auto-Generated Megafunction            ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_lhf1.tdf     ;         ;
+; db/altsyncram_inb1.tdf           ; yes             ; Auto-Generated Megafunction            ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_inb1.tdf     ;         ;
+; rom_hex_files/super_io.hex       ; yes             ; Auto-Found Memory Initialization File  ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/rom_hex_files/super_io.hex ;         ;
+; db/decode_f8a.tdf                ; yes             ; Auto-Generated Megafunction            ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/decode_f8a.tdf          ;         ;
+; db/mux_6nb.tdf                   ; yes             ; Auto-Generated Megafunction            ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/mux_6nb.tdf             ;         ;
+; db/altsyncram_lhf1.tdf           ; yes             ; Auto-Generated Megafunction            ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_lhf1.tdf     ;         ;
 ; 74244.bdf                        ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/others/maxplus2/74244.bdf                   ;         ;
 ; 74273.bdf                        ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/others/maxplus2/74273.bdf                   ;         ;
 ; 7474.bdf                         ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/others/maxplus2/7474.bdf                    ;         ;
-; spi_16bit_master.vhd             ; yes             ; Auto-Found VHDL File                   ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/spi_16bit_master.vhd       ;         ;
-; counter01_32.v                   ; yes             ; Auto-Found Wizard-Generated File       ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v             ;         ;
+; spi_16bit_master.vhd             ; yes             ; Auto-Found VHDL File                   ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/spi_16bit_master.vhd       ;         ;
+; counter01_32.v                   ; yes             ; Auto-Found Wizard-Generated File       ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v             ;         ;
 ; lpm_counter.tdf                  ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/lpm_counter.tdf               ;         ;
 ; lpm_constant.inc                 ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/lpm_constant.inc              ;         ;
 ; lpm_add_sub.inc                  ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/lpm_add_sub.inc               ;         ;
@@ -271,11 +267,11 @@ https://fpgasoftware.intel.com/eula.
 ; lpm_counter.inc                  ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/lpm_counter.inc               ;         ;
 ; dffeea.inc                       ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/dffeea.inc                    ;         ;
 ; alt_counter_stratix.inc          ; yes             ; Megafunction                           ; c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/alt_counter_stratix.inc       ;         ;
-; db/cntr_rqh.tdf                  ; yes             ; Auto-Generated Megafunction            ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/cntr_rqh.tdf            ;         ;
-; wifi_uart.v                      ; yes             ; Auto-Found Verilog HDL File            ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v                ;         ;
-; ps2_keyboard_to_ascii.vhd        ; yes             ; Auto-Found VHDL File                   ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard_to_ascii.vhd  ;         ;
-; ps2_keyboard.vhd                 ; yes             ; Auto-Found VHDL File                   ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd           ;         ;
-; debounce.vhd                     ; yes             ; Auto-Found VHDL File                   ; E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/debounce.vhd               ;         ;
+; db/cntr_rqh.tdf                  ; yes             ; Auto-Generated Megafunction            ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/cntr_rqh.tdf            ;         ;
+; wifi_uart.v                      ; yes             ; Auto-Found Verilog HDL File            ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v                ;         ;
+; ps2_keyboard_to_ascii.vhd        ; yes             ; Auto-Found VHDL File                   ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard_to_ascii.vhd  ;         ;
+; ps2_keyboard.vhd                 ; yes             ; Auto-Found VHDL File                   ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd           ;         ;
+; debounce.vhd                     ; yes             ; Auto-Found VHDL File                   ; C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/debounce.vhd               ;         ;
 +----------------------------------+-----------------+----------------------------------------+-----------------------------------------------------------------------------------------+---------+
 
 
@@ -842,10 +838,12 @@ Table restricted to first 100 entries. Note: All latches listed above may not be
 ; uart:inst120|tx_clk_divider[4]                ; 1       ;
 ; uart:inst120|tx_clk_divider[8]                ; 1       ;
 ; uart:inst120|tx_clk_divider[10]               ; 1       ;
+; WIFI_uart:inst1|tx_clk_divider[0]             ; 1       ;
+; WIFI_uart:inst1|tx_clk_divider[1]             ; 1       ;
 ; WIFI_uart:inst1|tx_clk_divider[2]             ; 1       ;
-; WIFI_uart:inst1|tx_clk_divider[3]             ; 1       ;
-; WIFI_uart:inst1|tx_clk_divider[5]             ; 1       ;
-; WIFI_uart:inst1|tx_clk_divider[6]             ; 1       ;
+; WIFI_uart:inst1|tx_clk_divider[4]             ; 1       ;
+; WIFI_uart:inst1|tx_clk_divider[8]             ; 1       ;
+; WIFI_uart:inst1|tx_clk_divider[10]            ; 1       ;
 ; uart:inst14|tx_clk_divider[0]                 ; 1       ;
 ; uart:inst14|tx_clk_divider[2]                 ; 1       ;
 ; uart:inst14|tx_clk_divider[6]                 ; 1       ;
@@ -908,11 +906,9 @@ Table restricted to first 100 entries. Note: All latches listed above may not be
 ; uart:inst106|rx_clk_divider[4]                ; 1       ;
 ; uart:inst106|rx_clk_divider[8]                ; 1       ;
 ; uart:inst106|rx_clk_divider[10]               ; 1       ;
-; WIFI_uart:inst1|rx_clk_divider[2]             ; 1       ;
-; WIFI_uart:inst1|rx_clk_divider[3]             ; 1       ;
-; WIFI_uart:inst1|rx_clk_divider[5]             ; 1       ;
-; WIFI_uart:inst1|rx_clk_divider[6]             ; 1       ;
-; Total number of inverted registers = 142*     ;         ;
+; WIFI_uart:inst1|rx_clk_divider[0]             ; 1       ;
+; WIFI_uart:inst1|rx_clk_divider[1]             ; 1       ;
+; Total number of inverted registers = 146*     ;         ;
 +-----------------------------------------------+---------+
 * Table truncated at 100 items. To change the number of inverted registers reported, set the "Number of Inverted Registers Reported" option under Assignments->Settings->Analysis and Synthesis Settings->More Settings
 
@@ -922,109 +918,109 @@ Table restricted to first 100 entries. Note: All latches listed above may not be
 +--------------------+-----------+---------------+----------------------+------------------------+------------+--------------------------------------------------------------------------------------------------------------------+
 ; Multiplexer Inputs ; Bus Width ; Baseline Area ; Area if Restructured ; Saving if Restructured ; Registered ; Example Multiplexer Output                                                                                         ;
 +--------------------+-----------+---------------+----------------------+------------------------+------------+--------------------------------------------------------------------------------------------------------------------+
-; 3:1                ; 15 bits   ; 30 LEs        ; 15 LEs               ; 15 LEs                 ; Yes        ; |SUPER_IO_BOARD|spi_16bit_master:inst74|tx_buffer[5]                                                               ;
-; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|ALU_Op_r[2]                                                    ;
+; 3:1                ; 15 bits   ; 30 LEs        ; 15 LEs               ; 15 LEs                 ; Yes        ; |SUPER_IO_BOARD|spi_16bit_master:inst74|tx_buffer[4]                                                               ;
+; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|ALU_Op_r[0]                                                    ;
 ; 3:1                ; 4 bits    ; 8 LEs         ; 8 LEs                ; 0 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|Read_To_Reg_r[0]                                               ;
 ; 3:1                ; 2 bits    ; 4 LEs         ; 4 LEs                ; 0 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|RegAddrC[1]                                                    ;
 ; 4:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|XY_State[1]                                                    ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_clk_divider[3]                                                                      ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|rx_clk_divider[9]                                                                      ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_clk_divider[3]                                                                      ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|rx_clk_divider[9]                                                                      ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|tx_clk_divider[1]                                                                      ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|rx_clk_divider[5]                                                                      ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_clk_divider[10]                                                                 ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_clk_divider[9]                                                                  ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_clk_divider[3]                                                                     ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|rx_clk_divider[9]                                                                     ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_clk_divider[7]                                                                     ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|rx_clk_divider[3]                                                                     ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_clk_divider[10]                                                                        ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|rx_clk_divider[4]                                                                         ;
-; 3:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |SUPER_IO_BOARD|ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[4]                             ;
-; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|ISet[1]                                                        ;
-; 3:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|debounce:debounce_ps2_clk|counter_out[7]  ;
-; 3:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|debounce:debounce_ps2_data|counter_out[3] ;
-; 4:1                ; 30 bits   ; 60 LEs        ; 30 LEs               ; 30 LEs                 ; Yes        ; |SUPER_IO_BOARD|spi_16bit_master:inst74|count[14]                                                                  ;
-; 4:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|spi_16bit_master:inst74|clk_toggles[5]                                                             ;
-; 4:1                ; 2 bits    ; 4 LEs         ; 4 LEs                ; 0 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|MCycle[1]                                                      ;
-; 4:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|IR[0]                                                          ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|R[1]                                                           ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_clk_divider[7]                                                                      ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|rx_clk_divider[10]                                                                     ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_clk_divider[9]                                                                      ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|rx_clk_divider[7]                                                                      ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|tx_clk_divider[3]                                                                      ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|rx_clk_divider[9]                                                                      ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_clk_divider[5]                                                                  ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_clk_divider[7]                                                                  ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_clk_divider[7]                                                                     ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|rx_clk_divider[5]                                                                     ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_clk_divider[5]                                                                     ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|rx_clk_divider[9]                                                                     ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_clk_divider[5]                                                                         ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|rx_clk_divider[1]                                                                         ;
+; 3:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |SUPER_IO_BOARD|ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|count_idle[0]                             ;
+; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|ISet[0]                                                        ;
+; 3:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|debounce:debounce_ps2_clk|counter_out[6]  ;
+; 3:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|debounce:debounce_ps2_data|counter_out[0] ;
+; 4:1                ; 30 bits   ; 60 LEs        ; 30 LEs               ; 30 LEs                 ; Yes        ; |SUPER_IO_BOARD|spi_16bit_master:inst74|count[10]                                                                  ;
+; 4:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|spi_16bit_master:inst74|clk_toggles[0]                                                             ;
+; 4:1                ; 2 bits    ; 4 LEs         ; 4 LEs                ; 0 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|MCycle[2]                                                      ;
+; 4:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|IR[7]                                                          ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|R[3]                                                           ;
 ; 5:1                ; 5 bits    ; 15 LEs        ; 10 LEs               ; 5 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|TmpAddr[7]                                                     ;
 ; 5:1                ; 3 bits    ; 9 LEs         ; 6 LEs                ; 3 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|TmpAddr[3]                                                     ;
-; 5:1                ; 8 bits    ; 24 LEs        ; 16 LEs               ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|TmpAddr[10]                                                    ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_bits_remaining[3]                                                                   ;
-; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_data[6]                                                                             ;
+; 5:1                ; 8 bits    ; 24 LEs        ; 16 LEs               ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|TmpAddr[14]                                                    ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_bits_remaining[1]                                                                   ;
+; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_data[5]                                                                             ;
 ; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_bits_remaining[3]                                                                   ;
-; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_data[0]                                                                             ;
+; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_data[3]                                                                             ;
 ; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|tx_bits_remaining[0]                                                                   ;
 ; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:inst14|tx_data[0]                                                                             ;
 ; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_bits_remaining[0]                                                               ;
-; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_data[6]                                                                         ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_bits_remaining[1]                                                                  ;
-; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_data[4]                                                                            ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_bits_remaining[0]                                                                  ;
-; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_data[0]                                                                            ;
+; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_data[1]                                                                         ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_bits_remaining[2]                                                                  ;
+; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_data[5]                                                                            ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_bits_remaining[2]                                                                  ;
+; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_data[6]                                                                            ;
 ; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_bits_remaining[0]                                                                      ;
-; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_data[5]                                                                                ;
-; 11:1               ; 8 bits    ; 56 LEs        ; 48 LEs               ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|BusB[1]                                                        ;
-; 12:1               ; 8 bits    ; 64 LEs        ; 32 LEs               ; 32 LEs                 ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|BusA[7]                                                        ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_countdown[5]                                                                        ;
+; 5:1                ; 7 bits    ; 21 LEs        ; 7 LEs                ; 14 LEs                 ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_data[6]                                                                                ;
+; 11:1               ; 8 bits    ; 56 LEs        ; 48 LEs               ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|BusB[6]                                                        ;
+; 12:1               ; 8 bits    ; 64 LEs        ; 32 LEs               ; 32 LEs                 ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|BusA[2]                                                        ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_countdown[4]                                                                        ;
 ; 5:1                ; 2 bits    ; 6 LEs         ; 4 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_countdown[3]                                                                        ;
 ; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|rx_bits_remaining[0]                                                                   ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_countdown[0]                                                                        ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_countdown[1]                                                                        ;
 ; 5:1                ; 2 bits    ; 6 LEs         ; 4 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_countdown[2]                                                                        ;
 ; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|rx_bits_remaining[0]                                                                   ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|tx_countdown[5]                                                                        ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|tx_countdown[4]                                                                        ;
 ; 5:1                ; 2 bits    ; 6 LEs         ; 4 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|tx_countdown[2]                                                                        ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|rx_bits_remaining[3]                                                                   ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_countdown[4]                                                                    ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|rx_bits_remaining[0]                                                                   ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_countdown[0]                                                                    ;
 ; 5:1                ; 2 bits    ; 6 LEs         ; 4 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_countdown[3]                                                                    ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_bits_remaining[0]                                                               ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_countdown[4]                                                                       ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_bits_remaining[3]                                                               ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_countdown[1]                                                                       ;
 ; 5:1                ; 2 bits    ; 6 LEs         ; 4 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_countdown[2]                                                                       ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|rx_bits_remaining[3]                                                                  ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|rx_bits_remaining[2]                                                                  ;
 ; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_countdown[0]                                                                       ;
 ; 5:1                ; 2 bits    ; 6 LEs         ; 4 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_countdown[2]                                                                       ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|rx_bits_remaining[1]                                                                  ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|rx_bits_remaining[3]                                                                  ;
 ; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_countdown[5]                                                                           ;
-; 5:1                ; 2 bits    ; 6 LEs         ; 4 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_countdown[2]                                                                           ;
-; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|rx_bits_remaining[2]                                                                      ;
+; 5:1                ; 2 bits    ; 6 LEs         ; 4 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_countdown[3]                                                                           ;
+; 5:1                ; 4 bits    ; 12 LEs        ; 4 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|rx_bits_remaining[0]                                                                      ;
 ; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|rx_countdown[2]                                                                        ;
-; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|rx_countdown[0]                                                                        ;
-; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|rx_countdown[1]                                                                        ;
+; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|rx_countdown[4]                                                                        ;
+; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|rx_countdown[2]                                                                        ;
 ; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|rx_countdown[4]                                                                        ;
 ; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|rx_countdown[1]                                                                        ;
-; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|rx_countdown[5]                                                                        ;
-; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_countdown[1]                                                                    ;
-; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_countdown[0]                                                                    ;
-; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|rx_countdown[2]                                                                       ;
-; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|rx_countdown[5]                                                                       ;
-; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|rx_countdown[2]                                                                       ;
+; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|rx_countdown[0]                                                                        ;
+; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_countdown[2]                                                                    ;
+; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_countdown[4]                                                                    ;
+; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|rx_countdown[1]                                                                       ;
+; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|rx_countdown[0]                                                                       ;
+; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|rx_countdown[1]                                                                       ;
 ; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|rx_countdown[4]                                                                       ;
-; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|rx_countdown[2]                                                                           ;
+; 8:1                ; 2 bits    ; 10 LEs        ; 6 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|rx_countdown[1]                                                                           ;
 ; 7:1                ; 4 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|rx_countdown[3]                                                                           ;
-; 10:1               ; 7 bits    ; 42 LEs        ; 21 LEs               ; 21 LEs                 ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|PC[1]                                                          ;
+; 10:1               ; 7 bits    ; 42 LEs        ; 21 LEs               ; 21 LEs                 ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|PC[5]                                                          ;
 ; 10:1               ; 8 bits    ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|PC[14]                                                         ;
-; 16:1               ; 8 bits    ; 80 LEs        ; 32 LEs               ; 48 LEs                 ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|A[3]                                                           ;
+; 16:1               ; 8 bits    ; 80 LEs        ; 32 LEs               ; 48 LEs                 ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|A[7]                                                           ;
 ; 16:1               ; 8 bits    ; 80 LEs        ; 40 LEs               ; 40 LEs                 ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|A[15]                                                          ;
 ; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|tx_clk_divider[0]                                                                      ;
-; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|rx_clk_divider[0]                                                                      ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_clk_divider[4]                                                                      ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|rx_clk_divider[2]                                                                      ;
-; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|tx_clk_divider[8]                                                                      ;
-; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|rx_clk_divider[8]                                                                      ;
-; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_clk_divider[3]                                                                  ;
-; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_clk_divider[6]                                                                  ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_clk_divider[0]                                                                     ;
+; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst13|rx_clk_divider[8]                                                                      ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|tx_clk_divider[1]                                                                      ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst90|rx_clk_divider[10]                                                                     ;
+; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|tx_clk_divider[6]                                                                      ;
+; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst14|rx_clk_divider[0]                                                                      ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|tx_clk_divider[4]                                                                  ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|WIFI_uart:inst1|rx_clk_divider[10]                                                                 ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|tx_clk_divider[2]                                                                     ;
 ; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst120|rx_clk_divider[4]                                                                     ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_clk_divider[1]                                                                     ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|rx_clk_divider[2]                                                                     ;
-; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_clk_divider[0]                                                                         ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|tx_clk_divider[10]                                                                    ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:inst106|rx_clk_divider[10]                                                                    ;
+; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|tx_clk_divider[6]                                                                         ;
 ; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |SUPER_IO_BOARD|uart:325|rx_clk_divider[2]                                                                         ;
-; 4:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|spi_16bit_master:inst74|count[0]                                                                   ;
+; 4:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |SUPER_IO_BOARD|spi_16bit_master:inst74|count[31]                                                                  ;
 ; 5:1                ; 8 bits    ; 24 LEs        ; 24 LEs               ; 0 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|DO[0]                                                          ;
-; 5:1                ; 8 bits    ; 24 LEs        ; 16 LEs               ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|SP[6]                                                          ;
+; 5:1                ; 8 bits    ; 24 LEs        ; 16 LEs               ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|SP[5]                                                          ;
 ; 5:1                ; 8 bits    ; 24 LEs        ; 16 LEs               ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|SP[12]                                                         ;
 ; 7:1                ; 8 bits    ; 32 LEs        ; 24 LEs               ; 8 LEs                  ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|ACC[5]                                                         ;
 ; 17:1               ; 2 bits    ; 22 LEs        ; 12 LEs               ; 10 LEs                 ; Yes        ; |SUPER_IO_BOARD|Microcomputer:inst|T80s:cpu1|T80:u0|F[3]                                                           ;
@@ -1742,7 +1738,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +------------------+-------+-----------------------------------+
 ; Parameter Name   ; Value ; Type                              ;
 +------------------+-------+-----------------------------------+
-; CLOCK_DIVIDE     ; 108   ; Signed Integer                    ;
+; CLOCK_DIVIDE     ; 1303  ; Signed Integer                    ;
 ; RX_IDLE          ; 0     ; Signed Integer                    ;
 ; RX_CHECK_START   ; 1     ; Signed Integer                    ;
 ; RX_READ_BITS     ; 2     ; Signed Integer                    ;
@@ -1992,7 +1988,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +----------------+--------------+
 ; Partition Name ; Elapsed Time ;
 +----------------+--------------+
-; Top            ; 00:00:13     ;
+; Top            ; 00:00:17     ;
 +----------------+--------------+
 
 
@@ -2002,19 +1998,28 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
-    Info: Processing started: Sat Nov 18 16:52:04 2023
+    Info: Processing started: Sun Nov 19 12:41:18 2023
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off SUPER_IO_BOARD -c SUPER_IO_BOARD
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
-Info (20030): Parallel compilation is enabled and will use 8 of the 8 processors detected
+Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
+Info (12021): Found 2 design units, including 1 entities, in source file acia_tx.vhd
+    Info (12022): Found design unit 1: ACIA_TX-rtl File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ACIA_TX.vhd Line: 65
+    Info (12023): Found entity 1: ACIA_TX File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ACIA_TX.vhd Line: 48
+Info (12021): Found 2 design units, including 1 entities, in source file acia_rx.vhd
+    Info (12022): Found design unit 1: ACIA_RX-rtl File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ACIA_RX.vhd Line: 76
+    Info (12023): Found entity 1: ACIA_RX File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ACIA_RX.vhd Line: 55
+Info (12021): Found 2 design units, including 1 entities, in source file acia_6850.vhd
+    Info (12022): Found design unit 1: ACIA_6850-rtl File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ACIA_6850.vhd Line: 87
+    Info (12023): Found entity 1: ACIA_6850 File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ACIA_6850.vhd Line: 58
 Info (12021): Found 1 design units, including 1 entities, in source file super_io_board.bdf
     Info (12023): Found entity 1: SUPER_IO_BOARD
 Info (12021): Found 1 design units, including 1 entities, in source file local_ram.v
-    Info (12023): Found entity 1: LOCAL_RAM File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v Line: 39
+    Info (12023): Found entity 1: LOCAL_RAM File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v Line: 39
 Info (12021): Found 2 design units, including 1 entities, in source file t80s.vhd
-    Info (12022): Found design unit 1: T80s-rtl File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 100
-    Info (12023): Found entity 1: T80s File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 73
+    Info (12022): Found design unit 1: T80s-rtl File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 100
+    Info (12023): Found entity 1: T80s File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 73
 Info (12021): Found 1 design units, including 0 entities, in source file t80_pack.vhd
-    Info (12022): Found design unit 1: T80_Pack File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80_Pack.vhd Line: 51
+    Info (12022): Found design unit 1: T80_Pack File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80_Pack.vhd Line: 51
 Info (12127): Elaborating entity "SUPER_IO_BOARD" for the top level hierarchy
 Warning (275008): Primitive "OR2" of instance "inst135" not used
 Warning (275008): Primitive "NOR2" of instance "inst224" not used
@@ -2028,44 +2033,44 @@ Warning (275008): Primitive "GND" of instance "inst97" not used
 Info (12128): Elaborating entity "74164" for hierarchy "74164:inst43"
 Info (12130): Elaborated megafunction instantiation "74164:inst43"
 Warning (12125): Using design file uart.v, which is not specified as a design file for the current project, but contains definitions for 1 design units and 1 entities in project
-    Info (12023): Found entity 1: uart File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 24
+    Info (12023): Found entity 1: uart File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 24
 Info (12128): Elaborating entity "uart" for hierarchy "uart:325"
-Warning (10036): Verilog HDL or VHDL warning at uart.v(72): object "my_data_read_state" assigned a value but never read File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 72
-Warning (10230): Verilog HDL assignment warning at uart.v(63): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 63
-Warning (10230): Verilog HDL assignment warning at uart.v(64): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 64
-Warning (10230): Verilog HDL assignment warning at uart.v(106): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 106
-Warning (10230): Verilog HDL assignment warning at uart.v(108): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 108
-Warning (10230): Verilog HDL assignment warning at uart.v(109): truncated value with size 32 to match size of target (6) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 109
-Warning (10230): Verilog HDL assignment warning at uart.v(111): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 111
-Warning (10230): Verilog HDL assignment warning at uart.v(113): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 113
-Warning (10230): Verilog HDL assignment warning at uart.v(114): truncated value with size 32 to match size of target (6) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 114
-Warning (10230): Verilog HDL assignment warning at uart.v(130): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 130
-Warning (10230): Verilog HDL assignment warning at uart.v(159): truncated value with size 32 to match size of target (4) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 159
-Warning (10230): Verilog HDL assignment warning at uart.v(209): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 209
-Warning (10230): Verilog HDL assignment warning at uart.v(219): truncated value with size 32 to match size of target (4) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 219
+Warning (10036): Verilog HDL or VHDL warning at uart.v(72): object "my_data_read_state" assigned a value but never read File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 72
+Warning (10230): Verilog HDL assignment warning at uart.v(63): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 63
+Warning (10230): Verilog HDL assignment warning at uart.v(64): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 64
+Warning (10230): Verilog HDL assignment warning at uart.v(106): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 106
+Warning (10230): Verilog HDL assignment warning at uart.v(108): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 108
+Warning (10230): Verilog HDL assignment warning at uart.v(109): truncated value with size 32 to match size of target (6) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 109
+Warning (10230): Verilog HDL assignment warning at uart.v(111): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 111
+Warning (10230): Verilog HDL assignment warning at uart.v(113): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 113
+Warning (10230): Verilog HDL assignment warning at uart.v(114): truncated value with size 32 to match size of target (6) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 114
+Warning (10230): Verilog HDL assignment warning at uart.v(130): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 130
+Warning (10230): Verilog HDL assignment warning at uart.v(159): truncated value with size 32 to match size of target (4) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 159
+Warning (10230): Verilog HDL assignment warning at uart.v(209): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 209
+Warning (10230): Verilog HDL assignment warning at uart.v(219): truncated value with size 32 to match size of target (4) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 219
 Info (12128): Elaborating entity "74138" for hierarchy "74138:inst16"
 Info (12130): Elaborated megafunction instantiation "74138:inst16"
 Warning (12125): Using design file microcomputer.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
-    Info (12022): Found design unit 1: Microcomputer-struct File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/microcomputer.vhd Line: 50
-    Info (12023): Found entity 1: Microcomputer File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/microcomputer.vhd Line: 21
+    Info (12022): Found design unit 1: Microcomputer-struct File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/microcomputer.vhd Line: 50
+    Info (12023): Found entity 1: Microcomputer File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/microcomputer.vhd Line: 21
 Info (12128): Elaborating entity "Microcomputer" for hierarchy "Microcomputer:inst"
-Info (12128): Elaborating entity "T80s" for hierarchy "Microcomputer:inst|T80s:cpu1" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/microcomputer.vhd Line: 61
+Info (12128): Elaborating entity "T80s" for hierarchy "Microcomputer:inst|T80s:cpu1" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/microcomputer.vhd Line: 61
 Warning (12125): Using design file t80.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
-    Info (12022): Found design unit 1: T80-rtl File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 115
-    Info (12023): Found entity 1: T80 File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 75
-Info (12128): Elaborating entity "T80" for hierarchy "Microcomputer:inst|T80s:cpu1|T80:u0" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 115
+    Info (12022): Found design unit 1: T80-rtl File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 115
+    Info (12023): Found entity 1: T80 File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 75
+Info (12128): Elaborating entity "T80" for hierarchy "Microcomputer:inst|T80s:cpu1|T80:u0" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 115
 Warning (12125): Using design file t80_mcode.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
-    Info (12022): Found design unit 1: T80_MCode-rtl File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_mcode.vhd Line: 137
-    Info (12023): Found entity 1: T80_MCode File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_mcode.vhd Line: 68
-Info (12128): Elaborating entity "T80_MCode" for hierarchy "Microcomputer:inst|T80s:cpu1|T80:u0|T80_MCode:mcode" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 244
+    Info (12022): Found design unit 1: T80_MCode-rtl File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_mcode.vhd Line: 137
+    Info (12023): Found entity 1: T80_MCode File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_mcode.vhd Line: 68
+Info (12128): Elaborating entity "T80_MCode" for hierarchy "Microcomputer:inst|T80s:cpu1|T80:u0|T80_MCode:mcode" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 244
 Warning (12125): Using design file t80_alu.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
-    Info (12022): Found design unit 1: T80_ALU-rtl File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_alu.vhd Line: 88
-    Info (12023): Found entity 1: T80_ALU File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_alu.vhd Line: 62
-Info (12128): Elaborating entity "T80_ALU" for hierarchy "Microcomputer:inst|T80s:cpu1|T80:u0|T80_ALU:alu" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 309
+    Info (12022): Found design unit 1: T80_ALU-rtl File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_alu.vhd Line: 88
+    Info (12023): Found entity 1: T80_ALU File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_alu.vhd Line: 62
+Info (12128): Elaborating entity "T80_ALU" for hierarchy "Microcomputer:inst|T80s:cpu1|T80:u0|T80_ALU:alu" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 309
 Warning (12125): Using design file t80_reg.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
-    Info (12022): Found design unit 1: T80_Reg-rtl File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_reg.vhd Line: 76
-    Info (12023): Found entity 1: T80_Reg File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_reg.vhd Line: 56
-Info (12128): Elaborating entity "T80_Reg" for hierarchy "Microcomputer:inst|T80s:cpu1|T80:u0|T80_Reg:Regs" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 819
+    Info (12022): Found design unit 1: T80_Reg-rtl File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_reg.vhd Line: 76
+    Info (12023): Found entity 1: T80_Reg File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80_reg.vhd Line: 56
+Info (12128): Elaborating entity "T80_Reg" for hierarchy "Microcomputer:inst|T80s:cpu1|T80:u0|T80_Reg:Regs" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/t80.vhd Line: 819
 Info (12128): Elaborating entity "74373" for hierarchy "74373:inst160"
 Info (12130): Elaborated megafunction instantiation "74373:inst160"
 Info (12128): Elaborating entity "21mux" for hierarchy "21mux:inst294"
@@ -2073,11 +2078,11 @@ Info (12130): Elaborated megafunction instantiation "21mux:inst294"
 Info (12128): Elaborating entity "74684" for hierarchy "74684:inst434"
 Info (12130): Elaborated megafunction instantiation "74684:inst434"
 Warning (12125): Using design file pll01_50.v, which is not specified as a design file for the current project, but contains definitions for 1 design units and 1 entities in project
-    Info (12023): Found entity 1: PLL01_50 File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v Line: 39
+    Info (12023): Found entity 1: PLL01_50 File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v Line: 39
 Info (12128): Elaborating entity "PLL01_50" for hierarchy "PLL01_50:inst4"
-Info (12128): Elaborating entity "altpll" for hierarchy "PLL01_50:inst4|altpll:altpll_component" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v Line: 102
-Info (12130): Elaborated megafunction instantiation "PLL01_50:inst4|altpll:altpll_component" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v Line: 102
-Info (12133): Instantiated megafunction "PLL01_50:inst4|altpll:altpll_component" with the following parameter: File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v Line: 102
+Info (12128): Elaborating entity "altpll" for hierarchy "PLL01_50:inst4|altpll:altpll_component" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v Line: 102
+Info (12130): Elaborated megafunction instantiation "PLL01_50:inst4|altpll:altpll_component" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v Line: 102
+Info (12133): Instantiated megafunction "PLL01_50:inst4|altpll:altpll_component" with the following parameter: File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/pll01_50.v Line: 102
     Info (12134): Parameter "bandwidth_type" = "AUTO"
     Info (12134): Parameter "clk0_divide_by" = "25"
     Info (12134): Parameter "clk0_duty_cycle" = "50"
@@ -2145,14 +2150,14 @@ Info (12133): Instantiated megafunction "PLL01_50:inst4|altpll:altpll_component"
     Info (12134): Parameter "port_extclk3" = "PORT_UNUSED"
     Info (12134): Parameter "width_clock" = "5"
 Info (12021): Found 1 design units, including 1 entities, in source file db/pll01_50_altpll1.v
-    Info (12023): Found entity 1: PLL01_50_altpll1 File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 30
+    Info (12023): Found entity 1: PLL01_50_altpll1 File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 30
 Info (12128): Elaborating entity "PLL01_50_altpll1" for hierarchy "PLL01_50:inst4|altpll:altpll_component|PLL01_50_altpll1:auto_generated" File: c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/altpll.tdf Line: 898
 Warning (12125): Using design file fpga_rom_32k.v, which is not specified as a design file for the current project, but contains definitions for 1 design units and 1 entities in project
-    Info (12023): Found entity 1: FPGA_ROM_32K File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v Line: 39
+    Info (12023): Found entity 1: FPGA_ROM_32K File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v Line: 39
 Info (12128): Elaborating entity "FPGA_ROM_32K" for hierarchy "FPGA_ROM_32K:inst21"
-Info (12128): Elaborating entity "altsyncram" for hierarchy "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v Line: 81
-Info (12130): Elaborated megafunction instantiation "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v Line: 81
-Info (12133): Instantiated megafunction "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component" with the following parameter: File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v Line: 81
+Info (12128): Elaborating entity "altsyncram" for hierarchy "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v Line: 81
+Info (12130): Elaborated megafunction instantiation "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v Line: 81
+Info (12133): Instantiated megafunction "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component" with the following parameter: File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/fpga_rom_32k.v Line: 81
     Info (12134): Parameter "address_aclr_a" = "NONE"
     Info (12134): Parameter "clock_enable_input_a" = "BYPASS"
     Info (12134): Parameter "clock_enable_output_a" = "BYPASS"
@@ -2168,18 +2173,18 @@ Info (12133): Instantiated megafunction "FPGA_ROM_32K:inst21|altsyncram:altsyncr
     Info (12134): Parameter "width_a" = "8"
     Info (12134): Parameter "width_byteena_a" = "1"
 Info (12021): Found 1 design units, including 1 entities, in source file db/altsyncram_inb1.tdf
-    Info (12023): Found entity 1: altsyncram_inb1 File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_inb1.tdf Line: 32
+    Info (12023): Found entity 1: altsyncram_inb1 File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_inb1.tdf Line: 32
 Info (12128): Elaborating entity "altsyncram_inb1" for hierarchy "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component|altsyncram_inb1:auto_generated" File: c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/altsyncram.tdf Line: 792
 Info (12021): Found 1 design units, including 1 entities, in source file db/decode_f8a.tdf
-    Info (12023): Found entity 1: decode_f8a File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/decode_f8a.tdf Line: 23
-Info (12128): Elaborating entity "decode_f8a" for hierarchy "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component|altsyncram_inb1:auto_generated|decode_f8a:rden_decode" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_inb1.tdf Line: 40
+    Info (12023): Found entity 1: decode_f8a File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/decode_f8a.tdf Line: 23
+Info (12128): Elaborating entity "decode_f8a" for hierarchy "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component|altsyncram_inb1:auto_generated|decode_f8a:rden_decode" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_inb1.tdf Line: 40
 Info (12021): Found 1 design units, including 1 entities, in source file db/mux_6nb.tdf
-    Info (12023): Found entity 1: mux_6nb File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/mux_6nb.tdf Line: 23
-Info (12128): Elaborating entity "mux_6nb" for hierarchy "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component|altsyncram_inb1:auto_generated|mux_6nb:mux2" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_inb1.tdf Line: 41
+    Info (12023): Found entity 1: mux_6nb File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/mux_6nb.tdf Line: 23
+Info (12128): Elaborating entity "mux_6nb" for hierarchy "FPGA_ROM_32K:inst21|altsyncram:altsyncram_component|altsyncram_inb1:auto_generated|mux_6nb:mux2" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_inb1.tdf Line: 41
 Info (12128): Elaborating entity "LOCAL_RAM" for hierarchy "LOCAL_RAM:inst6"
-Info (12128): Elaborating entity "altsyncram" for hierarchy "LOCAL_RAM:inst6|altsyncram:altsyncram_component" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v Line: 85
-Info (12130): Elaborated megafunction instantiation "LOCAL_RAM:inst6|altsyncram:altsyncram_component" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v Line: 85
-Info (12133): Instantiated megafunction "LOCAL_RAM:inst6|altsyncram:altsyncram_component" with the following parameter: File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v Line: 85
+Info (12128): Elaborating entity "altsyncram" for hierarchy "LOCAL_RAM:inst6|altsyncram:altsyncram_component" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v Line: 85
+Info (12130): Elaborated megafunction instantiation "LOCAL_RAM:inst6|altsyncram:altsyncram_component" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v Line: 85
+Info (12133): Instantiated megafunction "LOCAL_RAM:inst6|altsyncram:altsyncram_component" with the following parameter: File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/LOCAL_RAM.v Line: 85
     Info (12134): Parameter "clock_enable_input_a" = "BYPASS"
     Info (12134): Parameter "clock_enable_output_a" = "BYPASS"
     Info (12134): Parameter "intended_device_family" = "Cyclone IV E"
@@ -2195,7 +2200,7 @@ Info (12133): Instantiated megafunction "LOCAL_RAM:inst6|altsyncram:altsyncram_c
     Info (12134): Parameter "width_a" = "8"
     Info (12134): Parameter "width_byteena_a" = "1"
 Info (12021): Found 1 design units, including 1 entities, in source file db/altsyncram_lhf1.tdf
-    Info (12023): Found entity 1: altsyncram_lhf1 File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_lhf1.tdf Line: 28
+    Info (12023): Found entity 1: altsyncram_lhf1 File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/altsyncram_lhf1.tdf Line: 28
 Info (12128): Elaborating entity "altsyncram_lhf1" for hierarchy "LOCAL_RAM:inst6|altsyncram:altsyncram_component|altsyncram_lhf1:auto_generated" File: c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/altsyncram.tdf Line: 792
 Info (12128): Elaborating entity "74244" for hierarchy "74244:inst255"
 Info (12130): Elaborated megafunction instantiation "74244:inst255"
@@ -2204,79 +2209,79 @@ Info (12130): Elaborated megafunction instantiation "74273:inst84"
 Info (12128): Elaborating entity "7474" for hierarchy "7474:inst117"
 Info (12130): Elaborated megafunction instantiation "7474:inst117"
 Warning (12125): Using design file spi_16bit_master.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
-    Info (12022): Found design unit 1: spi_16bit_master-logic File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/spi_16bit_master.vhd Line: 52
-    Info (12023): Found entity 1: spi_16bit_master File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/spi_16bit_master.vhd Line: 30
+    Info (12022): Found design unit 1: spi_16bit_master-logic File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/spi_16bit_master.vhd Line: 52
+    Info (12023): Found entity 1: spi_16bit_master File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/spi_16bit_master.vhd Line: 30
 Info (12128): Elaborating entity "spi_16bit_master" for hierarchy "spi_16bit_master:inst74"
 Warning (12125): Using design file counter01_32.v, which is not specified as a design file for the current project, but contains definitions for 1 design units and 1 entities in project
-    Info (12023): Found entity 1: Counter01_32 File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v Line: 39
+    Info (12023): Found entity 1: Counter01_32 File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v Line: 39
 Info (12128): Elaborating entity "Counter01_32" for hierarchy "Counter01_32:inst5"
-Info (12128): Elaborating entity "lpm_counter" for hierarchy "Counter01_32:inst5|lpm_counter:LPM_COUNTER_component" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v Line: 64
-Info (12130): Elaborated megafunction instantiation "Counter01_32:inst5|lpm_counter:LPM_COUNTER_component" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v Line: 64
-Info (12133): Instantiated megafunction "Counter01_32:inst5|lpm_counter:LPM_COUNTER_component" with the following parameter: File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v Line: 64
+Info (12128): Elaborating entity "lpm_counter" for hierarchy "Counter01_32:inst5|lpm_counter:LPM_COUNTER_component" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v Line: 64
+Info (12130): Elaborated megafunction instantiation "Counter01_32:inst5|lpm_counter:LPM_COUNTER_component" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v Line: 64
+Info (12133): Instantiated megafunction "Counter01_32:inst5|lpm_counter:LPM_COUNTER_component" with the following parameter: File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/counter01_32.v Line: 64
     Info (12134): Parameter "lpm_direction" = "UP"
     Info (12134): Parameter "lpm_port_updown" = "PORT_UNUSED"
     Info (12134): Parameter "lpm_type" = "LPM_COUNTER"
     Info (12134): Parameter "lpm_width" = "32"
 Info (12021): Found 1 design units, including 1 entities, in source file db/cntr_rqh.tdf
-    Info (12023): Found entity 1: cntr_rqh File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/cntr_rqh.tdf Line: 26
+    Info (12023): Found entity 1: cntr_rqh File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/cntr_rqh.tdf Line: 26
 Info (12128): Elaborating entity "cntr_rqh" for hierarchy "Counter01_32:inst5|lpm_counter:LPM_COUNTER_component|cntr_rqh:auto_generated" File: c:/intelfpga_lite/22.1std/quartus/libraries/megafunctions/lpm_counter.tdf Line: 259
 Info (12128): Elaborating entity "uart" for hierarchy "uart:inst106"
-Warning (10036): Verilog HDL or VHDL warning at uart.v(72): object "my_data_read_state" assigned a value but never read File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 72
-Warning (10230): Verilog HDL assignment warning at uart.v(63): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 63
-Warning (10230): Verilog HDL assignment warning at uart.v(64): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 64
-Warning (10230): Verilog HDL assignment warning at uart.v(106): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 106
-Warning (10230): Verilog HDL assignment warning at uart.v(108): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 108
-Warning (10230): Verilog HDL assignment warning at uart.v(109): truncated value with size 32 to match size of target (6) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 109
-Warning (10230): Verilog HDL assignment warning at uart.v(111): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 111
-Warning (10230): Verilog HDL assignment warning at uart.v(113): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 113
-Warning (10230): Verilog HDL assignment warning at uart.v(114): truncated value with size 32 to match size of target (6) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 114
-Warning (10230): Verilog HDL assignment warning at uart.v(130): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 130
-Warning (10230): Verilog HDL assignment warning at uart.v(159): truncated value with size 32 to match size of target (4) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 159
-Warning (10230): Verilog HDL assignment warning at uart.v(209): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 209
-Warning (10230): Verilog HDL assignment warning at uart.v(219): truncated value with size 32 to match size of target (4) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 219
+Warning (10036): Verilog HDL or VHDL warning at uart.v(72): object "my_data_read_state" assigned a value but never read File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 72
+Warning (10230): Verilog HDL assignment warning at uart.v(63): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 63
+Warning (10230): Verilog HDL assignment warning at uart.v(64): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 64
+Warning (10230): Verilog HDL assignment warning at uart.v(106): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 106
+Warning (10230): Verilog HDL assignment warning at uart.v(108): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 108
+Warning (10230): Verilog HDL assignment warning at uart.v(109): truncated value with size 32 to match size of target (6) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 109
+Warning (10230): Verilog HDL assignment warning at uart.v(111): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 111
+Warning (10230): Verilog HDL assignment warning at uart.v(113): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 113
+Warning (10230): Verilog HDL assignment warning at uart.v(114): truncated value with size 32 to match size of target (6) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 114
+Warning (10230): Verilog HDL assignment warning at uart.v(130): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 130
+Warning (10230): Verilog HDL assignment warning at uart.v(159): truncated value with size 32 to match size of target (4) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 159
+Warning (10230): Verilog HDL assignment warning at uart.v(209): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 209
+Warning (10230): Verilog HDL assignment warning at uart.v(219): truncated value with size 32 to match size of target (4) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 219
 Warning (12125): Using design file wifi_uart.v, which is not specified as a design file for the current project, but contains definitions for 1 design units and 1 entities in project
-    Info (12023): Found entity 1: WIFI_uart File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 24
+    Info (12023): Found entity 1: WIFI_uart File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 24
 Info (12128): Elaborating entity "WIFI_uart" for hierarchy "WIFI_uart:inst1"
-Warning (10036): Verilog HDL or VHDL warning at wifi_uart.v(72): object "my_data_read_state" assigned a value but never read File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 72
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(63): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 63
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(64): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 64
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(106): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 106
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(108): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 108
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(109): truncated value with size 32 to match size of target (6) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 109
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(111): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 111
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(113): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 113
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(114): truncated value with size 32 to match size of target (6) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 114
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(130): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 130
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(159): truncated value with size 32 to match size of target (4) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 159
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(209): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 209
-Warning (10230): Verilog HDL assignment warning at wifi_uart.v(219): truncated value with size 32 to match size of target (4) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 219
+Warning (10036): Verilog HDL or VHDL warning at wifi_uart.v(72): object "my_data_read_state" assigned a value but never read File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 72
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(63): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 63
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(64): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 64
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(106): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 106
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(108): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 108
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(109): truncated value with size 32 to match size of target (6) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 109
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(111): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 111
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(113): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 113
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(114): truncated value with size 32 to match size of target (6) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 114
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(130): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 130
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(159): truncated value with size 32 to match size of target (4) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 159
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(209): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 209
+Warning (10230): Verilog HDL assignment warning at wifi_uart.v(219): truncated value with size 32 to match size of target (4) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/wifi_uart.v Line: 219
 Info (12128): Elaborating entity "uart" for hierarchy "uart:inst90"
-Warning (10036): Verilog HDL or VHDL warning at uart.v(72): object "my_data_read_state" assigned a value but never read File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 72
-Warning (10230): Verilog HDL assignment warning at uart.v(63): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 63
-Warning (10230): Verilog HDL assignment warning at uart.v(64): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 64
-Warning (10230): Verilog HDL assignment warning at uart.v(106): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 106
-Warning (10230): Verilog HDL assignment warning at uart.v(108): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 108
-Warning (10230): Verilog HDL assignment warning at uart.v(109): truncated value with size 32 to match size of target (6) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 109
-Warning (10230): Verilog HDL assignment warning at uart.v(111): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 111
-Warning (10230): Verilog HDL assignment warning at uart.v(113): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 113
-Warning (10230): Verilog HDL assignment warning at uart.v(114): truncated value with size 32 to match size of target (6) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 114
-Warning (10230): Verilog HDL assignment warning at uart.v(130): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 130
-Warning (10230): Verilog HDL assignment warning at uart.v(159): truncated value with size 32 to match size of target (4) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 159
-Warning (10272): Verilog HDL Case Statement warning at uart.v(163): case item expression covers a value already covered by a previous case item File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 163
-Warning (10230): Verilog HDL assignment warning at uart.v(209): truncated value with size 32 to match size of target (11) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 209
-Warning (10230): Verilog HDL assignment warning at uart.v(219): truncated value with size 32 to match size of target (4) File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 219
+Warning (10036): Verilog HDL or VHDL warning at uart.v(72): object "my_data_read_state" assigned a value but never read File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 72
+Warning (10230): Verilog HDL assignment warning at uart.v(63): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 63
+Warning (10230): Verilog HDL assignment warning at uart.v(64): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 64
+Warning (10230): Verilog HDL assignment warning at uart.v(106): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 106
+Warning (10230): Verilog HDL assignment warning at uart.v(108): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 108
+Warning (10230): Verilog HDL assignment warning at uart.v(109): truncated value with size 32 to match size of target (6) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 109
+Warning (10230): Verilog HDL assignment warning at uart.v(111): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 111
+Warning (10230): Verilog HDL assignment warning at uart.v(113): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 113
+Warning (10230): Verilog HDL assignment warning at uart.v(114): truncated value with size 32 to match size of target (6) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 114
+Warning (10230): Verilog HDL assignment warning at uart.v(130): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 130
+Warning (10230): Verilog HDL assignment warning at uart.v(159): truncated value with size 32 to match size of target (4) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 159
+Warning (10272): Verilog HDL Case Statement warning at uart.v(163): case item expression covers a value already covered by a previous case item File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 163
+Warning (10230): Verilog HDL assignment warning at uart.v(209): truncated value with size 32 to match size of target (11) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 209
+Warning (10230): Verilog HDL assignment warning at uart.v(219): truncated value with size 32 to match size of target (4) File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/uart.v Line: 219
 Warning (12125): Using design file ps2_keyboard_to_ascii.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
-    Info (12022): Found design unit 1: ps2_keyboard_to_ascii-behavior File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard_to_ascii.vhd Line: 38
-    Info (12023): Found entity 1: ps2_keyboard_to_ascii File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard_to_ascii.vhd Line: 26
+    Info (12022): Found design unit 1: ps2_keyboard_to_ascii-behavior File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard_to_ascii.vhd Line: 38
+    Info (12023): Found entity 1: ps2_keyboard_to_ascii File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard_to_ascii.vhd Line: 26
 Info (12128): Elaborating entity "ps2_keyboard_to_ascii" for hierarchy "ps2_keyboard_to_ascii:inst37"
 Warning (12125): Using design file ps2_keyboard.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
-    Info (12022): Found design unit 1: ps2_keyboard-logic File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 38
-    Info (12023): Found entity 1: ps2_keyboard File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 26
-Info (12128): Elaborating entity "ps2_keyboard" for hierarchy "ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard_to_ascii.vhd Line: 69
+    Info (12022): Found design unit 1: ps2_keyboard-logic File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 38
+    Info (12023): Found entity 1: ps2_keyboard File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 26
+Info (12128): Elaborating entity "ps2_keyboard" for hierarchy "ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard_to_ascii.vhd Line: 69
 Warning (12125): Using design file debounce.vhd, which is not specified as a design file for the current project, but contains definitions for 2 design units and 1 entities in project
-    Info (12022): Found design unit 1: debounce-logic File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/debounce.vhd Line: 36
-    Info (12023): Found entity 1: debounce File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/debounce.vhd Line: 27
-Info (12128): Elaborating entity "debounce" for hierarchy "ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|debounce:debounce_ps2_clk" File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 67
+    Info (12022): Found design unit 1: debounce-logic File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/debounce.vhd Line: 36
+    Info (12023): Found entity 1: debounce File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/debounce.vhd Line: 27
+Info (12128): Elaborating entity "debounce" for hierarchy "ps2_keyboard_to_ascii:inst37|ps2_keyboard:ps2_keyboard_0|debounce:debounce_ps2_clk" File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/ps2_keyboard.vhd Line: 67
 Warning (14026): LATCH primitive "74373:inst160|15" is permanently enabled
 Warning (14026): LATCH primitive "74373:inst160|14" is permanently enabled
 Warning (14026): LATCH primitive "74373:inst160|13" is permanently enabled
@@ -2305,7 +2310,7 @@ Warning (13046): Tri-state node(s) do not directly drive top-level pin(s)
     Warning (13047): Converted the fan-out from the tri-state buffer "inst68[6]" to the node "LOCAL_RAM:inst6|altsyncram:altsyncram_component|altsyncram_lhf1:auto_generated|q_a[6]" into an OR gate
     Warning (13047): Converted the fan-out from the tri-state buffer "inst68[2]" to the node "LOCAL_RAM:inst6|altsyncram:altsyncram_component|altsyncram_lhf1:auto_generated|q_a[2]" into an OR gate
     Warning (13047): Converted the fan-out from the tri-state buffer "inst68[1]" to the node "LOCAL_RAM:inst6|altsyncram:altsyncram_component|altsyncram_lhf1:auto_generated|q_a[1]" into an OR gate
-Info (13000): Registers with preset signals will power-up high File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 90
+Info (13000): Registers with preset signals will power-up high File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/T80s.vhd Line: 90
 Info (13003): DEV_CLRn pin will set, and not reset, register with preset signal due to NOT Gate Push-Back
 Warning (13004): Presettable and clearable registers converted to equivalent circuits with latches. Registers power-up to an undefined state, and DEVCLRn places the registers in an undefined state.
     Warning (13310): Register "inst144" is converted into an equivalent circuit using register "inst144~_emulated" and latch "inst144~1"
@@ -2313,7 +2318,7 @@ Info (286030): Timing-Driven Synthesis is running
 Info (17049): 51 registers lost all their fanouts during netlist optimizations.
 Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
     Info (16011): Adding 1 node(s), including 0 DDIO, 1 PLL, 0 transceiver and 0 LCELL
-Warning (15899): PLL "PLL01_50:inst4|altpll:altpll_component|PLL01_50_altpll1:auto_generated|pll1" has parameters clk1_multiply_by and clk1_divide_by specified but port CLK[1] is not connected File: E:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 44
+Warning (15899): PLL "PLL01_50:inst4|altpll:altpll_component|PLL01_50_altpll1:auto_generated|pll1" has parameters clk1_multiply_by and clk1_divide_by specified but port CLK[1] is not connected File: C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/db/pll01_50_altpll1.v Line: 44
 Info (21057): Implemented 4827 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 44 input pins
     Info (21059): Implemented 61 output pins
@@ -2321,9 +2326,9 @@ Info (21057): Implemented 4827 device resources after synthesis - the final reso
     Info (21064): Implemented 40 RAM segments
     Info (21065): Implemented 1 PLLs
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 106 warnings
-    Info: Peak virtual memory: 4926 megabytes
-    Info: Processing ended: Sat Nov 18 16:52:27 2023
-    Info: Elapsed time: 00:00:23
-    Info: Total CPU time (on all processors): 00:00:15
+    Info: Peak virtual memory: 4876 megabytes
+    Info: Processing ended: Sun Nov 19 12:41:51 2023
+    Info: Elapsed time: 00:00:33
+    Info: Total CPU time (on all processors): 00:00:23
 
 

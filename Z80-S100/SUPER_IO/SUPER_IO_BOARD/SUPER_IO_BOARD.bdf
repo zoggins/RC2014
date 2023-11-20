@@ -18823,171 +18823,6 @@ https://fpgasoftware.intel.com/eula.
 	)
 )
 (symbol
-	(rect -6328 19096 -6120 19272)
-	(text "WIFI_uart" (rect 5 0 54 12)(font "Arial" ))
-	(text "inst1" (rect 8 160 30 177)(font "Intel Clear" ))
-	(port
-		(pt 0 32)
-		(input)
-		(text "clk" (rect 0 0 14 12)(font "Arial" ))
-		(text "clk" (rect 21 27 35 39)(font "Arial" ))
-		(line (pt 0 32)(pt 16 32))
-	)
-	(port
-		(pt 0 48)
-		(input)
-		(text "rst" (rect 0 0 12 12)(font "Arial" ))
-		(text "rst" (rect 21 43 33 55)(font "Arial" ))
-		(line (pt 0 48)(pt 16 48))
-	)
-	(port
-		(pt 0 64)
-		(input)
-		(text "rx" (rect 0 0 9 12)(font "Arial" ))
-		(text "rx" (rect 21 59 30 71)(font "Arial" ))
-		(line (pt 0 64)(pt 16 64))
-	)
-	(port
-		(pt 0 80)
-		(input)
-		(text "transmit" (rect 0 0 40 12)(font "Arial" ))
-		(text "transmit" (rect 21 75 61 87)(font "Arial" ))
-		(line (pt 0 80)(pt 16 80))
-	)
-	(port
-		(pt 0 96)
-		(input)
-		(text "tx_byte[7..0]" (rect 0 0 63 12)(font "Arial" ))
-		(text "tx_byte[7..0]" (rect 21 91 84 103)(font "Arial" ))
-		(line (pt 0 96)(pt 16 96)(line_width 3))
-	)
-	(port
-		(pt 0 112)
-		(input)
-		(text "data_read" (rect 0 0 48 12)(font "Arial" ))
-		(text "data_read" (rect 21 107 69 119)(font "Arial" ))
-		(line (pt 0 112)(pt 16 112))
-	)
-	(port
-		(pt 208 32)
-		(output)
-		(text "tx" (rect 0 0 9 12)(font "Arial" ))
-		(text "tx" (rect 180 27 189 39)(font "Arial" ))
-		(line (pt 208 32)(pt 192 32))
-	)
-	(port
-		(pt 208 48)
-		(output)
-		(text "received" (rect 0 0 42 12)(font "Arial" ))
-		(text "received" (rect 152 43 194 55)(font "Arial" ))
-		(line (pt 208 48)(pt 192 48))
-	)
-	(port
-		(pt 208 64)
-		(output)
-		(text "rx_byte[7..0]" (rect 0 0 63 12)(font "Arial" ))
-		(text "rx_byte[7..0]" (rect 134 59 197 71)(font "Arial" ))
-		(line (pt 208 64)(pt 192 64)(line_width 3))
-	)
-	(port
-		(pt 208 80)
-		(output)
-		(text "is_receiving" (rect 0 0 59 12)(font "Arial" ))
-		(text "is_receiving" (rect 138 75 197 87)(font "Arial" ))
-		(line (pt 208 80)(pt 192 80))
-	)
-	(port
-		(pt 208 96)
-		(output)
-		(text "is_transmitting" (rect 0 0 71 12)(font "Arial" ))
-		(text "is_transmitting" (rect 127 91 198 103)(font "Arial" ))
-		(line (pt 208 96)(pt 192 96))
-	)
-	(port
-		(pt 208 112)
-		(output)
-		(text "recv_error" (rect 0 0 50 12)(font "Arial" ))
-		(text "recv_error" (rect 145 107 195 119)(font "Arial" ))
-		(line (pt 208 112)(pt 192 112))
-	)
-	(port
-		(pt 208 128)
-		(output)
-		(text "data_ready" (rect 0 0 55 12)(font "Arial" ))
-		(text "data_ready" (rect 141 123 196 135)(font "Arial" ))
-		(line (pt 208 128)(pt 192 128))
-	)
-	(parameter
-		"CLOCK_DIVIDE"
-		"108"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_IDLE"
-		"0"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_CHECK_START"
-		"1"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_READ_BITS"
-		"2"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_CHECK_STOP"
-		"3"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_DELAY_RESTART"
-		"4"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_ERROR"
-		"5"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_RECEIVED"
-		"6"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"FLAG_HIGH"
-		"1"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"FLAG_LOW"
-		"0"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"TX_IDLE"
-		"0"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"TX_SENDING"
-		"1"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"TX_DELAY_RESTART"
-		"2"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(drawing
-		(rectangle (rect 16 16 192 160))
-	)
-	(annotation_block (parameter)(rect -6304 18768 -6072 19040))
-)
-(symbol
 	(rect -6376 20296 -6256 20456)
 	(text "74138" (rect 42 0 83 16)(font "Arial" (font_size 10)))
 	(text "inst83" (rect 3 149 31 166)(font "Intel Clear" ))
@@ -21354,171 +21189,6 @@ https://fpgasoftware.intel.com/eula.
 	)
 )
 (symbol
-	(rect -6200 20968 -5992 21144)
-	(text "uart" (rect 5 0 23 12)(font "Arial" ))
-	(text "inst14" (rect 8 160 36 177)(font "Intel Clear" ))
-	(port
-		(pt 0 32)
-		(input)
-		(text "clk" (rect 0 0 14 12)(font "Arial" ))
-		(text "clk" (rect 21 27 35 39)(font "Arial" ))
-		(line (pt 0 32)(pt 16 32))
-	)
-	(port
-		(pt 0 48)
-		(input)
-		(text "rst" (rect 0 0 12 12)(font "Arial" ))
-		(text "rst" (rect 21 43 33 55)(font "Arial" ))
-		(line (pt 0 48)(pt 16 48))
-	)
-	(port
-		(pt 0 64)
-		(input)
-		(text "rx" (rect 0 0 9 12)(font "Arial" ))
-		(text "rx" (rect 21 59 30 71)(font "Arial" ))
-		(line (pt 0 64)(pt 16 64))
-	)
-	(port
-		(pt 0 80)
-		(input)
-		(text "transmit" (rect 0 0 40 12)(font "Arial" ))
-		(text "transmit" (rect 21 75 61 87)(font "Arial" ))
-		(line (pt 0 80)(pt 16 80))
-	)
-	(port
-		(pt 0 96)
-		(input)
-		(text "tx_byte[7..0]" (rect 0 0 63 12)(font "Arial" ))
-		(text "tx_byte[7..0]" (rect 21 91 84 103)(font "Arial" ))
-		(line (pt 0 96)(pt 16 96)(line_width 3))
-	)
-	(port
-		(pt 0 112)
-		(input)
-		(text "data_read" (rect 0 0 48 12)(font "Arial" ))
-		(text "data_read" (rect 21 107 69 119)(font "Arial" ))
-		(line (pt 0 112)(pt 16 112))
-	)
-	(port
-		(pt 208 32)
-		(output)
-		(text "tx" (rect 0 0 9 12)(font "Arial" ))
-		(text "tx" (rect 180 27 189 39)(font "Arial" ))
-		(line (pt 208 32)(pt 192 32))
-	)
-	(port
-		(pt 208 48)
-		(output)
-		(text "received" (rect 0 0 42 12)(font "Arial" ))
-		(text "received" (rect 152 43 194 55)(font "Arial" ))
-		(line (pt 208 48)(pt 192 48))
-	)
-	(port
-		(pt 208 64)
-		(output)
-		(text "rx_byte[7..0]" (rect 0 0 63 12)(font "Arial" ))
-		(text "rx_byte[7..0]" (rect 134 59 197 71)(font "Arial" ))
-		(line (pt 208 64)(pt 192 64)(line_width 3))
-	)
-	(port
-		(pt 208 80)
-		(output)
-		(text "is_receiving" (rect 0 0 59 12)(font "Arial" ))
-		(text "is_receiving" (rect 138 75 197 87)(font "Arial" ))
-		(line (pt 208 80)(pt 192 80))
-	)
-	(port
-		(pt 208 96)
-		(output)
-		(text "is_transmitting" (rect 0 0 71 12)(font "Arial" ))
-		(text "is_transmitting" (rect 127 91 198 103)(font "Arial" ))
-		(line (pt 208 96)(pt 192 96))
-	)
-	(port
-		(pt 208 112)
-		(output)
-		(text "recv_error" (rect 0 0 50 12)(font "Arial" ))
-		(text "recv_error" (rect 145 107 195 119)(font "Arial" ))
-		(line (pt 208 112)(pt 192 112))
-	)
-	(port
-		(pt 208 128)
-		(output)
-		(text "data_ready" (rect 0 0 55 12)(font "Arial" ))
-		(text "data_ready" (rect 141 123 196 135)(font "Arial" ))
-		(line (pt 208 128)(pt 192 128))
-	)
-	(parameter
-		"CLOCK_DIVIDE"
-		"325"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_IDLE"
-		"0"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_CHECK_START"
-		"1"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_READ_BITS"
-		"2"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_CHECK_STOP"
-		"3"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_DELAY_RESTART"
-		"4"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_ERROR"
-		"5"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"RX_RECEIVED"
-		"6"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"FLAG_HIGH"
-		"1"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"FLAG_LOW"
-		"0"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"TX_IDLE"
-		"0"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"TX_SENDING"
-		"1"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(parameter
-		"TX_DELAY_RESTART"
-		"2"
-		""
-		(type "PARAMETER_SIGNED_DEC")	)
-	(drawing
-		(rectangle (rect 16 16 192 160))
-	)
-	(annotation_block (parameter)(rect -6168 20648 -5942 20914))
-)
-(symbol
 	(rect -2248 21024 -2040 21200)
 	(text "uart" (rect 5 0 23 12)(font "Arial" ))
 	(text "inst90" (rect 8 160 36 177)(font "Intel Clear" ))
@@ -23509,6 +23179,336 @@ https://fpgasoftware.intel.com/eula.
 	(drawing
 		(line (pt 8 8)(pt 24 8))
 	)
+)
+(symbol
+	(rect -6328 19096 -6120 19272)
+	(text "WIFI_uart" (rect 5 0 54 12)(font "Arial" ))
+	(text "inst1" (rect 8 160 30 177)(font "Intel Clear" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "clk" (rect 0 0 14 12)(font "Arial" ))
+		(text "clk" (rect 21 27 35 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "rst" (rect 0 0 12 12)(font "Arial" ))
+		(text "rst" (rect 21 43 33 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "rx" (rect 0 0 9 12)(font "Arial" ))
+		(text "rx" (rect 21 59 30 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "transmit" (rect 0 0 40 12)(font "Arial" ))
+		(text "transmit" (rect 21 75 61 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "tx_byte[7..0]" (rect 0 0 63 12)(font "Arial" ))
+		(text "tx_byte[7..0]" (rect 21 91 84 103)(font "Arial" ))
+		(line (pt 0 96)(pt 16 96)(line_width 3))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "data_read" (rect 0 0 48 12)(font "Arial" ))
+		(text "data_read" (rect 21 107 69 119)(font "Arial" ))
+		(line (pt 0 112)(pt 16 112))
+	)
+	(port
+		(pt 208 32)
+		(output)
+		(text "tx" (rect 0 0 9 12)(font "Arial" ))
+		(text "tx" (rect 180 27 189 39)(font "Arial" ))
+		(line (pt 208 32)(pt 192 32))
+	)
+	(port
+		(pt 208 48)
+		(output)
+		(text "received" (rect 0 0 42 12)(font "Arial" ))
+		(text "received" (rect 152 43 194 55)(font "Arial" ))
+		(line (pt 208 48)(pt 192 48))
+	)
+	(port
+		(pt 208 64)
+		(output)
+		(text "rx_byte[7..0]" (rect 0 0 63 12)(font "Arial" ))
+		(text "rx_byte[7..0]" (rect 134 59 197 71)(font "Arial" ))
+		(line (pt 208 64)(pt 192 64)(line_width 3))
+	)
+	(port
+		(pt 208 80)
+		(output)
+		(text "is_receiving" (rect 0 0 59 12)(font "Arial" ))
+		(text "is_receiving" (rect 138 75 197 87)(font "Arial" ))
+		(line (pt 208 80)(pt 192 80))
+	)
+	(port
+		(pt 208 96)
+		(output)
+		(text "is_transmitting" (rect 0 0 71 12)(font "Arial" ))
+		(text "is_transmitting" (rect 127 91 198 103)(font "Arial" ))
+		(line (pt 208 96)(pt 192 96))
+	)
+	(port
+		(pt 208 112)
+		(output)
+		(text "recv_error" (rect 0 0 50 12)(font "Arial" ))
+		(text "recv_error" (rect 145 107 195 119)(font "Arial" ))
+		(line (pt 208 112)(pt 192 112))
+	)
+	(port
+		(pt 208 128)
+		(output)
+		(text "data_ready" (rect 0 0 55 12)(font "Arial" ))
+		(text "data_ready" (rect 141 123 196 135)(font "Arial" ))
+		(line (pt 208 128)(pt 192 128))
+	)
+	(parameter
+		"CLOCK_DIVIDE"
+		"1303"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_IDLE"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_CHECK_START"
+		"1"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_READ_BITS"
+		"2"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_CHECK_STOP"
+		"3"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_DELAY_RESTART"
+		"4"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_ERROR"
+		"5"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_RECEIVED"
+		"6"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"FLAG_HIGH"
+		"1"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"FLAG_LOW"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"TX_IDLE"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"TX_SENDING"
+		"1"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"TX_DELAY_RESTART"
+		"2"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(drawing
+		(rectangle (rect 16 16 192 160))
+	)
+	(annotation_block (parameter)(rect -6304 18768 -6078 19034))
+)
+(symbol
+	(rect -6200 20960 -5992 21136)
+	(text "uart" (rect 5 0 23 12)(font "Arial" ))
+	(text "inst14" (rect 8 160 36 177)(font "Intel Clear" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "clk" (rect 0 0 14 12)(font "Arial" ))
+		(text "clk" (rect 21 27 35 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "rst" (rect 0 0 12 12)(font "Arial" ))
+		(text "rst" (rect 21 43 33 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "rx" (rect 0 0 9 12)(font "Arial" ))
+		(text "rx" (rect 21 59 30 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "transmit" (rect 0 0 40 12)(font "Arial" ))
+		(text "transmit" (rect 21 75 61 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "tx_byte[7..0]" (rect 0 0 63 12)(font "Arial" ))
+		(text "tx_byte[7..0]" (rect 21 91 84 103)(font "Arial" ))
+		(line (pt 0 96)(pt 16 96)(line_width 3))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "data_read" (rect 0 0 48 12)(font "Arial" ))
+		(text "data_read" (rect 21 107 69 119)(font "Arial" ))
+		(line (pt 0 112)(pt 16 112))
+	)
+	(port
+		(pt 208 32)
+		(output)
+		(text "tx" (rect 0 0 9 12)(font "Arial" ))
+		(text "tx" (rect 180 27 189 39)(font "Arial" ))
+		(line (pt 208 32)(pt 192 32))
+	)
+	(port
+		(pt 208 48)
+		(output)
+		(text "received" (rect 0 0 42 12)(font "Arial" ))
+		(text "received" (rect 152 43 194 55)(font "Arial" ))
+		(line (pt 208 48)(pt 192 48))
+	)
+	(port
+		(pt 208 64)
+		(output)
+		(text "rx_byte[7..0]" (rect 0 0 63 12)(font "Arial" ))
+		(text "rx_byte[7..0]" (rect 134 59 197 71)(font "Arial" ))
+		(line (pt 208 64)(pt 192 64)(line_width 3))
+	)
+	(port
+		(pt 208 80)
+		(output)
+		(text "is_receiving" (rect 0 0 59 12)(font "Arial" ))
+		(text "is_receiving" (rect 138 75 197 87)(font "Arial" ))
+		(line (pt 208 80)(pt 192 80))
+	)
+	(port
+		(pt 208 96)
+		(output)
+		(text "is_transmitting" (rect 0 0 71 12)(font "Arial" ))
+		(text "is_transmitting" (rect 127 91 198 103)(font "Arial" ))
+		(line (pt 208 96)(pt 192 96))
+	)
+	(port
+		(pt 208 112)
+		(output)
+		(text "recv_error" (rect 0 0 50 12)(font "Arial" ))
+		(text "recv_error" (rect 145 107 195 119)(font "Arial" ))
+		(line (pt 208 112)(pt 192 112))
+	)
+	(port
+		(pt 208 128)
+		(output)
+		(text "data_ready" (rect 0 0 55 12)(font "Arial" ))
+		(text "data_ready" (rect 141 123 196 135)(font "Arial" ))
+		(line (pt 208 128)(pt 192 128))
+	)
+	(parameter
+		"CLOCK_DIVIDE"
+		"325"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_IDLE"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_CHECK_START"
+		"1"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_READ_BITS"
+		"2"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_CHECK_STOP"
+		"3"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_DELAY_RESTART"
+		"4"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_ERROR"
+		"5"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"RX_RECEIVED"
+		"6"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"FLAG_HIGH"
+		"1"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"FLAG_LOW"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"TX_IDLE"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"TX_SENDING"
+		"1"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"TX_DELAY_RESTART"
+		"2"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(drawing
+		(rectangle (rect 16 16 192 160))
+	)
+	(annotation_block (parameter)(rect -6168 20576 -5942 20842))
 )
 (connector
 	(pt -6224 -368)
@@ -35836,58 +35836,8 @@ https://fpgasoftware.intel.com/eula.
 	(pt -5896 20368)
 )
 (connector
-	(pt -5992 21096)
-	(pt -5984 21096)
-)
-(connector
-	(pt -6200 21080)
-	(pt -6224 21080)
-)
-(connector
-	(pt -5992 21000)
-	(pt -5976 21000)
-)
-(connector
-	(pt -6200 21016)
-	(pt -6232 21016)
-)
-(connector
-	(pt -6232 21016)
-	(pt -6232 20920)
-)
-(connector
 	(pt -6232 20920)
 	(pt -6416 20920)
-)
-(connector
-	(pt -5984 21096)
-	(pt -5984 21128)
-)
-(connector
-	(pt -6200 21000)
-	(pt -6200 20864)
-)
-(connector
-	(text "50MHz" (rect -6294 20848 -6261 20865)(font "Intel Clear" ))
-	(pt -6320 20864)
-	(pt -6200 20864)
-)
-(connector
-	(pt -6264 21032)
-	(pt -6264 21000)
-)
-(connector
-	(pt -5976 21000)
-	(pt -5976 20944)
-)
-(connector
-	(pt -6264 21064)
-	(pt -6264 21096)
-	(bus)
-)
-(connector
-	(pt -6224 21080)
-	(pt -6224 21144)
 )
 (connector
 	(pt -4912 20968)
@@ -36195,14 +36145,6 @@ https://fpgasoftware.intel.com/eula.
 	(pt -4968 21328)
 )
 (connector
-	(pt -6208 21048)
-	(pt -6208 21040)
-)
-(connector
-	(pt -6200 21048)
-	(pt -6208 21048)
-)
-(connector
 	(pt -5784 21256)
 	(pt -5784 21272)
 )
@@ -36238,10 +36180,6 @@ https://fpgasoftware.intel.com/eula.
 (connector
 	(pt -5800 21160)
 	(pt -5728 21160)
-)
-(connector
-	(pt -5728 21160)
-	(pt -5728 21064)
 )
 (connector
 	(text "50MHz" (rect -6318 21336 -6285 21353)(font "Intel Clear" ))
@@ -36409,10 +36347,6 @@ https://fpgasoftware.intel.com/eula.
 	(pt -5208 21696)
 )
 (connector
-	(pt -5992 21064)
-	(pt -5728 21064)
-)
-(connector
 	(pt -5272 21376)
 	(pt -5264 21376)
 )
@@ -36568,15 +36502,6 @@ https://fpgasoftware.intel.com/eula.
 	(pt -5208 21272)
 )
 (connector
-	(pt -6264 21032)
-	(pt -6200 21032)
-)
-(connector
-	(pt -6264 21064)
-	(pt -6200 21064)
-	(bus)
-)
-(connector
 	(text "RS232_PORT_DATA_OUT_BUS[7..0]" (rect -6510 21080 -6336 21097)(font "Intel Clear" ))
 	(pt -6264 21096)
 	(pt -6528 21096)
@@ -36586,17 +36511,6 @@ https://fpgasoftware.intel.com/eula.
 	(text "RS232_PORT_DATA_IN" (rect -6450 21128 -6337 21145)(font "Intel Clear" ))
 	(pt -6224 21144)
 	(pt -6472 21144)
-)
-(connector
-	(text "RS232_PORT_DATA_IN_BUS[7..0]" (rect -5974 21016 -5812 21033)(font "Intel Clear" ))
-	(pt -5992 21032)
-	(pt -5816 21032)
-	(bus)
-)
-(connector
-	(text "RS232_PORT_Busy_Recieving" (rect -5926 21032 -5780 21049)(font "Intel Clear" ))
-	(pt -5768 21048)
-	(pt -5992 21048)
 )
 (connector
 	(text "RS232_PORT_DATA-" (rect -5462 21368 -5360 21385)(font "Intel Clear" ))
@@ -36718,11 +36632,6 @@ https://fpgasoftware.intel.com/eula.
 (connector
 	(pt -6592 21000)
 	(pt -6264 21000)
-)
-(connector
-	(text "RS232_PORT_Error" (rect -5966 21064 -5873 21081)(font "Intel Clear" ))
-	(pt -5752 21080)
-	(pt -5992 21080)
 )
 (connector
 	(pt -6736 21040)
@@ -37615,11 +37524,6 @@ https://fpgasoftware.intel.com/eula.
 	(pt -4008 20960)
 )
 (connector
-	(text "RS232_Byte_Recieved" (rect -5966 21000 -5858 21017)(font "Intel Clear" ))
-	(pt -5992 21016)
-	(pt -5824 21016)
-)
-(connector
 	(text "SPEECH_Byte_Recieved" (rect -2014 21056 -1898 21073)(font "Intel Clear" ))
 	(pt -2040 21072)
 	(pt -1872 21072)
@@ -37707,10 +37611,6 @@ https://fpgasoftware.intel.com/eula.
 (connector
 	(pt -6680 21040)
 	(pt -6600 21040)
-)
-(connector
-	(pt -6600 21040)
-	(pt -6208 21040)
 )
 (connector
 	(pt -2656 21472)
@@ -38829,6 +38729,102 @@ https://fpgasoftware.intel.com/eula.
 (connector
 	(pt -5776 10904)
 	(pt -5776 10984)
+)
+(connector
+	(pt -5984 21088)
+	(pt -5992 21088)
+)
+(connector
+	(pt -6224 21072)
+	(pt -6200 21072)
+)
+(connector
+	(pt -5976 20992)
+	(pt -5992 20992)
+)
+(connector
+	(pt -6232 21008)
+	(pt -6200 21008)
+)
+(connector
+	(pt -6232 20920)
+	(pt -6232 21008)
+)
+(connector
+	(pt -5984 21128)
+	(pt -5984 21088)
+)
+(connector
+	(pt -6200 20864)
+	(pt -6200 20992)
+)
+(connector
+	(text "50MHz" (rect -6294 20848 -6261 20865)(font "Intel Clear" ))
+	(pt -6320 20864)
+	(pt -6200 20864)
+)
+(connector
+	(pt -6264 21000)
+	(pt -6264 21024)
+)
+(connector
+	(pt -5976 20944)
+	(pt -5976 20992)
+)
+(connector
+	(pt -6264 21096)
+	(pt -6264 21056)
+	(bus)
+)
+(connector
+	(pt -6224 21144)
+	(pt -6224 21072)
+)
+(connector
+	(pt -5728 21056)
+	(pt -5992 21056)
+)
+(connector
+	(pt -6264 21024)
+	(pt -6200 21024)
+)
+(connector
+	(pt -6264 21056)
+	(pt -6200 21056)
+	(bus)
+)
+(connector
+	(text "RS232_PORT_DATA_IN_BUS[7..0]" (rect -5974 21008 -5812 21025)(font "Intel Clear" ))
+	(pt -5992 21024)
+	(pt -5816 21024)
+	(bus)
+)
+(connector
+	(text "RS232_PORT_Busy_Recieving" (rect -5926 21024 -5780 21041)(font "Intel Clear" ))
+	(pt -5768 21040)
+	(pt -5992 21040)
+)
+(connector
+	(text "RS232_PORT_Error" (rect -5966 21056 -5873 21073)(font "Intel Clear" ))
+	(pt -5752 21072)
+	(pt -5992 21072)
+)
+(connector
+	(text "RS232_Byte_Recieved" (rect -5966 20992 -5858 21009)(font "Intel Clear" ))
+	(pt -5992 21008)
+	(pt -5824 21008)
+)
+(connector
+	(pt -6600 21040)
+	(pt -6200 21040)
+)
+(connector
+	(pt -5728 21056)
+	(pt -5728 21064)
+)
+(connector
+	(pt -5728 21064)
+	(pt -5728 21160)
 )
 (junction (pt -5192 -264))
 (junction (pt -5200 -160))

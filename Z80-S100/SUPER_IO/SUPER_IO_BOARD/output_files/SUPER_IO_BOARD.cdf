@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(EP4CE10F17) Path("C:/Users/zoggi/Downloads/SUPER_IO_BOARD/output_files/") File("SUPER_IO_BOARD.sof") MfrSpec(OpMask(1));
+		Device PartName(EP4CE10F17) Path("C:/src/Repos/zoggins/RC2014/Z80-S100/SUPER_IO/SUPER_IO_BOARD/output_files/") File("SUPER_IO_BOARD.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 

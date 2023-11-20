@@ -1,0 +1,2185 @@
+                
+                ; TEST PROGRAM TO INTERACT WITH THE SUPER IO BOARD
+                ; JOHN MONAHAN SAN RAMON CA 94583.    11/13/2021
+                ;==============================================================================
+                ;
+                ;	V1.0	3/17/2021	;INITIAL CODE FOR V1.0 BOARD
+                ;	V1.1    5/22/2022	;REMOVED ZILOG UART CHIP
+                ;	V1.11   7/3/2022	;MINOR CLEANUPS
+                ;
+                						;EQUATES FOR DISPLAY ON PROPELLER CONSOLE IO BOARD (USED IN CPM DEBUGGING MODE ONLY)
+ 0001 =         SCROLL			EQU	01H		;SET SCROOL DIRECTION UP.
+ 000A =         LF			EQU	0AH
+ 000D =         CR			EQU	0DH
+ 0008 =         BS			EQU	08H		;BACK SPACE (REQUIRED FOR SECTOR DISPLAY)
+ 0007 =         BELL			EQU	07H
+ 0020 =         SPACE			EQU	20H
+ 0010 =         FAST			EQU	10H		;HIGH SPEED SCROOL
+ 0009 =         TAB			EQU	09H		;TAB ACROSS (8 SPACES FOR SD SYSTEMS VIDEO BOARD)
+ 001B =         ESC			EQU	1BH
+ 001C =         CLEAR			EQU	1CH		;<<< PROPELLER VIDEO BOARD, CLEAR TO EOL. (USE 80 SPACES IF EOL NOT AVAILABLE
+                
+ 0000 =         FALSE			EQU	0
+ FFFF =         TRUE			EQU	NOT FALSE
+                
+ 0000 =         CPM			EQU	FALSE		;TRUE IF OUTPUT VIA CPM, FALSE IF DIRECT TO HARDWARE
+                	
+ 00F0 =         STATUS$BUS$PORT		EQU	0F0H		;CMD COMMUNICATIONS PORT WITH SUPER_IO BOARD
+ 00F1 =         DATA$BUS$PORT		EQU	0F1H		;CMD DATA IS SENT VIA THIS PORT
+ 00F2 =         CLEAR$FLAG$PORT		EQU	0F2H		;A PULSE OUT TO THIS PORT WILL CLEAR ERROR FLAGS
+ 00F3 =         SOFT$RESET$PORT		EQU	0F3H		;OUTPUTTING ANYTHING TO THIS PORT REBOOTS THE Z80 ON THE FPGA_DC BOARD
+ 00F4 =         ABORT$CMD$PORT		EQU	0F4H		;ABORT A COMMAND
+ 00F5 =         WIFI$RESET$PORT		EQU	0F5H		;RESET ESP8266
+                
+                
+                ;       ------- PS2 KEYBOARD PORTS ---------------	
+                
+ 00DA =         PS2$STATUS$PORT		EQU	0DAH		;IBM-PC PS2 KEYBOARD PORT ON S100 BUS (P16, P24)
+ 00DB =         PS2$DATA$PORT		EQU	0DBH
+                
+                ;       ------- S100 SERIAL PORTS ---------------	
+                
+ 0028 =         USB$STATUS$PORT		EQU	28H		;USB STATUS PORT (P40)
+ 0029 =         USB$DATA$PORT		EQU	29H		;USB DATA PORT 
+                
+ 0088 =         SERIAL$STATUS$PORT	EQU	88H		;RS232 SERIAL STATUS PORT (P17, J1)
+ 0089 =         SERIAL$DATA$PORT	EQU	89H		;RS232 SERIAL DATA PORT (P17, J1)
+                
+ 008A =         SPEECH$STATUS$PORT	EQU	8AH		;SPEECH STATUS PORT 
+ 008B =         SPEECH$DATA$PORT	EQU	8BH		;SPEECH DATA PORT 
+                
+                ;       ------- 8255A PORTS ---------------	
+                
+ 008C =         PARALLEL$A		EQU	8CH		;8255A PORT A
+ 008D =         PARALLEL$B		EQU	8DH		;8255A PORT B
+ 008E =         PARALLEL$C		EQU	8EH		;8255A PORT C
+ 008F =         PARALLEL$D		EQU	8FH		;8255A PORT D (CONTROL PORT).
+                
+ 0080 =         WRITECFG8255		EQU	10000000B	;SET ALL THREE 8255 PORTS TO OUTPUT MODE
+ 009B =         READCFG8255		EQU	10011011B	;SET  ALL THREE 8255 PORTS TO INPUT MODE
+                
+                ;       ------- S100 SOUND PORTS ---------------	
+                
+ 002A =         DFP$SOUND$STATUS$PORT	EQU	2AH		;DFP SOUND CARD (P42)
+ 002B =         DFP$SOUND$DATA$PORT	EQU	2BH		;DFP SOUND CARD  
+                
+ 002E =         FX$SOUND$STATUS$PORT	EQU	2EH		;ADAFRUIT FX SOUND CARD (P32)
+ 002F =         FX$SOUND$DATA$PORT	EQU	2FH		;ADAFRUIT FX SOUND CARD  
+                
+ 002C =         WIFI$STATUS$PORT	EQU	2CH		;WIFI STATUS PORT (P38)
+ 002D =         WIFI$DATA$PORT		EQU	2DH		;WIFI DATA PORT  
+                
+                
+                 
+ 0064 =         FX$STATUS$NUMBER	EQU	100		;STATUS CHECK 100 TIMES ELSE ABORT
+                
+                
+                ;       ------- SPI I2C PORTS -------------------	
+                
+                
+                ;	COMMANDS TO THE FPGA_DC BOARD:-
+                ;	NOTE THESE COMMANDS ARE A SUB-SET OF THE ZFDC AND ZFDC_II BOARD COMMANDS
+                ;	COMMANDS TO THE FPGA_DC BOARD:-
+                ;	NOTE THESE COMMANDS ARE A SUB-SET OF THE OLD ZFDC AND ZFDC_II BOARD COMMANDS
+                
+ 0080 =         CMD$GET$TIME		EQU	80H		;GET TIME AND DATA FROM FPGA DC BOARD RTC
+ 0081 =         CMD$SET$TIME		EQU	81H		;SET TIME AND DATA ON FPGA DC BOARD RTC
+                
+ 0082 =         CMD$PRINT$STRING	EQU	82H		;SEND A CHARACTER STRING TO PRINTER.
+                
+                
+ 00FF =         CMD$FAILED		EQU	0FFH		;CMD FAILED TO EXACUITE COMPLETELY
+ 00F0 =         CMD$COMPLETE		EQU	0F0H		;FLAG RETURNED BY DC BOARD TO SIGNAL THE PREVIOUS CMD WAS COMPLETED OK
+ 00E0 =         CMD$ABORT		EQU	0E0H		;CMD TO ABORT THE CURRENT PROCESS
+                
+                
+                	MACLIB	Z80				;FOR THE Z80 DJNZ OPCODE
+                
+                
+                ;--------------------------------------------------------------------------------------------
+                
+ 0100           	ORG	100H			;<--- FOR CPM
+                
+ 0100 31F621    START:	LXI	SP,STACK
+                        IF CPM
+                	LXI     D,SIGN$ON$CPM		;PRINT A WELCOME MESSAGE CPM IO
+                        ELSE
+ 0103 11C60C     	LXI     D,SIGN$ON$Z80		;PRINT A WELCOME MESSAGE Z80 MONITOR IO
+                        ENDIF	
+                
+ 0106 CD1E0B    	CALL	PSTRING
+                	
+ 0109 C31F01    	JMP	BEGIN
+                	
+ 010C DBF0      	IN	STATUS$BUS$PORT		;(80H) IF SUPER IO BOARD IS ACTIVE THIS WILL BE X000000X
+ 010E CD780B    	CALL	HEXOUT
+ 0111 FEFF      	CPI	0FFH
+ 0113 C21F01    	JNZ	BEGIN
+                
+ 0116 11DC0F    	LXI	D,NO$BOARD$MSG		;BOARD NOT DETECTED
+ 0119 CD1E0B    	CALL	PSTRING
+ 011C F22501    	JP	ABORT
+                	
+                					;--------------- ACTUAL START OF MENU COMMANDS ------------------------------
+ 011F CDE40A    BEGIN:	CALL	ZCRLF
+ 0122 C36501    	JMP	MAINLOOP
+                	
+                
+                ABORT:	
+                        IF CPM
+                	JMP	0H			;REBOOT CPM	
+                        ELSE
+ 0125 C300F0     	JMP	0F000H			;MONITOR
+                        ENDIF	
+                
+                
+                TBL$LIST:
+ 0128 5C01      	DW  ERROR			; "A"  
+ 012A 5C01      	DW  ERROR			; "B"  
+ 012C 5C01      	DW  ERROR			; "C"  
+ 012E 6105      	DW  DFP$SOUND$TEST		; "D"  DFP SOUND CARD TEST 
+ 0130 5C01      	DW  ERROR			; "E"  
+ 0132 9702      	DW  ADAFRUIT$FX			; "F"  ADAFRUIT SOUND CARD TEST
+ 0134 0608      	DW  GET$PARALLEL		; "G"  INPUT 8255A PORTS
+ 0136 9F07      	DW  SEND$PARALLEL		; "H"  SEND DATA TO 8255A PORTS
+ 0138 5C01      	DW  ERROR			; "I"  
+ 013A 5C01      	DW  ERROR			; "J"  
+ 013C 9A01      	DW  KEY$TEST$PS2		; "K"  PS2 KEYBOARD TEST
+ 013E 0F0A      	DW  GET$TIME$DATE		; "L"  GET DATE & TIME
+ 0140 5C01      	DW  ERROR			; "M"  
+ 0142 5C01      	DW  ERROR			; "N"  
+ 0144 5C01      	DW  ERROR			; "O"  
+ 0146 9709      	DW  PRINTER$TEST		; "P"  SEND A STRING TO THE PRINTER
+ 0148 1902      	DW  SERIAL$LOOP$TEST		; "Q"  TEST CLOSE SERIAL LOOP
+ 014A 3502      	DW  SERIAL$PORT$TEST		; "R"  TEST RS232 PORT
+ 014C C509      	DW  TEST$SPEECH			; "S"  
+ 014E B701      	DW  USB$PORT$TEST		; "T"  TEST THE USB PORT
+ 0150 7D0A      	DW  SET$TIME$DATE		; "U"  SET DATA & TIME
+ 0152 5C01      	DW  ERROR			; "V"  
+ 0154 5208      	DW  WIFI$TEST			; "W"  
+ 0156 5C01      	DW  ERROR			; "X" 
+ 0158 5C01      	DW  ERROR			; "Y" 
+ 015A 5C01      	DW  ERROR			; "Z"  
+                
+ 015C 11940E    ERROR:	LXI     D, MSGERR		;CMD ERROR MSG
+ 015F CD1E0B    	CALL	PSTRING
+ 0162 C36501    	JMP	MAINLOOP
+                	
+                					;COMMAND BRANCH TABLE
+                
+                ;-------------------------- MAIN LOOP ------------------------------------------------------------
+                
+                MAINLOOP:				;PRINT MAIN MENU
+ 0165 11460D    	LXI	D,MENU$STRING$
+ 0168 CD1E0B    	CALL	PSTRING
+                
+                MAINLOOP1:
+ 016B 11C10E    	LXI	D,PROMPT		;PLEASE ENTAR A CMD >
+ 016E CD1E0B    	CALL	PSTRING
+                	
+ 0171 CD140B    	CALL	ZCI
+ 0174 FE1B      	CPI	ESC			;ABORT IF ESC
+ 0176 CA2501    	JZ	ABORT
+                
+                	
+ 0179 CDBD0B    	CALL	UPPER
+ 017C FE41      	CPI	'A'			;MUST BE >= 'A" (OTHERWISE IT JUMPS OFF TABLE)
+ 017E DA5C01    	JC	ERROR
+ 0181 FE5B      	CPI	'Z'+1			;MUST BE <= 'Z'
+ 0183 D25C01    	JNC	ERROR
+ 0186 4F        	MOV	C,A
+ 0187 CD070B    	CALL	ZCO
+                	
+ 018A CDE40A    	CALL	ZCRLF
+                	
+ 018D DE40      	SBI	'@'			;ADJUST TO 0,1AH
+                	
+ 018F 212801    	LXI	H,TBL$LIST		;GET IDE MENU SELECTION
+ 0192 87        	ADD	A			;X2
+ 0193 85        	ADD	L
+ 0194 6F        	MOV	L,A
+ 0195 7E        	MOV	A,M
+ 0196 23        	INX	H
+ 0197 66        	MOV	H,M
+ 0198 6F        	MOV	L,A			;JUMP TO TABLE POINTER
+ 0199 E9        	PCHL				;JMP (HL)
+                
+                
+                
+                ;------------------------------------- PS/2 KEYBOARD PORT TEST -----------------------------------------
+                
+                KEY$TEST$PS2:				;TEST PS2 KEYBOARD INPUT PORT
+ 019A 113A10    	LXI	D,TEST$PS2$MSG
+ 019D CD1E0B    	CALL	PSTRING
+                	
+                PS2$CI:
+ 01A0 DBDA      	IN 	PS2$STATUS$PORT		;NEED CONSTAT TO CLEAN UP SHIFT KEYS ETC
+ 01A2 E601      	ANI	01H
+ 01A4 CAA001    	JZ	PS2$CI			;WAIT UNTIL SOMETHING THERE
+ 01A7 DBDB      	IN	PS2$DATA$PORT
+ 01A9 FE1B      	CPI	ESC
+ 01AB CA6501    	JZ	MAINLOOP
+ 01AE E67F      	ANI	7FH			;ALWAYS 7 BITS ONLY.
+ 01B0 4F        	MOV	C,A
+ 01B1 CD070B    	CALL	ZCO
+ 01B4 C3A001    	JMP	PS2$CI
+                
+                ;------------------------------------- USB PORT TEST --------------------------------------------------
+                
+                USB$PORT$TEST:
+ 01B7 11E810    	LXI	D,TEST$USB$MSG
+ 01BA CD1E0B    	CALL	PSTRING
+                
+ 01BD 11E810    	LXI	D,TEST$USB$MSG
+ 01C0 CD340B    	CALL	USB$STRING
+                
+                USB$LOOP:
+ 01C3 CDFE0A    	CALL	ZCSTS	
+ 01C6 CADA01    	JZ	USB$LOOP0
+ 01C9 CD140B    	CALL	ZCI			;GET S100 KEYBOARD CHATRACTER
+ 01CC FE1B      	CPI	ESC
+ 01CE C2DA01    	JNZ	USB$LOOP0
+ 01D1 11A711    	LXI	D,DONE$USB$MSG
+ 01D4 CD340B    	CALL	USB$STRING
+ 01D7 C36501    	JMP	MAINLOOP		;ABORT IF ESC
+                	
+                USB$LOOP0:
+ 01DA CD0D02    	CALL	USB$CI			;GET CHARACTER FROM USB TERMINAL
+ 01DD FE1B      	CPI	ESC
+ 01DF C2EB01    	JNZ	USB$LOOP2
+ 01E2 11A711    	LXI	D,DONE$USB$MSG
+ 01E5 CD340B    	CALL	USB$STRING
+ 01E8 C36501    	JMP	MAINLOOP		;ABORT IF ESC
+                USB$LOOP2:	
+ 01EB 4F        	MOV	C,A
+ 01EC CDFB01    	CALL	USB$CO			;SEND CHARACTER IN [C] TO USB PORT
+ 01EF CD070B    	CALL	ZCO
+                USB$LOOP1:
+ 01F2 CD0802    	CALL	USB$STATUS
+ 01F5 CAF201    	JZ	USB$LOOP1
+ 01F8 C3C301    	JMP	USB$LOOP
+                
+                
+                USB$CO:
+ 01FB DB28      	IN	USB$STATUS$PORT		;PRINT CHARACTER, (IN [C]), ON USB PORT
+ 01FD E602      	ANI	00000010B		;WAIT UNTIL READY
+ 01FF C2FB01    	JNZ	USB$CO	
+ 0202 79        	MOV	A,C				
+ 0203 E67F      	ANI	7FH				
+ 0205 D329      	OUT	USB$DATA$PORT
+ 0207 C9        	RET
+                
+                USB$STATUS:				;GET USB INPUT PORT STATUS
+ 0208 DB28      	IN	USB$STATUS$PORT	
+ 020A E601      	ANI	01H
+ 020C C9        	RET				;RET Z IF NOTHING
+                
+                
+ 020D DB28      USB$CI:	IN 	USB$STATUS$PORT		;GET A CHARACTER FROM THE USB PORT
+ 020F E601      	ANI	01H
+ 0211 CA0D02    	JZ	USB$CI			;WAIT UNTIL SOMETHING IS THERE
+ 0214 DB29      	IN	USB$DATA$PORT
+ 0216 E67F      	ANI	7FH			;ALWAYS 7 BITS ONLY.
+ 0218 C9        	RET
+                
+                
+                ;------------------------------------- RS232 SERIAL LOOP TEST ------------------------------------------
+                
+                SERIAL$LOOP$TEST:
+ 0219 11CA11    	LXI	D,LOOP$RS232$MSG
+ 021C CD1E0B    	CALL	PSTRING
+                	
+ 021F CD140B    LOOP1:	CALL	ZCI
+ 0222 4F        	MOV	C,A
+ 0223 FE1B      	CPI	ESC
+ 0225 CA6501    	JZ	MAINLOOP
+ 0228 CD7902    	CALL	SERIAL$CO		;SEND CHARACTER IN [C]
+ 022B CD8B02    	CALL	SERIAL$CI		;PICK IT UP RETURNED
+ 022E 4F        	MOV	C,A	
+ 022F CD070B    	CALL	ZCO
+ 0232 C31F02    	JMP	LOOP1
+                
+                ;------------------------------------- RS232 SERIAL PORT TEST ------------------------------------------
+                
+                SERIAL$PORT$TEST:
+ 0235 11F411    	LXI	D,TEST$RS232$MSG
+ 0238 CD1E0B    	CALL	PSTRING
+                	
+ 023B 11F411    	LXI	D,TEST$RS232$MSG
+ 023E CD4A0B    	CALL	SERIAL$STRING
+                
+                SERIAL$LOOP:
+ 0241 CDFE0A    	CALL	ZCSTS	
+ 0244 CA5802    	JZ	SERIAL$LOOP0
+ 0247 CD140B    	CALL	ZCI			;GET S100 KEYBOARD CHATRACTER
+ 024A FE1B      	CPI	ESC
+ 024C C25802    	JNZ	SERIAL$LOOP0
+ 024F 11E912    	LXI	D,DONE$SERIAL$MSG
+ 0252 CD4A0B    	CALL	SERIAL$STRING
+ 0255 C36501    	JMP	MAINLOOP		;ABORT IF ESC
+                	
+                SERIAL$LOOP0:
+ 0258 CD8B02    	CALL	SERIAL$CI		;GET CHARACTER FROM USB TERMINAL
+ 025B FE1B      	CPI	ESC
+ 025D C26902    	JNZ	SERIAL$LOOP2
+ 0260 11E912    	LXI	D,DONE$SERIAL$MSG
+ 0263 CD4A0B    	CALL	SERIAL$STRING
+ 0266 C36501    	JMP	MAINLOOP		;ABORT IF ESC
+                SERIAL$LOOP2:	
+ 0269 4F        	MOV	C,A
+ 026A CD070B    	CALL	ZCO
+ 026D CD7902    	CALL	SERIAL$CO		;SEND CHARACTER IN [C] TO USB PORT
+                SERIAL$LOOP1:
+ 0270 CD8602    	CALL	SERIAL$STATUS
+ 0273 CA7002    	JZ	SERIAL$LOOP1
+ 0276 C34102    	JMP	SERIAL$LOOP
+                
+                SERIAL$CO:
+ 0279 DB88      	IN	SERIAL$STATUS$PORT	;PRINT CHARACTER, (IN [C]), ON USB PORT
+ 027B E602      	ANI	00000010B		;WAIT UNTIL READY
+ 027D C27902    	JNZ	SERIAL$CO	
+ 0280 79        	MOV	A,C				
+ 0281 E67F      	ANI	7FH	
+ 0283 D389      	OUT	SERIAL$DATA$PORT
+ 0285 C9        	RET
+                
+                SERIAL$STATUS:				;GET SERIAL INPUT PORT STATUS
+ 0286 DB88      	IN	SERIAL$STATUS$PORT	
+ 0288 E601      	ANI	01H
+ 028A C9        	RET				;RET Z IF NOTHING
+                
+                
+                SERIAL$CI:	
+ 028B DB88      	IN 	SERIAL$STATUS$PORT		;GET A CHARACTER FROM THE USB PORT (NOT CLEAR WHY THIS CODE DOES NOT WORK)
+ 028D E601      	ANI	01H
+ 028F CA8B02    	JZ	SERIAL$CI		;WAIT UNTIL SOMETHING IS THERE
+ 0292 DB89      	IN	SERIAL$DATA$PORT
+ 0294 E67F      	ANI	7FH			;ALWAYS 7 BITS ONLY.
+ 0296 C9        	RET
+                
+                
+                
+                ;------------------------------------- FX SOUND BOARD TEST ---------------------------------------------
+                
+                ADAFRUIT$FX:				;INITILISE THE ADAFRUIT FX SOUND BOARD
+ 0297 3E00      	MVI	A,0H			;PULSE RESET PIN ON FX MODULE
+ 0299 D32E      	OUT	FX$SOUND$STATUS$PORT
+ 029B 3E80      	MVI	A,80H			;PULSE RESET PIN ON FX MODULE (PIN MUST BE HIGH)
+ 029D D32E      	OUT	FX$SOUND$STATUS$PORT
+                	
+ 029F DB2F      	IN	FX$SOUND$DATA$PORT	;2FH
+ 02A1 B7        	ORA	A			;IS THE CARD PRESENT, SHOULD BE 00001010
+ 02A2 C2AE02    	JNZ	ADAFRUIT$FX1
+                NO$FX$CARD:
+ 02A5 11F014    	LXI	D,NO$ADAFRUIT$FX$CARD	;NO ADAFRUIT FX CARD DETECTED
+ 02A8 CD1E0B    	CALL	PSTRING
+ 02AB C36501    	JMP	MAINLOOP
+                	
+                ADAFRUIT$FX1:
+ 02AE FEFF      	CPI	0FFH
+ 02B0 CAA502    	JZ	NO$FX$CARD		;IN CASE NO BOARD
+                
+ 02B3 0604      	MVI	B,4			;COLLECT 4 LINES OF DATA SENT BY THE BOARD
+                FX$LOOP:
+ 02B5 CD3605    	CALL	FX$STATUS
+ 02B8 CAB502    	JZ	FX$LOOP
+                
+ 02BB CD3B05    	CALL	FX$CI
+ 02BE 4F        	MOV	C,A
+ 02BF CD070B    	CALL	ZCO
+ 02C2 FE0A      	CPI	0AH
+ 02C4 C2B502    	JNZ	FX$LOOP
+                	DJNZ	FX$LOOP
+ 02C7+10        	DB	10H
+ 02C8+EC        	DB	FX$LOOP-$-1
+                
+                	
+                ;--------------------------------------------------
+                
+                FX$MENU$LOOP:
+ 02C9 11E113    	LXI	D,ADAFRUIT$FX$MENU
+ 02CC CD1E0B    	CALL	PSTRING
+ 02CF 0E3E      	MVI	C,'>'
+ 02D1 CD070B    	CALL	ZCO			;SEND A CHARACTER
+                	
+ 02D4 CD140B    	CALL	ZCI
+ 02D7 FE1B      	CPI	ESC
+ 02D9 CA6501    	JZ	MAINLOOP
+ 02DC FE30      	CPI	'0'
+ 02DE CA1203    	JZ	RESET$FX
+ 02E1 FE31      	CPI	'1'
+ 02E3 CA2303    	JZ	FX$GET$FILES
+ 02E6 FE32      	CPI	'2'
+ 02E8 CA5F03    	JZ	FX$PLAY$FILE
+ 02EB FE33      	CPI	'3'
+ 02ED CAC403    	JZ	FX$PLAY$LOUDER
+ 02F0 FE34      	CPI	'4'
+ 02F2 CA0304    	JZ	FX$PLAY$LOWER
+ 02F5 FE35      	CPI	'5'
+ 02F7 CA4204    	JZ	FX$PAUSE
+ 02FA FE36      	CPI	'6'
+ 02FC CA5F04    	JZ	FX$RESUME
+ 02FF FE37      	CPI	'7'
+ 0301 CA7C04    	JZ	FX$STOP
+ 0304 FE38      	CPI	'8'
+ 0306 CA9904    	JZ	GET$FILE$NAME
+                
+ 0309 113315    	LXI	D,BAD$CMD		;INVALID CMD OPTION
+ 030C CD1E0B    	CALL	PSTRING
+ 030F C3C902    	JMP	FX$MENU$LOOP
+                	
+                	
+                ;---------------------------------------------------
+                
+                RESET$FX:
+ 0312 3E00      	MVI	A,0H			;PULSE RESET PIN ON FX MODULE
+ 0314 D32E      	OUT	FX$SOUND$STATUS$PORT
+ 0316 CD5005    	CALL	DELAY$SHORT
+ 0319 3E00      	MVI	A,0H			;PULSE RESET PIN ON FX MODULE (PIN MUST BE HIGH)
+ 031B D32E      	OUT	FX$SOUND$STATUS$PORT
+ 031D CD5005    	CALL	DELAY$SHORT
+ 0320 C3C902    	JMP	FX$MENU$LOOP
+                	
+                	
+                FX$GET$FILES:
+ 0323 0E31      	MVI	C,'1'
+ 0325 CD070B    	CALL	ZCO
+ 0328 CDE40A    	CALL	ZCRLF
+ 032B CDE40A    	CALL	ZCRLF
+                	
+ 032E 0E4C      	MVI	C,'L'			;GET FILES 'L'
+ 0330 CD4505    	CALL	FX$CO
+ 0333 0E0D      	MVI	C,0DH
+ 0335 CD4505    	CALL	FX$CO
+ 0338 0E0A      	MVI	C,0AH
+ 033A CD4505    	CALL	FX$CO
+                	
+                FX$LOOP2:
+ 033D 210000    	LXI	H,0 
+ 0340 22B01E    	SHLD	STATUS$COUNT		;STATUS CHECK 64K TIMES -- ELSE ABORT
+                FX$LOOP1:
+ 0343 2AB01E    	LHLD	STATUS$COUNT
+ 0346 2B        	DCX	H
+ 0347 22B01E    	SHLD	STATUS$COUNT
+ 034A 7D        	MOV	A,L
+ 034B B4        	ORA	H
+ 034C CAC902    	JZ	FX$MENU$LOOP
+                	
+ 034F CD3605    	CALL	FX$STATUS
+ 0352 CA4303    	JZ	FX$LOOP1
+ 0355 CD3B05    	CALL	FX$CI
+ 0358 4F        	MOV	C,A
+ 0359 CD070B    	CALL	ZCO
+ 035C C33D03    	JMP	FX$LOOP2
+                	
+                	
+                FX$PLAY$FILE:
+ 035F 0E32      	MVI	C,'2'
+ 0361 CD070B    	CALL	ZCO
+                	
+ 0364 CDE40A    	CALL	ZCRLF
+ 0367 CDE40A    	CALL	ZCRLF
+                	
+ 036A 114B15    	LXI	D,ENTER$FILE$NO
+ 036D CD1E0B    	CALL	PSTRING
+ 0370 CDCE0B    	CALL	GETHEX			;NOTE MUST BE 2 CHARACTERS
+ 0373 32B21E    	STA	FX$FILE$NO
+                
+ 0376 CDE40A    	CALL	ZCRLF
+ 0379 0E23      	MVI	C,'#'			;GET FILE '#'
+ 037B CD4505    	CALL	FX$CO
+                	
+ 037E 3AB21E    	LDA	FX$FILE$NO		;TWO CHARACTERS,  SEND HIGH DIGIT FIRST
+ 0381 0F        	RRC
+ 0382 0F        	RRC
+ 0383 0F        	RRC
+ 0384 0F        	RRC
+ 0385 E60F      	ANI	0FH
+ 0387 C630      	ADI	30H			;CONVERT TO ASCII
+ 0389 4F        	MOV	C,A
+ 038A CD4505    	CALL	FX$CO
+                	
+ 038D 3AB21E    	LDA	FX$FILE$NO		;GET LOW DIGIT
+ 0390 E60F      	ANI	0FH
+ 0392 C630      	ADI	30H			;CONVERT TO ASCII
+ 0394 4F        	MOV	C,A
+ 0395 CD4505    	CALL	FX$CO
+                	
+ 0398 0E0D      	MVI	C,0DH
+ 039A CD4505    	CALL	FX$CO
+ 039D 0E0A      	MVI	C,0AH
+ 039F CD4505    	CALL	FX$CO
+                	
+                FX$FILE$NUMBER:
+ 03A2 210080    	LXI	H,8000H
+ 03A5 22B01E    	SHLD	STATUS$COUNT		;STATUS CHECK 100 TIMES, IF NOTHING, WE AEE DONE RETURN TO MENU
+                FX$FILE$NUMBER2:
+ 03A8 2AB01E    	LHLD	STATUS$COUNT
+ 03AB 2B        	DCX	H
+ 03AC 22B01E    	SHLD	STATUS$COUNT
+ 03AF 7D        	MOV	A,L
+ 03B0 B4        	ORA	H
+ 03B1 CAC902    	JZ	FX$MENU$LOOP
+                	
+ 03B4 CD3605    	CALL	FX$STATUS
+ 03B7 CAA803    	JZ	FX$FILE$NUMBER2
+ 03BA CD3B05    	CALL	FX$CI
+ 03BD 4F        	MOV	C,A
+ 03BE CD070B    	CALL	ZCO
+ 03C1 C3A203    	JMP	FX$FILE$NUMBER
+                	
+                
+                FX$PLAY$LOUDER:
+ 03C4 0E33      	MVI	C,'3'
+ 03C6 CD070B    	CALL	ZCO
+ 03C9 117415    	LXI	D,FX$UP$VOLUME
+ 03CC CD1E0B    	CALL	PSTRING
+ 03CF CDE40A    	CALL	ZCRLF
+                	
+ 03D2 0E2B      	MVI	C,'+'			;SET VOL UP
+ 03D4 CD4505    	CALL	FX$CO
+ 03D7 0E0D      	MVI	C,0DH
+ 03D9 CD4505    	CALL	FX$CO
+ 03DC 0E0A      	MVI	C,0AH
+ 03DE CD4505    	CALL	FX$CO
+                	
+                FX$LOUDER1:
+ 03E1 210080    	LXI	H,8000H
+ 03E4 22B01E    	SHLD	STATUS$COUNT		;STATUS CHECK 100 TIMES ELSE ABORT
+                FX$LOUDER2:
+ 03E7 2AB01E    	LHLD	STATUS$COUNT
+ 03EA 2B        	DCX	H
+ 03EB 22B01E    	SHLD	STATUS$COUNT
+ 03EE 7D        	MOV	A,L
+ 03EF B4        	ORA	H
+ 03F0 CAC902    	JZ	FX$MENU$LOOP
+                	
+ 03F3 CD3605    	CALL	FX$STATUS
+ 03F6 CAE703    	JZ	FX$LOUDER2
+ 03F9 CD3B05    	CALL	FX$CI
+ 03FC 4F        	MOV	C,A
+ 03FD CD070B    	CALL	ZCO
+ 0400 C3E103    	JMP	FX$LOUDER1
+                
+                
+                
+                FX$PLAY$LOWER:
+ 0403 0E34      	MVI	C,'4'
+ 0405 CD070B    	CALL	ZCO
+ 0408 118715    	LXI	D,FX$DOWN$VOLUME
+ 040B CD1E0B    	CALL	PSTRING
+ 040E CDE40A    	CALL	ZCRLF
+                
+ 0411 0E2D      	MVI	C,'-'			;SET VOL DOWNN
+ 0413 CD4505    	CALL	FX$CO
+ 0416 0E0D      	MVI	C,0DH
+ 0418 CD4505    	CALL	FX$CO
+ 041B 0E0A      	MVI	C,0AH
+ 041D CD4505    	CALL	FX$CO
+                
+                FX$LOWER1:
+ 0420 210080    	LXI	H,8000H
+ 0423 22B01E    	SHLD	STATUS$COUNT		;STATUS CHECK 100 TIMES ELSE ABORT
+                FX$LOWER2:
+ 0426 2AB01E    	LHLD	STATUS$COUNT
+ 0429 2B        	DCX	H
+ 042A 22B01E    	SHLD	STATUS$COUNT
+ 042D 7D        	MOV	A,L
+ 042E B4        	ORA	H
+ 042F CAC902    	JZ	FX$MENU$LOOP
+                	
+ 0432 CD3605    	CALL	FX$STATUS
+ 0435 CA2604    	JZ	FX$LOWER2
+ 0438 CD3B05    	CALL	FX$CI
+ 043B 4F        	MOV	C,A
+ 043C CD070B    	CALL	ZCO
+ 043F C32004    	JMP	FX$LOWER1
+                
+                
+                FX$PAUSE:
+ 0442 0E35      	MVI	C,'5'
+ 0444 CD070B    	CALL	ZCO
+ 0447 119A15    	LXI	D,FX$PAUSE$MSG
+ 044A CD1E0B    	CALL	PSTRING
+                
+ 044D 0E3D      	MVI	C,'='			;PAUSE SIGNAL
+ 044F CD4505    	CALL	FX$CO
+ 0452 0E0D      	MVI	C,0DH
+ 0454 CD4505    	CALL	FX$CO
+ 0457 0E0A      	MVI	C,0AH
+ 0459 CD4505    	CALL	FX$CO
+ 045C CAC902    	JZ	FX$MENU$LOOP
+                
+                
+                FX$RESUME:
+ 045F 0E36      	MVI	C,'6'
+ 0461 CD070B    	CALL	ZCO
+ 0464 11AB15    	LXI	D,FX$RESUME$MSG
+ 0467 CD1E0B    	CALL	PSTRING
+                
+ 046A 0E3E      	MVI	C,'>'			;RESUME SIGNAL
+ 046C CD4505    	CALL	FX$CO
+ 046F 0E0D      	MVI	C,0DH
+ 0471 CD4505    	CALL	FX$CO
+ 0474 0E0A      	MVI	C,0AH
+ 0476 CD4505    	CALL	FX$CO
+ 0479 CAC902    	JZ	FX$MENU$LOOP
+                
+                FX$STOP:
+ 047C 0E37      	MVI	C,'7'
+ 047E CD070B    	CALL	ZCO
+ 0481 11BD15    	LXI	D,FX$STOP$MSG
+ 0484 CD1E0B    	CALL	PSTRING
+                
+ 0487 0E71      	MVI	C,'q'			;STOP PLAYBACK
+ 0489 CD4505    	CALL	FX$CO
+ 048C 0E0D      	MVI	C,0DH
+ 048E CD4505    	CALL	FX$CO
+ 0491 0E0A      	MVI	C,0AH
+ 0493 CD4505    	CALL	FX$CO
+ 0496 CAC902    	JZ	FX$MENU$LOOP
+                
+                
+                GET$FILE$NAME:				;GET A FILE
+ 0499 0E38      	MVI	C,'8'
+ 049B CD070B    	CALL	ZCO
+ 049E CDE40A    	CALL	ZCRLF
+ 04A1 CDE40A    	CALL	ZCRLF
+                	
+ 04A4 11CD15    	LXI	D,FX$ENTER$NAME
+ 04A7 CD1E0B    	CALL	PSTRING
+                
+ 04AA CDF904    	CALL	FILE$NAME		;NAME IN [HL]
+                
+ 04AD 11F915    	LXI	D,FX$GOT$NAME
+ 04B0 CD1E0B    	CALL	PSTRING
+ 04B3 11B31E    	LXI	D,FX$BUFFER
+ 04B6 CD1E0B    	CALL	PSTRING
+                	
+ 04B9 0E50      	MVI	C,'P'			;GET FILE
+ 04BB CD4505    	CALL	FX$CO
+ 04BE 060C      	MVI	B,12
+ 04C0 21B31E    	LXI	H,FX$BUFFER
+                MORE$NAME:
+ 04C3 CD5005    	CALL	DELAY$SHORT		;SEEMS TO BE NEEDED.
+ 04C6 4E        	MOV	C,M
+ 04C7 23        	INX	H
+ 04C8 CD4505    	CALL	FX$CO
+                	DJNZ	MORE$NAME
+ 04CB+10        	DB	10H
+ 04CC+F6        	DB	MORE$NAME-$-1
+                
+ 04CD 0E0D      	MVI	C,0DH
+ 04CF CD4505    	CALL	FX$CO
+ 04D2 0E0A      	MVI	C,0AH
+ 04D4 CD4505    	CALL	FX$CO
+                	
+                MORE$NAME2:
+ 04D7 210000    	LXI	H,0 
+ 04DA 22B01E    	SHLD	STATUS$COUNT		;STATUS CHECK 100 TIMES ELSE ABORT
+                MORE$NAME3:
+ 04DD 2AB01E    	LHLD	STATUS$COUNT
+ 04E0 2B        	DCX	H
+ 04E1 22B01E    	SHLD	STATUS$COUNT
+ 04E4 7D        	MOV	A,L
+ 04E5 B4        	ORA	H
+ 04E6 CAC902    	JZ	FX$MENU$LOOP
+                	
+ 04E9 CD3605    	CALL	FX$STATUS
+ 04EC CADD04    	JZ	MORE$NAME3
+ 04EF CD3B05    	CALL	FX$CI
+ 04F2 4F        	MOV	C,A
+ 04F3 CD070B    	CALL	ZCO
+ 04F6 C3D704    	JMP	MORE$NAME2
+                
+                ;
+                ;
+                ;
+                ;
+                FILE$NAME:				;GET A 11 CHARACTER FILE NAME
+ 04F9 21B31E    	LXI	H,FX$BUFFER
+ 04FC 060D      	MVI	B,13
+ 04FE 3E20      	MVI	A,20H			;CLEAR SPACES
+                MORE$NAME5:
+ 0500 77        	MOV	M,A
+ 0501 23        	INX	H
+                	DJNZ	MORE$NAME5
+ 0502+10        	DB	10H
+ 0503+FC        	DB	MORE$NAME5-$-1
+                
+ 0504 21B31E    	LXI	H,FX$BUFFER
+ 0507 0609      	MVI	B,9			;8 CHARACTERS MAX
+                MORE$NAME6:
+ 0509 CD140B    	CALL	ZCI
+ 050C CDBD0B    	CALL	UPPER			;MUST BE UPPER CASE
+ 050F 4F        	MOV	C,A
+ 0510 FE2E      	CPI	'.'
+ 0512 CA1C05    	JZ	EXT$NAME		;GET EXTENSION			
+ 0515 CD070B    	CALL	ZCO
+ 0518 77        	MOV	M,A
+ 0519 23        	INX	H
+                	DJNZ	MORE$NAME6
+ 051A+10        	DB	10H
+ 051B+ED        	DB	MORE$NAME6-$-1
+                EXT$NAME:
+ 051C CD070B    	CALL	ZCO	
+ 051F 21BB1E    	LXI	H,FX$BUFFER$EXT
+                	
+ 0522 0603      	MVI	B,3			;3 CHARACTERS MAX
+                MORE$NAME7:
+ 0524 CD140B    	CALL	ZCI
+ 0527 CDBD0B    	CALL	UPPER			;MUST BE UPPER CASE
+ 052A 4F        	MOV	C,A
+ 052B CD070B    	CALL	ZCO
+ 052E 77        	MOV	M,A
+ 052F 23        	INX	H
+                	DJNZ	MORE$NAME7
+ 0530+10        	DB	10H
+ 0531+F2        	DB	MORE$NAME7-$-1
+ 0532 3E24      	MVI	A,'$'
+ 0534 77        	MOV	M,A
+ 0535 C9        	RET
+                
+                ;
+                ;--------------------------------- FX SOUND CARD SUPPORT ROUTINES ------------------------------
+                
+                FX$STATUS:				;GET USB INPUT PORT STATUS
+ 0536 DB2E      	IN	FX$SOUND$STATUS$PORT	
+ 0538 E601      	ANI	01H
+ 053A C9        	RET				;RET Z IF NOTHING
+                	
+ 053B DB2E      FX$CI:	IN	FX$SOUND$STATUS$PORT	
+ 053D E601      	ANI	01H
+ 053F CA3B05    	JZ	FX$CI
+ 0542 DB2F      	IN 	FX$SOUND$DATA$PORT	;GET DATA FROM THE FX SOUND PORT
+ 0544 C9        	RET
+                	
+                
+ 0545 DB2E      FX$CO:	IN	FX$SOUND$STATUS$PORT	;PRINT CHARACTER, (IN [C]), ON USB PORT
+ 0547 E602      	ANI	00000010B		;WAIT UNTIL READY
+ 0549 C24505    	JNZ	FX$CO	
+ 054C 79        	MOV	A,C
+ 054D D32F      	OUT	FX$SOUND$DATA$PORT
+ 054F C9        	RET
+                
+                
+                
+                DELAY$SHORT:
+ 0550 F5        	PUSH	PSW
+ 0551 C5        	PUSH	B
+ 0552 3E28      	MVI	A,40			;DELAY ~100 MS (DOES NOT SEEM TO BE CRITICAL)
+ 0554 0600      DELAY3:	MVI	B,0
+ 0556 05        M11:	DCR	B
+ 0557 C25605    	JNZ	M11
+ 055A 3D        	DCR     A
+ 055B C25405    	JNZ     DELAY3
+ 055E C1        	POP	B
+ 055F F1        	POP	PSW
+ 0560 C9        	RET
+                
+                ;------------------------------------- DFP SOUND TEST ---------------------------------------
+                
+                DFP$SOUND$TEST:				;INITILISE THE DFP SOUND BOARD
+                DFP$LOOP$TEST:
+                ;	MVI	A,40H
+                ;	MOV	C,A
+                ;	CALL	DFP$CO
+                ;	CALL	DFP$CI
+                ;	MOV	A,C
+                ;	CALL	HEXOUT
+                ;	JMP	MAINLOOP
+                ;	JMP	DFP$LOOP$TEST
+                
+                
+ 0561 DB2A      	IN	DFP$SOUND$STATUS$PORT
+ 0563 B7        	ORA	A			;IS THE CARD PRESENT IF SO, GET 09H
+ 0564 C26D05    	JNZ	CHECK$BOARD
+                NO$CARD:
+ 0567 117B17    	LXI	D,NO$DFP$CARD		;NO DFP CARD DETECTED
+ 056A CD1E0B    	CALL	PSTRING
+                
+                CHECK$BOARD:
+ 056D FEFF      	CPI	0FFH			;IN CASE ACTUAL BOARD IS NOT PRESENT
+ 056F CA6705    	JZ	NO$CARD
+                
+                DFP$MENU$LOOP:
+ 0572 111A16    	LXI	D,DFP$SOUND$MENU
+ 0575 CD1E0B    	CALL	PSTRING
+ 0578 0E3E      	MVI	C,'>'
+ 057A CD070B    	CALL	ZCO			;SEND A CHARACTER
+                	
+ 057D CD140B    	CALL	ZCI
+ 0580 FE1B      	CPI	ESC
+ 0582 CA6501    	JZ	MAINLOOP
+ 0585 4F        	MOV	C,A
+ 0586 CD070B    	CALL	ZCO
+                
+ 0589 FE30      	CPI	'0'
+ 058B CABF05    	JZ	DFP$PLAY$FILE
+                
+ 058E FE31      	CPI	'1'
+ 0590 CAE305    	JZ	DFP$SET$VOLUME
+                
+ 0593 FE32      	CPI	'2'
+ 0595 CA0406    	JZ	DFP$REPEAT$PLAY
+                
+ 0598 FE33      	CPI	'3'
+ 059A CA2906    	JZ	DFP$PAUSE
+                
+ 059D FE34      	CPI	'4'
+ 059F CA4806    	JZ	DFP$PLAY
+                
+ 05A2 FE35      	CPI	'5'
+ 05A4 CA6706    	JZ	DFP$ALL
+                
+ 05A7 FE36      	CPI	'6'
+ 05A9 CA8706    	JZ	DFP$RESET
+                
+ 05AC FE37      	CPI	'7'
+ 05AE CADB06    	JZ	DFP$BYTE$OUT
+                
+ 05B1 FE38      	CPI	'8'
+ 05B3 CAA606    	JZ	DFP$QUERY		;THIS ROUTINE IS NOT WORKING CORRECTLY
+                					;RETURNING WRONG VALUES
+ 05B6 113315    	LXI	D,BAD$CMD
+ 05B9 CD1E0B    	CALL	PSTRING
+ 05BC C37205    	JMP	DFP$MENU$LOOP
+                	
+                	
+                ;---------------------------------------------------
+                		
+                DFP$PLAY$FILE:				;<<<<<<<< PLAY A FILE >>>>>>>>>>
+ 05BF 114B15    	LXI	D,ENTER$FILE$NO
+ 05C2 CD1E0B    	CALL	PSTRING
+ 05C5 CDCE0B    	CALL	GETHEX			;NOTE MUST BE 2 CHARACTERS
+ 05C8 32BE1E    	STA	DFP$VARIABLE		;ADD TO CMD PARAMATER
+ 05CB 32C01E    	STA	DFP$CURRENT$TRACK	;STORE CURRENT #
+ 05CE 11C317    	LXI	D,SENDING$CMD
+ 05D1 CD1E0B    	CALL	PSTRING
+                	
+ 05D4 21C51E    	LXI	H,FILE$NUMBER$CMD
+ 05D7 CDEF06    	CALL	SEND$CMD
+ 05DA CDE40A    	CALL	ZCRLF
+ 05DD CDE40A    	CALL	ZCRLF
+ 05E0 CA7205    	JZ	DFP$MENU$LOOP
+                
+                	
+                DFP$SET$VOLUME:				;<<<<<<<< SET VOLUME >>>>>>>>
+ 05E3 113718    	LXI	D,DFP$ENTER$VOLUME
+ 05E6 CD1E0B    	CALL	PSTRING
+ 05E9 CDCE0B    	CALL	GETHEX			;NOTE MUST BE 2 CHARACTERS
+ 05EC 32BE1E    	STA	DFP$VARIABLE		;ADD TO CMD PARAMATER
+ 05EF 11C317    	LXI	D,SENDING$CMD
+ 05F2 CD1E0B    	CALL	PSTRING
+                					
+ 05F5 21CB1E    	LXI	H,DFP$VOLUME$CMD
+ 05F8 CDEF06    	CALL	SEND$CMD
+ 05FB CDE40A    	CALL	ZCRLF
+ 05FE CDE40A    	CALL	ZCRLF
+ 0601 CA7205    	JZ	DFP$MENU$LOOP
+                
+                
+                DFP$REPEAT$PLAY:			;<<<<<<<< REPEAT PLAY CURRENT TARCK >>>>>>>>
+ 0604 116C18    	LXI	D,DFP$REPEAT$MSG
+ 0607 CD1E0B    	CALL	PSTRING
+ 060A AF        	XRA	A
+ 060B 32BE1E    	STA	DFP$VARIABLE		;NO PARAMATER NEEDED
+ 060E 11C317    	LXI	D,SENDING$CMD
+ 0611 CD1E0B    	CALL	PSTRING
+                					
+ 0614 3AC01E    	LDA	DFP$CURRENT$TRACK	;GET CURRENT #
+ 0617 32BE1E    	STA	DFP$VARIABLE		;SET CURRENT #
+ 061A 21D11E    	LXI	H,DFP$REPEAT$CMD
+ 061D CDEF06    	CALL	SEND$CMD
+ 0620 CDE40A    	CALL	ZCRLF
+ 0623 CDE40A    	CALL	ZCRLF
+ 0626 CA7205    	JZ	DFP$MENU$LOOP
+                
+                
+                DFP$PAUSE:				;<<<<<<<< PAUSE PLAY CURRENT TARCK >>>>>>>>
+ 0629 119718    	LXI	D,DFP$PAUSE$MSG
+ 062C CD1E0B    	CALL	PSTRING
+ 062F AF        	XRA	A
+ 0630 32BE1E    	STA	DFP$VARIABLE		;NO PARAMATER NEEDED
+ 0633 11C317    	LXI	D,SENDING$CMD
+ 0636 CD1E0B    	CALL	PSTRING
+                					
+ 0639 21D71E    	LXI	H,DFP$PAUSE$CMD
+ 063C CDEF06    	CALL	SEND$CMD
+ 063F CDE40A    	CALL	ZCRLF
+ 0642 CDE40A    	CALL	ZCRLF
+ 0645 CA7205    	JZ	DFP$MENU$LOOP
+                
+                
+                DFP$PLAY:				;<<<<<<<< PLAY CURRENT TARCK >>>>>>>>
+ 0648 11BF18    	LXI	D,DFP$PLAY$MSG
+ 064B CD1E0B    	CALL	PSTRING
+ 064E AF        	XRA	A
+ 064F 32BE1E    	STA	DFP$VARIABLE		;NO PARAMATER NEEDED
+ 0652 11C317    	LXI	D,SENDING$CMD
+ 0655 CD1E0B    	CALL	PSTRING
+                					
+ 0658 21DD1E    	LXI	H,DFP$PLAY$CMD
+ 065B CDEF06    	CALL	SEND$CMD
+ 065E CDE40A    	CALL	ZCRLF
+ 0661 CDE40A    	CALL	ZCRLF
+ 0664 CA7205    	JZ	DFP$MENU$LOOP
+                
+                
+                DFP$ALL:				;<<<<<<<< REPEAT PLAY ALL TRACKS >>>>>>>>
+ 0667 11E118    	LXI	D,DFP$PLAY$ALL$MSG
+ 066A CD1E0B    	CALL	PSTRING
+ 066D 3E01      	MVI	A,01
+ 066F 32BE1E    	STA	DFP$VARIABLE		;NO PARAMATER NEEDED
+ 0672 11C317    	LXI	D,SENDING$CMD
+ 0675 CD1E0B    	CALL	PSTRING
+                					
+ 0678 21E91E    	LXI	H,DFP$ALL$PLAY$CMD
+ 067B CDEF06    	CALL	SEND$CMD
+ 067E CDE40A    	CALL	ZCRLF
+ 0681 CDE40A    	CALL	ZCRLF
+ 0684 CA7205    	JZ	DFP$MENU$LOOP
+                
+                
+                
+                DFP$RESET:				;<<<<<<<< RESET PLAYER >>>>>>>>
+ 0687 110519    	LXI	D,DFP$RESET$MSG
+ 068A CD1E0B    	CALL	PSTRING
+ 068D AF        	XRA	A
+ 068E 32BE1E    	STA	DFP$VARIABLE		;NO PARAMATER NEEDED
+ 0691 11C317    	LXI	D,SENDING$CMD
+ 0694 CD1E0B    	CALL	PSTRING
+                					
+ 0697 21E31E    	LXI	H,DFP$RESET$CMD
+ 069A CDEF06    	CALL	SEND$CMD
+ 069D CDE40A    	CALL	ZCRLF
+ 06A0 CDE40A    	CALL	ZCRLF
+ 06A3 CA7205    	JZ	DFP$MENU$LOOP
+                
+                
+                DFP$QUERY:				;<<<<<<<< QUERY THE PLAYER WITH CMD 42 >>>>>>>>
+ 06A6 112219    	LXI	D,DFP$QUERY$MSG
+ 06A9 CD1E0B    	CALL	PSTRING
+                
+ 06AC 3EFE      	MVI	A,0FEH
+ 06AE 32BF1E    	STA	DFP$VARIABLE$HIGH	;TWO PARAMATERS NEEDED, HIGH
+ 06B1 3EBC      	MVI	A,0BCH
+ 06B3 32BE1E    	STA	DFP$VARIABLE		;LOW, PARAMATER NEEDED
+                	
+ 06B6 11C317    	LXI	D,SENDING$CMD
+ 06B9 CD1E0B    	CALL	PSTRING
+                					
+ 06BC 21EF1E    	LXI	H,DFP$QUERY$VOL$CMD
+ 06BF CD3107    	CALL	SEND$QUERY$CMD
+                	
+ 06C2 11E617    	LXI	D,GOT$BACK
+ 06C5 CD1E0B    	CALL	PSTRING
+                	
+ 06C8 060A      	MVI	B,10
+                MORE$QUERY:
+ 06CA CD8A07    	CALL	DFP$CI
+ 06CD CD780B    	CALL	HEXOUT
+                	DJNZ	MORE$QUERY
+ 06D0+10        	DB	10H
+ 06D1+F8        	DB	MORE$QUERY-$-1
+                	
+ 06D2 CDE40A    	CALL	ZCRLF
+ 06D5 CDE40A    	CALL	ZCRLF
+ 06D8 CA7205    	JZ	DFP$MENU$LOOP
+                
+                
+                DFP$BYTE$OUT:				;;<<<<<<<< SEND A BYTE (NIBBLE) TO PORT 8AH  >>>>>>>>
+ 06DB 110318    	LXI	D,DFP$BYTE$VALUE
+ 06DE CD1E0B    	CALL	PSTRING
+                
+ 06E1 CDCE0B    	CALL	GETHEX			;NOTE UP TO CHARACTERS
+ 06E4 D32A      	OUT	DFP$SOUND$STATUS$PORT	;SEND NIBBLE
+ 06E6 CDE40A    	CALL	ZCRLF
+ 06E9 CDE40A    	CALL	ZCRLF
+ 06EC C37205    	JMP	DFP$MENU$LOOP
+                	
+                	
+                	
+                	
+                ;--------------------------------- DFP SOUND CARD SUPPORT ROUTINES ------------------------------
+                
+                SEND$CMD				;SEND A COMMAND
+ 06EF 4E        	MOV	C,M			;1. SEND 7E FF 06 03 00 00 XX EF
+ 06F0 CD9407    	CALL	DFP$CO
+ 06F3 CD780B    	CALL	HEXOUT
+                
+ 06F6 23        	INX	H
+ 06F7 4E        	MOV	C,M			;2. FF (VERSION NUMBER)
+ 06F8 CD9407    	CALL	DFP$CO
+ 06FB CD780B    	CALL	HEXOUT
+                
+ 06FE 23        	INX	H
+ 06FF 4E        	MOV	C,M			;3. 06 LENGTH
+ 0700 CD9407    	CALL	DFP$CO
+ 0703 CD780B    	CALL	HEXOUT
+                
+ 0706 23        	INX	H
+ 0707 4E        	MOV	C,M			;4. XX CMD
+ 0708 CD9407    	CALL	DFP$CO
+ 070B CD780B    	CALL	HEXOUT
+                
+ 070E 23        	INX	H
+ 070F 4E        	MOV	C,M			;5. 00  NO FEEDBACK REQUIRED
+ 0710 CD9407    	CALL	DFP$CO
+ 0713 CD780B    	CALL	HEXOUT
+                
+ 0716 23        	INX	H
+ 0717 4E        	MOV	C,M
+ 0718 CD9407    	CALL	DFP$CO
+ 071B CD780B    	CALL	HEXOUT
+                
+ 071E 3ABE1E    	LDA	DFP$VARIABLE		;7. GET VERIABLE (PARAMATER LOW)
+ 0721 4F        	MOV	C,A
+ 0722 CD9407    	CALL	DFP$CO
+ 0725 CD780B    	CALL	HEXOUT
+                
+ 0728 0EEF      	MVI	C,0EFH			;8. EF (TERMINATOR)
+ 072A CD9407    	CALL	DFP$CO
+ 072D CD780B    	CALL	HEXOUT
+ 0730 C9        	RET
+                	
+                
+                SEND$QUERY$CMD				;SEND A QUERY COMMAND 
+ 0731 4E        	MOV	C,M			;1. SEND 7E FF 06 03 00 XX XX EF
+ 0732 CD9407    	CALL	DFP$CO
+ 0735 CD780B    	CALL	HEXOUT
+                
+ 0738 23        	INX	H
+ 0739 4E        	MOV	C,M			;2. FF (VERSION NUMBER)
+ 073A CD9407    	CALL	DFP$CO
+ 073D CD780B    	CALL	HEXOUT
+                
+ 0740 23        	INX	H
+ 0741 4E        	MOV	C,M			;3. 06 LENGTH
+ 0742 CD9407    	CALL	DFP$CO
+ 0745 CD780B    	CALL	HEXOUT
+                
+ 0748 23        	INX	H
+ 0749 4E        	MOV	C,M			;4. XX CMD
+ 074A CD9407    	CALL	DFP$CO
+ 074D CD780B    	CALL	HEXOUT
+                
+ 0750 23        	INX	H
+ 0751 4E        	MOV	C,M			;5. 00  NO FEEDBACK REQUIRED
+ 0752 CD9407    	CALL	DFP$CO
+ 0755 CD780B    	CALL	HEXOUT
+                	
+ 0758 0E00      	MVI	C,0			;6.  ALWAYS 00
+ 075A CD9407    	CALL	DFP$CO
+ 075D CD780B    	CALL	HEXOUT
+                
+ 0760 0E00      	MVI	C,0			;7. ALWAYS 00
+ 0762 CD9407    	CALL	DFP$CO
+ 0765 CD780B    	CALL	HEXOUT
+                
+ 0768 3ABF1E    	LDA	DFP$VARIABLE$HIGH 
+ 076B 4F        	MOV	C,A
+ 076C CD9407    	CALL	DFP$CO
+ 076F CD780B    	CALL	HEXOUT
+                
+ 0772 3ABE1E    	LDA	DFP$VARIABLE
+ 0775 4F        	MOV	C,A
+ 0776 CD9407    	CALL	DFP$CO
+ 0779 CD780B    	CALL	HEXOUT
+                
+ 077C 0EEF      	MVI	C,0EFH			;8. EF (TERMINATOR)
+ 077E CD9407    	CALL	DFP$CO
+ 0781 CD780B    	CALL	HEXOUT
+ 0784 C9        	RET
+                	
+                
+                DFP$STATUS:				;GET DFP INPUT PORT STATUS
+ 0785 DB2A      	IN	DFP$SOUND$STATUS$PORT	
+ 0787 E601      	ANI	01H
+ 0789 C9        	RET				;RET Z IF NOTHING
+                	
+ 078A DB2A      DFP$CI:	IN	DFP$SOUND$STATUS$PORT	
+ 078C E601      	ANI	01H
+ 078E CA8A07    	JZ	DFP$CI
+ 0791 DB2B      	IN 	DFP$SOUND$DATA$PORT	;GET DATA FROM THE DFP SOUND PORT
+ 0793 C9        	RET
+                	
+                
+ 0794 DB2A      DFP$CO:	IN	DFP$SOUND$STATUS$PORT	;PRINT CHARACTER, (IN [C]), ON DFP PORT
+ 0796 E602      	ANI	00000010B		;WAIT UNTIL READY
+ 0798 C29407    	JNZ	DFP$CO	
+ 079B 79        	MOV	A,C
+ 079C D32B      	OUT	DFP$SOUND$DATA$PORT
+ 079E C9        	RET
+                
+                
+                
+                
+                ;------------------------------------- GET/GET 8255A PORT DATA ---------------------------------------
+                	
+                SEND$PARALLEL:				; "H"  SEND DATA TO 8255A PORTS
+ 079F 11C71D    	LXI	D,P$SEND$MSG
+ 07A2 CD1E0B    	CALL	PSTRING
+                	
+ 07A5 3E80      	MVI	A,WRITECFG8255
+ 07A7 D38F      	OUT	PARALLEL$D
+                
+ 07A9 11EC1D    	LXI	D,P$SENDA$MSG		;ENTER 8255A PORT A (XXH):$'
+ 07AC CD1E0B    	CALL	PSTRING
+ 07AF CDCE0B    	CALL	GETHEX
+ 07B2 32C11E    	STA	PORT$A$STORE		;STORE IT IN RAM
+ 07B5 D38C      	OUT	PARALLEL$A
+                
+ 07B7 11081E    	LXI	D,P$SENDB$MSG		;ENTER 8255A PORT B (XXH):$'
+ 07BA CD1E0B    	CALL	PSTRING
+ 07BD CDCE0B    	CALL	GETHEX
+ 07C0 32C21E    	STA	PORT$B$STORE		;STORE IT IN RAM
+ 07C3 D38D      	OUT	PARALLEL$B
+                
+ 07C5 11241E    	LXI	D,P$SENDC$MSG		;ENTER 8255A PORT C (XXH):$'
+ 07C8 CD1E0B    	CALL	PSTRING
+ 07CB CDCE0B    	CALL	GETHEX
+ 07CE 32C31E    	STA	PORT$C$STORE		;STORE IT IN RAM
+ 07D1 D38E      	OUT	PARALLEL$C
+                
+ 07D3 11401E    	LXI	D,OUT$RESULT$MSG	;'8255A PORTS    A           B              C$'
+ 07D6 CD1E0B    	CALL	PSTRING
+                
+ 07D9 116F1E    	LXI	D,OUT$RESULT1$MSG	;CR,LF,'             $'
+ 07DC CD1E0B    	CALL	PSTRING
+ 07DF 3AC11E    	LDA	PORT$A$STORE
+ 07E2 CD960B    	CALL	ZBITS
+                
+ 07E5 117D1E    	LXI	D,OUT$RESULT2$MSG	;'          $'
+ 07E8 CD1E0B    	CALL	PSTRING
+ 07EB 3AC21E    	LDA	PORT$B$STORE
+ 07EE CD960B    	CALL	ZBITS
+                	
+ 07F1 11821E    	LXI	D,OUT$RESULT3$MSG	;'          $'
+ 07F4 CD1E0B    	CALL	PSTRING
+ 07F7 3AC31E    	LDA	PORT$C$STORE
+ 07FA CD960B    	CALL	ZBITS
+ 07FD CDE40A    	CALL	ZCRLF
+ 0800 CDE40A    	CALL	ZCRLF
+ 0803 C36501    	JMP	MAINLOOP		;DONE
+                
+                
+                
+                ;------------------------------------- SEND 8255A PORT DATA ---------------------------------------
+                
+                GET$PARALLEL				; "G"  INPUT 8255A PORTS
+ 0806 118A1E    	LXI	D,P$GET$MSG
+ 0809 CD1E0B    	CALL	PSTRING
+                
+ 080C 3E9B      	MVI	A,READCFG8255
+ 080E D38F      	OUT	PARALLEL$D
+                
+ 0810 DB8C      	IN	PARALLEL$A
+ 0812 32C11E    	STA	PORT$A$STORE		;STORE IT IN RAM
+ 0815 DB8D      	IN	PARALLEL$B
+ 0817 32C21E    	STA	PORT$B$STORE		;STORE IT IN RAM
+ 081A DB8E      	IN	PARALLEL$C
+ 081C 32C31E    	STA	PORT$C$STORE		;STORE IT IN RAM
+                
+ 081F 11401E    	LXI	D,OUT$RESULT$MSG	;'8255A PORTS    A           B              C$'
+ 0822 CD1E0B    	CALL	PSTRING
+                
+ 0825 116F1E    	LXI	D,OUT$RESULT1$MSG	;CR,LF,'             $'
+ 0828 CD1E0B    	CALL	PSTRING
+ 082B 3AC11E    	LDA	PORT$A$STORE
+ 082E CD960B    	CALL	ZBITS
+                
+ 0831 117D1E    	LXI	D,OUT$RESULT2$MSG	;'          $'
+ 0834 CD1E0B    	CALL	PSTRING
+ 0837 3AC21E    	LDA	PORT$B$STORE
+ 083A CD960B    	CALL	ZBITS
+                	
+ 083D 11821E    	LXI	D,OUT$RESULT3$MSG	;'          $'
+ 0840 CD1E0B    	CALL	PSTRING
+ 0843 3AC31E    	LDA	PORT$C$STORE
+ 0846 CD960B    	CALL	ZBITS
+                	
+ 0849 CDE40A    	CALL	ZCRLF
+ 084C CDE40A    	CALL	ZCRLF
+ 084F C36501    	JMP	MAINLOOP		;DONE
+                
+                
+                
+                
+                ;------------------------------------- WIFI BOARD TEST ---------------------------------------
+                
+                WIFI$TEST:				;INITILISE THE WIFI BOARD
+ 0852 11141B    	LXI	D,RESET$WIFI$MSG	;'RESETTING WIFI MODULE.$'
+ 0855 CD1E0B    	CALL	PSTRING
+                
+                	
+                	
+                WIFI$MENU$LOOP:
+ 0858 113F19    	LXI	D,WIFI$MENU
+ 085B CD1E0B    	CALL	PSTRING
+                	
+ 085E CD140B    	CALL	ZCI
+ 0861 FE1B      	CPI	ESC
+ 0863 CA6501    	JZ	MAINLOOP
+                
+ 0866 FE30      	CPI	'0'
+ 0868 CA9208    	JZ	ECHO$TEST$WIFI
+                
+ 086B FE31      	CPI	'1'
+ 086D CAC508    	JZ	DO$WIFI$RESET
+                					
+ 0870 FE32      	CPI	'2'
+ 0872 CAD308    	JZ	AT$CMD$CWMODE$WIFI
+                
+ 0875 FE33      	CPI	'3'
+ 0877 CAEC08    	JZ	AT$CMD$GMR$WIFI
+                					
+ 087A FE34      	CPI	'4'
+ 087C CA0509    	JZ	AT$CMD$SET$WIFI
+                
+ 087F FE35      	CPI	'5'
+ 0881 CA1E09    	JZ	AT$CMD$NETWORK$WIFI	;SHOW NETWORKS
+                	
+ 0884 FE36      	CPI	'6'
+ 0886 CA3709    	JZ	AT$CMD$IP$WIFI		;SHOW IP ADDRESS
+                
+ 0889 113315    	LXI	D,BAD$CMD
+ 088C CD1E0B    	CALL	PSTRING
+ 088F C35808    	JMP	WIFI$MENU$LOOP
+                	
+                	
+                ;---------------------------------------------------
+                
+                ECHO$TEST$WIFI:	
+ 0892 11B01A    	LXI	D,ECHO$WIFI$MSG		;'ECHO TEST OF SERIAL PORT WITHOUT WIFI CARD.$'
+ 0895 CD1E0B    	CALL	PSTRING
+ 0898 CDE40A    	CALL	ZCRLF
+                
+ 089B 0E3E      	MVI	C,'>'
+ 089D CD070B    	CALL	ZCO
+                
+                WIFI$LOOP:
+ 08A0 CDFE0A    	CALL	ZCSTS			;ANYTHING AT KEYBOARD
+ 08A3 CAB508    	JZ	WIFI$LOOP1		;NO, GO BACK AND TRY WIFI PORT
+ 08A6 CD140B    	CALL	ZCI
+ 08A9 FE1B      	CPI	ESC
+ 08AB CA5808    	JZ	WIFI$MENU$LOOP
+ 08AE 4F        	MOV	C,A
+ 08AF CD8C09    	CALL	WIFI$CO			;SEND CHARACTER IN [C]
+ 08B2 C3A008    	JMP	WIFI$LOOP
+                	
+                WIFI$LOOP1:
+ 08B5 CD7D09    	CALL	WIFI$CSTS		;ANYTHING AT WIFI PORT
+ 08B8 CAA008    	JZ	WIFI$LOOP		;NO, TRY CONSOLE
+ 08BB CD8209    	CALL	WIFI$CI			;YES, GET THE CHARACTER
+ 08BE 4F        	MOV	C,A
+ 08BF CD070B    	CALL	ZCO			;SHOW THE RECIEVED CHARACTER
+ 08C2 C3A008    	JMP	WIFI$LOOP		;GO BACK AND TRY CONSOLE PORT
+                
+                
+                ;--------------------------------------------------------------------------------------------------	
+                	
+                DO$WIFI$RESET:				
+ 08C5 11141B    	LXI	D,RESET$WIFI$MSG	;'WILL INITILIZE ESP8266 WIFI CARD BY PULSING RST LOW.$'
+ 08C8 CD1E0B    	CALL	PSTRING
+ 08CB CDE40A    	CALL	ZCRLF
+                	
+ 08CE D3F5      	OUT	WIFI$RESET$PORT		;RESET THE MODULE
+ 08D0 C35808    	JMP	WIFI$MENU$LOOP
+                
+                	
+                	
+                ;---------------------------------------------------
+                
+                AT$CMD$CWMODE$WIFI:			;MENU #2
+ 08D3 CDE40A    	CALL	ZCRLF
+ 08D6 114F1B    	LXI	D,OK$WIFI$MSG0		;'WILL SEND AT+CWMODE=?'
+ 08D9 CD1E0B    	CALL	PSTRING
+                
+ 08DC 21021D    	LXI	H,AT$WIFI$MSG2		;AT+CWMODE=?
+                AT$WIFI2:	
+ 08DF 7E        	MOV	A,M
+ 08E0 FE24      	CPI	'$'
+ 08E2 CA5C09    	JZ	WIFI$RD$LOOP
+ 08E5 CD5009    	CALL	SEND$WIFI
+ 08E8 23        	INX	H
+ 08E9 C3DF08    	JMP	AT$WIFI2
+                
+                ;---------------------------------------------------
+                
+                AT$CMD$GMR$WIFI:
+ 08EC CDE40A    	CALL	ZCRLF			;MENU #3
+ 08EF 11A81B    	LXI	D,OK$WIFI$MSG1		;'WILL SEND AT+GMR'
+ 08F2 CD1E0B    	CALL	PSTRING
+                
+ 08F5 21101D    	LXI	H,AT$WIFI$MSG3		;AT+GMR
+                AT$WIFI3:	
+ 08F8 7E        	MOV	A,M
+ 08F9 FE24      	CPI	'$'
+ 08FB CA5C09    	JZ	WIFI$RD$LOOP
+ 08FE CD5009    	CALL	SEND$WIFI
+ 0901 23        	INX	H
+ 0902 C3F808    	JMP	AT$WIFI3
+                
+                
+                ;---------------------------------------------------
+                ;
+                AT$CMD$SET$WIFI:
+ 0905 CDE40A    	CALL	ZCRLF			;MENU #4
+ 0908 11041C    	LXI	D,OK$WIFI$MSG2		;'WILL SEND AT+CWMODE=1'
+ 090B CD1E0B    	CALL	PSTRING
+                
+ 090E 21191D    	LXI	H,AT$WIFI$MSG4		;AT+CWMODE=1
+                AT$WIFI4:	
+ 0911 7E        	MOV	A,M
+ 0912 FE24      	CPI	'$'
+ 0914 CA5C09    	JZ	WIFI$RD$LOOP
+ 0917 CD5009    	CALL	SEND$WIFI
+ 091A 23        	INX	H
+ 091B C31109    	JMP	AT$WIFI4
+                
+                
+                ;---------------------------------------------------
+                ;
+                AT$CMD$NETWORK$WIFI:
+ 091E CDE40A    	CALL	ZCRLF			;MENU #5
+ 0921 11591C    	LXI	D,OK$WIFI$MSG3		;'WILL SEND AT+CWLAP'
+ 0924 CD1E0B    	CALL	PSTRING
+                
+ 0927 21271D    	LXI	H,AT$WIFI$MSG5		;AT+CWLAP
+                AT$WIFI5:	
+ 092A 7E        	MOV	A,M
+ 092B FE24      	CPI	'$'
+ 092D CA5C09    	JZ	WIFI$RD$LOOP
+ 0930 CD5009    	CALL	SEND$WIFI
+ 0933 23        	INX	H
+ 0934 C32A09    	JMP	AT$WIFI5
+                
+                
+                ;---------------------------------------------------
+                ;
+                
+                AT$CMD$IP$WIFI:
+ 0937 CDE40A    	CALL	ZCRLF			;MENU #6
+ 093A 11AE1C    	LXI	D,OK$WIFI$MSG4		;'WILL SEND AT+CIFSR'
+ 093D CD1E0B    	CALL	PSTRING
+                
+ 0940 21321D    	LXI	H,AT$WIFI$MSG6		;AT+CIFSR
+                AT$WIFI6:	
+ 0943 7E        	MOV	A,M
+ 0944 FE24      	CPI	'$'
+ 0946 CA5C09    	JZ	WIFI$RD$LOOP
+ 0949 CD5009    	CALL	SEND$WIFI
+ 094C 23        	INX	H
+ 094D C34309    	JMP	AT$WIFI6
+                
+                
+                ;----------------------------------------------------
+                
+                SEND$WIFI:
+ 0950 4F        	MOV	C,A
+ 0951 CD8C09    	CALL	WIFI$CO
+ 0954 CD8209    	CALL	WIFI$CI
+ 0957 4F        	MOV	C,A
+ 0958 CD070B    	CALL	ZCO
+ 095B C9        	RET
+                
+                WIFI$RD$LOOP:
+ 095C CDFE0A    	CALL	ZCSTS			;ANYTHING AT KEYBOARD
+ 095F C27209    	JNZ	WIFI$LOOP2		;NO, GO BACK AND TRY WIFI PORT
+ 0962 CD7D09    	CALL	WIFI$CSTS		;ANYTHING RETURNED
+ 0965 CA5C09    	JZ	WIFI$RD$LOOP
+ 0968 CD8209    	CALL	WIFI$CI			;GET CHARACTER
+ 096B 4F        	MOV	C,A
+ 096C CD070B    	CALL	ZCO
+ 096F C35C09    	JMP	WIFI$RD$LOOP
+                	
+                WIFI$LOOP2:	
+ 0972 CD140B    	CALL	ZCI
+ 0975 FE1B      	CPI	ESC
+ 0977 C25C09    	JNZ	WIFI$RD$LOOP
+ 097A C35808    	JMP	WIFI$MENU$LOOP
+                	
+                	
+                ;-------------------------------------------
+                ;   WIFI SERIAL PORT STATUS ROUTINE
+                ;----------------------------------------------------
+                	
+                WIFI$CSTS:
+ 097D DB2C      	IN	WIFI$STATUS$PORT	
+ 097F E601      	ANI	01H
+ 0981 C9        	RET				;RET Z IF NOTHING										
+                
+                ;----------------------------------------------------
+                ;   WIFI SERIAL PORT GET CHARACTER ROUTINE
+                ;----------------------------------------------------
+                
+                WIFI$CI:	
+ 0982 DB2C      	IN 	WIFI$STATUS$PORT	;GET A CHARACTER FROM THE USB PORT
+ 0984 E601      	ANI	01H
+ 0986 CA8209    	JZ	WIFI$CI			;WAIT UNTIL SOMETHING IS THERE
+ 0989 DB2D      	IN	WIFI$DATA$PORT
+ 098B C9        	RET
+                
+                
+                ;----------------------------------------------------
+                ;  WIFI PORT SEND CHARACTER ROUTINE
+                ;----------------------------------------------------
+                
+                WIFI$CO:
+ 098C DB2C      	IN	WIFI$STATUS$PORT	;PRINT CHARACTER, (IN [C]), ON USB PORT
+ 098E E602      	ANI	00000010B		;WAIT UNTIL READY
+ 0990 C28C09    	JNZ	WIFI$CO	
+ 0993 79        	MOV	A,C				
+ 0994 D32D      	OUT	WIFI$DATA$PORT
+ 0996 C9        	RET
+                
+                
+                
+                ;------------------------------------- PRINTER CMD --------------------------------------------------
+                
+                PRINTER$TEST:
+ 0997 110F13    	LXI	D,TEST$PRN$MSG		;'SEND TEST STRING TO PRINTER$'
+ 099A CD1E0B    	CALL	PSTRING
+                
+ 099D 214813    	LXI	H,PRINTER$STRING
+ 09A0 110F13    	LXI	D,TEST$PRN$MSG		;'SEND TEST STRING TO PRINTER$'
+ 09A3 CD1E0B    	CALL	PSTRING
+                
+ 09A6 214813    	LXI	H,PRINTER$STRING
+                
+ 09A9 3E82      	MVI	A,CMD$PRINT$STRING	;85H, SEND STRING TO PRINTER COMMAND
+ 09AB CD250C    	CALL	DATA$TO$FPGA		;CMD TO FPGA BOARD
+                
+                PRN$LOOP:
+ 09AE 7E        	MOV	A,M
+ 09AF CD250C    	CALL	DATA$TO$FPGA		;PRINTER CHARACTER DATA TO SUPER IO FPGA BOARD
+ 09B2 7E        	MOV	A,M
+ 09B3 B7        	ORA	A
+ 09B4 CABF09    	JZ	PRN$DONE		;PRINT UP TO TERMINATING 0
+ 09B7 4F        	MOV	C,A
+ 09B8 CD070B    	CALL	ZCO
+ 09BB 23        	INX	H
+ 09BC C3AE09    	JMP	PRN$LOOP
+                
+                PRN$DONE:
+ 09BF CDE40A    	CALL	ZCRLF
+ 09C2 CA6501    	JZ	MAINLOOP		
+                	
+                
+                ;------------------------------------- SPEECH OUTPUT --------------------------------------------------
+                ;
+                ;SPEAK OUTPUT (WILL BE USED TO COMMUNICATE WITH TALKER)
+                ; NOTE THE S100COMPUTERS I/O BOARD V-STAMP SPEECH CHIP WILL USE THE INITIAL BAUD RATE OF 9600 BAUD 
+                
+                TEST$SPEECH:
+ 09C5 0E0D      	MVI	C,CR				;FLUSH BUFFER
+ 09C7 CD020A    	CALL	SPEAKOUT
+ 09CA CD020A    	CALL	SPEAKOUT
+ 09CD CD020A    	CALL	SPEAKOUT
+                	
+                ;TEST$SPEECH1:
+                ;	MVI	C,33H
+                ;	CALL	SPEAKOUT
+                ;	MVI	C,CR
+                ;	CALL	SPEAKOUT
+                ;	JMP	TEST$SPEECH1		
+                	
+ 09D0 113D1D    	LXI	D,TEST$SPEECH$MSG		;'SEND TEST STRING TO SPEAKER$'
+ 09D3 CD1E0B    	CALL	PSTRING
+ 09D6 CD140B    	CALL	ZCI
+ 09D9 CDE40A    	CALL	ZCRLF
+ 09DC CDE40A    	CALL	ZCRLF
+ 09DF 21AE1D    	LXI	H,SPEECH$STRING
+ 09E2 CDEB09    	CALL	SPEAK$MSG
+ 09E5 CDE40A    	CALL	ZCRLF
+ 09E8 C36501    	JMP	MAINLOOP
+                
+                ;SPEAKTOMM THIS IS A ROUTINE TO SEND A STRING TO TALKER [HL] AT STRING
+                SPEAK$MSG:
+ 09EB 7E        	MOV	A,M
+ 09EC FE24      	CPI	'$'
+ 09EE CAFC09    	JZ	SPEAK1
+ 09F1 4F        	MOV	C,A
+ 09F2 CD070B    	CALL	ZCO
+ 09F5 CD020A    	CALL	SPEAKOUT
+ 09F8 23        	INX	H
+ 09F9 C3EB09    	JMP	SPEAK$MSG
+ 09FC 0E0D      SPEAK1:	MVI	C,0DH			;MUST END WITH A CR
+ 09FE CD020A    	CALL	SPEAKOUT
+ 0A01 C9        	RET
+                
+                
+                SPEAKOUT:
+ 0A02 DB8A      	IN	SPEECH$STATUS$PORT	;PRINT CHARACTER, (IN [C]), ON USB PORT
+ 0A04 E602      	ANI	00000010B		;WAIT UNTIL READY
+ 0A06 C2020A    	JNZ	SPEAKOUT	
+ 0A09 79        	MOV	A,C				
+ 0A0A E67F      	ANI	7FH				
+ 0A0C D38B      	OUT	SPEECH$DATA$PORT
+ 0A0E C9        	RET
+                
+                
+                
+                ;------------------------------------- RTC CMDS --------------------------------------------------
+                
+                GET$TIME$DATE:
+ 0A0F 11DC0E    	LXI	D,READ$RTC		;READING THE TIME  & DATE FROM THE FPGA DC BOARD RTC.
+ 0A12 CD1E0B    	CALL	PSTRING
+                
+ 0A15 0E40      	MVI	C,'@'
+ 0A17 CD070B    	CALL	ZCO
+ 0A1A 3E80      	MVI	A,CMD$GET$TIME		;80H  GET TIME CMD 
+ 0A1C CD250C    	CALL	DATA$TO$FPGA		;CMD TO FPGA BOARD
+                
+ 0A1F 110F0F    	LXI	D,MSG20			; 'DATE = '
+ 0A22 CD1E0B    	CALL	PSTRING
+                
+ 0A25 CD380C    	CALL	GET$FPGA$TO$S100	;WAIT FOR CENTURY (20)
+ 0A28 CD780B    	CALL	HEXOUT
+                
+ 0A2B CD380C    	CALL	GET$FPGA$TO$S100	;WAIT FOR YEAR
+ 0A2E CD780B    	CALL	HEXOUT
+ 0A31 0E2F      	MVI	C,'/'
+ 0A33 CD070B    	CALL	ZCO
+                
+                
+ 0A36 CD380C    	CALL	GET$FPGA$TO$S100	;WAIT FOR MONTH
+ 0A39 CD780B    	CALL	HEXOUT
+ 0A3C 0E2F      	MVI	C,'/'
+ 0A3E CD070B    	CALL	ZCO
+                
+ 0A41 CD380C    	CALL	GET$FPGA$TO$S100	;WAIT FOR DAY
+ 0A44 CD780B    	CALL	HEXOUT
+                
+ 0A47 11190F    	LXI	D,MSG19			; '  TIME= '
+ 0A4A CD1E0B    	CALL	PSTRING
+                
+ 0A4D CD380C    	CALL	GET$FPGA$TO$S100	;WAIT FOR HOUR
+ 0A50 CD780B    	CALL	HEXOUT
+ 0A53 0E3A      	MVI	C,':'
+ 0A55 CD070B    	CALL	ZCO
+                	
+ 0A58 CD380C    	CALL	GET$FPGA$TO$S100	;WAIT FOR MINUTES
+ 0A5B CD780B    	CALL	HEXOUT
+ 0A5E 0E3A      	MVI	C,':'
+ 0A60 CD070B    	CALL	ZCO
+                
+ 0A63 CD380C    	CALL	GET$FPGA$TO$S100	;WAIT FOR SECONDS
+ 0A66 CD780B    	CALL	HEXOUT
+ 0A69 CDE40A    	CALL	ZCRLF
+                
+ 0A6C CD380C    	CALL	GET$FPGA$TO$S100	;GET CMD$CPMPLETE/ERROR FLAG
+ 0A6F FEF0      	CPI	CMD$COMPLETE		;0F0H, FLAG RETURNED BY DC BOARD TO SIGNAL THE PREVIOUS CMD WAS OK
+ 0A71 CA6501    	JZ	MAINLOOP
+                					;CAN ADD A TIMEOUT LOOP HERE LATER FOR AN ABORT
+ 0A74 11FC0F    	LXI	D,CMD$ERROR		;AN ERROR WAS DETECTED WITH THE LAST COMMAND
+ 0A77 CD1E0B    	CALL	PSTRING
+ 0A7A F26501    	JP	MAINLOOP
+                
+                
+                SET$TIME$DATE:
+ 0A7D 11230F    	LXI	D,SET$RTC		;SET THE TIME & DATE ON THE FPGA DC BOARD RTC.
+ 0A80 CD1E0B    	CALL	PSTRING
+                
+ 0A83 3E81      	MVI	A,CMD$SET$TIME		;81H  SET TIME CMD 
+ 0A85 CD250C    	CALL	DATA$TO$FPGA		
+                
+ 0A88 11500F    	LXI	D,MSG12			;CR,LF,'ENTER YEAR (00-99) '
+ 0A8B CD1E0B    	CALL	PSTRING
+ 0A8E CDCE0B    	CALL	GETHEX
+ 0A91 CD250C    	CALL	DATA$TO$FPGA		
+                
+ 0A94 11660F    	LXI	D,MSG13			;CR,LF,'ENTER MONTH (01-12) '
+ 0A97 CD1E0B    	CALL	PSTRING
+ 0A9A CDCE0B    	CALL	GETHEX
+ 0A9D CD250C    	CALL	DATA$TO$FPGA		
+                
+ 0AA0 117D0F    	LXI	D,MSG14			;CR,LF,'ENTER DATE (01-31) '
+ 0AA3 CD1E0B    	CALL	PSTRING
+ 0AA6 CDCE0B    	CALL	GETHEX
+ 0AA9 CD250C    	CALL	DATA$TO$FPGA		
+                	
+ 0AAC 11930F    	LXI	D,MSG15			;CR,LF,'ENTER HOURS (00-23) '
+ 0AAF CD1E0B    	CALL	PSTRING
+ 0AB2 CDCE0B    	CALL	GETHEX
+ 0AB5 CD250C    	CALL	DATA$TO$FPGA		
+                
+ 0AB8 11AA0F    	LXI	D,MSG16			;CR,LF,'ENTER MINUTES (00-59) '
+ 0ABB CD1E0B    	CALL	PSTRING
+ 0ABE CDCE0B    	CALL	GETHEX		
+ 0AC1 CD250C    	CALL	DATA$TO$FPGA		
+                	
+ 0AC4 11C30F    	LXI	D,MSG17			;CR,LF,'ENTER SECONDS (00-59) '
+ 0AC7 CD1E0B    	CALL	PSTRING
+ 0ACA CDCE0B    	CALL	GETHEX
+ 0ACD CD250C    	CALL	DATA$TO$FPGA		;DATA TO FPGA BOARD
+                	
+ 0AD0 CDE40A    	CALL	ZCRLF
+ 0AD3 CD380C    	CALL	GET$FPGA$TO$S100	;GET CMD$CPMPLETE/ERROR FLAG
+ 0AD6 FEF0      	CPI	CMD$COMPLETE		;0F0H, FLAG RETURNED BY DC BOARD TO SIGNAL THE PREVIOUS CMD WAS OK
+ 0AD8 CA6501    	JZ	MAINLOOP
+                					;CAN ADD A TIMEOUT LOOP HERE LATER FOR AN ABORT
+ 0ADB 11FC0F    	LXI	D,CMD$ERROR		;AN ERROR WAS DETECTED WITH THE LAST COMMAND
+ 0ADE CD1E0B    	CALL	PSTRING
+ 0AE1 F26501    	JP	MAINLOOP
+                	
+                
+                ;---------------------------------------- SUBROUTINES --------------------------------------------------
+                
+                ZCRLF:
+ 0AE4 F5        	PUSH	PSW
+ 0AE5 C5        	PUSH	B
+ 0AE6 0E0D      	MVI	C,CR
+ 0AE8 CD070B    	CALL	ZCO
+ 0AEB 0E0A      	MVI	C,LF
+ 0AED CD070B    	CALL	ZCO
+ 0AF0 C1        	POP	B
+ 0AF1 F1        	POP	PSW
+ 0AF2 C9        	RET
+                
+                ZEOL:				;CR AND CLEAR CURRENT LINE
+ 0AF3 0E0D      	MVI	C,CR
+ 0AF5 CD070B    	CALL	ZCO
+ 0AF8 0E1C      	MVI	C,CLEAR		;NOTE HARDWARE DEPENDENT, (USE 80 SPACES IF NECESSARY)
+ 0AFA CD070B    	CALL	ZCO
+ 0AFD C9        	RET
+                
+                ZCSTS:
+                  IF  CPM
+                	PUSH	B
+                	PUSH	D
+                	PUSH	H
+                	MVI	C,CONST
+                	CALL	BDOS		;RETURNS WITH 1 IN [A] IF CHARACTER AT KEYBOARD
+                	POP	H
+                	POP	D
+                	POP	B
+                	CPI	1
+                	RET
+                  ELSE	
+ 0AFE DB00      	IN	0H		;GET STATUS IN [A]
+ 0B00 E602      	ANI	02H
+ 0B02 C8        	RZ
+ 0B03 3E01      	MVI	A,01H
+ 0B05 B7        	ORA	A
+ 0B06 C9        	RET
+                  ENDIF
+                	
+                 
+                ZCO:				;WRITE CHARACTER THAT IS IN [C]
+                  IF  CPM
+                	PUSH	PSW
+                	PUSH	B
+                	PUSH	D
+                	PUSH	H
+                	MOV	E,C
+                	MVI	C,WRCON
+                	CALL	BDOS
+                	POP	H
+                	POP	D
+                	POP	B
+                	POP	PSW
+                	RET
+                  ELSE	
+ 0B07 F5        	PUSH	PSW	
+ 0B08 DB00      ZCO1:	IN   	0H		;SHOW CHARACTER
+ 0B0A E604      	ANI	04H
+ 0B0C CA080B    	JZ	ZCO1
+ 0B0F 79        	MOV	A,C
+ 0B10 D301      	OUT	1H
+ 0B12 F1        	POP	PSW
+ 0B13 C9        	RET
+                  ENDIF
+                
+                ZCI:				;RETURN KEYBOARD CHARACTER IN [A]
+                  IF CPM
+                	PUSH	B
+                	PUSH	D
+                	PUSH	H
+                	MVI	C,RDCON
+                	CALL	BDOS
+                	POP	H
+                	POP	D
+                	POP	B
+                	RET
+                  ELSE
+ 0B14 DB00      ZCI1:	IN	0H		;GET CHARACTER IN [A]
+ 0B16 E602      	ANI	02H
+ 0B18 CA140B    	JZ	ZCI1
+ 0B1B DB01      	IN	01H
+ 0B1D C9        	RET
+                  ENDIF
+                
+                
+                ;	PRINT A STRING IN [DE] UP TO '$'
+                
+                PSTRING:
+                 IF CPM
+                	MVI	C,PRINT
+                	JMP	BDOS		;PRINT MESSAGE, 
+                 ELSE
+ 0B1E C5        	PUSH	B
+ 0B1F D5        	PUSH	D
+ 0B20 E5        	PUSH	H
+ 0B21 EB        	XCHG
+ 0B22 7E        PSTRX:	MOV	A,M
+ 0B23 FE24      	CPI	'$'
+ 0B25 CA300B    	JZ	DONEP
+ 0B28 4F        	MOV	C,A
+ 0B29 CD070B    	CALL	ZCO
+ 0B2C 23        	INX	H
+ 0B2D C3220B    	JMP	PSTRX
+ 0B30 E1        DONEP:	POP	H
+ 0B31 D1        	POP	D
+ 0B32 C1        	POP	B
+ 0B33 C9        	RET
+                  ENDIF
+                
+                
+                
+                ;	PRINT A STRING IN [DE] UP TO '$' ON USB PORT
+                
+                USB$STRING:
+ 0B34 C5        	PUSH	B
+ 0B35 D5        	PUSH	D
+ 0B36 E5        	PUSH	H
+ 0B37 EB        	XCHG
+                USB$PSTRX:
+ 0B38 7E        	MOV	A,M
+ 0B39 FE24      	CPI	'$'
+ 0B3B CA460B    	JZ	DONE$USB
+ 0B3E 4F        	MOV	C,A
+ 0B3F CDFB01    	CALL	USB$CO			;SEND CHARACTER IN [C]
+ 0B42 23        	INX	H
+ 0B43 C3380B    	JMP	USB$PSTRX
+                DONE$USB:
+ 0B46 E1        	POP	H
+ 0B47 D1        	POP	D
+ 0B48 C1        	POP	B
+ 0B49 C9        	RET
+                
+                
+                ;	PRINT A STRING IN [DE] UP TO '$' ON RS232 SERIAL PORT
+                
+                SERIAL$STRING:
+ 0B4A C5        	PUSH	B
+ 0B4B D5        	PUSH	D
+ 0B4C E5        	PUSH	H
+ 0B4D EB        	XCHG
+                SERIAL$PSTRX:
+ 0B4E 7E        	MOV	A,M
+ 0B4F FE24      	CPI	'$'
+ 0B51 CA5C0B    	JZ	DONE$SERIAL
+ 0B54 4F        	MOV	C,A
+ 0B55 CD7902    	CALL	SERIAL$CO			;SEND CHARACTER IN [C]
+ 0B58 23        	INX	H
+ 0B59 C34E0B    	JMP	SERIAL$PSTRX
+                DONE$SERIAL:
+ 0B5C E1        	POP	H
+ 0B5D D1        	POP	D
+ 0B5E C1        	POP	B
+ 0B5F C9        	RET
+                
+                
+                ;------------------------------------------------------------------
+                ; PRINT A 16 BIT NUMBER IN RAM LOCATED @ [HL] 
+                ; (NOTE SPECIAL LOW BYTE FIRST. USED ONLY FOR DRIVE ID)
+                
+                PRINTPARM:
+ 0B60 23        	INX	H		;INDEX TO HIGH BYTE FIRST
+ 0B61 7E        	MOV	A,M
+ 0B62 CD780B    	CALL	HEXOUT
+ 0B65 2B        	DCX	H		;NOW LOW BYTE
+ 0B66 7E        	MOV	A,M
+ 0B67 CD780B    	CALL	HEXOUT
+ 0B6A C9        	RET
+                
+                HHEXOUT:				;NO REGISTERS ALTERED
+ 0B6B CD780B    	CALL	HEXOUT
+ 0B6E F5        	PUSH	PSW
+ 0B6F C5        	PUSH	B
+ 0B70 0E48      	MVI	C,'H'
+ 0B72 CD070B    	CALL	ZCO
+ 0B75 C1        	POP	B
+ 0B76 F1        	POP	PSW
+ 0B77 C9        	RET
+                	
+                ; PRINT AN 8 BIT NUMBER, LOCATED IN [A]
+ 0B78 F5        HEXOUT:	PUSH	PSW			;NO REGISTERS ALTERED
+ 0B79 C5        	PUSH	B
+ 0B7A F5        	PUSH	PSW
+ 0B7B 0F        	RRC
+ 0B7C 0F        	RRC
+ 0B7D 0F        	RRC
+ 0B7E 0F        	RRC
+ 0B7F CD890B    	CALL	ZCONV
+ 0B82 F1        	POP	PSW
+ 0B83 CD890B    	CALL	ZCONV
+ 0B86 C1        	POP	B
+ 0B87 F1        	POP	PSW
+ 0B88 C9        	RET
+                
+ 0B89 E60F      ZCONV:	ANI	0FH		;HEX TO ASCII AND PRINT IT
+ 0B8B C690      	ADI	90H
+ 0B8D 27        	DAA
+ 0B8E CE40      	ACI	40H
+ 0B90 27        	DAA
+ 0B91 4F        	MOV	C,A
+ 0B92 CD070B    	CALL	ZCO
+ 0B95 C9        	RET
+                
+                ;DISPLAY BIT PATTERN IN [A]
+ 0B96 F5        ZBITS:	PUSH	PSW
+ 0B97 C5        	PUSH	B
+ 0B98 D5        	PUSH	D
+ 0B99 5F        	MOV	E,A		
+ 0B9A 0608      	MVI	B,8
+                BBBQ2:	
+ 0B9C CB23      	DB	0CBH,23H	;Z80 OP CODE FOR SLA A,E
+ 0B9E 3E18      	MVI	A,18H
+ 0BA0 8F        	ADC	A
+ 0BA1 4F        	MOV	C,A
+ 0BA2 CD070B    	CALL	ZCO
+                	DJNZ	BBBQ2
+ 0BA5+10        	DB	10H
+ 0BA6+F5        	DB	BBBQ2-$-1
+ 0BA7 D1        	POP	D
+ 0BA8 C1        	POP	B
+ 0BA9 F1        	POP	PSW
+ 0BAA C9        	RET
+                
+ 0BAB CD140B    GETCMD:	CALL	ZCI		;GET A CHARACTER, CONVERT TO UC, ECHO IT
+ 0BAE FE1B      	CPI	ESC
+ 0BB0 C8        	RZ			;DON'T ECHO AN ESC
+ 0BB1 CDBD0B    	CALL	UPPER
+                  IF NOT CPM
+ 0BB4 F5        	PUSH	PSW		;SAVE IT
+ 0BB5 C5        	PUSH	B
+ 0BB6 4F         	MOV	C,A
+ 0BB7 CD070B    	CALL	ZCO		;ECHO IT
+ 0BBA C1        	POP	B
+ 0BBB F1        	POP	PSW		;GET IT BACK
+                 ENDIF
+ 0BBC C9        	RET
+                
+                				;CONVERT LC TO UC
+ 0BBD FE61      UPPER:	CPI	'a'		;MUST BE >= LOWERCASE A
+ 0BBF D8        	RC			; ELSE GO BACK...
+ 0BC0 FE7B      	CPI	'z'+1		;MUST BE <= LOWERCASE Z
+ 0BC2 D0        	RNC			; ELSE GO BACK...
+ 0BC3 D620      	SUI	'a'-'A'		;SUBTRACT LOWERCASE BIAS
+ 0BC5 C9        	RET
+                
+                				;ASCII TO BINARY CONVERSION ROUTINE
+ 0BC6 D630      ASBIN:	SUI	30H 
+ 0BC8 FE0A      	CPI	0AH 
+ 0BCA F8        	RM
+ 0BCB D607      	SUI	07H 
+ 0BCD C9        	RET
+                
+                
+                GETHEX:
+ 0BCE CD140B    	CALL	ZCI			;GET A CHARACTER, CONVERT TO UC, ECHO IT
+ 0BD1 CDBD0B    	CALL	UPPER
+ 0BD4 FE1B      	CPI	ESC
+ 0BD6 CA1B0C    	JZ	HEXABORT$NO$ECHO
+ 0BD9 FE2F      	CPI	'/'			;CHECK 0-9, A-F
+ 0BDB DA1B0C    	JC	HEXABORT$NO$ECHO
+ 0BDE FE47      	CPI	'F'+1
+ 0BE0 D21B0C    	JNC	HEXABORT$NO$ECHO
+                
+                IF CPM 
+                ELSE
+ 0BE3 C5        	PUSH	B
+ 0BE4 F5        	PUSH	PSW
+ 0BE5 4F        	MOV	C,A
+ 0BE6 CD070B    	CALL	ZCO
+ 0BE9 F1        	POP	PSW
+ 0BEA C1        	POP	B
+                ENDIF
+ 0BEB CDC60B    	CALL	ASBIN			;CONVERT TO BINARY
+ 0BEE 07        	RLC				;SHIFT TO HIGH NIBBLE
+ 0BEF 07        	RLC
+ 0BF0 07        	RLC
+ 0BF1 07        	RLC
+ 0BF2 47        	MOV	B,A			;STORE IT
+                	
+ 0BF3 CD140B    	CALL	ZCI			;GET SECOND CHARACTER, CONVERT TO UC, ECHO IT
+ 0BF6 CDBD0B    	CALL	UPPER	
+ 0BF9 FE1B      	CPI	ESC
+ 0BFB CA1B0C    	JZ	HEXABORT$NO$ECHO
+ 0BFE FE0D      	CPI	CR
+ 0C00 CA1C0C    	JZ	ONE$DIGIT
+                	
+ 0C03 FE2F      	CPI	'/'			;CHECK 0-9, A-F
+ 0C05 DA1B0C    	JC	HEXABORT$NO$ECHO
+ 0C08 FE47      	CPI	'F'+1
+ 0C0A D21B0C    	JNC	HEXABORT$NO$ECHO
+                IF CPM 
+                ELSE
+ 0C0D C5        	PUSH	B
+ 0C0E F5        	PUSH	PSW
+ 0C0F 4F        	MOV	C,A
+ 0C10 CD070B    	CALL	ZCO
+ 0C13 F1        	POP	PSW
+ 0C14 C1        	POP	B
+                ENDIF
+ 0C15 CDC60B    	CALL	ASBIN			;CONVERT TO BINARY
+ 0C18 B0        	ORA	B			;ADD IN THE FIRST DIGIT
+ 0C19 B7        	ORA	A			;TO RETURN NC
+ 0C1A C9        	RET
+                HEXABORT$NO$ECHO:
+                	SCF				;SET CARRY FLAG
+ 0C1B C9        	RET
+                ;
+                ONE$DIGIT:				;A CR WASE NTERED AFTER ONLY 1 DIGIT
+ 0C1C 78        	MOV	A,B
+ 0C1D 1F        	RAR				;SHIFT TO HIGH NIBBLE BACK DOWN
+ 0C1E 1F        	RAR
+ 0C1F 1F        	RAR
+ 0C20 1F        	RAR
+ 0C21 E60F      	ANI	0FH
+ 0C23 B7        	ORA	A
+ 0C24 C9        	RET
+                
+                
+                ;-----------------------------------------------------------------------------------------------------
+                
+                DATA$TO$FPGA:				;SEND CMD/DATA TO FPGA_DC Z80
+ 0C25 F5        	PUSH	PSW
+                DATA$TO$FPGA1:
+ 0C26 DBF0      	IN	STATUS$BUS$PORT	
+ 0C28 E680      	ANI	80H
+                	JRNZ	DATA$TO$FPGA1		;WAIT UNTIL BIT 7 IS 0 
+ 0C2A+20        	DB	20H
+ 0C2B+FA        	DB	DATA$TO$FPGA1-$-1
+ 0C2C F1        	POP	PSW
+ 0C2D D3F1      	OUT	DATA$BUS$PORT		;THIS WILL CAUSE THE FPGA_DC BOARD TO SET THE S100$RTS BIT
+                					;(SEEMS TO BE REQUIRED FOR DATA TO ARRIVE VALID ON FPGA_DC BOARD)
+                DATA$TO$FPGA2:
+ 0C2F DBF0      	IN	STATUS$BUS$PORT	
+ 0C31 E680      	ANI	80H
+                	JRNZ	DATA$TO$FPGA2		;WAIT UNTIL BIT 7 IS 0 
+ 0C33+20        	DB	20H
+ 0C34+FA        	DB	DATA$TO$FPGA2-$-1
+ 0C35 C9        	RET				;RET NZ IF ERROR
+                NO$FPGA$DC
+ 0C36 F1        	POP	PSW
+ 0C37 C9        	RET
+                	
+                
+                GET$FPGA$TO$S100:			;GET DATA FROM FPGA
+ 0C38 DBF0      	IN	STATUS$BUS$PORT		;GET S100 STATUS PORT - BIT 0, 1 = FPGA DATA PRESENT, 0, NO DATA PRESENT
+ 0C3A E601      	ANI	01H			;01H, BIT 0
+ 0C3C CA380C    	JZ	GET$FPGA$TO$S100	;WAIT FOR DC BOARD TO PRESENT DATA 
+ 0C3F DBF1      	IN	DATA$BUS$PORT		;RETURN DATA IN [A], FPGA "HARDWARE" WILL LOWER BIT 7 OF S100 BUS PORT 80H
+ 0C41 C9        	RET
+                
+                
+                ;-------------------------------------------------------------------------------------------------------
+                
+ 0C42 0D0A0A5375SIGN$ON$CPM:	DB	CR,LF,LF,'Super IO Board Test Program (V1.0) '
+ 0C68 7573696E67		DB	'using CPM3 Console BIOS Routines'
+ 0C88 0D0A4E6F74		DB	CR,LF,'Note, SW1 bit 7 must be closed to work with this program.',CR,LF,'$'
+                		
+ 0CC6 0D0A0A5375SIGN$ON$Z80:	DB	CR,LF,LF,'Super IO Board Test Program (V1.0) '
+ 0CEC 7573696E67		DB	'using the Z80 Monitor for IO'
+ 0D08 0D0A4E6F74		DB	CR,LF,'Note, SW1 bit 7 must be closed to work with this program.',CR,LF,'$'
+                		
+                
+ 0D46 0D0A      MENU$STRING$:	DB  CR,LF
+ 0D48 2844292044		DB '(D) DFP Sound Card Test    (F) FX Sound Card Test(R)',CR,LF
+ 0D7E 2847292047		DB '(G) Get 8255A Ports        (H) Set 8255A ports',CR,LF
+ 0DAE 284B292050		DB '(K) PS2 Keyboard Test      (L) Get Date & Time',CR,LF
+ 0DDE 2850292050		DB '(P) Printer Test           (Q) RS232 Loop Test',CR,LF
+ 0E0E 2852292052		DB '(R) RS232 Serial Port Test (S) Speech test ',CR,LF
+ 0E3B 2854292055		DB '(T) USB Port Test          (U) Set Date & Time ',CR,LF
+ 0E6C 2857292057		DB '(W) WiFi Card Test         (ESC) Quit',CR,LF,'$'
+                
+ 0E94 0D0A536F72MSGERR		DB	CR,LF,'Sorry that was not a valid menu option!',CR,LF,LF,'$'
+ 0EC1 0D0A0A506CPROMPT:		DB	CR,LF,LF,'Please enter command > $'
+                
+ 0EDC 0D0A526561READ$RTC	DB	CR,LF,'Reading the Time & Date from the SUPER IO Board.$'
+ 0F0F 0D0A446174MSG20:		DB	CR,LF,'Date = $'
+ 0F19 202054696DMSG19:		DB	'  Time = $'
+ 0F23 0D0A536574SET$RTC		DB	CR,LF,'Set the Time & Date on the SUPER IO Board.$'
+ 0F50 0D0A456E74MSG12:		DB	CR,LF,'Enter Year (00-99) $'
+ 0F66 0D0A456E74MSG13:		DB	CR,LF,'Enter Month (01-12) $'
+ 0F7D 0D0A456E74MSG14:		DB	CR,LF,'Enter Date (01-31) $'
+ 0F93 0D0A456E74MSG15:		DB	CR,LF,'Enter Hours (00-23) $'
+ 0FAA 0D0A456E74MSG16:		DB	CR,LF,'Enter Minutes (00-59) $'
+ 0FC3 0D0A456E74MSG17:		DB	CR,LF,'Enter Seconds (00-59) $'
+                
+ 0FDC 0D0A075375NO$BOARD$MSG	DB	CR,LF,BELL,'Super IO Board not detected.$'
+ 0FFC 0D0A07416ECMD$ERROR	DB	CR,LF,BELL,'An error was detected with the last SUPER_IO Board Command$'
+                
+ 103A 0D0A546573TEST$PS2$MSG	DB	CR,LF,'Test the PS2 Keyboard input. (P16, P24)'
+ 1063 0D0A506C65		DB	CR,LF,'Please enter keyboard characters from the IBM-PC PS2 keyboard.'
+ 10A3 0D0A546865		DB	CR,LF,'They should appear on your Console IO Port. '
+ 10D1 456E746572		DB	      'Enter ESC to abort.',CR,LF,LF,'$'
+                
+ 10E8 0D0A546573TEST$USB$MSG	DB	CR,LF,'Test the USB Port. (P40)'
+ 1102 0D0A506C65		DB	CR,LF,'Please enter keyboard chars FROM THE PC TERMINAL '
+ 1135 636F6E6E65		DB            'connected to the USB port.'
+ 114F 0D0A546865		DB	CR,LF,'They should echo back on the PC terminal (and S100 Console). '
+ 118E 0D0A456E74		DB	CR,LF,'Enter ESC to abort.',CR,LF,LF,'$'
+                
+ 11A7 0D0A546573DONE$USB$MSG	DB	CR,LF,'Test of the USB Port finished.',CR,LF,'$'
+                
+ 11CA 0D0A525332LOOP$RS232$MSG	DB	CR,LF,'RS232 loop test. Enter ESC to abort.',CR,LF,LF,'$'
+                
+ 11F4 0D0A546573TEST$RS232$MSG	DB	CR,LF,'Test the RS232 Port. (P17, J1)'
+ 1214 0D0A506C65		DB	CR,LF,'Please enter keyboard characters from the S100 bus Console'
+ 1250 0D0A546865		DB	CR,LF,'They will be sent to the RS232 Port Rx pin. The loop around '
+ 128E 0D0A525332		DB	CR,LF,'RS232 Port Tx pin will return the character and display it here.'
+ 12D0 0D0A456E74		DB	CR,LF,'Enter ESC to abort.',CR,LF,LF,'$'
+                	
+ 12E9 0D0A546573DONE$SERIAL$MSG	DB	CR,LF,'Test of the Serial Port finished.',CR,LF,'$'
+                
+ 130F 0D0A53656ETEST$PRN$MSG	DB	CR,LF,'Send the following test string to the Printer port:-',CR,LF,'$'
+                
+ 1348 0D0A546869PRINTER$STRING	DB	CR,LF,'This is a test string being sent to the printer '
+ 137A 706F727420		DB	      'port on the Super IO Board'
+ 1394 0D0A536563		DB	CR,LF,'Second line, 0123456789,  ABCDEF,  abcdef'
+ 13BF 0D0A546869		DB	CR,LF,'Third line,  terminating string',0
+                		
+                
+                ADAFRUIT$FX$MENU
+ 13E1 0D0A0A4164		DB	CR,LF,LF,'AdaFruit FX Sound card Menu.',CR,LF,LF
+ 1403 2830292052		DB	'(0) Reset the FX Sound Card',CR,LF
+ 1420 283129204C		DB	'(1) List All Files',CR,LF
+ 1434 2832292050		DB	'(2) Play File #',CR,LF
+ 1445 2833292049		DB	'(3) Increase Volume',CR,LF
+ 145A 2834292044		DB	'(4) Decrease Volume',CR,LF
+ 146F 2835292050		DB	'(5) Pause Playing',CR,LF
+ 1482 2836292052		DB	'(6) Resume Playing',CR,LF
+ 1496 2837292053		DB	'(7) Stop Playing',CR,LF
+ 14A8 2838292050		DB	'(8) Play Filename',CR,LF
+ 14BB 0D0A456E74		DB	CR,LF,'Enter a menu option. ESC to abort to main Menu.',CR,LF,LF,'$'
+                
+ 14F0 0D0A074E6FNO$ADAFRUIT$FX$CARD DB	CR,LF,BELL,'No AdaFruit FX card detected. (Or RST pin in low, try again).',CR,LF,
+ 1533 0D0A07496EBAD$CMD		DB	CR,LF,BELL,'Invalid menu option.$'
+ 154B 0D0A506C65ENTER$FILE$NO	DB	CR,LF,'Please enter the Track Number (XX+CR):$'
+                
+ 1574 0D0A566F6CFX$UP$VOLUME	DB	CR,LF,'Volume Increased$'
+ 1587 0D0A566F6CFX$DOWN$VOLUME	DB	CR,LF,'Volume Decreased$'
+ 159A 0D0A506175FX$PAUSE$MSG	DB	CR,LF,'Pause Playback$'
+ 15AB 0D0A526573FX$RESUME$MSG	DB	CR,LF,'Resume Playback$'
+ 15BD 0D0A53746FFX$STOP$MSG	DB	CR,LF,'Stop Playback$'
+ 15CD 0D0A456E74FX$ENTER$NAME	DB	CR,LF,'Enter File name (In XXXXXXXX.XXX Format):$'
+ 15F9 0D0A57696CFX$GOT$NAME	DB	CR,LF,'Will play the following file: $'
+                
+                
+                DFP$SOUND$MENU
+ 161A 0D0A0A4446		DB	CR,LF,LF,'DFP SD Card Sound Menu.',CR,LF
+ 1636 5265616420		DB	'Read SD card on a PC to display the sound files present',CR,LF,LF
+ 1670 2830292050		DB	'(0) Play File #',CR,LF
+ 1681 2831292053		DB	'(1) Set Sound Volume',CR,LF
+ 1697 2832292043		DB	'(2) Continously play current track',CR,LF
+ 16BB 2833292050		DB	'(3) Pause Playing',CR,LF
+ 16CE 2834292050		DB	'(4) Play or Resume playing current track',CR,LF
+ 16F8 2835292043		DB	'(5) Continously play all tracks',CR,LF
+ 1719 2836292053		DB	'(6) Stop Playing',CR,LF
+ 172B 2837292053		DB	'(7) Send Byte to Port 8AH',CR,LF
+ 1746 0D0A456E74		DB	CR,LF,'Enter a menu option. ESC to abort to main Menu.',CR,LF,LF,'$'
+                
+ 177B 0D0A074E6FNO$DFP$CARD	DB	CR,LF,BELL,'No DFP Sound Card detected',CR,LF,'$'
+                
+ 179B 0D0A506C65DFP$FILE$NUMBER DB	CR,LF,'Please enter the File Number (XX+CR):$'
+ 17C3 0D0A53656ESENDING$CMD	DB	CR,LF,'Sending the following Command:- $'
+ 17E6 0D0A546865GOT$BACK	DB	CR,LF,'The DFP Player returned:- $'
+ 1803 0D0A506C65DFP$BYTE$VALUE	DB	CR,LF,'Please enter a value to send to port 8AH (XX+CR):$'
+                
+ 1837 0D0A506C65DFP$ENTER$VOLUME DB	CR,LF,'Please enter the desired Volume Number (00-30+CR):$'
+ 186C 0D0A57696CDFP$REPEAT$MSG	DB	CR,LF,'Will continously play the current track.$'
+ 1897 0D0A57696CDFP$PAUSE$MSG	DB	CR,LF,'Will pause play of the current track.$'
+ 18BF 0D0A57696CDFP$PLAY$MSG	DB	CR,LF,'Will play of the current track.$'
+ 18E1 0D0A57696CDFP$PLAY$ALL$MSG DB	CR,LF,'Will continously play all tracks.$'
+ 1905 0D0A57696CDFP$RESET$MSG	DB	CR,LF,'Will reset the DFP Player.$'
+ 1922 0D0A57696CDFP$QUERY$MSG	DB	CR,LF,'Will query the DFP Player.$'
+                
+                
+                
+                WIFI$MENU
+ 193F 0D0A0A5769		DB	CR,LF,LF,'WiFi ESP8266 Card Menu.',CR,LF,LF
+ 195C 2830292053		DB	'(0) Simple WiFi port Echo Test',CR,LF
+ 197C 2831292049		DB	'(1) Initilize WiFi Card',CR,LF
+ 1995 2832292053		DB	'(2) Send AT+CWMODE=? Command, (View Options Mode)',CR,LF
+ 19C8 2833292053		DB	'(3) Send AT+GMR Command, (Get Firmware Version)',CR,LF
+ 19F9 2834292053		DB	'(4) Send AT+CWMODE=1 Command, (Set Mode)',CR,LF
+ 1A23 2835292053		DB	'(5) Send AT+CWLAP Command, (Get Networks)',CR,LF
+ 1A4E 2836292053		DB	'(6) Send AT+CIFSR Command, (Get IP Address)',CR,LF
+ 1A7B 0D0A456E74		DB	CR,LF,'Enter a menu option. ESC to abort to main Menu.',CR,LF,LF,'$'
+                
+ 1AB0 0D0A302E20ECHO$WIFI$MSG	DB	CR,LF,'0.  Echo test of serial port on the WIFI card.'
+ 1AE0 0D0A506C65		DB	CR,LF,'Please enter keyboard characters. (ESC to abort).$'
+ 1B14 0D0A312E20RESET$WIFI$MSG	DB	CR,LF,'1.  Will initilize ESP8266 WiFi card by pulsing RST low.$'
+                
+ 1B4F 322E202057OK$WIFI$MSG0	DB	'2.  Will send AT+CWMODE=? Command (View Options). '
+ 1B81 0D0A456E74		DB	CR,LF,'Enter ESC to return to WiFi Menu.',CR,LF,LF,'$'
+ 1BA8 332E202057OK$WIFI$MSG1	DB	'3.  Will send AT+GMR Command (Get Firmware Version).  '
+ 1BDE 0D0A456E74		DB	CR,LF,'Enter ESC to return to WiFi Menu',CR,LF,LF,'$'
+ 1C04 342E202057OK$WIFI$MSG2	DB	'4.  Will send AT+CWMODE=1 Command (Set Mode).  '
+ 1C33 0D0A456E74		DB	CR,LF,'Enter ESC to return to WiFi Menu',CR,LF,LF,'$'
+ 1C59 352E202057OK$WIFI$MSG3	DB	'5.  Will send AT+CWLAP Command (Get Networks). '
+ 1C88 0D0A456E74		DB	CR,LF,'Enter ESC to return to WiFi Menu',CR,LF,LF,'$'
+ 1CAE 362E202057OK$WIFI$MSG4	DB	'6.  Will send AT+CIFSR Command (Get IP Add.). '
+ 1CDC 0D0A456E74		DB	CR,LF,'Enter ESC to return to WiFi Menu',CR,LF,LF,'$'
+                
+ 1D02 41542B4357AT$WIFI$MSG2	DB	'AT+CWMODE=?',CR,LF,'$'
+ 1D10 41542B474DAT$WIFI$MSG3	DB	'AT+GMR',CR,LF,'$'
+ 1D19 41542B4357AT$WIFI$MSG4	DB	'AT+CWMODE=1',CR,LF,'$'
+ 1D27 41542B4357AT$WIFI$MSG5	DB	'AT+CWLAP',CR,LF,'$'
+ 1D32 41542B4349AT$WIFI$MSG6	DB	'AT+CIFSR',CR,LF,'$'
+                
+ 1D3D 0D0A53656ETEST$SPEECH$MSG		DB	CR,LF,'Sending the following string to '
+ 1D5F 7468652073			DB	'the speaker V-STAMP module.'
+ 1D7A 0D0A546869			DB	CR,LF,'This is a test. 12345678'
+ 1D94 0D0A456E74			DB	CR,LF,'Enter CR to start test.$'
+ 1DAE 5468697320SPEECH$STRING		DB	'This is a test. 12345678$'
+                
+ 1DC7 0D0A53656EP$SEND$MSG	DB	CR,LF,'Send data to 8255A ports A, B & C.$'
+ 1DEC 0D0A456E74P$SENDA$MSG	DB	CR,LF,'Enter 8255A Port A (XXH):$'
+ 1E08 0D0A456E74P$SENDB$MSG	DB	CR,LF,'Enter 8255A Port B (XXH):$'
+ 1E24 0D0A456E74P$SENDC$MSG	DB	CR,LF,'Enter 8255A Port C (XXH):$'
+ 1E40 0D0A0A3832OUT$RESULT$MSG	DB	CR,LF,LF,'8255A Ports    A           B              C$'
+ 1E6F 0D0A202020OUT$RESULT1$MSG DB	CR,LF,'           $'
+ 1E7D 2020202024OUT$RESULT2$MSG	DB	'    $'
+ 1E82 2020202020OUT$RESULT3$MSG	DB	'       $'
+                
+ 1E8A 0D0A476574P$GET$MSG	DB	CR,LF,'Get data from 8255A ports A, B & C.$'
+                		
+ 1EB0 0000      STATUS$COUNT	DW	0H
+ 1EB2 00        FX$FILE$NO	DB	0H
+ 1EB3 2020202020FX$BUFFER	DB	'        '	;8 SPACES
+ 1EBB 202020    FX$BUFFER$EXT	DB	'   '		;3 SPACES
+                
+ 1EBE 00        DFP$VARIABLE	   DB	0H
+ 1EBF 00        DFP$VARIABLE$HIGH  DB	0H
+ 1EC0 00        DFP$CURRENT$TRACK  DB	0H
+                
+ 1EC1 00        PORT$A$STORE	DB	0H
+ 1EC2 00        PORT$B$STORE	DB	0H
+ 1EC3 00        PORT$C$STORE	DB	0H
+ 1EC4 00        LOOP$COUNT	DB	0H
+                 
+                
+                
+                				;DFP PLAYER COMMANDS
+ 1EC5 7EFF060300FILE$NUMBER$CMD		DB	07EH,0FFH,06H,03H,00H,00H
+ 1ECB 7EFF060600DFP$VOLUME$CMD		DB	07EH,0FFH,06H,06H,00H,00H
+ 1ED1 7EFF060800DFP$REPEAT$CMD		DB	07EH,0FFH,06H,08H,00H,00H
+ 1ED7 7EFF060E00DFP$PAUSE$CMD		DB	07EH,0FFH,06H,0EH,00H,00H
+ 1EDD 7EFF060D00DFP$PLAY$CMD		DB	07EH,0FFH,06H,0DH,00H,00H
+ 1EE3 7EFF060C00DFP$RESET$CMD		DB	07EH,0FFH,06H,0CH,00H,00H
+ 1EE9 7EFF061100DFP$ALL$PLAY$CMD	DB	07EH,0FFH,06H,11H,00H,00H
+ 1EEF 7EFF064200DFP$QUERY$VOL$CMD	DB	07EH,0FFH,06H,42H,00H,00H
+                
+ 1EF5 00        			DB	0
+                
+                
+ 1EF6           		DS	300H
+                	
+ 21F6 0000      STACK:			DW	0H
+ 21F8 3C2D2D456E			DB	'<--End of SIO_DIAG Code           '

@@ -309,6 +309,9 @@ set_location_assignment PIN_R14 -to "FPGA_8255_SELECT-"
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to "FPGA_8255_SELECT-"
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name VHDL_FILE ACIA_TX.vhd
+set_global_assignment -name VHDL_FILE ACIA_RX.vhd
+set_global_assignment -name VHDL_FILE ACIA_6850.vhd
 set_global_assignment -name BDF_FILE SUPER_IO_BOARD.bdf
 set_global_assignment -name QIP_FILE LOCAL_RAM.qip
 set_global_assignment -name VHDL_FILE T80s.vhd
