@@ -1,0 +1,18 @@
+4DTICTAC - Keyboard Input Requried
+AMBUSH - Swaps DMA locations, seems to not redraw correctly
+CHASE - Works
+DAZCHESS - Keyboard Input Required, 
+	   Nothing draws the first run, reset G0 it displays
+D-MATION - Need to find assembler for provided code + keyboard
+DOGFIGHT - Swaps DMA locations, needs initial screen refresh
+DOODLE - SAME AS SKETCH
+GOTCHA - Need to type in code from manual
+KALEIDO - SAME AS KSCOPE, needs an initial refresh
+KALISCOP - SAME AS KSCOPE, needs an initial refresh
+LIFE - Keyboard Input
+MARTINI - Works
+PLAY - ??
+SPACEWAR - Works
+TANKWAR - Works
+TRACK - Works
+X-LIFE - Keyboard Input??
