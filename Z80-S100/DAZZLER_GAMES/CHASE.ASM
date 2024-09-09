@@ -1524,6 +1524,11 @@ l097fh:
 	ret m			;097f
 	sub a			;0980
 	ret			;0981
+	; ZOGGINS
+	; This was being used to disable the display.
+	; I had to change it to just turn off the display, 
+	; but not change the DMA address.
+	;ld a,000h		;0982
 	ld a,00ch		;0982
 	out (00eh),a		;0984
 	call sub_08a1h		;0986
@@ -1754,9 +1759,14 @@ l0ae3h:
 	ld de,00000h		;0ae6
 	ld bc,l09e0h		;0ae9
 	ldir		;0aec
+	
+	; ZOGGINS
+	; Select Page 1 on Dazzler II
 	ld a,000h		
 	out (018h),a	
 	
+	; ZOGGINS
+	; Set DMA address & clear Screen
 	ld a,00ch		
 	out (00eh),a
 	ld hl,1800h

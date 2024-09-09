@@ -1098,9 +1098,13 @@ l07d3h:
 	ldir		;07d3
 	jp 00000h		;07d5
 init:
+	; ZOGGINS
+	; Select Page 1 on Dazzler II
 	ld a,000h		
 	out (018h),a	
 	
+	; ZOGGINS
+	; Set DMA address & clear Screen
 	ld a,004h		
 	out (00eh),a
 	ld hl,800h

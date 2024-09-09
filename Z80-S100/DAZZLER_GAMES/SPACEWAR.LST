@@ -2338,9 +2338,13 @@
 0ede 01 d5 0d			ld bc,l0dd5h		;0ede 
 0ee1 ed b0			ldir				;0ee1 
 0ee3				 
+0ee3				; ZOGGINS 
+0ee3				; Select Page 1 on Dazzler II 
 0ee3 3e 00			ld a,000h		 
 0ee5 d3 18			out (018h),a	 
 0ee7				 
+0ee7				; ZOGGINS 
+0ee7				; Set DMA address & clear Screen 
 0ee7 3e 0c			ld a,00ch		 
 0ee9 d3 0e			out (00eh),a 
 0eeb 21 00 18			ld hl,1800h 

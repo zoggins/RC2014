@@ -6,13 +6,13 @@ DAZCHESS - Keyboard Input Required,
 D-MATION - Need to find assembler for provided code + keyboard
 DOGFIGHT - Swaps DMA locations, needs initial screen refresh
 DOODLE - SAME AS SKETCH
-GOTCHA - Need to type in code from manual
-KALEIDO - SAME AS KSCOPE, needs an initial refresh
-KALISCOP - SAME AS KSCOPE, needs an initial refresh
+GOTCHA - Works
+KALEIDO - SAME AS KSCOPE
+KALISCOP - SAME AS KSCOPE
 LIFE - Keyboard Input
 MARTINI - Works
-PLAY - ??
+PLAY - No idea how it works.
 SPACEWAR - Works
-TANKWAR - Works
+TANKWAR - Works, but had to zero out a "out (00eh),000h" operation
 TRACK - Works
-X-LIFE - Keyboard Input??
+X-LIFE - Works, but may have keyboard input?

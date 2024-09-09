@@ -48,11 +48,15 @@
 015e e6 88			and 088h 
 0160 c2 59 00			jp nz,00059h 
 0163			l0163h: 
+0163				; ZOGGINS 
+0163				; I think this was used to disable the display, but 
+0163				; it also change the DMA address.  However, it doesn't  
+0163				; appear necessary. 
+0163				;xor a	 
+0163				;out (00eh),a 
 0163 00				nop 
 0164 00				nop 
 0165 00				nop 
-0166				;xor a	 
-0166				;out (00eh),a 
 0166 01 f4 01			ld bc,l01f3h+1 
 0169 21 00 0c			ld hl,l0c00h 
 016c cd 53 05			call sub_0553h 
@@ -2194,11 +2198,13 @@
 0d09 01 00 0c			ld bc,l0c00h 
 0d0c ed b0			ldir 
 0d0e			 
-0d0e 21 00 0c		        ld hl,l0c00h 
-0d11 7c			        ld a,h 
-0d12 37			        scf 
-0d13 1f			        rra 
-0d14 d3 0e		        out (00eh),a 
+0d0e				; ZOGGINS 
+0d0e				; Set DMA address 
+0d0e 21 00 0c			ld hl,l0c00h 
+0d11 7c				ld a,h 
+0d12 37				scf 
+0d13 1f				rra 
+0d14 d3 0e			out (00eh),a 
 0d16			 
 0d16 c3 00 00			jp 00000h 
 # End of file TANKWAR.ASM

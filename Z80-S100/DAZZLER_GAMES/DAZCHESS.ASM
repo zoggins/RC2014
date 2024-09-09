@@ -2498,6 +2498,10 @@ l1075h:
 	ld de,00000h		;1083
 	ld bc,00f72h		;1086
 	ldir		;1089
-	ld a,002h		
+	
+	;ZOGGINS
+	; Select Page 1 on Dazzler II
+	ld a,001h		
 	out (018h),a	
+	
 	jp 00000h		;108b

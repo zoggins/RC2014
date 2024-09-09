@@ -2479,9 +2479,13 @@ l0803h:
 	nop			;0bc9
 	ret p			;0bca
 init:
+	; ZOGGINS
+	; Select Page 1 on Dazzler II
 	ld a,000h		
 	out (018h),a	
 	
+	; ZOGGINS
+	; Set DMA address
 	ld a,004h		
 	out (00eh),a
 	

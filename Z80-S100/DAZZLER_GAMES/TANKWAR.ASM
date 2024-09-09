@@ -47,11 +47,15 @@ l014fh:
 	and 088h
 	jp nz,00059h
 l0163h:
-	nop
-	nop
-	nop
+	; ZOGGINS
+	; I think this was used to disable the display, but
+	; it also change the DMA address.  However, it doesn't 
+	; appear necessary.
 	;xor a	
 	;out (00eh),a
+	nop
+	nop
+	nop
 	ld bc,l01f3h+1
 	ld hl,l0c00h
 	call sub_0553h
@@ -2193,10 +2197,12 @@ l0d03h:
 	ld bc,l0c00h
 	ldir
 
-        ld hl,l0c00h
-        ld a,h
-        scf
-        rra
-        out (00eh),a
+	; ZOGGINS
+	; Set DMA address
+	ld hl,l0c00h
+	ld a,h
+	scf
+	rra
+	out (00eh),a
 
 	jp 00000h

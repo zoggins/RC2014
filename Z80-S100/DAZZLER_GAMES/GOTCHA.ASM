@@ -482,8 +482,11 @@ l0400h:
 	jp 00000h		;040e
 	ret			;0411
 l0412h:
+	; ZOGGINS
+	; Select Page 1 on Dazzler II
 	ld a,000h		;0412
 	out (018h),a		;0414
+	
 	ld hl,l0103h		;0416
 	ld de,00000h		;0419
 	ld bc,l030fh		;041c

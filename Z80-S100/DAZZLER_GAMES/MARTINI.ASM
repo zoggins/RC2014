@@ -2133,8 +2133,14 @@ l0c29h:
 l0c46h:
 	ld (de),a			;0c46
 init:
+	; ZOGGINS
+	; Select Page 1 on Dazzler II
 	ld a,000h		
 	out (018h),a	
+	
+	; ZOGGINS
+	; Set DMA address
 	ld a,008h		
 	out (00eh),a
+	
 	jp l0568h		;0100
