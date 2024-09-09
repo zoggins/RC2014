@@ -340,8 +340,11 @@ sub_0380h:
 	ld h,a			;03a1
 	exx			;03a2
 	exx			;03a3
-	out (c),h		;03a4
-	inc c			;03a6
+	; ZOGGINS
+	; Need to call change page here.
+	;out (c),h		;03a4
+	;inc c
+	call chgpage
 	out (c),l		;03a7
 	dec c			;03a9
 	ex de,hl			;03aa
@@ -2423,9 +2426,38 @@ l0f5fh:
 	nop			;0fef
 sub_0ff0h:
 	nop			;0ff0
+chgpage: 
+	push af
+	ld a,h
+	sub 08ch 
+	rra
+	rra
+	and 001h
+	out (018h),a
+	inc c
+	pop af
+	ret
 l0ff1h:
 	ld hl,l0103h		;0ff1
 	ld de,00000h		;0ff4
-	ld bc,l0eeeh		;0ff7
+	ld bc,0ef9h		;0ff7
 	ldir		;0ffa
+	
+	; ZOGGINS
+	; Select Page 1 on Dazzler II
+	ld a,000h		
+	out (018h),a	
+	
+	; ZOGGINS
+	; Set DMA address & clear Screen
+	ld a,08ch		
+	out (00eh),a
+	ld hl,1800h
+    ld e,l
+	ld d,h
+	inc	de
+	ld (hl),000h
+	ld bc,800h
+	ldir
+
 	jp 00000h		;0ffc

@@ -1,11 +1,11 @@
-# File DOGFIGHT.ASM
+# File DOGFIGHT2.ASM
 0000			; z80dasm 1.1.6 
 0000			; command line: z80dasm --labels --address --origin=0x100 DOGFIGHT.COM 
 0000			 
 0000				org	00100h 
 0100			 
 0100			l0100h: 
-0100 c3 f1 0f			jp l0ff1h		;0100 
+0100 c3 fe 0f			jp l0ff1h		;0100 
 0103			l0103h: 
 0103 00				nop			;0103 
 0104 31 00 18			ld sp,01800h		;0104 
@@ -341,8 +341,11 @@
 03a1 67				ld h,a			;03a1 
 03a2 d9				exx			;03a2 
 03a3 d9				exx			;03a3 
-03a4 ed 61			out (c),h		;03a4 
-03a6 0c				inc c			;03a6 
+03a4				; ZOGGINS 
+03a4				; Need to call change page here. 
+03a4				;out (c),h		;03a4 
+03a4				;inc c 
+03a4 cd f1 0f			call chgpage 
 03a7 ed 69			out (c),l		;03a7 
 03a9 0d				dec c			;03a9 
 03aa eb				ex de,hl			;03aa 
@@ -2424,11 +2427,41 @@
 0fef 00				nop			;0fef 
 0ff0			sub_0ff0h: 
 0ff0 00				nop			;0ff0 
-0ff1			l0ff1h: 
-0ff1 21 03 01			ld hl,l0103h		;0ff1 
-0ff4 11 00 00			ld de,00000h		;0ff4 
-0ff7 01 ee 0e			ld bc,l0eeeh		;0ff7 
-0ffa ed b0			ldir		;0ffa 
-0ffc c3 00 00			jp 00000h		;0ffc 
-# End of file DOGFIGHT.ASM
-0fff
+0ff1			chgpage:  
+0ff1 f5				push af 
+0ff2 7c				ld a,h 
+0ff3 d6 8c			sub 08ch  
+0ff5 1f				rra 
+0ff6 1f				rra 
+0ff7 e6 01			and 001h 
+0ff9 d3 18			out (018h),a 
+0ffb				;out (c),h	 
+0ffb 0c				inc c 
+0ffc f1				pop af 
+0ffd c9				ret 
+0ffe			l0ff1h: 
+0ffe 21 03 01			ld hl,l0103h		;0ff1 
+1001 11 00 00			ld de,00000h		;0ff4 
+1004 01 f9 0e			ld bc,0ef9h		;0ff7 
+1007 ed b0			ldir		;0ffa 
+1009				 
+1009				; ZOGGINS 
+1009				; Select Page 1 on Dazzler II 
+1009 3e 00			ld a,000h		 
+100b d3 18			out (018h),a	 
+100d				 
+100d				; ZOGGINS 
+100d				; Set DMA address & clear Screen 
+100d 3e 8c			ld a,08ch		 
+100f d3 0e			out (00eh),a 
+1011 21 00 18			ld hl,1800h 
+1014 5d			    ld e,l 
+1015 54				ld d,h 
+1016 13				inc	de 
+1017 36 00			ld (hl),000h 
+1019 01 00 08			ld bc,800h 
+101c ed b0			ldir 
+101e			 
+101e c3 00 00			jp 00000h		;0ffc 
+# End of file DOGFIGHT2.ASM
+1021
