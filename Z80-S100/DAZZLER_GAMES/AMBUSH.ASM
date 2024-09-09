@@ -1,10 +1,11 @@
 ; z80dasm 1.1.6
-; command line: z80dasm --labels --origin=0x0100 --address AMBUSH.COM
+; command line: z80dasm --address --labels --origin=0x100 AMBUSH.COM
 
 	org	00100h
 
 l0100h:
-	jp l010eh		;0100
+	jp init		;0100
+;	jp l010eh		;0100
 	ld de,l0100h		;0103
 	ld bc,00c00h		;0106
 	ldir		;0109
@@ -286,9 +287,11 @@ sub_02f4h:
 	ld a,(l0831h)		;02f4
 	rra			;02f7
 	jr nc,l0306h		;02f8
-	ld a,(l0825h)		;02fa
+	;ld a,(l0825h)		;02fa
+	ld a,(l0824h)
 	out (00eh),a		;02fd
-	ld a,(l0826h)		;02ff
+	;ld a,(l0826h)		;02ff
+	ld a,(l0827h)		;02ff
 	out (00fh),a		;0302
 	jr l0310h		;0304
 l0306h:
@@ -955,7 +958,8 @@ l0743h:
 	ld (l0820h),hl		;074d
 	ret			;0750
 sub_0751h:
-	ld a,094h		;0751
+;	ld a,094h		;0751
+	ld a,090h
 	ld (l0824h),a		;0753
 	ld a,030h		;0756
 	ld (l0827h),a		;0758
@@ -2155,3 +2159,7 @@ l0cfbh:
 	push hl			;0cfd
 	and a			;0cfe
 	defb 0edh		;0cff
+init:
+	ld a,000h
+	out (018h),a
+	jp l010eh		;0100
