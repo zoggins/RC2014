@@ -6,6 +6,10 @@ TITLE	'CPM3 MODULE FOR Seagate 6531 Hard disk Drive.'
 ;	12/28/2009	Corrected high/low byte R/W of data to sectors
 ;	03/15/2011	Single reset pulse to IDE board
 ;	03/16/2018	Check CF card is ready after RESET before issuing CMD
+;	5/31/2019	Check CF card is ready before writing LBA
+;	5/31/2019	Restore registers before returning errors
+;	11/8/2020	Jay Jaeger corrections of CF card ready check.
+;   10/21/2021  Moved 2nd IDE Drive to E: to allow for ZFDC drives on B:, C: and D:
 
 	;  DEFINE LOGICAL VALUES:
 TRUE:		EQU	-1
@@ -201,7 +205,7 @@ ResetDelay:
 
 					;****** D.Fry - 16/03/2018 *****
 	CALL	IDEwaitnotbusy		; Make sure CF drive is ready to
-	JC	SetErrorFlag		; accept CMD - If problem abort
+	JC	SetErrorFlagD		; accept CMD - If problem abort (restoring D)
 					;*******************************
 			
 	MVI	D,11100000b		;Data for IDE SDH reg (512bytes, LBA mode,single drive,head 0000)
@@ -213,6 +217,7 @@ ResetDelay:
 	CALL	IDEwr8D			;Write byte to select the MASTER device
 
 ;
+
 	MVI	B,0FFH		;<<< May need to adjust delay time
 WaitInit:	
 	MVI	E,REGstatus	;Get status after initilization
@@ -260,17 +265,19 @@ HDWRT:
 
 	XRA	A
 	STA	ERFLG
+	CALL	IDEwaitnotbusy	;make sure drive is not busy before setting address
+	JC	SetErrorFlagIXD	;Restore IX and D, and return
 	CALL	wrlba		;Send to drive the sector we want to read. Converting
 				;CPM TRK/SEC info to Drive TRK/SEC/Head
 				;send before error check so info is updated
-	CALL	IDEwaitnotbusy	;make sure drive is ready
-	JC	SetErrorFlag
+											  
+				
 
 	MVI	D,COMMANDwrite
 	MVI	E,REGcommand
 	CALL	IDEwr8D		;tell drive to write a sector
 	CALL	IDEwaitdrq	;wait unit it wants the data
-	JC	SetErrorFlag	;If problem abort
+	JC	SetErrorFlagIXD	;If problem abort
 
 	LHLD    @DMA		;DMA address
 
@@ -329,6 +336,13 @@ SetErrorFlag:			;For now just return with error flag set
 	DCR	A
 	STA	ERFLG		;Ret NZ if problem
 	RET
+
+SetErrorFlagIXD:		;Pop IX and D, then set errorflag and return
+	POP	IX
+SetErrorFlagD:			;Pop D, then set error flag and return
+	POP	D
+	JMP	SetErrorFlag
+
 ;
 ;
 ;------------------- SECTOR READ ROUTINE ----------------------------
@@ -345,17 +359,19 @@ HDRD:
 
 	XRA	A
 	STA	ERFLG	     	;CLEAR THE ERROR FLAG
+	CALL	IDEwaitnotbusy	;make sure drive is not busy before setting the LBA
+	JC	SetErrorFlagIXD	;Restore IX and D and Return with NZ set if error
 	CALL	wrlba		;Send to drive the sector we want to read. Converting
 				;CPM TRK/SEC info to Drive TRK/SEC/Head
 				;Send before error check so info is updated
-	CALL	IDEwaitnotbusy	;make sure drive is ready
-	JC	SetErrorFlag	;Returned with NZ set if error
+											  
+											   
 
 	MVI	D,COMMANDread
 	MVI	E,REGcommand
 	CALL	IDEwr8D		;Send sec read command to drive.
 	CALL	IDEwaitdrq	;Wait until it's got the data
-	JC	SetErrorFlag	;If problem abort
+	JC	SetErrorFlagIXD	;If problem abort
 		
 	LHLD  	@DMA		;DMA address
 

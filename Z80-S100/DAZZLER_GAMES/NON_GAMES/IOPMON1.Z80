@@ -1,0 +1,1794 @@
+	TITLE	IOP	I/O Processor Monitor
+	SUBTTL	*** Initialization and Main Control ***
+	NAME	IOP
+;;	Modifications:
+;;	JP around location 66H to use 66H for NMI operation
+;;	QINIT routine deleted due to space shortage
+
+	ORG	00H			;Start of ROM in IOP
+
+;;	Release Date 9/22/81
+
+;;	Version Definitions
+
+VERNUM	EQU	01			; Version #
+RLSNUM	EQU	00			; Release #
+
+;;	The monitor starts off from here
+;;	Skip around the user interface portion
+
+START:	JR	START1			; Skip around user info & RST 1
+
+;;	The following 6 bytes are for
+;;	user program reference
+
+	DB	VERNUM,RLSNUM		; Version # for user reference
+	DW	CONNUM			; Pointer to console data
+	DW	XXXXXX			; Free space pointer
+
+;;	When a JSYS is executed, program control
+;;	transfers to here for further processing
+
+	ORG	START+08H		; ORG at RST 1
+	JP	JSYSX			; User entry control transfer point
+
+;;	Initialize the monitor RAM and the console, print the
+;;	signon message, then continue after the RST locations
+
+START1:	LD	SP,STACK		; Load the SP
+	LD	HL,VARBS		; Clear the variables
+	LD	A,STACK-VARBS-4		; in high memory
+	CALL	ZERO			; Zap! All clean
+	CALL	CINIT			; Initialize control console
+	CALL	OUTSTI			; Print signon message
+	DB	'IOP Monitor '
+VERTXT:	DB	VERNUM/10+'0',VERNUM%10+'0','.'
+	DM	RLSNUM/10+'0',RLSNUM%10+'0'
+	JR	START2			; Skip around RST 6 & RST 7
+
+;;	If a break instruction (RST 30H) is executed, control will
+;;	tranfer to here, then back to DEBUG, provided it is running
+
+	ORG	START+30H		; DEBUG break restart transfer
+	JP	BREAK			; in high memory
+
+;;	More user interface information
+;;	(otherwise unuseable due to proximity)
+
+	DW	SETMM1			; Pointer to SM command (for DEBUG)
+	DW	CINIT1			; Pointer to INIT single console
+	DB	-1			; Reserved for future use?
+	FORM
+
+;;	If an invalid jump occurs, chances are that the PC will
+;;	reach and execute an RST 38H instruction: the following
+;;	will intercept it and display an error message with
+;;	the bad address, then return control to the monitor
+
+	ORG	START+38H		; Crash trap location
+CRASH:	POP	HL			; Get crash PC
+	LD	SP,STACK		; Reload SP
+	CALL	OUTSTI			; Print error message
+	DM	CR,BEL,'Crash '		; about what happened
+	DEC	HL			; Adjust the PC
+	CALL	HEXWO			; Print it
+
+;;	Go to the next line after a message,
+;;	then initialize hi-segment variables
+
+START2:	CALL	CRLF			; Go to next line
+	LD	HL,4000H		; Set initial pointers to 4000H
+	LD	(SETPNT),HL		; for Substitute Memory command
+	LD	(DISPNT),HL		; and Display Memory command
+	LD	A,0C3H			; Set up JP instruction
+	LD	(BREAK),A		; at BREAK to abort
+START3:	LD	HL,CRASH		; the job incase DEBUG
+	LD	(BREAK+1),HL		; isn't in the system
+	JR	REENTE			; to provide space for NMI routine
+	NOP				;
+	NOP				;
+	JP	NMIADR			; NMI Service (66H) 
+
+;;	Main command level:
+;;	If not a BATCH job, then prompt for a
+;;	command, and get a command from user
+;;	If a BATCH job, point to the next command and proceed
+
+REENTE:	LD	SP,STACK		; Reload SP
+	LD	A,(BATERR)		; Get BATCH error flag
+	OR	A			; Are any errors?
+	JR	NZ,REENTX		; Yes, reset & abort BATCH job
+	LD	A,(BATFLG)		; Get BATCH job flag
+	LD	DE,(BATPNT)		; Get BATCH pointer in case active
+	OR	A			; Is there a BATCH job active?
+	JR	NZ,REENT1		; Yes, continue w/o prompt
+	CALL	OUTSTI			; Print the prompt
+	DM	'.'			; (Nice & simple)
+	LD	DE,LINBUF		; Point to input buffer
+	LD	A,LINLEN		; Get line length
+	CALL	INLINE			; Get input line
+REENT1:	CALL	NTSSCN			; Check first non-space
+	OR	A			; Is it end of line?
+	JR	Z,REENTX		; Yes, ignore & reset BATCH flags
+	CP	';'			; Remainder of line a comment?
+	JR	Z,REENTX		; Yes, ignore & reset BATCH flags
+	CALL	LCUC			; Convert command to uppercase
+	CP	'Z'+1			; Too big for "Zap" command?
+	JR	NC,CMDERR		; Yes, error
+	SUB	'@'			; Doodle off ASCII bias
+	JR	C,CMDERR		; Oops, not a command type
+	ADD	A			; *2 for command jump table
+	LD	HL,CMDJMP		; Point to command jump table
+	CALL	ADDH			; Point to command entry
+	CALL	LOADHH			; Get the command routine address
+	INC	DE			; Bump past command letter
+	CALL	NTSSCN			; Get next character
+	CALL	LCUC			; Convert to uppercase if needed
+	LD	BC,REENTE		; Point to re-entry location
+	PUSH	BC			; Save it for return trip
+	PUSH	HL			; Save the routine address
+	LD	HL,4000H		; Load default arg1 if needed
+	RET				; Go to the routine
+
+;;	Come here for absolute job abort; nothing at this point
+;;	can keep the monitor from going back to the main prompt
+
+REENTC:	XOR	A			; Say no more BREAK in HISEG
+	LD	(BREAK+2),A		; Save it now that DEBUG's gone
+	JR	REENTX			; Cancel whatever else exists
+
+;;	Come here if command (or other) error
+
+CMDERR:	CALL	OUTSTI			; Print error message
+	DM	BEL,'?\R'		; "<BEL>?<CR><LF>"
+
+;;	This part will return to the routine pointed to by XCTADR ONLY
+;;	if the BREAK jump transfer is not pointing to the monitor, else
+;;	go back to main command level (no BATCH jobs will survive)
+;;	If the console is not at the beginning of an
+;;	output line then print a <CR><LF> sequence
+
+REENTX:	LD	HL,0			; Reset BATCH flag and
+	LD	(BATDAT),HL		; say no BATCH errors
+REENTQ:	LD	A,(TTYPHP)		; Get the current console position
+	OR	A			; At beginning of a line?
+	CALL	NZ,CRLF			; No, go there
+	LD	A,(BREAK+2)		; Get BREAK's JP address
+	OR	A			; Is DEBUG running?
+	JR	Z,START3		; No, go back to command level
+	LD	HL,(XCTADR)		; Yes, get execution return address
+	JP	(HL)			; Go back to wherever
+
+	SUBTTL	*** Initialization Routines ***
+
+;;	Command to Initialize Console
+;;	I <CR>
+;;	This command is used to transfer console
+;;	control to a (different) active terminal
+
+INICMD:	CALL	EOLCHK			; Check for end of line
+	LD	B,8			; Allow some time for the
+	CALL	NULLS1			; <CR><LF> sequence to echo
+
+;;	Main console initialization routines: scan system
+;;	for active console port, determine the baud rate,
+;;	and define the current console number (CONNUM):
+;;	If CONNUM is negative then the console is the host
+;;	system, else if CONNUM=040H then the console is
+;;	the CSP, else the console is a Quadart channel
+
+CINIT:	CALL	QINIT			; Initialize the Quadart
+
+CINIT1:	XOR	A			; Get a 0
+	OUT	HPORT-2,A		; Say we are working on the host
+	CPL				; First assume the host
+	LD	(CONNUM),A		; is the console (-1)
+	CALL	TTSCAN			; Check if anything ready
+	JR	Z,CINIT2		; No, check the Quadart
+	CALL	TTYGT1			; Get something from the host
+	CP	CR			; Is it the <CR> we look for?
+	JR	Z,CINITX		; Yes, echo it & return
+CINIT2:	IN	A,QBASE+1		; Get Quadart status 
+	INC	A			; Is there one?
+	JR	Z,CINIT5		; No, check for CSP
+CINIT3:	LD	HL,CONNUM		; Point to the console #
+	INC	(HL)			; Bump it to the next one
+	LD	A,(HL)			; Get the console #
+	CP	4			; At the end of the Quadart?
+	JR	NC,CINIT5		; Yes, go check the CSP
+	LD	HL,CKLIST		; Point to the baud clock port list
+	CALL	ADDH			; Point to the baud clock port
+	LD	C,(HL)			; Get the baud clock port into C
+	CALL	TTSCAN			; Check if anything ready
+	JR	Z,CINIT3		; No, check next port
+	LD	B,BDLISN+1		; # of baud rates (adjusted for OUTI)
+	LD	HL,BDLIST		; Point to baud rate list
+CINIT4:	LD	A,CTCBDX		; Get command for set baud
+	OUT	(C),A			; Send the command
+	OUTI				; Send the actual baud info
+	JR	Z,CINIT3		; End of table, try next terminal
+	CALL	TTYGT1			; Get something
+	CALL	TTYGT1			; from the console
+	CP	CR			; Is it the <CR> we look for?
+	JR	NZ,CINIT4		; No, try the next baud rate
+CINITQ:	LD	A,HQBIT			; Tell the host we have inited
+	OUT	HPORT-2,A		; one of the Quadart or CSP ports
+CINITX:	JP	CRLF			; Send a <CR><LF> & return
+CINIT5:	IN	A,CSPSBS		; Get CSP status info
+	INC	A			; Is one there?
+	JR	Z,CINIT1		; No, check the host again
+	LD	A,040H			; Set up CONNUM to
+	LD	(CONNUM),A		; represent the CSP
+	CALL	TTSCAN			; Is there anything there?
+	JR	Z,CINIT1		; No, go check the host
+	CALL	TTYGT1			; Get something from the CSP
+	CP	CR			; Is it the <CR> we look for?
+	JR	NZ,CINIT1		; No, try the host again
+	JR	CINITQ			; Yes, go finish up & return
+	FORM
+
+;;	Initialize the Quadart & CSP:
+;;	All the Quadart channels & the CSP console SIO are set up to
+;;	a predefined state, with CSP console baud rate set to 9600
+;;	(only one Quadart & CSP in system each)
+
+;;	PIOs & CSP baud rate
+
+QINIT:	RET				; DELETED TO MAKE SPACE                  
+
+	SUBTTL	*** Move & Verify Commands ***
+
+;;	Move Memory Command
+;;	M source S swath dest <CR>
+;;	M source finish dest <CR>
+;;	This command moves swath bytes from source to destination
+;;	(or from source through finish to destination)
+
+MOVE:	CALL	ARG3Q			; Get arguments
+	PUSH	BC			; Save swath
+	PUSH	DE			; and destination
+	PUSH	HL			; and source
+	LDIR				; Boing! New location
+	POP	HL			; Get back arguments
+	POP	DE			; for verify routine
+	POP	BC			; Need length, too
+	JR	VERIFX			; Go verify
+
+;;	Verify Memory Command
+;;	V source S swath dest <CR>
+;;	V source finish dest <CR>
+;;	This command compares (verifies) swath bytes from
+;;	source to destination (or from source through finish
+;;	to destination) and displays any discrepancies
+
+VERIFY:	CALL	ARG3Q			; Get the arguments
+
+VERIFX:	LD	A,(DE)			; Get data @ destination
+	CP	(HL)			; Is it the same as @ source?
+	JR	Z,VERIFO		; Yes, check next byte
+	CALL	HEXWO			; No, print source address
+	LD	A,(HL)			; Get source data
+	CALL	HEXBO			; Print it
+	CALL	SPACE			; Move over
+	LD	A,(DE)			; Get destination data
+	CALL	HEXBO			; Print it
+	CALL	SPACE			; Gap
+	EX	DE,HL			; Get destination address
+	CALL	HEXWO			; Print it
+	EX	DE,HL			; Restore it
+	CALL	CRLF			; New line
+VERIFO:	INC	DE			; Bump destination pointer
+	INC	HL			; Bump source pointer
+	DEC	BC			; Drop count
+	LD	A,B			; Did it go
+	OR	C			; to 0?
+	JR	NZ,VERIFX		; No, keep checking
+	RET				; Yes, return
+
+	SUBTTL	*** Set Memory Command ***
+
+;;	Set (Substitute) Memory Command
+;;	SM addr <CR>
+;;	This command will prompt for information to
+;;	be stuffed into memory (this command kills
+;;	BATCH jobs due to possible buffer conflicts)
+;;	The letter M is optional
+
+SETMEM:	CP	'M'			; Is "S" followed by "M"?
+	JR	NZ,SETMM0		; No, just "S"
+	INC	DE			; Bump past "M"
+SETMM0:	LD	HL,(SETPNT)		; Get default argument
+	CALL	ARG1D			; Get address where to start
+
+SETMM1:	XOR	A			; Get a 0
+	LD	(BATFLG),A		; Abort any current BATCH job
+	CALL	HEXWO			; Print address
+	LD	A,(HL)			; Get current contents
+	CALL	HEXBO			; Print them
+	CALL	SPACE			; Print a space
+
+	LD	DE,LINBUF		; Point to line buffer
+	LD	A,LINLEN		; Get line length
+	CALL	INLINE			; Get input line
+	CALL	NTSSCN			; Scan for non-space
+	CP	'.'			; Is it to stop?
+	RET	Z			; Yes, return
+	CP	'-'			; Is it to back up?
+	JR	NZ,SETMM3		; No, do the conversion
+SETMM2:	DEC	HL			; Back pointer up
+	JR	SETMM6			; Go save it & try again
+
+SETMM3:	CALL	INSTR			; Convert input line to binary
+	JR	NC,SETMM4		; If no error, then continue
+	CALL	OUTSTI			; Print error message
+	DM	BEL,'?',CR		; "<BEL>?<CRLF>"
+	JR	SETMM1			; & try again
+
+SETMM4:	XOR	A			; Zap A
+	ADD	B			; to check count in B
+	JR	NZ,SETMM5		; Not empty, save the data
+	INC	HL			; Bump pointer
+	JR	SETMM6			; & try again
+
+SETMM5:	LD	C,B			; Load count in BC
+	LD	B,0			; proper
+	EX	DE,HL			; Swap pointers
+	LDIR				; Shove the data into memory
+	EX	DE,HL			; Restore pointers
+
+SETMM6:	LD	(SETPNT),HL		; Save pointer for later
+	JR	SETMM1			; & go for more
+
+	SUBTTL	*** Find a String-of-Bytes Command ***
+
+;;	Find a String-of-Bytes Command, also known as "Query"
+;;	Q start S swath string-of-bytes <CR>
+;;	Q start finish string-of-bytes <CR>
+;;	This command searches the memory specified from
+;;	start for swath bytes (or from start through
+;;	finish) for the specified string-of-bytes;
+;;	when found, the first 16 bytes are displayed
+
+FIND:	CALL	ARG2			; Get address and Swath arguments
+	JR	C,FINDE			; If none, then error
+	PUSH	BC			; Save Swath
+	CALL	INSTR			; Get string
+	POP	DE			; Get Swath back into DE
+FINDE:	JP	C,CMDERR		; If error, then abort
+	XOR	A			; Zap A
+	ADD	B			; to check length of entry
+	JP	Z,CMDERR		; Oops! No string there
+
+FIND1:	PUSH	BC			; Save length
+	PUSH	DE			; and Swath
+	PUSH	HL			; and address
+	LD	DE,LINBUF		; Point to binary buffer
+
+FIND2:	LD	A,(DE)			; Get a byte
+	CP	(HL)			; Is it the same?
+	JR	NZ,FIND3		; No, failure here
+	INC	DE			; Bump binary pointer
+	INC	HL			; Bump memory pointer
+	DJNZ	FIND2			; Go until all expended
+
+;;	When we get to here, the strings are the same
+
+FIND3:	POP	HL			; Get memory pointer back
+	PUSH	HL			; momentarily
+	LD	B,10H			; Print 10 bytes
+	CALL	Z,DISLIN		; only if the strings matched
+	POP	HL			; Get memory pointer back again
+	POP	DE			; and Swath
+	POP	BC			; and count
+
+	INC	HL			; Bump memory pointer
+	DEC	DE			; Drop Swath
+	LD	A,D			; Did the Swath
+	OR	E			; go to 0?
+	JR	NZ,FIND1		; No, keep looking
+	RET				; Yes, all done here
+
+	SUBTTL	*** String Input Processing Routine ***
+
+;;	Get String of Bytes from (DE) & leave final
+;;	string at DE in LINBUF with count in reg B
+;;	Entry:	DE points to string
+;;	Exit:	B contains count of bytes
+;;		DE points to string in LINBUF
+
+INSTR:	PUSH	HL			; Save HL
+	LD	B,0			; Initial count of 0
+	LD	HL,LINBUF		; Point to binary result buffer
+INSTR1:	CALL	NCMSCN			; Skip spaces
+	LD	(BATPNT),DE		; Save BATCH pointer for later
+	OR	A			; Is it EOL?
+	JR	Z,INSTRD		; Yes, done
+	CP	';'			; Rest of line a comment?
+	JR	Z,INSTRD		; Yes, done
+	INC	DE			; Bump past current character
+	CP	MXCHR			; Is it multi-command?
+	JR	NZ,INSTRC		; No, continue
+	LD	(BATPNT),DE		; Yes, save BATCH pointer
+	LD	(BATFLG),A		; Say BATCH active
+	JR	INSTRD			; Finish up here
+INSTRC:	LD	C,A			; Save character in case delimiter
+	CP	''''			; Is it single quote?
+	JR	Z,INSTRS		; Yes, process string
+	CP	'"'			; Is it double quote?
+	JR	Z,INSTRS		; Yes, process string
+	DEC	DE			; Repoint to numeric arg
+	PUSH	HL			; Save binary pointer
+	CALL	ARGH			; Get argument
+	LD	A,L			; Get result into A
+	POP	HL			; Restore binary pointer
+	JR	C,INSTRD		; If no argument, then error
+	LD	(HL),A			; Save argument
+	INC	HL			; Bump binary pointer
+	INC	B			; Bump count
+	JR	INSTR1			; & go for more data
+
+INSTRS:	LD	A,(DE)			; Get the character
+	INC	DE			; Bump past it
+	OR	A			; Is it EOL?
+	JR	Z,INSTRD		; Yes, done
+	CP	C			; Is it the delimiter?
+	JR	Z,INSTR1		; Yes, end of string
+	LD	(HL),A			; Save the character
+	INC	HL			; Bump binary pointer
+	INC	B			; Bump count
+	JR	INSTRS			; Go for next character
+
+INSTRD:	LD	DE,LINBUF		; Point to beginning of buffer
+	POP	HL			; Restore HL
+	RET				; & return
+
+	SUBTTL	*** Display Memory Command ***
+
+;;	Display Memory Command
+;;	DM start S swath <CR>
+;;	DM start finish <CR>
+;;	This command displays the contents of memory beginning
+;;	at start for swath bytes (or from start through finish)
+;;	If the start is missing, last DM address is assumed
+;;	If the swath is missing, 80H is assumed
+;;	The letter M is optional
+
+DISPLY:	CP	'M'			; Is "D" followed by "M"?
+	JR	NZ,DISPL1		; No, just "D"
+	INC	DE			; Bump past "M"
+DISPL1:	LD	BC,80H			; Default swath is 80H bytes
+	LD	HL,(DISPNT)		; Get default data pointer
+	CALL	ARG2D			; Get (new) arguments
+DISMM1:	LD	E,10H			; Assume line length of 10H
+	XOR	A			; Zap A to
+	OR	B			; check if near the end
+	JR	NZ,DISMM2		; No, continue
+	LD	A,0FH			; Is there less than 10H
+	CP	C			; bytes to go?
+	JR	C,DISMM2		; No, still assume 10H
+	XOR	A			; Zap A to check
+	OR	C			; if Swath 0?
+	JR	Z,DISMM2		; Yes, assume 10H to dump all
+	LD	E,C			; Get final amount
+DISMM2:	PUSH	BC			; Save count to go
+	LD	B,E			; Load line count
+	CALL	DISLIN			; Print the line
+	LD	(DISPNT),HL		; Save data address
+	POP	BC			; Get count back
+	LD	A,C			; Adjust the count
+	SUB	E			; by subtracting
+	LD	C,A			; the number
+	JR	NC,DISMM3		; of bytes
+	DEC	B			; just printed
+DISMM3:	LD	A,B			; Did we
+	OR	C			; run out?
+	JR	NZ,DISMM1		; No, not done yet
+	RET				; Yes, return
+
+	SUBTTL	*** Display a line of memory up to 16 bytes ***
+
+;;	Display up to 16 bytes of memory on the console
+;;	Entry:	B contains the length
+;;		HL points to the data
+
+DISLIN:	CALL	HEXWO			; Print address
+	PUSH	BC			; Save count
+	PUSH	HL			; Save data pointer
+	LD	C,0			; 0 bytes printed
+DISLN1:	LD	A,11B			; Check if multiple
+	AND	C			; of 4 bytes printed
+	CALL	Z,SPACE			; Yes, print a space
+	LD	A,(HL)			; Get data byte
+	CALL	HEXBO			; Print it
+	INC	HL			; Bump data pointer
+	INC	C			; Bump byte count
+	DJNZ	DISLN1			; Go until all has been dumped
+DISLN2:	LD	B,58			; Move out to column 58
+	CALL	PRITAB			; Go there
+	POP	HL			; Get data pointer back
+	POP	BC			; & count, too
+DISLN3:	LD	A,(HL)			; Get character
+	INC	HL			; Bump pointer
+	CALL	DISLN4			; Print the character
+	DJNZ	DISLN3			; & go until this line done
+	JP	CRLF			; then goto next line & return
+
+DISLN4:	AND	~^7			; Mask off ^7
+	CP	DEL			; Is it <DEL>?
+	JR	Z,DISLN5		; Yes, non-graphic print
+	CP	' '			; Is it graphic?
+	JP	NC,OUTCHR		; Yes, go print it
+DISLN5:	LD	A,'.'			; Get a '.' instead of whatever
+	JP	OUTCHR			; & go print it
+
+	SUBTTL	*** Miscellaneous Other Commands ***
+
+;;	Execute command string in memory at addr
+;;	@ addr <CR>
+;;	This command starts up a BATCH job as
+;;	a sequence of commands to be executed
+
+BATCH:	CALL	ARG1Q			; Get the string address
+BATCH1:	LD	(BATPNT),HL		; Save it for BATCH processing
+	LD	A,-1			; Say that BATCH
+	LD	(BATFLG),A		; is active
+	RET				; Return
+
+;;	Examine input port
+;;	E port <CR>
+;;	The contents of the input port are displayed on the console
+
+EXAMIN:	CALL	ARG1Q			; Get argument where to look
+	LD	C,L			; Load into C
+	IN	A,(C)			; & get the data
+	CALL	HEXOUT			; Print it
+	JP	CRLF			; New line & return
+
+;;	Output data to a port
+;;	O data port <CR>
+;;	The data specified is sent to the port specified
+
+OUTPUT:	CALL	ARGH			; Get data byte
+	PUSH	HL			; Save it on the stack
+	CALL	ARG1Q			; Get port #
+	LD	C,L			; Load into C
+	POP	HL			; Get data byte back
+	OUT	(C),L			; Send it
+	RET				; & return
+
+;;	Zap memory with a byte constant
+;;	Z start S swath byte <CR>
+;;	Z start finish byte <CR>
+;;	This command Zaps the memory specified from
+;;	start for swath bytes (or from start through
+;;	finish) with the specified byte
+
+ZAP:	CALL	ARG3Q			; Get addresses and data byte
+	LD	(HL),E			; Save the data byte in memory
+	LD	D,H			; Copy start address
+	LD	E,L			; from HL to DE
+	DEC	BC			; Adjust Swath for first byte
+	LD	A,B			; Was "S1"
+	OR	C			; specified?
+	RET	Z			; Yes, already done
+	INC	DE			; Bump destination to next byte
+	LDIR				; ZAP!
+	RET				; All done, return
+	FORM
+
+;;	Program Control Transfer; "Go" command
+;;	G addr <CR>
+;;	This command jumps to location addr
+
+GOTO:	CALL	ARG1Q			; Get the address
+	JP	(HL)			; Go to HL
+
+;;	Send Nulls to the Console
+;;	N <CR>
+;;	N number <CR>
+;;	This command issues number of <NUL> characters
+;;	to the current console (default number is 16)
+
+NULLS:	LD	HL,16			; Default # is 16 nulls
+	CALL	ARG1D			; Get the number
+	LD	B,L			; Save count in B
+NULLS1:	XOR	A			; Get a <NUL>
+	CALL	TTYOUT			; Send the null
+	DJNZ	NULLS1			; Go until all sent
+	RET				; then return
+
+;;	Read Binary Data from the console into memory
+;;	R start S swath <CR>
+;;	R start finish <CR>
+;;	This command reads binary data from the current
+;;	 console into the IOP memory as specified
+
+READ:	CALL	ARG2Q			; Get start & swath
+READ1:	CALL	TTYIN			; Get a byte
+	LD	(HL),A			; Save it in memory
+	CPI				; Bump pointer & check count
+	RET	NV			; Done, return
+	JR	READ1			; Keep reading
+
+;;	Write Binary Data from memory to the console
+;;	W start S swath <CR>
+;;	W start finish <CR>
+;;	This command writes binary data from the IOP
+;;	 memory specified to the current console
+
+WRITE:	CALL	ARG2Q			; Get start & swath
+WRITE1:	LD	A,(HL)			; Get a byte from memory
+	CALL	TTYOUT			; Send it
+	CPI				; Bump pointer & check count
+	RET	NV			; Done, return
+	JR	WRITE1			; Keep writing
+
+	SUBTTL	*** File Operations Processing ***
+
+;;	File Command Processing
+;;	0	K <CR> (see FILABT command below)
+;;	1	FD [filespecs] <CR>
+;;	2	FR addr filespecs <CR>
+;;	3	FW addr S swath filespecs <CR>
+;;	4	FZ filespecs <CR>
+;;	5	FS [<host dependent>] <CR>
+;;	6	FX [<host dependent>] <CR>
+;;	These commands allow file operations through the host DOS
+;;	 using a host resident file processing program.  There are
+;;	 six commands allowed giving capability for reading, writing
+;;	 and deleting files, listing a directory, displaying status
+;;	 information about a disk, and a host dependent command.
+;;	The numbers to the left of each command listed above is
+;;	 the command code transferred to the host system.
+
+FILCMD:	INC	DE			; Bump past command type
+	CP	'D'			; Is it Directory?
+	LD	BC,0<<8|1		; No numeric args, 1=Dir
+	JR	Z,FILCM1		; Yes, go process
+	CP	'R'			; Is it Read?
+	LD	BC,1<<8|2		; 1 numeric arg, 2=Read
+	JR	Z,FILCM1		; Yes, go process
+	CP	'W'			; Is it Write?
+	LD	BC,2<<8|3		; 2 numeric args, 3=Write
+	JR	Z,FILCM1		; Yes, go process
+	CP	'Z'			; Is it Delete (Zap)?
+	LD	BC,0<<8|4		; No numeric args, 4=Zap
+	JR	Z,FILCM1		; Yes, go process
+	CP	'S'			; Is it Status?
+	LD	BC,0<<8|5		; No numeric args, 5=Status
+	JR	Z,FILCM1		; Yes, go process
+	CP	'X'			; Is it Special Command?
+	LD	BC,0<<8|6		; No numeric args, 6=Special
+	JP	NZ,CMDERR		; No, command error
+	FORM
+
+;;	At this point, register C contains the command code, and
+;;	register B contains the number of numeric arguments.
+
+FILCM1:	LD	A,C			; Save command code
+	PUSH	AF			; on stack for later
+	LD	A,B			; Get argument count code into A
+	LD	B,L			; Since L is already 0, use it
+	LD	C,L			; for zapping arg2 default to 0
+	DEC	A			; Check if 1 argument
+	PUSH	AF			; Save count for later
+	CALL	Z,ARGH			; Yes, get that 1 argument
+	POP	AF			; Get count back
+	DEC	A			; Check if 2 arguments
+	CALL	Z,ARG2			; Yes, get both arguments
+	PUSH	HL			; Save arg1 on stack
+	CALL	FILSET			; Set up for command to host
+	POP	HL			; Get arg1 back again
+	POP	AF			; Get command code
+	CALL	FILOUT			; Send it to host
+	LD	A,H			; Get arg1 high
+	CALL	FILOUT			; Send it
+	LD	A,L			; Get arg1 low
+	CALL	FILOUT			; Send it
+	LD	A,B			; Get arg2 high
+	CALL	TTYOUT			; Send it
+	LD	A,C			; Get arg2 low
+	CALL	TTYOUT			; Send it
+
+;;	Send the remainder of the command string
+;;	to the host system for it to interpret.
+
+	CALL	NCMSCN			; Skip past spaces & comma, if any
+FILCM2:	LD	A,(DE)			; Get a character from buffer
+	INC	DE			; Point to next character
+	LD	(BATPNT),DE		; Save BATCH pointer for later
+	CP	MXCHR			; Multi-command?
+	JR	Z,FILCM3		; Yes, done with this string
+	OR	A			; End of line?
+	JR	Z,FILCM3		; Yes, done with this string
+	CALL	TTYOUT			; No, send the character
+	JR	FILCM2			; Send all of the string
+FILCM3:	LD	(BATFLG),A		; Set up BATCH flag
+	XOR	A			; Say this is the end
+	CALL	TTYOUT			; of the command string
+	FORM
+;;	This is home base for the IOP while a file command is being
+;;	 processed. Commands are received from the host and are
+;;	 executed, then control returns to here. The commands are:
+;;	0=End of Job
+;;	1="Please" (pause for operator intervention)
+;;	2=Print the following string terminated by ^7 or binary 0
+;;	3=Read a block of data
+;;	4=Write a block of data
+
+FILXCT:	CALL	TTYIN			; Now wait for a command back
+	LD	(FILABF),A		; If non-0 then no console abort
+	OR	A			; 0 as in End of Job?
+	JR	Z,FILRES		; Yes, reset terminal & return
+	DEC	A			; Perform a "Please"?
+	JR	NZ,FILXC2		; No, check what else
+FILXC1:	CALL	FILRES			; Set up regular console talk
+	CALL	TTSCAN			; Check if character already there
+	CALL	NZ,TTYGT1		; Yes, discard it
+	CALL	TTYGT1			; Now wait for the real thing
+	PUSH	AF			; Save character for later
+	CALL	FILSET			; Set up for file talk again
+	POP	AF			; Get character back
+	CP	CTLC			; Control-C?
+	JR	NZ,FILX1A		; No, echo it back to file system
+	LD	A,ESC			; Yes, make like an <ESC>
+FILX1A:	CALL	TTYOUT			; Send the character back
+	SUB	ESC			; Was it an <ESC>?
+	JR	NZ,FILXCT		; No, wait for next command
+	LD	(FILABF),A		; Yes, clear file abort flag
+FILX1B:	IN	A,HPORT			; Get the host status
+	AND	HTBE			; Has it gotten the <ESC>?
+	JR	Z,FILX1B		; No, keep waiting
+	CALL	FILRES			; Reset for normal talk
+	JP	CRLF			; Go to next line & return
+FILXC2:	DEC	A			; Is command to print a string?
+	JR	NZ,FILXC4		; No, check if I/O
+FILXC3:	CALL	TTYIN			; Get a character
+	OR	A			; End of string?
+	JR	Z,FILXCT		; Yes, go wait for next command
+	CALL	FILRES			; Say normal talk
+	CALL	OUTCHR			; Print the character
+	CALL	FILSET			; Say file talk again
+	JP	P,FILXC3		; If still + then keep going
+	JR	FILXCT			; That's all, get next command
+FILXC4:	DEC	A			; Is it file read?
+	JR	Z,FILXRD		; Yes, go process
+	DEC	A			; Is it file write?
+	JR	NZ,FILXCT		; No, ignore it
+FILXWT:	CALL	FILXRW			; Get the arguments
+	CALL	WRITE1			; Do the write
+	JR	FILXCT			; Go get next command
+FILXRD:	CALL	FILXRW			; Get the arguments
+	CALL	READ1			; Do the read
+	JR	FILXCT			; Go get next command
+
+;;	Get an address (arg1) and a swath (arg2) from
+;;	the host system and return them in registers
+;;	HL & BC (used with FR & FW commands)
+
+FILXRW:	CALL	TTYIN			; Get arg1 high
+	LD	H,A			; Save it
+	CALL	TTYIN			; Get arg1 low
+	LD	L,A			; Save it
+	CALL	TTYIN			; Get arg2 high
+	LD	B,A			; Save it
+	CALL	TTYIN			; Get arg2 low
+	LD	C,A			; Save it
+	RET				; Return
+
+;;	Reset file console to original after (during)
+;;	file operations (was host console w/ HFBIT set)
+
+FILRES:	PUSH	AF			; Save AF
+	LD	A,(CONTMP)		; Get original console #
+	LD	(CONNUM),A		; Put it where it belongs
+	CPL				; If Quadart or CSP, then
+	AND	HQBIT			; turn on HQBIT and turn
+	OUT	HPORT-2,A		; off file program flag
+	POP	AF			; Get AF back
+	RET				; & return
+
+;;	Save current # console and set up console as host for
+;;	file operations (set HFBIT to indicate file operation)
+
+FILSET:	LD	HL,CONNUM		; Point to current console #
+	LD	A,(HL)			; Save it for later at
+	LD	(CONTMP),A		; the console temporary
+	LD	(HL),-1			; Say new console is host
+	LD	A,HFBIT			; Set file
+	OUT	HPORT-2,A		; program flag
+	RET				; Return
+	FORM
+
+;;	Send a byte to the host system for file commands
+;;	If not responding, then give an error message
+
+FILOUT:	PUSH	AF			; Save byte
+	PUSH	BC			; Save BC (use BC for timeout)
+	LD	BC,10000		; Load timeout constant
+FILOU1:	IN	A,HPORT			; Get the host status
+	AND	HTBE			; Is it ready for a byte?
+	JR	NZ,FILOU2		; Yes, send it & return
+	DEC	BC			; Drop timeout count
+	LD	A,B			; Did the count break?
+	OR	C			; (because we "dropped" it)
+	JR	NZ,FILOU1		; No, keep waiting
+	CALL	FILRES			; Oops, host system not there
+	CALL	OUTSTI			; Print error message
+	DM	BEL,'Timeout\R'
+	LD	(FILABF),A		; Reset file abort flag
+	JP	REENTE			; & abort the job ourselves
+FILOU2:	POP	BC			; Restore BC
+	POP	AF			; Get byte back
+	JP	TTYOUT			; Send the byte & return
+
+;;	File processor "Kill" command
+;;	K <CR>
+;;	Stop the host system's file processor program
+
+FILABT:	CALL	EOLCHK			; Check if end of line
+FILAB1:	INC	HL			; Delay a while for
+	LD	A,H			; the host to
+	OR	L			; recover before
+	JR	NZ,FILAB1		; proceeding
+	LD	A,HFBIT			; Get file operation flag
+	OUT	HPORT-2,A		; Send it
+	IN	A,HPORT			; Get host status
+	AND	HTBE			; Is it ready?
+	JR	Z,FILAB2		; No, I guess it's gone
+	XOR	A			; Yes, get a 0
+	OUT	HPORT-1,A		; Send the 0
+	JR	FILAB1			; Keep poking until gone
+FILAB2:	OUT	HPORT-2,A		; Clear file operation flag
+	JP	CINIT			; Initialize new console & return
+
+	SUBTTL	*** User Operation Processing ***
+
+;;	This routine dispatches user operation requests.  A "JSYS n"
+;;	operation is executed by the user, where n is the function
+;;	code.  Control is transferred here and the function code is
+;;	converted to a routine address.  The PC is adjusted around
+;;	the function code, then the user is sent to the routine they
+;;	requested.  If an invalid function is requested, the job is
+;;	aborted.  The registers are not disturbed.
+
+JSYSX:	EX	(SP),HL			; Get PC, save HL
+	PUSH	AF			; Save current AF
+	LD	A,(HL)			; Get operation code
+	LD	(JSYSOP),A		; Save it for later
+	PUSH	HL			; Save PC on stack incase invalid
+	CP	JSYSJN			; Are we out of range?
+	JP	NC,CRASH		; Yes, assume we crashed
+	POP	HL			; Get PC back
+	POP	AF			; Get original AF back
+	INC	HL			; Bump past operation code
+	EX	(SP),HL			; Restore PC & HL
+
+;;	The function code has been saved and its range has been checked
+;;	All registers at this point are back to normal (temporarily)
+
+	PUSH	HL			; Save HL
+	PUSH	AF			; Save AF again
+	LD	A,(JSYSOP)		; Get the operation code
+	ADD	A			; *2 for jump table
+	LD	HL,JSYSJP		; Point to jump table
+	CALL	ADDH			; Point to actual entry
+	POP	AF			; Get AF back
+	CALL	LOADHH			; Get routine address
+	EX	(SP),HL			; Save it on stack, get HL back
+	RET				; Go to the routine
+
+	SUBTTL	*** General Purpose Subroutines ***
+
+;;	Add A to the contents of HL
+;;	HL=HL+A
+
+ADDH:	ADD	L			; Add L
+	LD	L,A			; Resave it
+	RET	NC			; Return if no overflow
+	INC	H			; Adjust H
+	RET				; & return
+
+;;	Convert the ASCII decimal string
+;;	at DE to a binary value in HL
+;;	Entry:	DE points to string
+;;	Exit:	HL contains value
+;;		A contains break character
+
+DECIN:	CALL	NTSSCN			; Skip spaces
+	LD	HL,0			; Start with 0
+DECINL:	LD	A,(DE)			; Get a character
+	CALL	NUMER			; Is it numeric?
+	RET	C			; No, return
+	INC	DE			; Bump character pointer
+	SUB	'0'			; Convert to binary
+	PUSH	BC			; Save BC
+	LD	B,H			; Make copy of
+	LD	C,L			; HL into BC
+	ADD	HL,HL			; *2
+	ADD	HL,HL			; *4
+	ADD	HL,BC			; *5
+	ADD	HL,HL			; *10
+	POP	BC			; Restore BC
+	CALL	ADDH			; Add in new digit
+	JR	DECINL			; and go for next
+
+;;	Check if End Of Line, error if not
+;;	This routine is also BATCH continuation processor
+
+EOLCHK:	PUSH	AF			; Save AF
+	CALL	NTSSCN			; Check for non-space
+	LD	(BATPNT),DE		; Save pointer for BATCH
+	OR	A			; Is it the end?
+	JR	Z,EOLCK1		; Yes, restore AF & return
+	CP	';'			; Is it a comment?
+	JR	Z,EOLCK1		; Yes, restore AF & return
+	SUB	MXCHR			; Is it multi-command?
+	JP	NZ,CMDERR		; No, error
+	INC	DE			; Yes, bump past it
+	LD	(BATPNT),DE		; Save new batch pointer
+	LD	(BATERR),A		; Say no BATCH errors
+	CPL				; Get all 1s
+	LD	(BATFLG),A		; Say BATCH job active
+EOLCK1:	POP	AF			; Get AF back
+	RET				; & return
+	FORM
+
+;;	Convert ASCII HEX value in A to binary
+;;	Entry:	A contains character
+;;	Exit:	A contains binary value
+
+HBCNV:	SUB	'0'			; Convert to binary
+	CP	10			; Was it "A-F"?
+	RET	C			; No, return
+	SUB	7			; Convert for 10-15
+	RET				; & return
+
+;;	Verify if character in A is valid ASCII HEX
+;;	Entry:	A contains character
+;;	Exit:	A contains character adjusted for UPPERCASE
+;;		Carry flag reset if OK, else
+;;		Carry flag set if not OK
+
+HEX:	CALL	NUMER			; Check if numeric
+	RET	NC			; Yes, return
+	CALL	LCUC			; Convert to uppercase if alpha
+	CP	'A'			; Is it <"A"?
+	RET	C			; Yes, return
+	CP	'F'+1			; Is it >"F"?
+	CCF				; (Adjust flag)
+	RET				; Who knows?
+	FORM
+;;	Print a space, then print binary
+;;	 value in A to console as HEX
+;;	Entry:   A contains value
+;;	Register A gets destroyed
+
+HEXBO:	PUSH	AF			; Save HEX value
+	CALL	SPACE			; Print the space
+	POP	AF			; Get HEX value back
+	JR	HEXOUT			; & print it
+
+;;	Convert the ASCII HEX string
+;;	at DE to a binary value in HL
+;;	Entry:	DE points to string
+;;	Exit:	HL contains value
+;;		A contains break character
+
+HEXIN:	CALL	NTSSCN			; Skip spaces
+	LD	HL,0			; Start with 0
+HEXINL:	LD	A,(DE)			; Get a character
+	CALL	HEX			; Valid HEX?
+	RET	C			; No, return
+	INC	DE			; Bump ASCII pointer
+	CALL	HBCNV			; Convert character to binary
+	ADD	HL,HL			; Make room for new digit
+	ADD	HL,HL			; by shifting 4 bits
+	ADD	HL,HL			; which is like
+	ADD	HL,HL			; multiplying by 10H
+	ADD	L			; Combine new digit
+	LD	L,A			; & resave it
+	JR	HEXINL			; Go for next digit
+	FORM
+
+;;	Print 2 byte binary value in HL as HEX
+;;	Entry:	HL contains value
+;;	Register A gets destroyed
+
+HEXWO:	LD	A,H			; Get high byte
+	CALL	HEXOUT			; Print it
+	LD	A,L			; Get low byte
+					; & drop to printing it
+
+;;	Print binary value in A to console as HEX
+;;	Entry:	A contains value
+;;	Register A gets destroyed
+
+HEXOUT:	PUSH	AF			; Save byte for later
+	RRCA				; Get
+	RRCA				; left
+	RRCA				; side
+	RRCA				; nybble
+	CALL	HEXOU1			; Print it
+	POP	AF			; Get byte back
+HEXOU1:	AND	1111B			; Mask off for right nybble
+	ADD	'0'			; Convert to ASCII
+	CP	'9'+1			; Is it "A-F"?
+	JP	C,OUTCHR		; No, go print it
+	ADD	7			; Convert to "A-F"
+	JP	OUTCHR			; & print it
+
+;;	If character in A is lowercase ASCII,
+;;	then convert to UPPERCASE ASCII
+
+LCUC:	CP	'A'+40Q			; Is it <"a"?
+	RET	C			; Yes, return
+	CP	'Z'+41Q			; Is it >"z"?
+	RET	NC			; Yes, no conversion
+	SUB	40Q			; Convert to uppercase
+	RET				; & return
+
+;;	Load HL with that pointed to by HL
+;;	HL=(HL)
+
+LOADHH:	PUSH	AF			; Save AF
+	LD	A,(HL)			; Get low byte
+	INC	HL			; Bump pointer
+	LD	H,(HL)			; Get high byte
+	LD	L,A			; Shuffle low byte
+	POP	AF			; Restore AF
+	RET				; & return
+	FORM
+
+;;	Skip past TABs & spaces & only 1 comma
+;;	Entry:	DE points to string
+;;	Exit:	DE points past TABs, spaces & comma
+
+NCMSCN:	CALL	NTSSCN			; Skip TABs and spaces
+	CP	','			; Do we have a comma?
+	RET	NZ			; No, return
+	INC	DE			; Point past comma
+					; Drop to look for next non-space
+
+;;	Skip past TABs & spaces
+;;	Do while (DE)=[" "|TAB]: DE=DE+1; Loop
+;;	Entry:	DE points to string
+;;	Exit:	DE points past TABs & spaces
+
+NTSSCN:	LD	A,(DE)			; Get a character
+	CP	' '			; Is it a space?
+	JR	Z,NTSSC1		; Yes, skip it
+	CP	TAB			; Is it a <TAB>?
+	RET	NZ			; No, return
+NTSSC1:	INC	DE			; Bump pointer
+	JR	NTSSCN			; & keep looking
+
+;;	Verify if character in A is valid ASCII numeric
+;;	Entry:	A contains character
+;;	Exit:	A contains character
+;;		Carry flag reset if OK, else
+;;		Carry flag set if not OK
+
+NUMER:	CP	'0'			; Is it <"0"?
+	RET	C			; Yes, return
+	CP	'9'+1			; Is it >"9"?
+	CCF				; (Adjust flag)
+	RET				; Who knows?
+
+;;	Move print head over to column specified in reg B
+;;	Entry:	B contains column number
+
+PRITAB:	PUSH	AF			; Save AF
+PRITB1:	LD	A,(TTYPHP)		; Get current position
+	CP	B			; Are we where we want to go?
+	JP	NC,PPRET		; Yes, return
+	CALL	SPACE			; No, move over a column
+	JR	PRITB1			; Keep moving until done
+
+;;	Clear a block of memory at HL for length in A
+;;	Do while A: (HL)=0; HL=HL+1; A=A-1; Loop
+
+ZERO:	LD	(HL),0			; Load a 0 into memory
+	INC	HL			; Bump pointer
+	DEC	A			; Check count
+	JR	NZ,ZERO			; & go until done
+	RET				; then return
+	SUBTTL	*** Numeric Argument Processing Routines ***
+
+;;	Entry:	DE points to argument string,
+;;		   leading spaces & tabs are ignored
+;;		Certain defaults MAY be allowed in BC
+;;		   and HL, depending on routine called
+;;	Exit:	DE points just past argument string,
+;;		   except in the case of ARG3Q, then
+;;		   DE contains argument 3
+;;		BC contains Swath, if required
+;;		   (argument 2 minus argument 1)
+;;		HL contains argument 1
+;;		A has the character breaking the string
+;;		for ARGx and ARGxD carry flag SET
+;;		  indicates no argument given
+
+;;	ARGxx	Get argument(s)
+;;	xxx1x	HL=arg
+;;	xxx2x	HL=arg1, BC=arg2-arg1
+;;	xxx2x	HL=arg1, BC=Swath
+;;	xxx3Q	HL=arg1, BC=arg2-arg1, DE=arg3
+;;	xxx3Q	HL=arg1, BC=Swath, DE=arg3
+;;	xxxxQ	If no arg then error
+;;	xxxxD	If no arg then default
+;;	xxxxQ or xxxxD
+;;		If no EOL then error
+
+;;	Get 1 argument, defaults not allowed
+
+ARG1Q:	CALL	ARG1D			; Get number
+ARGCMC:	RET	NC			; Number given, return
+ARGCME:	JP	CMDERR			; None given, error
+
+;;	Get 1 argument, defaults allowed
+
+ARG1D:	CALL	ARGH			; Get (maybe) argument
+ARGEOL:	JP	EOLCHK			; & go check for EOL
+
+;;	Get 2 arguments, defaults not allowed
+
+ARG2Q:	CALL	ARG2D			; Get 2 arguments
+	JR	ARGCMC			; Check if any given
+
+;;	Get 2 arguments, defaults allowed
+
+ARG2D:	CALL	ARG2			; Get 2 arguments
+	JR	ARGEOL			; & go check EOL
+	FORM
+
+;;	Get 3 arguments, 1st argument default allowed,
+;;	Swath & 3rd argument defaults not allowed
+
+ARG3Q:	CALL	ARG2			; Get first 2 arguments
+	JR	C,ARGCME		; Error if none given
+	PUSH	HL			; Save 1st argument
+	CALL	ARGH			; Get 3rd argument
+	CALL	EOLCHK			; Check for EOL
+	EX	DE,HL			; Move 3rd argument into place
+	POP	HL			; Restore 1st argument
+	JR	ARGCMC			; Go check if all args given
+
+;;	Get 2 arguments, defaults allowed, EOL not checked for
+
+ARG2:	CALL	ARGH			; Get 1st argument
+					; Drop through to get Swath
+
+;;	Get Swath operator, default allowed
+;;	Entry:	DE points to string
+;;		HL contains argument 1
+;;	Exit:	BC contains Swath
+;;		 (argument 2 minus argument 1)
+;;		DE points just past string
+;;		HL contains argument 1
+
+ARGS:	CALL	NCMSCN			; Skip to argument
+	CALL	LCUC			; Check for lowercase
+	CP	'S'			; Is it a true Swath?
+	PUSH	HL			; (Save argument 1)
+	JR	NZ,ARGS1		; No, generate it artificially
+	INC	DE			; Bump past "S"
+	CALL	ARGH			; Get the Swath
+	JR	C,ARGCME		; Hey! No fair, "S" with no number
+	LD	B,H			; Move Swath
+	LD	C,L			; from HL to BC
+ARGSR:	POP	HL			; Restore argument 1
+	RET				; & return
+ARGS1:	CALL	ARGH			; Get argument 2
+	JR	C,ARGSR			; None, use default
+	POP	BC			; Get a copy of
+	PUSH	BC			; argument 1 into BC
+	OR	A			; Generate Swath by subtracting
+	SBC	HL,BC			; argument 1 from argument 2
+	INC	HL			; Adjust Swath for the end points
+	LD	B,H			; Move Swath
+	LD	C,L			; into BC
+	POP	HL			; Restore argument 1
+	LD	A,(DE)			; Get breaking character
+	OR	A			; Say we got the Swath
+	RET				; & return
+	FORM
+
+;;	Numeric Argument Radix Conversion Routine
+;;	used by Argument Processing Routines
+;;	Entry:	DE points to string
+;;		HL contains default
+;;	Exit:	DE points just past string
+;;		HL contains value (or default if none given)
+;;		A contains break character
+
+ARGH:	CALL	NCMSCN			; Look for non-space
+	PUSH	DE			; Save the pointer
+	PUSH	HL			; Save any default
+	CALL	HEXIN			; Check for breaker
+	CP	'.'			; Is it decimal point?
+	POP	HL			; Restore default
+	POP	DE			; & pointer
+	LD	A,(DE)			; Get first character
+	JR	Z,ARGH1			; Yes, it was decimal point
+	CALL	HEX			; Check if valid HEX
+	RET	C			; No, return with default
+	CALL	HEXIN			; Get new value
+	CP	'H'			; Is it terminated by "H"?
+	JR	Z,ARGH2			; Yes, skip over the "H"
+	OR	A			; Reset cy flag
+	RET				; & return
+ARGH1:	CALL	NUMER			; Is first character numeric?
+	RET	C			; No, return with default
+	CALL	DECIN			; Get new decimal value
+ARGH2:	INC	DE			; Bump past "."
+	LD	A,(DE)			; Get new breaker
+	OR	A			; Reset cy flag
+	RET				; & return
+
+	SUBTTL	*** Advanced Console I/O Routines ***
+
+;;	INput a buffered LINE of characters
+;;	Entry:	DE points to line buffer
+;;		A contains maximum length
+;;	Exit:	DE points to line buffer
+;;		A contains actual entered length
+;;		Line is terminated with binary 0
+
+INLINE:	PUSH	BC			; Save BC
+	PUSH	HL			; & HL also
+	LD	C,A			; Save maximum length
+INLING:	LD	B,0			; Initial length of 0
+	LD	H,D			; Point HL to
+	LD	L,E			; line buffer
+INLINL:	CALL	TTYGET			; Get a character
+	JR	Z,INLINL		; If <NUL>, then ignore it
+	CP	CTLE			; Is it Control-E?
+	CALL	Z,CRLF			; If so, go to new line
+	JR	Z,INLINL		; then ignore it
+	CP	CR			; Is it <CR>?
+	JR	Z,INLINB		; Yes, end of line
+	CP	BS			; Is it backspace?
+	JR	Z,INLIN1		; Yes, delete a character
+	CP	DEL			; Is it <DEL>?
+	JR	NZ,INLIN2		; No, check something else
+INLIN1:	XOR	A			; Zap A
+	OR	B			; To check buffer length
+	JR	Z,INLINL		; Empty, nothing to delete
+	DEC	HL			; Drop pointer
+	DEC	B			; & count
+	CALL	BACKSP			; Blank out character
+	LD	A,(HL)			; Get what character that was
+	CP	' '			; Was it a control character?
+	CALL	C,BACKSP		; Yes, blank out the "^"
+	JR	INLINL			; Go get another character
+INLIN2:	PUSH	AF			; Save character
+	CALL	OUTECH			; Print it
+	POP	AF			; Restore it
+	CP	CTLC			; Is it ^C?
+	JR	Z,INLIN3		; Yes, abort the job
+	CP	CTLZ			; Is it ^Z?
+INLIN3:	CALL	Z,CRLF			; Go to next line if so
+	JP	Z,REENTC		; Yes, go back to command level
+	CP	CTLU			; Is it ^U?
+	CALL	Z,CRLF			; Go to next line if so
+	JR	Z,INLING		; Yes, scrap this line & get another
+	LD	(HL),A			; Save the character
+	INC	HL			; Bump pointer
+	INC	B			; & count
+	LD	A,C			; Get maximum length
+	CP	B			; Are we there yet?
+	JR	NZ,INLINL		; No, go for another character
+INLINB:	LD	(HL),0			; Zap final byte
+	LD	A,B			; Get final length
+	POP	HL			; Get HL back
+	POP	BC			; and BC also
+	OR	A			; Set length flags
+					; Go to next line & return
+
+;;	Print a <CR><LF> sequence
+
+CRLF:	CALL	OUTSTI			; Print the following
+	DM	CR			; <CR> will also make <LF>
+	RET				; Return
+
+;;	Print a "<BS><SPACE><BS>" sequence
+
+BACKSP:	CALL	OUTSTI			; Use a short cut
+	DM	'\B \B'			; "<BS> <BS>"
+	RET				; Done
+
+;;	Echo character from input routine
+;;	Entry:	A contains the character
+;;	Exit:	A gets destroyed
+
+OUTECH:	CP	' '			; Check if graphic character
+	JR	NC,OUTCHR		; Yes, go print it
+	CP	CR			; Check if <CR>
+	JR	Z,OUTCHR		; Yes, go print it
+	PUSH	AF			; Save character
+	LD	A,'^'			; Get "^"
+	CALL	OUTCHR			; Print it
+	POP	AF			; Get character back
+	ADD	'A'-1			; Convert to graphic
+	JR	OUTCHR			; Print it & return
+
+;;	Get a processed (echoed) character
+;;	Exit:	A contains the character
+
+INCHR:	CALL	TTYGET			; Get a character
+	CP	DEL			; Is it <DEL>?
+	RET	Z			; Yes, don't echo it
+	CP	' '			; Is it printable?
+	JR	NC,OUTCHR		; Yes, print it
+	CP	CR			; Is it <CR>?
+	JR	Z,OUTCHR		; Yes, print it
+	RET				; No, return
+	FORM
+
+;;	Print a space
+
+SPACE:	LD	A,' '			; Load the space
+					; & drop to OUTCHR
+
+;;	Output a processed character via TTYOUT
+;;	& check for characters typed. Also adjust
+;;	console position & check for BATCH errors
+;;	Entry:	A contains character
+;;	All registers preserved unless output is aborted
+
+OUTCHR:	PUSH	AF			; Save character & flags
+	AND	~^7			; Mask off parity
+	PUSH	HL			; Save HL
+	LD	HL,TTYPHP		; Point to cursor position
+	CP	BEL			; Is the character <BEL>?
+	JR	NZ,OUTCH0		; No, check what else
+	LD	A,(HL)			; Get the console position
+	OR	A			; Is it 0?
+	JR	NZ,OUTCHQ		; No, this is just another ding
+	CPL				; Yes, this means an error
+	LD	(BATERR),A		; Set error flag
+OUTCHQ:	LD	A,BEL			; Reload the <BEL>
+OUTCH0:	CP	BS			; Is it <BS>?
+	JR	NZ,OUTCH1		; No, check for <TAB>
+	DEC	(HL)			; Back up cursor pointer
+	JR	OUTCHG			; Go print the <BS>
+OUTCH1:	CP	TAB			; Is it <TAB>?
+	JR	NZ,OUTCH3		; No, check for graphic
+OUTCH2:	CALL	SPACE			; Print a space
+	LD	A,111B			; Load mask for <TAB> position
+	AND	(HL)			; Are we there yet?
+	JR	NZ,OUTCH2		; No, keep printing
+	JR	OUTCHC			; Yes, return
+OUTCH3:	CP	DEL			; Is it <DEL>?
+	JR	Z,OUTCHG		; Yes, just print it
+	CP	' '			; Is it graphic?
+	JR	C,OUTCHG		; No, just print it
+	INC	(HL)			; Yes, Bump cursor pointer
+OUTCHG:	CALL	TTYOUT			; Print the character
+	CP	CR			; Is it <CR>?
+	JR	NZ,OUTCHC		; No, check if can be aborted
+	LD	(HL),0			; Yes, say cursor position at 0
+	LD	A,LF			; Load a <LF>
+	CALL	OUTCHR			; Echo it also
+OUTCHC:	POP	HL			; Restore HL
+	LD	A,(FILABF)		; Get abort flag
+	OR	A			; Are we allowed to abort?
+	JR	NZ,PPRET		; No, restore character & return
+	CALL	TTSCAN			; Is anything waiting for us?
+	JR	Z,PPRET			; No, return
+	CALL	TTYGT1			; Get what it was
+	CP	CTLS			; Is it pause?
+	CALL	Z,TTYGT1		; Yes, wait for something
+	CP	CTLC			; Control-C?
+	JP	Z,INLIN2		; Yes, echo it & go back to command
+	CP	CTLZ			; Control-Z?
+	JP	Z,INLIN2		; Yes, echo it & go back to command
+	CP	ESC			; Is it <ESC> to abort?
+	JP	Z,REENTQ		; Yes, go back to command level
+	CP	ALT			; Check for <ALT>
+	JP	Z,REENTQ		; Yes, go back to command level
+	CP	' '			; Is it printable?
+	JR	C,PPRET			; No, don't save it
+	LD	(CHRBUF),A		; Yes, save it for later
+PPRET:	POP	AF			; Restore character
+	RET				; & return
+
+;;	Print string pointed to by HL
+;;	String terminates on either 0 or ^7
+;;	Entry:	HL points to string
+
+OUTSTR:	PUSH	AF			; Save AF
+OUTST1:	LD	A,(HL)			; Get a character
+	INC	HL			; Bump pointer
+	OR	A			; Is it he end?
+	JR	Z,OUTST2		; Yes, return
+	CALL	OUTCHR			; Print the character
+	JP	P,OUTST1		; If ~^7 then go print more
+OUTST2:	POP	AF			; Restore AF
+	RET
+
+;;	Print string immediately following CALL
+;;	String terminates on either 0 or ^7
+;;	Entry:	string is immediately after CALL
+
+OUTSTI:	EX	(SP),HL			; Get string pointer (PC)
+	CALL	OUTSTR			; Print the string
+	EX	(SP),HL			; Save PC back on stack
+	RET				; & return
+	FORM
+
+;;	Get a single (advance) character
+;;	Exit:	A contains the character
+
+TTYGET:	PUSH	HL			; Save HL
+	LD	HL,CHRBUF		; Point to character buffer
+	LD	A,(HL)			; Get whatever
+	LD	(HL),0			; Zap the buffer
+	POP	HL			; Restore HL
+	OR	A			; Was there anything?
+	RET	NZ			; Yes, return
+TTYGT1:	CALL	TTYIN			; Get a byte
+	AND	~^7			; Mask off parity
+	RET				; & return
+
+;;	Check if advance character ready
+;;	Exit:	A contains 0 if none, Z flag is set
+;;		A contains -1 if any, Z flag is reset
+
+SCNCHR:	LD	A,(CHRBUF)		; Get whatever in character buffer
+	OR	A			; Was there anything?
+	LD	A,-1			; Get all ones incase so
+	RET	NZ			; Yes, return
+					; No, check if hardware ready
+
+	SUBTTL	*** Primitive Console I/O Routines ***
+
+;;	Check if byte ready from current console
+;;	Exit:	A contains 0 if none, Z flag is set
+;;		A contains -1 if any, Z flag is reset
+
+TTSCAN:	PUSH	BC			; Save BC
+	CALL	CONGEN			; Get the hardware info
+	IN	A,(C)			; Get status
+	AND	B			; Check if anything there
+	POP	BC			; Restore BC
+	RET	Z			; Nothing, return
+	LD	A,-1			; Load all ones
+	RET				; & return
+
+;;	Get a byte from current console
+;;	Exit:	A contains the byte
+
+TTYIN:	CALL	TTSCAN			; Check if anything there
+	JR	Z,TTYIN			; No, keep waiting
+	PUSH	BC			; Save BC
+	CALL	CONGEN			; Get the hardware info
+	DEC	C			; Point to data port
+	IN	A,(C)			; Get the data
+	POP	BC			; Restore BC
+	RET				; & return
+
+;;	Output a byte to current console
+;;	Entry:	A contains the byte
+;;	All registers preserved except F
+
+TTYOUT:	PUSH	BC			; Save BC
+	PUSH	AF			; Save the character
+	CALL	CONGEN			; Get the hardware info
+	LD	B,A			; Save output mask in B
+TTYOU1:	IN	A,(C)			; Get the status
+	AND	B			; Is it ready yet?
+	JR	Z,TTYOU1		; No, wait for ready
+	POP	AF			; Get character back
+	DEC	C			; Point to data port
+	OUT	(C),A			; Send the character
+	POP	BC			; Restore BC
+	RET				; then return
+	FORM
+
+;;	Return hardware information for current console
+;;	Current console number is determined as follows:
+
+;;	If CONNUM is negative then the console is the host
+;;	system, else if CONNUM=040H then the console is
+;;	the CSP, else the console is a Quadart channel.
+;;	In the latter case, the actual status port # is
+;;	determined as: CONNUM*2+QBASE+1
+
+;;	C=status port #
+;;	 (decrement for data port #)
+;;	B=input mask
+;;	A=output mask
+
+CONGEN:	LD	A,(CONNUM)		; Get the console #
+	OR	A			; Is it negative?
+	JP	P,CONGNC		; No, not the host system
+	LD	BC,HRDA<<8|HPORT	; Load parameters
+	LD	A,HTBE			; for the host system
+	RET				; & return
+
+;;	Check if Quadart or CSP
+
+CONGNC:	CP	040H			; Is it CSP?
+	JR	NZ,CONGNQ		; No, must be Quadart
+
+;;	It's a CSP
+
+	LD	C,CSPSBC		; Load CSP SIO control port
+	JR	CONGN1			; Load I/O masks & return
+
+;;	It's a Quadart
+
+CONGNQ:	ADD	A			; Quadart # * 2
+	ADD	QBASE+1			; + address base + 1
+	LD	C,A			; Save status port #
+;;	B=QRDA, A=QTBE
+CONGN1:	LD	B,QRDA			; Load RDA mask
+	LD	A,QTBE			; & TBE mask
+	RET				; then return
+
+	SUBTTL	*** Command Routine Jump Table ***
+
+;;	Command Routine Jump Table
+;;	Address values marked with "Error"
+;;	are not implemented for anything,
+;;	and their use will cause an error
+
+CMDJMP:	DW	BATCH			; @ - Submit for Batch Processing
+	DW	CMDERR			; A - Error
+	DW	CMDERR			; B - Error
+	DW	CMDERR			; C - Error
+	DW	DISPLY			; D - Display Memory
+	DW	EXAMIN			; E - Examine Input Port
+	DW	FILCMD			; F - File Operations Processing
+	DW	GOTO			; G - Go to
+	DW	CMDERR			; H - Error
+	DW	INICMD			; I - Initialize Console
+	DW	CMDERR			; J - Error
+	DW	FILABT			; K - Kill File Processor
+	DW	CMDERR			; L - Error
+	DW	MOVE			; M - Move Memory
+	DW	NULLS			; N - Send Nulls to Console
+	DW	OUTPUT			; O - Output to Port
+	DW	CMDERR			; P - Error
+	DW	FIND			; Q - Query Memory
+	DW	READ			; R - Read Binary Data
+	DW	SETMEM			; S - Set Memory
+	DW	CMDERR			; T - Error
+	DW	CMDERR			; U - Error
+	DW	VERIFY			; V - Verify Memory
+	DW	WRITE			; W - Write Binary Data
+	DW	CMDERR			; X - Error
+	DW	CMDERR			; Y - Error
+	DW	ZAP			; Z - Zap Memory
+
+	SUBTTL	*** JSYS Entry Jump Table ***
+
+;;	JSYS Entry Jump Table
+;;	This table is used for user entry processing;
+;;	Each of the addresses listed below
+;;	corresponds to a user function.
+
+JSYSJP:	DW	REENTE			; Re-enter the monitor
+	DW	TTYIN			; Input a pure byte
+	DW	TTSCAN			; Check for pure byte ready
+	DW	TTYOUT			; Output a pure byte
+	DW	INLINE			; Input a buffered line
+	DW	INCHR			; Input a processed character
+	DW	SCNCHR			; Check for character ready
+	DW	OUTCHR			; Output a processed character
+	DW	OUTSTR			; Output a string
+	DW	OUTSTI			; Output immediate string
+	DW	CRLF			; Output a <CR><LF> sequence
+	DW	CONGEN			; Get console hardware info
+	DW	BATCH1			; Set up a batch job
+	DW	ARGH			; Convert a single argument
+	DW	ARG2			; Convert two arguments
+	DW	HEXOUT			; Display number in HEX
+JSYSJN	EQU	[$-JSYSJP]/2		; Total # of functions
+
+	SUBTTL	*** Constants & Lookup Tables ***
+
+;;	PIOs & CSP baud rate initialization table
+;;	Format	port #,	data
+
+PIOLST:	DB	PIOACM,	PIOMOD		; Command byte
+	DB	PIOACM,	PIOMSK		; Bit select byte
+	DB	PIOADT,	11101110B	; CY=1, async clocks
+	DB	PIOACM,	00000111B	; No interrupts
+	DB	PIOBCM,	PIOMOD		; Command byte
+	DB	PIOBCM,	PIOMSK		; Bit select byte
+	DB	PIOBDT,	11101110B	; CY=1, async clocks
+	DB	PIOBCM,	00000111B	; No interrupts
+	DB	CSPMOD,	CSPMDI		; CSP mode instruction
+	DB	CSPCLK,	002H		; CSP baud rate LSB (9600 baud)
+	DB	CSPCLK,	000H		; CSP baud rate LSB
+PIOLSL	EQU	[$-PIOLST]/2
+
+;;	SIO initialization table
+;;	Format	length,	port #
+;;		data...
+
+SIOLST	EQU	$
+
+SIOLS0:	DB	SIOLL0,	QBASE+1
+	DB	00011000B		; 0: channel reset
+	DB	00010100B		; 0: reset INTs, pointer 4
+	DB	01001100B		; 4: x16 clock, 2 stop, no parity
+	DB	00000011B		; 0: pointer 3
+	DB	11000001B		; 3: 8 bits, Rx enable
+	DB	00000101B		; 0: pointer 5
+	DB	01101000B		; 5: 8 bits, Tx enable
+	DB	00010001B		; 0: reset INTs, pointer 1
+	DB	00000000B		; 1: no waits, no INTs
+SIOLL0	EQU	$-SIOLS0-2		; Length of SIO list 0
+
+SIOLS1:	DB	SIOLL1,	QBASE+3
+	DB	00011000B		; 0: channel reset
+	DB	00000010B		; 0: pointer 2
+	DB	00000000B		; 2: interrupt vector
+	DB	00010100B		; 0: reset INTs, pointer 4
+	DB	01001100B		; 4: x16 clock, 2 stop, no parity
+	DB	00000011B		; 0: pointer 3
+	DB	11000001B		; 3: 8 bits, Rx enable
+	DB	00000101B		; 0: pointer 5
+	DB	01101000B		; 5: 8 bits, Tx enable
+	DB	00010001B		; 0: reset INTs, pointer 1
+	DB	00000000B		; 1: no waits, no INTs
+SIOLL1	EQU	$-SIOLS1-2		; Length of SIO list 1
+	FORM
+
+SIOLS2:	DB	SIOLL2,	QBASE+5
+	DB	00011000B		; 0: channel reset
+	DB	00010100B		; 0: reset INTs, pointer 4
+	DB	01001100B		; 4: x16 clock, 2 stop, no parity
+	DB	00000011B		; 0: pointer 3
+	DB	11000001B		; 3: 8 bits, Rx enable
+	DB	00000101B		; 0: pointer 5
+	DB	01101000B		; 5: 8 bits, Tx enable
+	DB	00010001B		; 0: reset INTs, pointer 1
+	DB	00000000B		; 1: no waits, no INTs
+SIOLL2	EQU	$-SIOLS2-2		; Length of SIO list 2
+
+SIOLS3:	DB	SIOLL3,	QBASE+7
+	DB	00011000B		; 0: channel reset
+	DB	00000010B		; 0: pointer 2
+	DB	10000000B		; 2: interrupt vector
+	DB	00010100B		; 0: reset INTs, pointer 4
+	DB	01001100B		; 4: x16 clock, 2 stop, no parity
+	DB	00000011B		; 0: pointer 3
+	DB	11000001B		; 3: 8 bits, Rx enable
+	DB	00000101B		; 0: pointer 5
+	DB	01101000B		; 5: 8 bits, Tx enable
+	DB	00010001B		; 0: reset INTs, pointer 1
+	DB	00000000B		; 1: no waits, no INTs
+SIOLL3	EQU	$-SIOLS3-2		; Length of SIO list 3
+
+SIOLSC:	DB	SIOLLC,	CSPSBC
+	DB	00011000B		; 0: channel reset
+	DB	00000100B		; 0: pointer 4
+	DB	01001100B		; 4: x16 clock, 2 stop, no parity
+	DB	00010001B		; 0: reset INTs, pointer 1
+	DB	00000000B		; 1: no INTs
+	DB	00000011B		; 0: pointer 3
+	DB	11000001B		; 3: 8 bits, Rx enable
+	DB	00000101B		; 0: pointer 5
+	DB	11101010B		; 5: 8 bits, Tx enable, RTS, DTR
+SIOLLC	EQU	$-SIOLSC-2		; Length of SIO list for CSP
+
+;;	Quadart baud rate port table
+;;	Each of the following entries is a CTC
+;;	port # used for baud rate generation
+
+CKLIST:	DB	QBASE+12		; Quadart channel 0
+	DB	QBASE+13		; Quadart channel 1
+	DB	QBASE+14		; Quadart channel 2
+	DB	QBASE+16		; Quadart channel 3
+	FORM
+
+;;	Baud rate value table
+;;	When 4 MHz is divided by 13, then by each of the following,
+;;	the corresponding baud rate clock is generated (x16 format)
+
+;;	equivalents: 19200,9600,4800,2400,1200, 600, 300, 110
+
+BDLIST:	DB	001, 002, 004, 008, 016, 032, 064, 174
+BDLISN	EQU	$-BDLIST		; Possible number of baud rates
+
+	SUBTTL	*** Variables ***
+
+	ORG	8000H-100H		; Variables at the top page of RAM
+
+VARBS	EQU	$			; Reference for beginning of variables
+
+BREAK:	DS	3			; DEBUG break transfer (JP nn)
+
+JSYSOP:	DS	1			; Current JSYS operation code
+
+DISPNT:	DS	2			; Last DM command address
+SETPNT:	DS	2			; Last SM command address
+
+CONNUM:	DS	1			; Current console #
+					; If minus then Host else
+					; if 040H then CSP else
+					; is Quadart channel number
+TTYPHP:	DS	1			; Console print position
+CHRBUF:	DS	1			; Advance console character buffer
+CONTMP:	DS	1			; Temporary storage for console #
+
+XCTADR:	DS	2			; Return execution address
+
+BATDAT	EQU	$			; Reference for batch data block
+BATFLG:	DS	1			; Indicates batch job in progress
+BATERR:	DS	1			; Indicates error occurred
+BATPNT:	DS	2			; Batch command line pointer
+
+FILABF:	DS	1			; File operations abort inhibit flag
+
+LINLEN	EQU	72			; Console input line length
+LINBUF:	DS	LINLEN+1		; Console input line buffer
+
+STACK	EQU	8000H-20H		; Where to load Stack Pointer
+
+XXXXXX	EQU	STACK			; User available free space
+
+	SUBTTL	*** Equates ***
+
+;;	I/O Port Equates
+
+HPORT	EQU	002H			; Host Console status port
+QBASE	EQU	040H			; Quadart base address
+PIOACM	EQU	QBASE+09		; Quadart PIO A Command port
+PIOAST	EQU	QBASE+09		; Quadart PIO A Status port
+PIOADT	EQU	QBASE+08		; Quadart PIO A Data port
+PIOBCM	EQU	QBASE+11		; Quadart PIO B Command port
+PIOBST	EQU	QBASE+11		; Quadart PIO B Status port
+PIOBDT	EQU	QBASE+10		; Quadart PIO B Data port
+LOPBAK	EQU	QBASE+20		; Quadart LoopBack Command port
+CBASE	EQU	070H			; CSP base address
+CSPCLK	EQU	CBASE+10		; CSP Rate Clock port
+CSPMOD	EQU	CBASE+11		; CSP Mode Command port
+CSPSAC	EQU	CBASE+13		; CSP SIO A Command port
+CSPSAS	EQU	CBASE+13		; CSP SIO A Status port
+CSPSAD	EQU	CBASE+12		; CSP SIO A Data port
+CSPSBC	EQU	CBASE+15		; CSP SIO B Command port
+CSPSBS	EQU	CBASE+15		; CSP SIO B Status port
+CSPSBD	EQU	CBASE+14		; CSP SIO B Data port
+
+;;	I/O Mask Equates
+
+PIOMOD	EQU	11111111B		; PIO: mode command
+PIOMSK	EQU	11001100B		; PIO: bit mask
+CTCBDX	EQU	01000111B		; CTC: timer, ld tc, reset
+HFBIT	EQU	^2			; Tells host file ops in progress
+HQBIT	EQU	^5			; Tells host Quadart is on line
+HRDA	EQU	^6			; Host Receive Data Available
+HTBE	EQU	^7			; Host Transmitter Buffer Empty
+QRDA	EQU	^0			; Quadart Receive Data Available
+QTBE	EQU	^2			; Quadart Transmitter Buffer Empty
+CSPMDI	EQU	10110110B		; CSP Mode: Ctr2 10
+					;	 LsB/MsB   11
+					;	  Square     011
+					;	  Binary	0
+	FORM
+
+;;	ASCII Equates
+
+CTLC	EQU	003			; Control-C for job abort
+CTLE	EQU	005			; Control-E for physical <CR><LF>
+BEL	EQU	007			; Bell
+BS	EQU	008			; Backspace
+TAB	EQU	009			; Horizontal Tab
+LF	EQU	010			; Line Feed
+CR	EQU	013			; Carriage Return
+CTLS	EQU	019			; Control-S for pause
+CTLU	EQU	021			; Control-U for delete line
+CTLZ	EQU	026			; Control-Z for job abort
+ESC	EQU	027			; Escape
+MXCHR	EQU	'\\'			; Multiple command terminator
+ALT	EQU	125			; Altmode
+DEL	EQU	127			; Delete character
+NMIADR	EQU	4000H			; Start Addr. of RAM
+
+	END	START
