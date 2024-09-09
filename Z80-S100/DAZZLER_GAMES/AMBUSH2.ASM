@@ -4,13 +4,13 @@
 	org	00100h
 
 l0100h:
-	jp l010eh		;0100
+	jp init		;0100
 	ld de,l0100h		;0103
-	ld bc,00c00h		;0106
+	ld bc,00c1ch		;0106
 	ldir		;0109
 	jp l010eh		;010b
 l010eh:
-	ld sp,00d1eh		;010e
+	ld sp,00d3ah		;010e
 	call sub_050fh		;0111
 l0114h:
 	in a,(00eh)		;0114
@@ -286,14 +286,22 @@ sub_02f4h:
 	ld a,(l0831h)		;02f4
 	rra			;02f7
 	jr nc,l0306h		;02f8
-	ld a,(l0825h)		;02fa
-	out (00eh),a		;02fd
-	ld a,(l0826h)		;02ff
-	out (00fh),a		;0302
-	jr l0310h		;0304
-l0306h:
-	ld a,(l0824h)		;0306
-	out (00eh),a		;0309
+	; ZOGGINS 
+	; Need to change to the proper 
+	; page stored in (l0825h). 
+	call chgpage1 
+	nop 
+	nop 
+	ld a,(l0826h)		;02ff 
+	out (00fh),a		;0302 
+	jr l0310h		;0304 
+l0306h: 
+	; ZOGGINS 
+	; Need to change to the proper 
+	; page stored in (l0824h). 
+	call chgpage2 
+	nop
+	nop
 	ld a,(l0827h)		;030b
 	out (00fh),a		;030e
 l0310h:
@@ -695,8 +703,8 @@ l055eh:
 	ld bc,00037h		;0595
 	ldir		;0598
 	call sub_0326h		;059a
-	ld a,090h		;059d
-	out (00eh),a		;059f
+	ld a,090h			;059d 
+	out (00eh),a		;059f 
 	ld a,07ah		;05a1
 	out (00fh),a		;05a3
 l05a5h:
@@ -2155,3 +2163,31 @@ l0cfbh:
 	push hl			;0cfd
 	and a			;0cfe
 	defb 0edh		;0cff
+chgpage1: 
+	ld a,(l0825h)		 
+	sub 090h 
+	rra
+	rra
+	and 001h
+	out (018h),a	 
+	ret
+chgpage2: 
+	ld a,(l0824h) 
+	sub 090h 	 
+	rra
+	rra
+	and 001h
+	out (018h),a	 
+	ret 
+init: 
+	; ZOGGINS 
+	; Select Page 1 on Dazzler II 
+	ld a,000h 
+	out (018h),a 
+	
+	; ZOGGINS
+	; Set DMA address
+	ld a,010h 
+	out (00eh),a 
+	
+	jp l010eh		;0100

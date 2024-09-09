@@ -483,8 +483,11 @@
 040e c3 00 00			jp 00000h		;040e 
 0411 c9				ret			;0411 
 0412			l0412h: 
+0412				; ZOGGINS 
+0412				; Select Page 1 on Dazzler II 
 0412 3e 00			ld a,000h		;0412 
 0414 d3 18			out (018h),a		;0414 
+0416				 
 0416 21 03 01			ld hl,l0103h		;0416 
 0419 11 00 00			ld de,00000h		;0419 
 041c 01 0f 03			ld bc,l030fh		;041c 

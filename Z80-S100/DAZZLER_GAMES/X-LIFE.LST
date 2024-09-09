@@ -1,0 +1,2495 @@
+# File X-LIFE.ASM
+0000			; z80dasm 1.1.6 
+0000			; command line: z80dasm --labels --origin=0x0100 --address X-LIFE.COM 
+0000			 
+0000				org	00100h 
+0100			 
+0100 c3 cb 0b			jp init		;0100 
+0103			l0103h: 
+0103 c3 03 00			jp 00003h		;0103 
+0106 31 00 08			ld sp,l0800h		;0106 
+0109 cd 6a 01			call sub_016ah		;0109 
+010c cd 92 01			call 00192h		;010c 
+010f cd 27 00			call 00027h		;010f 
+0112 db 01			in a,(001h)		;0112 
+0114 e6 7f			and 07fh		;0114 
+0116 fe 46			cp 046h		;0116 
+0118 ca 0f 00			jp z,0000fh		;0118 
+011b cd 3c 00			call 0003ch		;011b 
+011e db 01			in a,(001h)		;011e 
+0120 e6 7f			and 07fh		;0120 
+0122 fe 18			cp 018h		;0122 
+0124 ca 09 00			jp z,00009h		;0124 
+0127			l0127h: 
+0127 c3 0c 00			jp 0000ch		;0127 
+012a 01 00 00			ld bc,00000h		;012a 
+012d cd 7e 00			call 0007eh		;012d 
+0130 3e 40			ld a,040h		;0130 
+0132 0c				inc c			;0132 
+0133 b9				cp c			;0133 
+0134 c2 2a 00			jp nz,0002ah		;0134 
+0137 0e 00			ld c,000h		;0137 
+0139 04				inc b			;0139 
+013a b8				cp b			;013a 
+013b c2 2a 00			jp nz,0002ah		;013b 
+013e c9				ret			;013e 
+013f			l013fh: 
+013f 01 00 00			ld bc,00000h		;013f 
+0142 cd e3 00			call 000e3h		;0142 
+0145 fe 09			cp 009h		;0145 
+0147 c2 4f 00			jp nz,0004fh		;0147 
+014a 3e 00			ld a,000h		;014a 
+014c cd f4 00			call 000f4h		;014c 
+014f c3 59 00			jp 00059h		;014f 
+0152 fe 0a			cp 00ah		;0152 
+0154 c2 59 00			jp nz,00059h		;0154 
+0157 3e 0c			ld a,00ch		;0157 
+0159 cd f4 00			call 000f4h		;0159 
+015c 3e 40			ld a,040h		;015c 
+015e			l015eh: 
+015e 0c				inc c			;015e 
+015f b9				cp c			;015f 
+0160 c2 3f 00			jp nz,0003fh		;0160 
+0163 0e 00			ld c,000h		;0163 
+0165 04				inc b			;0165 
+0166 b8				cp b			;0166 
+0167 c2 3f 00			jp nz,0003fh		;0167 
+016a			sub_016ah: 
+016a c9				ret			;016a 
+016b 21 00 08			ld hl,l0800h		;016b 
+016e 11 00 f8			ld de,0f800h		;016e 
+0171 06 00			ld b,000h		;0171 
+0173 3e 00			ld a,000h		;0173 
+0175 ba				cp d			;0175 
+0176 c2 78 00			jp nz,00078h		;0176 
+0179 bb				cp e			;0179 
+017a c8				ret z			;017a 
+017b 70				ld (hl),b			;017b 
+017c 13				inc de			;017c 
+017d 23				inc hl			;017d 
+017e c3 72 00			jp 00072h		;017e 
+0181 c5				push bc			;0181 
+0182 3e 00			ld a,000h		;0182 
+0184 b9				cp c			;0184 
+0185 c2 96 00			jp nz,00096h		;0185 
+0188 0d				dec c			;0188 
+0189 cd c6 00			call 000c6h		;0189 
+018c 32 72 02			ld (l0272h),a		;018c 
+018f c1				pop bc			;018f 
+0190 c5				push bc			;0190 
+0191 cd c6 00			call 000c6h		;0191 
+0194 32 73 02			ld (l0272h+1),a		;0194 
+0197 c1				pop bc			;0197 
+0198 c5				push bc			;0198 
+0199 0c				inc c			;0199 
+019a cd c6 00			call 000c6h		;019a 
+019d 21 73 02			ld hl,l0272h+1		;019d 
+01a0 46				ld b,(hl)			;01a0 
+01a1 77				ld (hl),a			;01a1 
+01a2 80				add a,b			;01a2 
+01a3 2b				dec hl			;01a3 
+01a4 4e				ld c,(hl)			;01a4 
+01a5 70				ld (hl),b			;01a5 
+01a6 81				add a,c			;01a6 
+01a7 57				ld d,a			;01a7 
+01a8 c1				pop bc			;01a8 
+01a9 c8				ret z			;01a9 
+01aa			l01aah: 
+01aa d5				push de			;01aa 
+01ab cd e3 00			call 000e3h		;01ab 
+01ae d1				pop de			;01ae 
+01af fe 00			cp 000h		;01af 
+01b1 ca bd 00			jp z,000bdh		;01b1 
+01b4 7a				ld a,d			;01b4 
+01b5 fe 03			cp 003h		;01b5 
+01b7 c8				ret z			;01b7 
+01b8 fe 04			cp 004h		;01b8 
+01ba c8				ret z			;01ba 
+01bb 3e 09			ld a,009h		;01bb 
+01bd c3 f4 00			jp 000f4h		;01bd 
+01c0 7a				ld a,d			;01c0 
+01c1 fe 03			cp 003h		;01c1 
+01c3			l01c3h: 
+01c3 c0				ret nz			;01c3 
+01c4 3e 0a			ld a,00ah		;01c4 
+01c6 c3 f4 00			jp 000f4h		;01c6 
+01c9 05				dec b			;01c9 
+01ca 16 00			ld d,000h		;01ca 
+01cc cd d6 00			call 000d6h		;01cc 
+01cf			l01cfh: 
+01cf 04				inc b			;01cf 
+01d0 cd d6 00			call 000d6h		;01d0 
+01d3 04				inc b			;01d3 
+01d4 cd d6 00			call 000d6h		;01d4 
+01d7 7a				ld a,d			;01d7 
+01d8 c9				ret			;01d8 
+01d9 d5				push de			;01d9 
+01da cd e3 00			call 000e3h		;01da 
+01dd d1				pop de			;01dd 
+01de fe 00			cp 000h		;01de 
+01e0 c8				ret z			;01e0 
+01e1 fe 0a			cp 00ah		;01e1 
+01e3 c8				ret z			;01e3 
+01e4 14				inc d			;01e4 
+01e5 c9				ret			;01e5 
+01e6 cd 10 01			call 00110h		;01e6 
+01e9 7e				ld a,(hl)			;01e9 
+01ea da ed 00			jp c,000edh		;01ea 
+01ed e6 0f			and 00fh		;01ed 
+01ef c9				ret			;01ef 
+01f0 e6 f0			and 0f0h		;01f0 
+01f2 07				rlca			;01f2 
+01f3 07				rlca			;01f3 
+01f4 07				rlca			;01f4 
+01f5 07				rlca			;01f5 
+01f6 c9				ret			;01f6 
+01f7 e6 0f			and 00fh		;01f7 
+01f9 f5				push af			;01f9 
+01fa cd 10 01			call 00110h		;01fa 
+01fd d1				pop de			;01fd 
+01fe da 04 01			jp c,l0103h+1		;01fe 
+0201 7e				ld a,(hl)			;0201 
+0202 e6 f0			and 0f0h		;0202 
+0204 82				add a,d			;0204 
+0205 77				ld (hl),a			;0205 
+0206 c9				ret			;0206 
+0207			l0207h: 
+0207 7a				ld a,d			;0207 
+0208 07				rlca			;0208 
+0209 07				rlca			;0209 
+020a 07				rlca			;020a 
+020b 07				rlca			;020b 
+020c 57				ld d,a			;020c 
+020d 7e				ld a,(hl)			;020d 
+020e e6 0f			and 00fh		;020e 
+0210 82				add a,d			;0210 
+0211 77				ld (hl),a			;0211 
+0212 c9				ret			;0212 
+0213 21 00 08			ld hl,l0800h		;0213 
+0216 78				ld a,b			;0216 
+0217 e6 20			and 020h		;0217 
+0219			sub_0219h: 
+0219 ca 1d 01			jp z,0011dh		;0219 
+021c 11 00 02			ld de,00200h		;021c 
+021f 19				add hl,de			;021f 
+0220 79				ld a,c			;0220 
+0221 e6 20			and 020h		;0221 
+0223 ca 27 01			jp z,l0127h		;0223 
+0226 11 00 04			ld de,l0400h		;0226 
+0229 19				add hl,de			;0229 
+022a 79				ld a,c			;022a 
+022b e6 1f			and 01fh		;022b 
+022d 07				rlca			;022d 
+022e 07				rlca			;022e 
+022f 07				rlca			;022f 
+0230 17				rla			;0230 
+0231			l0231h: 
+0231 5f				ld e,a			;0231 
+0232 3e 00			ld a,000h		;0232 
+0234 17				rla			;0234 
+0235 57				ld d,a			;0235 
+0236 19				add hl,de			;0236 
+0237			l0237h: 
+0237 78				ld a,b			;0237 
+0238 1f				rra			;0238 
+0239 f5				push af			;0239 
+023a e6 0f			and 00fh		;023a 
+023c 5f				ld e,a			;023c 
+023d 16 00			ld d,000h		;023d 
+023f			l023fh: 
+023f 19				add hl,de			;023f 
+0240 f1				pop af			;0240 
+0241			sub_0241h: 
+0241 c9				ret			;0241 
+0242 db 00			in a,(000h)		;0242 
+0244 e6 40			and 040h		;0244 
+0246 00				nop			;0246 
+0247 00				nop			;0247 
+0248 00				nop			;0248 
+0249 00				nop			;0249 
+024a 00				nop			;024a 
+024b 00				nop			;024b 
+024c c0				ret nz			;024c 
+024d 0c				inc c			;024d 
+024e c2 3f 01			jp nz,l013fh		;024e 
+0251 04				inc b			;0251 
+0252 c2 3f 01			jp nz,l013fh		;0252 
+0255 c9				ret			;0255 
+0256 db 00			in a,(000h)		;0256 
+0258 e6 80			and 080h		;0258 
+025a ca 53 01			jp z,00153h		;025a 
+025d 78				ld a,b			;025d 
+025e d3 01			out (001h),a		;025e 
+0260 c9				ret			;0260 
+0261 46				ld b,(hl)			;0261 
+0262 3e 00			ld a,000h		;0262 
+0264 b8				cp b			;0264 
+0265			l0265h: 
+0265 c8				ret z			;0265 
+0266 cd 53 01			call 00153h		;0266 
+0269 23				inc hl			;0269 
+026a c3 5e 01			jp l015eh		;026a 
+026d cd 68 00			call 00068h		;026d 
+0270 3e 84			ld a,084h		;0270 
+0272			l0272h: 
+0272 d3 0e			out (00eh),a		;0272 
+0274			l0274h: 
+0274 3e b0			ld a,0b0h		;0274 
+0276 d3 0f			out (00fh),a		;0276 
+0278 21 74 02			ld hl,l0274h		;0278 
+027b cd 5e 01			call l015eh		;027b 
+027e cd 3f 01			call l013fh		;027e 
+0281 c9				ret			;0281 
+0282 00				nop			;0282 
+0283 00				nop			;0283 
+0284 db 01			in a,(001h)		;0284 
+0286 47				ld b,a			;0286 
+0287 cd 53 01			call 00153h		;0287 
+028a e6 7f			and 07fh		;028a 
+028c fe 59			cp 059h		;028c 
+028e c0				ret nz			;028e 
+028f 21 99 02			ld hl,00299h		;028f 
+0292 c3 5e 01			jp l015eh		;0292 
+0295			l0295h: 
+0295 cd 68 00			call 00068h		;0295 
+0298 21 31 02			ld hl,l0231h		;0298 
+029b 22 95 02			ld (l0295h),hl		;029b 
+029e 21 3f 02			ld hl,l023fh		;029e 
+02a1 22 97 02			ld (l0295h+2),hl		;02a1 
+02a4 21 85 02			ld hl,00285h		;02a4 
+02a7 cd 5e 01			call l015eh		;02a7 
+02aa 01 00 00			ld bc,00000h		;02aa 
+02ad cd 41 02			call sub_0241h		;02ad 
+02b0 21 cf 01			ld hl,l01cfh		;02b0 
+02b3 e6 7f			and 07fh		;02b3 
+02b5 57				ld d,a			;02b5 
+02b6 97				sub a			;02b6 
+02b7 be				cp (hl)			;02b7 
+02b8 ca aa 01			jp z,l01aah		;02b8 
+02bb 7a				ld a,d			;02bb 
+02bc be				cp (hl)			;02bc 
+02bd ca c3 01			jp z,l01c3h		;02bd 
+02c0 23				inc hl			;02c0 
+02c1 23				inc hl			;02c1 
+02c2 23				inc hl			;02c2 
+02c3 c3 b3 01			jp 001b3h		;02c3 
+02c6 23				inc hl			;02c6 
+02c7 5e				ld e,(hl)			;02c7 
+02c8 23				inc hl			;02c8 
+02c9 56				ld d,(hl)			;02c9 
+02ca eb				ex de,hl			;02ca 
+02cb cd ce 01			call 001ceh		;02cb 
+02ce c3 aa 01			jp l01aah		;02ce 
+02d1 e9				jp (hl)			;02d1 
+02d2 44				ld b,h			;02d2 
+02d3 05				dec b			;02d3 
+02d4 02				ld (bc),a			;02d4 
+02d5 45				ld b,l			;02d5 
+02d6 14				inc d			;02d6 
+02d7 02				ld (bc),a			;02d7 
+02d8 43				ld b,e			;02d8 
+02d9 0a				ld a,(bc)			;02d9 
+02da 02				ld (bc),a			;02da 
+02db 47				ld b,a			;02db 
+02dc fb				ei			;02dc 
+02dd 01 41 37			ld bc,03741h		;02dd 
+02e0 02				ld (bc),a			;02e0 
+02e1 01 37 02			ld bc,l0237h		;02e1 
+02e4 53				ld d,e			;02e4 
+02e5 3c				inc a			;02e5 
+02e6 02				ld (bc),a			;02e6 
+02e7 13				inc de			;02e7 
+02e8 3c				inc a			;02e8 
+02e9 02				ld (bc),a			;02e9 
+02ea 5a				ld e,d			;02ea 
+02eb 32 02 1a			ld (01a02h),a		;02eb 
+02ee 32 02 57			ld (05702h),a		;02ee 
+02f1 2d				dec l			;02f1 
+02f2 02				ld (bc),a			;02f2 
+02f3 17				rla			;02f3 
+02f4 2d				dec l			;02f4 
+02f5 02				ld (bc),a			;02f5 
+02f6 51				ld d,c			;02f6 
+02f7 fd 01 0d			defb 0fdh,001h,00dh	;illegal sequence		;02f7 
+02fa 01 02 00			ld bc,00002h		;02fa 
+02fd 00				nop			;02fd 
+02fe c1				pop bc			;02fe 
+02ff c9				ret			;02ff 
+0300 01 00 00			ld bc,00000h		;0300 
+0303 c9				ret			;0303 
+0304 06 00			ld b,000h		;0304 
+0306 0c				inc c			;0306 
+0307 c9				ret			;0307 
+0308 3e 0f			ld a,00fh		;0308 
+030a cd f4 00			call 000f4h		;030a 
+030d 2a 95 02			ld hl,(l0295h)		;030d 
+0310 cd ce 01			call 001ceh		;0310 
+0313 2a 97 02			ld hl,(l0295h+2)		;0313 
+0316 e9				jp (hl)			;0316 
+0317 3e 00			ld a,000h		;0317 
+0319 c3 07 02			jp l0207h		;0319 
+031c 21 31 02			ld hl,l0231h		;031c 
+031f e6 40			and 040h		;031f 
+0321 c2 24 02			jp nz,00224h		;0321 
+0324 2a 97 02			ld hl,(l0295h+2)		;0324 
+0327 22 95 02			ld (l0295h),hl		;0327 
+032a e1				pop hl			;032a 
+032b 22 97 02			ld (l0295h+2),hl		;032b 
+032e c8				ret z			;032e 
+032f e9				jp (hl)			;032f 
+0330 cd 19 02			call sub_0219h		;0330 
+0333 0d				dec c			;0333 
+0334 c9				ret			;0334 
+0335 cd 19 02			call sub_0219h		;0335 
+0338 0c				inc c			;0338 
+0339 c9				ret			;0339 
+033a cd 19 02			call sub_0219h		;033a 
+033d 05				dec b			;033d 
+033e c9				ret			;033e 
+033f cd 19 02			call sub_0219h		;033f 
+0342 04				inc b			;0342 
+0343 c9				ret			;0343 
+0344 cd e3 00			call 000e3h		;0344 
+0347 f5				push af			;0347 
+0348 c5				push bc			;0348 
+0349 3e 0c			ld a,00ch		;0349 
+034b cd f4 00			call 000f4h		;034b 
+034e 01 00 00			ld bc,00000h		;034e 
+0351 cd 3f 01			call l013fh		;0351 
+0354 c2 6e 02			jp nz,0026eh		;0354 
+0357 c1				pop bc			;0357 
+0358 c5				push bc			;0358 
+0359 3e 00			ld a,000h		;0359 
+035b cd f4 00			call 000f4h		;035b 
+035e 01 00 00			ld bc,00000h		;035e 
+0361 cd 3f 01			call l013fh		;0361 
+0364 c1				pop bc			;0364 
+0365 ca 45 02			jp z,00245h		;0365 
+0368 f1				pop af			;0368 
+0369 cd f4 00			call 000f4h		;0369 
+036c db 01			in a,(001h)		;036c 
+036e d3 01			out (001h),a		;036e 
+0370 c9				ret			;0370 
+0371 c1				pop bc			;0371 
+0372 c3 65 02			jp l0265h		;0372 
+0375 00				nop			;0375 
+0376 00				nop			;0376 
+0377 0d				dec c			;0377 
+0378 0a				ld a,(bc)			;0378 
+0379 0a				ld a,(bc)			;0379 
+037a 4c				ld c,h			;037a 
+037b 49				ld c,c			;037b 
+037c 46				ld b,(hl)			;037c 
+037d 45				ld b,l			;037d 
+037e 20 20			jr nz,$+34		;037e 
+0380 20 56			jr nz,l03d8h		;0380 
+0382 2e 20			ld l,020h		;0382 
+0384 32 2e 31			ld (0312eh),a		;0384 
+0387 00				nop			;0387 
+0388 0d				dec c			;0388 
+0389 0a				ld a,(bc)			;0389 
+038a 0a				ld a,(bc)			;038a 
+038b 45				ld b,l			;038b 
+038c 4e				ld c,(hl)			;038c 
+038d 54				ld d,h			;038d 
+038e 45				ld b,l			;038e 
+038f 52				ld d,d			;038f 
+0390 20 44			jr nz,l03d6h		;0390 
+0392 41				ld b,c			;0392 
+0393 54				ld d,h			;0393 
+0394 41				ld b,c			;0394 
+0395 0d				dec c			;0395 
+0396 0a				ld a,(bc)			;0396 
+0397 00				nop			;0397 
+0398 31 02 30			ld sp,03002h		;0398 
+039b 02				ld (bc),a			;039b 
+039c			l039ch: 
+039c 21 03 01			ld hl,l0103h		;039c 
+039f 11 00 00			ld de,00000h		;039f 
+03a2 01 99 02			ld bc,00299h		;03a2 
+03a5 ed b0			ldir		;03a5 
+03a7 21 c9 03			ld hl,l03c9h		;03a7 
+03aa 11 00 10			ld de,01000h		;03aa 
+03ad 01 03 08			ld bc,l0803h		;03ad 
+03b0 ed b0			ldir		;03b0 
+03b2 21 00 10			ld hl,01000h		;03b2 
+03b5 11 fe 07			ld de,l07feh		;03b5 
+03b8 01 03 08			ld bc,l0803h		;03b8 
+03bb ed b0			ldir		;03bb 
+03bd 3e 84			ld a,084h		;03bd 
+03bf d3 0e			out (00eh),a		;03bf 
+03c1 3e b0			ld a,0b0h		;03c1 
+03c3 d3 0f			out (00fh),a		;03c3 
+03c5 31 fe 07			ld sp,l07feh		;03c5 
+03c8 c9				ret			;03c8 
+03c9			l03c9h: 
+03c9 0c				inc c			;03c9 
+03ca 00				nop			;03ca 
+03cb 0f				rrca			;03cb 
+03cc 00				nop			;03cc 
+03cd 00				nop			;03cd 
+03ce 00				nop			;03ce 
+03cf 00				nop			;03cf 
+03d0 00				nop			;03d0 
+03d1 00				nop			;03d1 
+03d2 00				nop			;03d2 
+03d3 00				nop			;03d3 
+03d4 00				nop			;03d4 
+03d5 00				nop			;03d5 
+03d6			l03d6h: 
+03d6 00				nop			;03d6 
+03d7 00				nop			;03d7 
+03d8			l03d8h: 
+03d8 00				nop			;03d8 
+03d9 00				nop			;03d9 
+03da 00				nop			;03da 
+03db f0				ret p			;03db 
+03dc 00				nop			;03dc 
+03dd 00				nop			;03dd 
+03de 00				nop			;03de 
+03df 00				nop			;03df 
+03e0 00				nop			;03e0 
+03e1 00				nop			;03e1 
+03e2 00				nop			;03e2 
+03e3 00				nop			;03e3 
+03e4 00				nop			;03e4 
+03e5 00				nop			;03e5 
+03e6 00				nop			;03e6 
+03e7 00				nop			;03e7 
+03e8 00				nop			;03e8 
+03e9 00				nop			;03e9 
+03ea 00				nop			;03ea 
+03eb 00				nop			;03eb 
+03ec 0f				rrca			;03ec 
+03ed 00				nop			;03ed 
+03ee 00				nop			;03ee 
+03ef 00				nop			;03ef 
+03f0 00				nop			;03f0 
+03f1 00				nop			;03f1 
+03f2 00				nop			;03f2 
+03f3 00				nop			;03f3 
+03f4 00				nop			;03f4 
+03f5 00				nop			;03f5 
+03f6 00				nop			;03f6 
+03f7 00				nop			;03f7 
+03f8 00				nop			;03f8 
+03f9 00				nop			;03f9 
+03fa 00				nop			;03fa 
+03fb 00				nop			;03fb 
+03fc f0				ret p			;03fc 
+03fd 00				nop			;03fd 
+03fe 00				nop			;03fe 
+03ff 00				nop			;03ff 
+0400			l0400h: 
+0400 00				nop			;0400 
+0401 00				nop			;0401 
+0402 00				nop			;0402 
+0403 00				nop			;0403 
+0404 00				nop			;0404 
+0405 00				nop			;0405 
+0406 00				nop			;0406 
+0407 00				nop			;0407 
+0408 00				nop			;0408 
+0409 00				nop			;0409 
+040a 00				nop			;040a 
+040b 00				nop			;040b 
+040c 00				nop			;040c 
+040d 0f				rrca			;040d 
+040e 00				nop			;040e 
+040f 00				nop			;040f 
+0410 00				nop			;0410 
+0411 00				nop			;0411 
+0412 00				nop			;0412 
+0413 00				nop			;0413 
+0414 00				nop			;0414 
+0415 00				nop			;0415 
+0416 00				nop			;0416 
+0417 00				nop			;0417 
+0418 00				nop			;0418 
+0419 00				nop			;0419 
+041a 00				nop			;041a 
+041b 00				nop			;041b 
+041c 00				nop			;041c 
+041d f0				ret p			;041d 
+041e 00				nop			;041e 
+041f 00				nop			;041f 
+0420 00				nop			;0420 
+0421 00				nop			;0421 
+0422 00				nop			;0422 
+0423 00				nop			;0423 
+0424 00				nop			;0424 
+0425 00				nop			;0425 
+0426 00				nop			;0426 
+0427 00				nop			;0427 
+0428 00				nop			;0428 
+0429 00				nop			;0429 
+042a 00				nop			;042a 
+042b 00				nop			;042b 
+042c 00				nop			;042c 
+042d 00				nop			;042d 
+042e 0f				rrca			;042e 
+042f 00				nop			;042f 
+0430 00				nop			;0430 
+0431 00				nop			;0431 
+0432 00				nop			;0432 
+0433 00				nop			;0433 
+0434 00				nop			;0434 
+0435 00				nop			;0435 
+0436 00				nop			;0436 
+0437 00				nop			;0437 
+0438 00				nop			;0438 
+0439 00				nop			;0439 
+043a 00				nop			;043a 
+043b 00				nop			;043b 
+043c 00				nop			;043c 
+043d 00				nop			;043d 
+043e f0				ret p			;043e 
+043f 00				nop			;043f 
+0440 00				nop			;0440 
+0441 00				nop			;0441 
+0442 00				nop			;0442 
+0443 00				nop			;0443 
+0444 00				nop			;0444 
+0445 00				nop			;0445 
+0446 00				nop			;0446 
+0447 00				nop			;0447 
+0448 00				nop			;0448 
+0449 00				nop			;0449 
+044a 00				nop			;044a 
+044b 00				nop			;044b 
+044c 00				nop			;044c 
+044d 00				nop			;044d 
+044e 00				nop			;044e 
+044f 0f				rrca			;044f 
+0450 00				nop			;0450 
+0451 00				nop			;0451 
+0452 00				nop			;0452 
+0453 00				nop			;0453 
+0454 00				nop			;0454 
+0455 00				nop			;0455 
+0456 00				nop			;0456 
+0457 00				nop			;0457 
+0458 00				nop			;0458 
+0459 00				nop			;0459 
+045a 00				nop			;045a 
+045b 00				nop			;045b 
+045c 00				nop			;045c 
+045d 00				nop			;045d 
+045e 00				nop			;045e 
+045f f0				ret p			;045f 
+0460 00				nop			;0460 
+0461 00				nop			;0461 
+0462 00				nop			;0462 
+0463 00				nop			;0463 
+0464 00				nop			;0464 
+0465 00				nop			;0465 
+0466 00				nop			;0466 
+0467 00				nop			;0467 
+0468 00				nop			;0468 
+0469 00				nop			;0469 
+046a 00				nop			;046a 
+046b 00				nop			;046b 
+046c 00				nop			;046c 
+046d 00				nop			;046d 
+046e 00				nop			;046e 
+046f 00				nop			;046f 
+0470 0f				rrca			;0470 
+0471 00				nop			;0471 
+0472 00				nop			;0472 
+0473 00				nop			;0473 
+0474 00				nop			;0474 
+0475 00				nop			;0475 
+0476 00				nop			;0476 
+0477 00				nop			;0477 
+0478 00				nop			;0478 
+0479 00				nop			;0479 
+047a 00				nop			;047a 
+047b 00				nop			;047b 
+047c 00				nop			;047c 
+047d 00				nop			;047d 
+047e 00				nop			;047e 
+047f 00				nop			;047f 
+0480 f0				ret p			;0480 
+0481 00				nop			;0481 
+0482 00				nop			;0482 
+0483 00				nop			;0483 
+0484 00				nop			;0484 
+0485 00				nop			;0485 
+0486 00				nop			;0486 
+0487 00				nop			;0487 
+0488 00				nop			;0488 
+0489 00				nop			;0489 
+048a 00				nop			;048a 
+048b 00				nop			;048b 
+048c 00				nop			;048c 
+048d 00				nop			;048d 
+048e 00				nop			;048e 
+048f 00				nop			;048f 
+0490 00				nop			;0490 
+0491 0f				rrca			;0491 
+0492 00				nop			;0492 
+0493 00				nop			;0493 
+0494 00				nop			;0494 
+0495 00				nop			;0495 
+0496 00				nop			;0496 
+0497 00				nop			;0497 
+0498 00				nop			;0498 
+0499 00				nop			;0499 
+049a 00				nop			;049a 
+049b 00				nop			;049b 
+049c 00				nop			;049c 
+049d 00				nop			;049d 
+049e 00				nop			;049e 
+049f 00				nop			;049f 
+04a0 00				nop			;04a0 
+04a1 f0				ret p			;04a1 
+04a2 00				nop			;04a2 
+04a3 00				nop			;04a3 
+04a4 00				nop			;04a4 
+04a5 00				nop			;04a5 
+04a6 00				nop			;04a6 
+04a7 00				nop			;04a7 
+04a8 00				nop			;04a8 
+04a9 00				nop			;04a9 
+04aa 00				nop			;04aa 
+04ab 00				nop			;04ab 
+04ac 00				nop			;04ac 
+04ad 00				nop			;04ad 
+04ae 00				nop			;04ae 
+04af 00				nop			;04af 
+04b0 00				nop			;04b0 
+04b1 00				nop			;04b1 
+04b2 0f				rrca			;04b2 
+04b3 00				nop			;04b3 
+04b4 00				nop			;04b4 
+04b5 00				nop			;04b5 
+04b6 00				nop			;04b6 
+04b7 00				nop			;04b7 
+04b8 00				nop			;04b8 
+04b9 00				nop			;04b9 
+04ba 00				nop			;04ba 
+04bb 00				nop			;04bb 
+04bc 00				nop			;04bc 
+04bd 00				nop			;04bd 
+04be 00				nop			;04be 
+04bf 00				nop			;04bf 
+04c0 00				nop			;04c0 
+04c1 00				nop			;04c1 
+04c2 f0				ret p			;04c2 
+04c3 00				nop			;04c3 
+04c4 00				nop			;04c4 
+04c5 00				nop			;04c5 
+04c6 00				nop			;04c6 
+04c7 00				nop			;04c7 
+04c8 00				nop			;04c8 
+04c9 00				nop			;04c9 
+04ca 00				nop			;04ca 
+04cb 00				nop			;04cb 
+04cc 00				nop			;04cc 
+04cd 00				nop			;04cd 
+04ce 00				nop			;04ce 
+04cf 00				nop			;04cf 
+04d0 00				nop			;04d0 
+04d1 00				nop			;04d1 
+04d2 00				nop			;04d2 
+04d3 0f				rrca			;04d3 
+04d4 00				nop			;04d4 
+04d5 00				nop			;04d5 
+04d6 00				nop			;04d6 
+04d7 00				nop			;04d7 
+04d8 00				nop			;04d8 
+04d9 00				nop			;04d9 
+04da 00				nop			;04da 
+04db 00				nop			;04db 
+04dc 00				nop			;04dc 
+04dd 00				nop			;04dd 
+04de 00				nop			;04de 
+04df 00				nop			;04df 
+04e0 00				nop			;04e0 
+04e1 00				nop			;04e1 
+04e2 00				nop			;04e2 
+04e3 f0				ret p			;04e3 
+04e4 00				nop			;04e4 
+04e5 00				nop			;04e5 
+04e6 00				nop			;04e6 
+04e7 00				nop			;04e7 
+04e8 00				nop			;04e8 
+04e9 00				nop			;04e9 
+04ea 00				nop			;04ea 
+04eb 00				nop			;04eb 
+04ec 00				nop			;04ec 
+04ed 00				nop			;04ed 
+04ee 00				nop			;04ee 
+04ef 00				nop			;04ef 
+04f0 00				nop			;04f0 
+04f1 00				nop			;04f1 
+04f2 00				nop			;04f2 
+04f3 00				nop			;04f3 
+04f4 0f				rrca			;04f4 
+04f5 00				nop			;04f5 
+04f6 00				nop			;04f6 
+04f7 00				nop			;04f7 
+04f8 00				nop			;04f8 
+04f9 00				nop			;04f9 
+04fa 00				nop			;04fa 
+04fb 00				nop			;04fb 
+04fc 00				nop			;04fc 
+04fd 00				nop			;04fd 
+04fe 00				nop			;04fe 
+04ff 00				nop			;04ff 
+0500 00				nop			;0500 
+0501 00				nop			;0501 
+0502 00				nop			;0502 
+0503 00				nop			;0503 
+0504 f0				ret p			;0504 
+0505 00				nop			;0505 
+0506 00				nop			;0506 
+0507 00				nop			;0507 
+0508 00				nop			;0508 
+0509 00				nop			;0509 
+050a 00				nop			;050a 
+050b 00				nop			;050b 
+050c 00				nop			;050c 
+050d 00				nop			;050d 
+050e 00				nop			;050e 
+050f 00				nop			;050f 
+0510 00				nop			;0510 
+0511 00				nop			;0511 
+0512 00				nop			;0512 
+0513 00				nop			;0513 
+0514 00				nop			;0514 
+0515 0f				rrca			;0515 
+0516 00				nop			;0516 
+0517 00				nop			;0517 
+0518 00				nop			;0518 
+0519 00				nop			;0519 
+051a 00				nop			;051a 
+051b 00				nop			;051b 
+051c 00				nop			;051c 
+051d 00				nop			;051d 
+051e 00				nop			;051e 
+051f 00				nop			;051f 
+0520 00				nop			;0520 
+0521 00				nop			;0521 
+0522 00				nop			;0522 
+0523 00				nop			;0523 
+0524 00				nop			;0524 
+0525 f0				ret p			;0525 
+0526 00				nop			;0526 
+0527 00				nop			;0527 
+0528 00				nop			;0528 
+0529 00				nop			;0529 
+052a 00				nop			;052a 
+052b 00				nop			;052b 
+052c 00				nop			;052c 
+052d 00				nop			;052d 
+052e 00				nop			;052e 
+052f 00				nop			;052f 
+0530 00				nop			;0530 
+0531 00				nop			;0531 
+0532 00				nop			;0532 
+0533 00				nop			;0533 
+0534 00				nop			;0534 
+0535 00				nop			;0535 
+0536 0f				rrca			;0536 
+0537 00				nop			;0537 
+0538 00				nop			;0538 
+0539 00				nop			;0539 
+053a 00				nop			;053a 
+053b 00				nop			;053b 
+053c 00				nop			;053c 
+053d 00				nop			;053d 
+053e 00				nop			;053e 
+053f 00				nop			;053f 
+0540 00				nop			;0540 
+0541 00				nop			;0541 
+0542 00				nop			;0542 
+0543 00				nop			;0543 
+0544 00				nop			;0544 
+0545 00				nop			;0545 
+0546 f0				ret p			;0546 
+0547 00				nop			;0547 
+0548 00				nop			;0548 
+0549 00				nop			;0549 
+054a 00				nop			;054a 
+054b 00				nop			;054b 
+054c 00				nop			;054c 
+054d 00				nop			;054d 
+054e 00				nop			;054e 
+054f 00				nop			;054f 
+0550 00				nop			;0550 
+0551 00				nop			;0551 
+0552 00				nop			;0552 
+0553 00				nop			;0553 
+0554 00				nop			;0554 
+0555 00				nop			;0555 
+0556 00				nop			;0556 
+0557 0f				rrca			;0557 
+0558 00				nop			;0558 
+0559 00				nop			;0559 
+055a 00				nop			;055a 
+055b 00				nop			;055b 
+055c 00				nop			;055c 
+055d 00				nop			;055d 
+055e 00				nop			;055e 
+055f 00				nop			;055f 
+0560 00				nop			;0560 
+0561 00				nop			;0561 
+0562 00				nop			;0562 
+0563 00				nop			;0563 
+0564 00				nop			;0564 
+0565 00				nop			;0565 
+0566 00				nop			;0566 
+0567 f0				ret p			;0567 
+0568 00				nop			;0568 
+0569 00				nop			;0569 
+056a 00				nop			;056a 
+056b 00				nop			;056b 
+056c 00				nop			;056c 
+056d 00				nop			;056d 
+056e 00				nop			;056e 
+056f 00				nop			;056f 
+0570 00				nop			;0570 
+0571 00				nop			;0571 
+0572 00				nop			;0572 
+0573 00				nop			;0573 
+0574 00				nop			;0574 
+0575 00				nop			;0575 
+0576 00				nop			;0576 
+0577 00				nop			;0577 
+0578 0f				rrca			;0578 
+0579 00				nop			;0579 
+057a 00				nop			;057a 
+057b 00				nop			;057b 
+057c 00				nop			;057c 
+057d 00				nop			;057d 
+057e 00				nop			;057e 
+057f 00				nop			;057f 
+0580 00				nop			;0580 
+0581 00				nop			;0581 
+0582 00				nop			;0582 
+0583 00				nop			;0583 
+0584 00				nop			;0584 
+0585 00				nop			;0585 
+0586 00				nop			;0586 
+0587 00				nop			;0587 
+0588 f0				ret p			;0588 
+0589 00				nop			;0589 
+058a 00				nop			;058a 
+058b 00				nop			;058b 
+058c 00				nop			;058c 
+058d 00				nop			;058d 
+058e 00				nop			;058e 
+058f 00				nop			;058f 
+0590 00				nop			;0590 
+0591 00				nop			;0591 
+0592 00				nop			;0592 
+0593 00				nop			;0593 
+0594 00				nop			;0594 
+0595 00				nop			;0595 
+0596 00				nop			;0596 
+0597 00				nop			;0597 
+0598 00				nop			;0598 
+0599 0f				rrca			;0599 
+059a 00				nop			;059a 
+059b 00				nop			;059b 
+059c 00				nop			;059c 
+059d 00				nop			;059d 
+059e 00				nop			;059e 
+059f 00				nop			;059f 
+05a0 00				nop			;05a0 
+05a1 00				nop			;05a1 
+05a2 00				nop			;05a2 
+05a3 00				nop			;05a3 
+05a4 00				nop			;05a4 
+05a5 00				nop			;05a5 
+05a6 00				nop			;05a6 
+05a7 00				nop			;05a7 
+05a8 00				nop			;05a8 
+05a9 f0				ret p			;05a9 
+05aa 00				nop			;05aa 
+05ab 00				nop			;05ab 
+05ac 00				nop			;05ac 
+05ad 00				nop			;05ad 
+05ae 00				nop			;05ae 
+05af 00				nop			;05af 
+05b0 00				nop			;05b0 
+05b1 00				nop			;05b1 
+05b2 00				nop			;05b2 
+05b3 00				nop			;05b3 
+05b4 00				nop			;05b4 
+05b5 00				nop			;05b5 
+05b6 00				nop			;05b6 
+05b7 00				nop			;05b7 
+05b8 00				nop			;05b8 
+05b9 00				nop			;05b9 
+05ba 0f				rrca			;05ba 
+05bb 00				nop			;05bb 
+05bc 00				nop			;05bc 
+05bd 00				nop			;05bd 
+05be 00				nop			;05be 
+05bf 00				nop			;05bf 
+05c0 00				nop			;05c0 
+05c1 00				nop			;05c1 
+05c2 00				nop			;05c2 
+05c3 00				nop			;05c3 
+05c4 00				nop			;05c4 
+05c5 00				nop			;05c5 
+05c6 00				nop			;05c6 
+05c7 00				nop			;05c7 
+05c8 00				nop			;05c8 
+05c9 00				nop			;05c9 
+05ca f0				ret p			;05ca 
+05cb 00				nop			;05cb 
+05cc 00				nop			;05cc 
+05cd 00				nop			;05cd 
+05ce 00				nop			;05ce 
+05cf 00				nop			;05cf 
+05d0 00				nop			;05d0 
+05d1 00				nop			;05d1 
+05d2 00				nop			;05d2 
+05d3 00				nop			;05d3 
+05d4 00				nop			;05d4 
+05d5 00				nop			;05d5 
+05d6 00				nop			;05d6 
+05d7 00				nop			;05d7 
+05d8 00				nop			;05d8 
+05d9 00				nop			;05d9 
+05da f0				ret p			;05da 
+05db 00				nop			;05db 
+05dc 00				nop			;05dc 
+05dd 00				nop			;05dd 
+05de 00				nop			;05de 
+05df 00				nop			;05df 
+05e0 00				nop			;05e0 
+05e1 00				nop			;05e1 
+05e2 00				nop			;05e2 
+05e3 00				nop			;05e3 
+05e4 00				nop			;05e4 
+05e5 00				nop			;05e5 
+05e6 00				nop			;05e6 
+05e7 00				nop			;05e7 
+05e8 00				nop			;05e8 
+05e9 00				nop			;05e9 
+05ea 0f				rrca			;05ea 
+05eb 00				nop			;05eb 
+05ec 00				nop			;05ec 
+05ed 00				nop			;05ed 
+05ee 00				nop			;05ee 
+05ef 00				nop			;05ef 
+05f0 00				nop			;05f0 
+05f1 00				nop			;05f1 
+05f2 00				nop			;05f2 
+05f3 00				nop			;05f3 
+05f4 00				nop			;05f4 
+05f5 00				nop			;05f5 
+05f6 00				nop			;05f6 
+05f7 00				nop			;05f7 
+05f8 00				nop			;05f8 
+05f9 f0				ret p			;05f9 
+05fa 00				nop			;05fa 
+05fb 00				nop			;05fb 
+05fc 00				nop			;05fc 
+05fd 00				nop			;05fd 
+05fe 00				nop			;05fe 
+05ff 00				nop			;05ff 
+0600 00				nop			;0600 
+0601 00				nop			;0601 
+0602 00				nop			;0602 
+0603 00				nop			;0603 
+0604 00				nop			;0604 
+0605 00				nop			;0605 
+0606 00				nop			;0606 
+0607 00				nop			;0607 
+0608 00				nop			;0608 
+0609 0f				rrca			;0609 
+060a 00				nop			;060a 
+060b 00				nop			;060b 
+060c 00				nop			;060c 
+060d 00				nop			;060d 
+060e 00				nop			;060e 
+060f 00				nop			;060f 
+0610 00				nop			;0610 
+0611 00				nop			;0611 
+0612 00				nop			;0612 
+0613 00				nop			;0613 
+0614 00				nop			;0614 
+0615 00				nop			;0615 
+0616 00				nop			;0616 
+0617 00				nop			;0617 
+0618 f0				ret p			;0618 
+0619 00				nop			;0619 
+061a 00				nop			;061a 
+061b 00				nop			;061b 
+061c 00				nop			;061c 
+061d 00				nop			;061d 
+061e 00				nop			;061e 
+061f 00				nop			;061f 
+0620 00				nop			;0620 
+0621 00				nop			;0621 
+0622 00				nop			;0622 
+0623 00				nop			;0623 
+0624 00				nop			;0624 
+0625 00				nop			;0625 
+0626 00				nop			;0626 
+0627 00				nop			;0627 
+0628 0f				rrca			;0628 
+0629 00				nop			;0629 
+062a 00				nop			;062a 
+062b 00				nop			;062b 
+062c 00				nop			;062c 
+062d 00				nop			;062d 
+062e 00				nop			;062e 
+062f 00				nop			;062f 
+0630 00				nop			;0630 
+0631 00				nop			;0631 
+0632 00				nop			;0632 
+0633 00				nop			;0633 
+0634 00				nop			;0634 
+0635 00				nop			;0635 
+0636 00				nop			;0636 
+0637 f0				ret p			;0637 
+0638 00				nop			;0638 
+0639 00				nop			;0639 
+063a 00				nop			;063a 
+063b 00				nop			;063b 
+063c 00				nop			;063c 
+063d 00				nop			;063d 
+063e 00				nop			;063e 
+063f 00				nop			;063f 
+0640 00				nop			;0640 
+0641 00				nop			;0641 
+0642 00				nop			;0642 
+0643 00				nop			;0643 
+0644 00				nop			;0644 
+0645 00				nop			;0645 
+0646 00				nop			;0646 
+0647 0f				rrca			;0647 
+0648 00				nop			;0648 
+0649 00				nop			;0649 
+064a 00				nop			;064a 
+064b 00				nop			;064b 
+064c 00				nop			;064c 
+064d 00				nop			;064d 
+064e 00				nop			;064e 
+064f 00				nop			;064f 
+0650 00				nop			;0650 
+0651 00				nop			;0651 
+0652 00				nop			;0652 
+0653 00				nop			;0653 
+0654 00				nop			;0654 
+0655 00				nop			;0655 
+0656 f0				ret p			;0656 
+0657 00				nop			;0657 
+0658 00				nop			;0658 
+0659 00				nop			;0659 
+065a 00				nop			;065a 
+065b 00				nop			;065b 
+065c 00				nop			;065c 
+065d 00				nop			;065d 
+065e 00				nop			;065e 
+065f 00				nop			;065f 
+0660 00				nop			;0660 
+0661 00				nop			;0661 
+0662 00				nop			;0662 
+0663 00				nop			;0663 
+0664 00				nop			;0664 
+0665 00				nop			;0665 
+0666 0f				rrca			;0666 
+0667 00				nop			;0667 
+0668 00				nop			;0668 
+0669 00				nop			;0669 
+066a 00				nop			;066a 
+066b 00				nop			;066b 
+066c 00				nop			;066c 
+066d 00				nop			;066d 
+066e 00				nop			;066e 
+066f 00				nop			;066f 
+0670 00				nop			;0670 
+0671 00				nop			;0671 
+0672 00				nop			;0672 
+0673 00				nop			;0673 
+0674 00				nop			;0674 
+0675 f0				ret p			;0675 
+0676 00				nop			;0676 
+0677 00				nop			;0677 
+0678 00				nop			;0678 
+0679 00				nop			;0679 
+067a 00				nop			;067a 
+067b 00				nop			;067b 
+067c 00				nop			;067c 
+067d 00				nop			;067d 
+067e 00				nop			;067e 
+067f 00				nop			;067f 
+0680 00				nop			;0680 
+0681 00				nop			;0681 
+0682 00				nop			;0682 
+0683 00				nop			;0683 
+0684 00				nop			;0684 
+0685 0f				rrca			;0685 
+0686 00				nop			;0686 
+0687 00				nop			;0687 
+0688 00				nop			;0688 
+0689 00				nop			;0689 
+068a 00				nop			;068a 
+068b 00				nop			;068b 
+068c 00				nop			;068c 
+068d 00				nop			;068d 
+068e 00				nop			;068e 
+068f 00				nop			;068f 
+0690 00				nop			;0690 
+0691 00				nop			;0691 
+0692 00				nop			;0692 
+0693 00				nop			;0693 
+0694 f0				ret p			;0694 
+0695 00				nop			;0695 
+0696 00				nop			;0696 
+0697 00				nop			;0697 
+0698 00				nop			;0698 
+0699 00				nop			;0699 
+069a 00				nop			;069a 
+069b 00				nop			;069b 
+069c 00				nop			;069c 
+069d 00				nop			;069d 
+069e 00				nop			;069e 
+069f 00				nop			;069f 
+06a0 00				nop			;06a0 
+06a1 00				nop			;06a1 
+06a2 00				nop			;06a2 
+06a3 00				nop			;06a3 
+06a4 0f				rrca			;06a4 
+06a5 00				nop			;06a5 
+06a6 00				nop			;06a6 
+06a7 00				nop			;06a7 
+06a8 00				nop			;06a8 
+06a9 00				nop			;06a9 
+06aa 00				nop			;06aa 
+06ab 00				nop			;06ab 
+06ac 00				nop			;06ac 
+06ad 00				nop			;06ad 
+06ae 00				nop			;06ae 
+06af 00				nop			;06af 
+06b0 00				nop			;06b0 
+06b1 00				nop			;06b1 
+06b2 00				nop			;06b2 
+06b3 f0				ret p			;06b3 
+06b4 00				nop			;06b4 
+06b5 00				nop			;06b5 
+06b6 00				nop			;06b6 
+06b7 00				nop			;06b7 
+06b8 00				nop			;06b8 
+06b9 00				nop			;06b9 
+06ba 00				nop			;06ba 
+06bb 00				nop			;06bb 
+06bc 00				nop			;06bc 
+06bd 00				nop			;06bd 
+06be 00				nop			;06be 
+06bf 00				nop			;06bf 
+06c0 00				nop			;06c0 
+06c1 00				nop			;06c1 
+06c2 00				nop			;06c2 
+06c3 0f				rrca			;06c3 
+06c4 00				nop			;06c4 
+06c5 00				nop			;06c5 
+06c6 00				nop			;06c6 
+06c7 00				nop			;06c7 
+06c8 00				nop			;06c8 
+06c9 00				nop			;06c9 
+06ca 00				nop			;06ca 
+06cb 00				nop			;06cb 
+06cc 00				nop			;06cc 
+06cd 00				nop			;06cd 
+06ce 00				nop			;06ce 
+06cf 00				nop			;06cf 
+06d0 00				nop			;06d0 
+06d1 00				nop			;06d1 
+06d2 f0				ret p			;06d2 
+06d3 00				nop			;06d3 
+06d4 00				nop			;06d4 
+06d5 00				nop			;06d5 
+06d6 00				nop			;06d6 
+06d7 00				nop			;06d7 
+06d8 00				nop			;06d8 
+06d9 00				nop			;06d9 
+06da 00				nop			;06da 
+06db 00				nop			;06db 
+06dc 00				nop			;06dc 
+06dd 00				nop			;06dd 
+06de 00				nop			;06de 
+06df 00				nop			;06df 
+06e0 00				nop			;06e0 
+06e1 00				nop			;06e1 
+06e2 0f				rrca			;06e2 
+06e3 00				nop			;06e3 
+06e4 00				nop			;06e4 
+06e5 00				nop			;06e5 
+06e6 00				nop			;06e6 
+06e7 00				nop			;06e7 
+06e8 00				nop			;06e8 
+06e9 00				nop			;06e9 
+06ea 00				nop			;06ea 
+06eb 00				nop			;06eb 
+06ec 00				nop			;06ec 
+06ed 00				nop			;06ed 
+06ee 00				nop			;06ee 
+06ef 00				nop			;06ef 
+06f0 00				nop			;06f0 
+06f1 f0				ret p			;06f1 
+06f2 00				nop			;06f2 
+06f3 00				nop			;06f3 
+06f4 00				nop			;06f4 
+06f5 00				nop			;06f5 
+06f6 00				nop			;06f6 
+06f7 00				nop			;06f7 
+06f8 00				nop			;06f8 
+06f9 00				nop			;06f9 
+06fa 00				nop			;06fa 
+06fb 00				nop			;06fb 
+06fc 00				nop			;06fc 
+06fd 00				nop			;06fd 
+06fe 00				nop			;06fe 
+06ff 00				nop			;06ff 
+0700 00				nop			;0700 
+0701 0f				rrca			;0701 
+0702 00				nop			;0702 
+0703 00				nop			;0703 
+0704 00				nop			;0704 
+0705 00				nop			;0705 
+0706 00				nop			;0706 
+0707 00				nop			;0707 
+0708 00				nop			;0708 
+0709 00				nop			;0709 
+070a 00				nop			;070a 
+070b 00				nop			;070b 
+070c 00				nop			;070c 
+070d 00				nop			;070d 
+070e 00				nop			;070e 
+070f 00				nop			;070f 
+0710 f0				ret p			;0710 
+0711 00				nop			;0711 
+0712 00				nop			;0712 
+0713 00				nop			;0713 
+0714 00				nop			;0714 
+0715 00				nop			;0715 
+0716 00				nop			;0716 
+0717 00				nop			;0717 
+0718 00				nop			;0718 
+0719 00				nop			;0719 
+071a 00				nop			;071a 
+071b 00				nop			;071b 
+071c 00				nop			;071c 
+071d 00				nop			;071d 
+071e 00				nop			;071e 
+071f 00				nop			;071f 
+0720 0f				rrca			;0720 
+0721 00				nop			;0721 
+0722 00				nop			;0722 
+0723 00				nop			;0723 
+0724 00				nop			;0724 
+0725 00				nop			;0725 
+0726 00				nop			;0726 
+0727 00				nop			;0727 
+0728 00				nop			;0728 
+0729 00				nop			;0729 
+072a 00				nop			;072a 
+072b 00				nop			;072b 
+072c 00				nop			;072c 
+072d 00				nop			;072d 
+072e 00				nop			;072e 
+072f f0				ret p			;072f 
+0730 00				nop			;0730 
+0731 00				nop			;0731 
+0732 00				nop			;0732 
+0733 00				nop			;0733 
+0734 00				nop			;0734 
+0735 00				nop			;0735 
+0736 00				nop			;0736 
+0737 00				nop			;0737 
+0738 00				nop			;0738 
+0739 00				nop			;0739 
+073a 00				nop			;073a 
+073b 00				nop			;073b 
+073c 00				nop			;073c 
+073d 00				nop			;073d 
+073e 00				nop			;073e 
+073f 0f				rrca			;073f 
+0740 00				nop			;0740 
+0741 00				nop			;0741 
+0742 00				nop			;0742 
+0743 00				nop			;0743 
+0744 00				nop			;0744 
+0745 00				nop			;0745 
+0746 00				nop			;0746 
+0747 00				nop			;0747 
+0748 00				nop			;0748 
+0749 00				nop			;0749 
+074a 00				nop			;074a 
+074b 00				nop			;074b 
+074c 00				nop			;074c 
+074d 00				nop			;074d 
+074e f0				ret p			;074e 
+074f 00				nop			;074f 
+0750 00				nop			;0750 
+0751 00				nop			;0751 
+0752 00				nop			;0752 
+0753 00				nop			;0753 
+0754 00				nop			;0754 
+0755 00				nop			;0755 
+0756 00				nop			;0756 
+0757 00				nop			;0757 
+0758 00				nop			;0758 
+0759 00				nop			;0759 
+075a 00				nop			;075a 
+075b 00				nop			;075b 
+075c 00				nop			;075c 
+075d 00				nop			;075d 
+075e 0f				rrca			;075e 
+075f 00				nop			;075f 
+0760 00				nop			;0760 
+0761 00				nop			;0761 
+0762 00				nop			;0762 
+0763 00				nop			;0763 
+0764 00				nop			;0764 
+0765 00				nop			;0765 
+0766 00				nop			;0766 
+0767 00				nop			;0767 
+0768 00				nop			;0768 
+0769 00				nop			;0769 
+076a 00				nop			;076a 
+076b 00				nop			;076b 
+076c 00				nop			;076c 
+076d f0				ret p			;076d 
+076e 00				nop			;076e 
+076f 00				nop			;076f 
+0770 00				nop			;0770 
+0771 00				nop			;0771 
+0772 00				nop			;0772 
+0773 00				nop			;0773 
+0774 00				nop			;0774 
+0775 00				nop			;0775 
+0776 00				nop			;0776 
+0777 00				nop			;0777 
+0778 00				nop			;0778 
+0779 00				nop			;0779 
+077a 00				nop			;077a 
+077b 00				nop			;077b 
+077c 00				nop			;077c 
+077d 0f				rrca			;077d 
+077e 00				nop			;077e 
+077f 00				nop			;077f 
+0780 00				nop			;0780 
+0781 00				nop			;0781 
+0782 00				nop			;0782 
+0783 00				nop			;0783 
+0784 00				nop			;0784 
+0785 00				nop			;0785 
+0786 00				nop			;0786 
+0787 00				nop			;0787 
+0788 00				nop			;0788 
+0789 00				nop			;0789 
+078a 00				nop			;078a 
+078b 00				nop			;078b 
+078c f0				ret p			;078c 
+078d 00				nop			;078d 
+078e 00				nop			;078e 
+078f 00				nop			;078f 
+0790 00				nop			;0790 
+0791 00				nop			;0791 
+0792 00				nop			;0792 
+0793 00				nop			;0793 
+0794 00				nop			;0794 
+0795 00				nop			;0795 
+0796 00				nop			;0796 
+0797 00				nop			;0797 
+0798 00				nop			;0798 
+0799 00				nop			;0799 
+079a 00				nop			;079a 
+079b 00				nop			;079b 
+079c 0f				rrca			;079c 
+079d 00				nop			;079d 
+079e 00				nop			;079e 
+079f 00				nop			;079f 
+07a0 00				nop			;07a0 
+07a1 00				nop			;07a1 
+07a2 00				nop			;07a2 
+07a3 00				nop			;07a3 
+07a4 00				nop			;07a4 
+07a5 00				nop			;07a5 
+07a6 00				nop			;07a6 
+07a7 00				nop			;07a7 
+07a8 00				nop			;07a8 
+07a9 00				nop			;07a9 
+07aa 00				nop			;07aa 
+07ab f0				ret p			;07ab 
+07ac 00				nop			;07ac 
+07ad 00				nop			;07ad 
+07ae 00				nop			;07ae 
+07af 00				nop			;07af 
+07b0 00				nop			;07b0 
+07b1 00				nop			;07b1 
+07b2 00				nop			;07b2 
+07b3 00				nop			;07b3 
+07b4 00				nop			;07b4 
+07b5 00				nop			;07b5 
+07b6 00				nop			;07b6 
+07b7 00				nop			;07b7 
+07b8 00				nop			;07b8 
+07b9 00				nop			;07b9 
+07ba 00				nop			;07ba 
+07bb 0f				rrca			;07bb 
+07bc 00				nop			;07bc 
+07bd 00				nop			;07bd 
+07be 00				nop			;07be 
+07bf 00				nop			;07bf 
+07c0 00				nop			;07c0 
+07c1 00				nop			;07c1 
+07c2 00				nop			;07c2 
+07c3 00				nop			;07c3 
+07c4 00				nop			;07c4 
+07c5 00				nop			;07c5 
+07c6 00				nop			;07c6 
+07c7 00				nop			;07c7 
+07c8 00				nop			;07c8 
+07c9 00				nop			;07c9 
+07ca 00				nop			;07ca 
+07cb 00				nop			;07cb 
+07cc 00				nop			;07cc 
+07cd 00				nop			;07cd 
+07ce 00				nop			;07ce 
+07cf 00				nop			;07cf 
+07d0 00				nop			;07d0 
+07d1 00				nop			;07d1 
+07d2 00				nop			;07d2 
+07d3 00				nop			;07d3 
+07d4 00				nop			;07d4 
+07d5 00				nop			;07d5 
+07d6 00				nop			;07d6 
+07d7 00				nop			;07d7 
+07d8 00				nop			;07d8 
+07d9 00				nop			;07d9 
+07da f0				ret p			;07da 
+07db 00				nop			;07db 
+07dc 00				nop			;07dc 
+07dd 00				nop			;07dd 
+07de 00				nop			;07de 
+07df 00				nop			;07df 
+07e0 00				nop			;07e0 
+07e1 00				nop			;07e1 
+07e2 00				nop			;07e2 
+07e3 00				nop			;07e3 
+07e4 00				nop			;07e4 
+07e5 00				nop			;07e5 
+07e6 00				nop			;07e6 
+07e7 00				nop			;07e7 
+07e8 00				nop			;07e8 
+07e9 00				nop			;07e9 
+07ea 0f				rrca			;07ea 
+07eb 00				nop			;07eb 
+07ec 00				nop			;07ec 
+07ed 00				nop			;07ed 
+07ee 00				nop			;07ee 
+07ef 00				nop			;07ef 
+07f0 00				nop			;07f0 
+07f1 00				nop			;07f1 
+07f2 00				nop			;07f2 
+07f3 00				nop			;07f3 
+07f4 00				nop			;07f4 
+07f5 00				nop			;07f5 
+07f6 00				nop			;07f6 
+07f7 00				nop			;07f7 
+07f8 00				nop			;07f8 
+07f9 f0				ret p			;07f9 
+07fa 00				nop			;07fa 
+07fb 00				nop			;07fb 
+07fc 00				nop			;07fc 
+07fd 00				nop			;07fd 
+07fe			l07feh: 
+07fe 00				nop			;07fe 
+07ff 00				nop			;07ff 
+0800			l0800h: 
+0800 00				nop			;0800 
+0801 00				nop			;0801 
+0802 00				nop			;0802 
+0803			l0803h: 
+0803 00				nop			;0803 
+0804 00				nop			;0804 
+0805 00				nop			;0805 
+0806 00				nop			;0806 
+0807 00				nop			;0807 
+0808 00				nop			;0808 
+0809 0f				rrca			;0809 
+080a 00				nop			;080a 
+080b 00				nop			;080b 
+080c 00				nop			;080c 
+080d 00				nop			;080d 
+080e 00				nop			;080e 
+080f 00				nop			;080f 
+0810 00				nop			;0810 
+0811 00				nop			;0811 
+0812 00				nop			;0812 
+0813 00				nop			;0813 
+0814 00				nop			;0814 
+0815 00				nop			;0815 
+0816 00				nop			;0816 
+0817 00				nop			;0817 
+0818 f0				ret p			;0818 
+0819 00				nop			;0819 
+081a 00				nop			;081a 
+081b 00				nop			;081b 
+081c 00				nop			;081c 
+081d 00				nop			;081d 
+081e 00				nop			;081e 
+081f 00				nop			;081f 
+0820 00				nop			;0820 
+0821 00				nop			;0821 
+0822 00				nop			;0822 
+0823 00				nop			;0823 
+0824 00				nop			;0824 
+0825 00				nop			;0825 
+0826 00				nop			;0826 
+0827 00				nop			;0827 
+0828 0f				rrca			;0828 
+0829 00				nop			;0829 
+082a 00				nop			;082a 
+082b 00				nop			;082b 
+082c 00				nop			;082c 
+082d 00				nop			;082d 
+082e 00				nop			;082e 
+082f 00				nop			;082f 
+0830 00				nop			;0830 
+0831 00				nop			;0831 
+0832 00				nop			;0832 
+0833 00				nop			;0833 
+0834 00				nop			;0834 
+0835 00				nop			;0835 
+0836 00				nop			;0836 
+0837 f0				ret p			;0837 
+0838 00				nop			;0838 
+0839 00				nop			;0839 
+083a 00				nop			;083a 
+083b 00				nop			;083b 
+083c 00				nop			;083c 
+083d 00				nop			;083d 
+083e 00				nop			;083e 
+083f 00				nop			;083f 
+0840 00				nop			;0840 
+0841 00				nop			;0841 
+0842 00				nop			;0842 
+0843 00				nop			;0843 
+0844 00				nop			;0844 
+0845 00				nop			;0845 
+0846 00				nop			;0846 
+0847 0f				rrca			;0847 
+0848 00				nop			;0848 
+0849 00				nop			;0849 
+084a 00				nop			;084a 
+084b 00				nop			;084b 
+084c 00				nop			;084c 
+084d 00				nop			;084d 
+084e 00				nop			;084e 
+084f 00				nop			;084f 
+0850 00				nop			;0850 
+0851 00				nop			;0851 
+0852 00				nop			;0852 
+0853 00				nop			;0853 
+0854 00				nop			;0854 
+0855 00				nop			;0855 
+0856 f0				ret p			;0856 
+0857 00				nop			;0857 
+0858 00				nop			;0858 
+0859 00				nop			;0859 
+085a 00				nop			;085a 
+085b 00				nop			;085b 
+085c 00				nop			;085c 
+085d 00				nop			;085d 
+085e 00				nop			;085e 
+085f 00				nop			;085f 
+0860 00				nop			;0860 
+0861 00				nop			;0861 
+0862 00				nop			;0862 
+0863 00				nop			;0863 
+0864 00				nop			;0864 
+0865 00				nop			;0865 
+0866 0f				rrca			;0866 
+0867 00				nop			;0867 
+0868 00				nop			;0868 
+0869 00				nop			;0869 
+086a 00				nop			;086a 
+086b 00				nop			;086b 
+086c 00				nop			;086c 
+086d 00				nop			;086d 
+086e 00				nop			;086e 
+086f 00				nop			;086f 
+0870 00				nop			;0870 
+0871 00				nop			;0871 
+0872 00				nop			;0872 
+0873 00				nop			;0873 
+0874 00				nop			;0874 
+0875 f0				ret p			;0875 
+0876 00				nop			;0876 
+0877 00				nop			;0877 
+0878 00				nop			;0878 
+0879 00				nop			;0879 
+087a 00				nop			;087a 
+087b 00				nop			;087b 
+087c 00				nop			;087c 
+087d 00				nop			;087d 
+087e 00				nop			;087e 
+087f 00				nop			;087f 
+0880 00				nop			;0880 
+0881 00				nop			;0881 
+0882 00				nop			;0882 
+0883 00				nop			;0883 
+0884 00				nop			;0884 
+0885 0f				rrca			;0885 
+0886 00				nop			;0886 
+0887 00				nop			;0887 
+0888 00				nop			;0888 
+0889 00				nop			;0889 
+088a 00				nop			;088a 
+088b 00				nop			;088b 
+088c 00				nop			;088c 
+088d 00				nop			;088d 
+088e 00				nop			;088e 
+088f 00				nop			;088f 
+0890 00				nop			;0890 
+0891 00				nop			;0891 
+0892 00				nop			;0892 
+0893 00				nop			;0893 
+0894 f0				ret p			;0894 
+0895 00				nop			;0895 
+0896 00				nop			;0896 
+0897 00				nop			;0897 
+0898 00				nop			;0898 
+0899 00				nop			;0899 
+089a 00				nop			;089a 
+089b 00				nop			;089b 
+089c 00				nop			;089c 
+089d 00				nop			;089d 
+089e 00				nop			;089e 
+089f 00				nop			;089f 
+08a0 00				nop			;08a0 
+08a1 00				nop			;08a1 
+08a2 00				nop			;08a2 
+08a3 00				nop			;08a3 
+08a4 0f				rrca			;08a4 
+08a5 00				nop			;08a5 
+08a6 00				nop			;08a6 
+08a7 00				nop			;08a7 
+08a8 00				nop			;08a8 
+08a9 00				nop			;08a9 
+08aa 00				nop			;08aa 
+08ab 00				nop			;08ab 
+08ac 00				nop			;08ac 
+08ad 00				nop			;08ad 
+08ae 00				nop			;08ae 
+08af 00				nop			;08af 
+08b0 00				nop			;08b0 
+08b1 00				nop			;08b1 
+08b2 00				nop			;08b2 
+08b3 f0				ret p			;08b3 
+08b4 00				nop			;08b4 
+08b5 00				nop			;08b5 
+08b6 00				nop			;08b6 
+08b7 00				nop			;08b7 
+08b8 00				nop			;08b8 
+08b9 00				nop			;08b9 
+08ba 00				nop			;08ba 
+08bb 00				nop			;08bb 
+08bc 00				nop			;08bc 
+08bd 00				nop			;08bd 
+08be 00				nop			;08be 
+08bf 00				nop			;08bf 
+08c0 00				nop			;08c0 
+08c1 00				nop			;08c1 
+08c2 00				nop			;08c2 
+08c3 0f				rrca			;08c3 
+08c4 00				nop			;08c4 
+08c5 00				nop			;08c5 
+08c6 00				nop			;08c6 
+08c7 00				nop			;08c7 
+08c8 00				nop			;08c8 
+08c9 00				nop			;08c9 
+08ca 00				nop			;08ca 
+08cb 00				nop			;08cb 
+08cc 00				nop			;08cc 
+08cd 00				nop			;08cd 
+08ce 00				nop			;08ce 
+08cf 00				nop			;08cf 
+08d0 00				nop			;08d0 
+08d1 00				nop			;08d1 
+08d2 f0				ret p			;08d2 
+08d3 00				nop			;08d3 
+08d4 00				nop			;08d4 
+08d5 00				nop			;08d5 
+08d6 00				nop			;08d6 
+08d7 00				nop			;08d7 
+08d8 00				nop			;08d8 
+08d9 00				nop			;08d9 
+08da 00				nop			;08da 
+08db 00				nop			;08db 
+08dc 00				nop			;08dc 
+08dd 00				nop			;08dd 
+08de 00				nop			;08de 
+08df 00				nop			;08df 
+08e0 00				nop			;08e0 
+08e1 00				nop			;08e1 
+08e2 0f				rrca			;08e2 
+08e3 00				nop			;08e3 
+08e4 00				nop			;08e4 
+08e5 00				nop			;08e5 
+08e6 00				nop			;08e6 
+08e7 00				nop			;08e7 
+08e8 00				nop			;08e8 
+08e9 00				nop			;08e9 
+08ea 00				nop			;08ea 
+08eb 00				nop			;08eb 
+08ec 00				nop			;08ec 
+08ed 00				nop			;08ed 
+08ee 00				nop			;08ee 
+08ef 00				nop			;08ef 
+08f0 00				nop			;08f0 
+08f1 f0				ret p			;08f1 
+08f2 00				nop			;08f2 
+08f3 00				nop			;08f3 
+08f4 00				nop			;08f4 
+08f5 00				nop			;08f5 
+08f6 00				nop			;08f6 
+08f7 00				nop			;08f7 
+08f8 00				nop			;08f8 
+08f9 00				nop			;08f9 
+08fa 00				nop			;08fa 
+08fb 00				nop			;08fb 
+08fc 00				nop			;08fc 
+08fd 00				nop			;08fd 
+08fe 00				nop			;08fe 
+08ff 00				nop			;08ff 
+0900 00				nop			;0900 
+0901 0f				rrca			;0901 
+0902 00				nop			;0902 
+0903 00				nop			;0903 
+0904 00				nop			;0904 
+0905 00				nop			;0905 
+0906 00				nop			;0906 
+0907 00				nop			;0907 
+0908 00				nop			;0908 
+0909 00				nop			;0909 
+090a 00				nop			;090a 
+090b 00				nop			;090b 
+090c 00				nop			;090c 
+090d 00				nop			;090d 
+090e 00				nop			;090e 
+090f 00				nop			;090f 
+0910 f0				ret p			;0910 
+0911 00				nop			;0911 
+0912 00				nop			;0912 
+0913 00				nop			;0913 
+0914 00				nop			;0914 
+0915 00				nop			;0915 
+0916 00				nop			;0916 
+0917 00				nop			;0917 
+0918 00				nop			;0918 
+0919 00				nop			;0919 
+091a 00				nop			;091a 
+091b 00				nop			;091b 
+091c 00				nop			;091c 
+091d 00				nop			;091d 
+091e 00				nop			;091e 
+091f 00				nop			;091f 
+0920 0f				rrca			;0920 
+0921 00				nop			;0921 
+0922 00				nop			;0922 
+0923 00				nop			;0923 
+0924 00				nop			;0924 
+0925 00				nop			;0925 
+0926 00				nop			;0926 
+0927 00				nop			;0927 
+0928 00				nop			;0928 
+0929 00				nop			;0929 
+092a 00				nop			;092a 
+092b 00				nop			;092b 
+092c 00				nop			;092c 
+092d 00				nop			;092d 
+092e 00				nop			;092e 
+092f f0				ret p			;092f 
+0930 00				nop			;0930 
+0931 00				nop			;0931 
+0932 00				nop			;0932 
+0933 00				nop			;0933 
+0934 00				nop			;0934 
+0935 00				nop			;0935 
+0936 00				nop			;0936 
+0937 00				nop			;0937 
+0938 00				nop			;0938 
+0939 00				nop			;0939 
+093a 00				nop			;093a 
+093b 00				nop			;093b 
+093c 00				nop			;093c 
+093d 00				nop			;093d 
+093e 00				nop			;093e 
+093f 0f				rrca			;093f 
+0940 00				nop			;0940 
+0941 00				nop			;0941 
+0942 00				nop			;0942 
+0943 00				nop			;0943 
+0944 00				nop			;0944 
+0945 00				nop			;0945 
+0946 00				nop			;0946 
+0947 00				nop			;0947 
+0948 00				nop			;0948 
+0949 00				nop			;0949 
+094a 00				nop			;094a 
+094b 00				nop			;094b 
+094c 00				nop			;094c 
+094d 00				nop			;094d 
+094e f0				ret p			;094e 
+094f 00				nop			;094f 
+0950 00				nop			;0950 
+0951 00				nop			;0951 
+0952 00				nop			;0952 
+0953 00				nop			;0953 
+0954 00				nop			;0954 
+0955 00				nop			;0955 
+0956 00				nop			;0956 
+0957 00				nop			;0957 
+0958 00				nop			;0958 
+0959 00				nop			;0959 
+095a 00				nop			;095a 
+095b 00				nop			;095b 
+095c 00				nop			;095c 
+095d 00				nop			;095d 
+095e 0f				rrca			;095e 
+095f 00				nop			;095f 
+0960 00				nop			;0960 
+0961 00				nop			;0961 
+0962 00				nop			;0962 
+0963 00				nop			;0963 
+0964 00				nop			;0964 
+0965 00				nop			;0965 
+0966 00				nop			;0966 
+0967 00				nop			;0967 
+0968 00				nop			;0968 
+0969 00				nop			;0969 
+096a 00				nop			;096a 
+096b 00				nop			;096b 
+096c 00				nop			;096c 
+096d f0				ret p			;096d 
+096e 00				nop			;096e 
+096f 00				nop			;096f 
+0970 00				nop			;0970 
+0971 00				nop			;0971 
+0972 00				nop			;0972 
+0973 00				nop			;0973 
+0974 00				nop			;0974 
+0975 00				nop			;0975 
+0976 00				nop			;0976 
+0977 00				nop			;0977 
+0978 00				nop			;0978 
+0979 00				nop			;0979 
+097a 00				nop			;097a 
+097b 00				nop			;097b 
+097c 00				nop			;097c 
+097d 0f				rrca			;097d 
+097e 00				nop			;097e 
+097f 00				nop			;097f 
+0980 00				nop			;0980 
+0981 00				nop			;0981 
+0982 00				nop			;0982 
+0983 00				nop			;0983 
+0984 00				nop			;0984 
+0985 00				nop			;0985 
+0986 00				nop			;0986 
+0987 00				nop			;0987 
+0988 00				nop			;0988 
+0989 00				nop			;0989 
+098a 00				nop			;098a 
+098b 00				nop			;098b 
+098c f0				ret p			;098c 
+098d 00				nop			;098d 
+098e 00				nop			;098e 
+098f 00				nop			;098f 
+0990 00				nop			;0990 
+0991 00				nop			;0991 
+0992 00				nop			;0992 
+0993 00				nop			;0993 
+0994 00				nop			;0994 
+0995 00				nop			;0995 
+0996 00				nop			;0996 
+0997 00				nop			;0997 
+0998 00				nop			;0998 
+0999 00				nop			;0999 
+099a 00				nop			;099a 
+099b 00				nop			;099b 
+099c 0f				rrca			;099c 
+099d 00				nop			;099d 
+099e 00				nop			;099e 
+099f 00				nop			;099f 
+09a0 00				nop			;09a0 
+09a1 00				nop			;09a1 
+09a2 00				nop			;09a2 
+09a3 00				nop			;09a3 
+09a4 00				nop			;09a4 
+09a5 00				nop			;09a5 
+09a6 00				nop			;09a6 
+09a7 00				nop			;09a7 
+09a8 00				nop			;09a8 
+09a9 00				nop			;09a9 
+09aa 00				nop			;09aa 
+09ab f0				ret p			;09ab 
+09ac 00				nop			;09ac 
+09ad 00				nop			;09ad 
+09ae 00				nop			;09ae 
+09af 00				nop			;09af 
+09b0 00				nop			;09b0 
+09b1 00				nop			;09b1 
+09b2 00				nop			;09b2 
+09b3 00				nop			;09b3 
+09b4 00				nop			;09b4 
+09b5 00				nop			;09b5 
+09b6 00				nop			;09b6 
+09b7 00				nop			;09b7 
+09b8 00				nop			;09b8 
+09b9 00				nop			;09b9 
+09ba 00				nop			;09ba 
+09bb 0f				rrca			;09bb 
+09bc 00				nop			;09bc 
+09bd 00				nop			;09bd 
+09be 00				nop			;09be 
+09bf 00				nop			;09bf 
+09c0 00				nop			;09c0 
+09c1 00				nop			;09c1 
+09c2 00				nop			;09c2 
+09c3 00				nop			;09c3 
+09c4 00				nop			;09c4 
+09c5 00				nop			;09c5 
+09c6 00				nop			;09c6 
+09c7 00				nop			;09c7 
+09c8 00				nop			;09c8 
+09c9 00				nop			;09c9 
+09ca 00				nop			;09ca 
+09cb 0f				rrca			;09cb 
+09cc 00				nop			;09cc 
+09cd 00				nop			;09cd 
+09ce 00				nop			;09ce 
+09cf 00				nop			;09cf 
+09d0 00				nop			;09d0 
+09d1 00				nop			;09d1 
+09d2 00				nop			;09d2 
+09d3 00				nop			;09d3 
+09d4 00				nop			;09d4 
+09d5 00				nop			;09d5 
+09d6 00				nop			;09d6 
+09d7 00				nop			;09d7 
+09d8 00				nop			;09d8 
+09d9 00				nop			;09d9 
+09da 00				nop			;09da 
+09db f0				ret p			;09db 
+09dc 00				nop			;09dc 
+09dd 00				nop			;09dd 
+09de 00				nop			;09de 
+09df 00				nop			;09df 
+09e0 00				nop			;09e0 
+09e1 00				nop			;09e1 
+09e2 00				nop			;09e2 
+09e3 00				nop			;09e3 
+09e4 00				nop			;09e4 
+09e5 00				nop			;09e5 
+09e6 00				nop			;09e6 
+09e7 00				nop			;09e7 
+09e8 00				nop			;09e8 
+09e9 00				nop			;09e9 
+09ea 00				nop			;09ea 
+09eb 00				nop			;09eb 
+09ec 0f				rrca			;09ec 
+09ed 00				nop			;09ed 
+09ee 00				nop			;09ee 
+09ef 00				nop			;09ef 
+09f0 00				nop			;09f0 
+09f1 00				nop			;09f1 
+09f2 00				nop			;09f2 
+09f3 00				nop			;09f3 
+09f4 00				nop			;09f4 
+09f5 00				nop			;09f5 
+09f6 00				nop			;09f6 
+09f7 00				nop			;09f7 
+09f8 00				nop			;09f8 
+09f9 00				nop			;09f9 
+09fa 00				nop			;09fa 
+09fb 00				nop			;09fb 
+09fc f0				ret p			;09fc 
+09fd 00				nop			;09fd 
+09fe 00				nop			;09fe 
+09ff 00				nop			;09ff 
+0a00 00				nop			;0a00 
+0a01 00				nop			;0a01 
+0a02 00				nop			;0a02 
+0a03 00				nop			;0a03 
+0a04 00				nop			;0a04 
+0a05 00				nop			;0a05 
+0a06 00				nop			;0a06 
+0a07 00				nop			;0a07 
+0a08 00				nop			;0a08 
+0a09 00				nop			;0a09 
+0a0a 00				nop			;0a0a 
+0a0b 00				nop			;0a0b 
+0a0c 00				nop			;0a0c 
+0a0d 0f				rrca			;0a0d 
+0a0e 00				nop			;0a0e 
+0a0f 00				nop			;0a0f 
+0a10 00				nop			;0a10 
+0a11 00				nop			;0a11 
+0a12 00				nop			;0a12 
+0a13 00				nop			;0a13 
+0a14 00				nop			;0a14 
+0a15 00				nop			;0a15 
+0a16 00				nop			;0a16 
+0a17 00				nop			;0a17 
+0a18 00				nop			;0a18 
+0a19 00				nop			;0a19 
+0a1a 00				nop			;0a1a 
+0a1b 00				nop			;0a1b 
+0a1c 00				nop			;0a1c 
+0a1d f0				ret p			;0a1d 
+0a1e 00				nop			;0a1e 
+0a1f 00				nop			;0a1f 
+0a20 00				nop			;0a20 
+0a21 00				nop			;0a21 
+0a22 00				nop			;0a22 
+0a23 00				nop			;0a23 
+0a24 00				nop			;0a24 
+0a25 00				nop			;0a25 
+0a26 00				nop			;0a26 
+0a27 00				nop			;0a27 
+0a28 00				nop			;0a28 
+0a29 00				nop			;0a29 
+0a2a 00				nop			;0a2a 
+0a2b 00				nop			;0a2b 
+0a2c 00				nop			;0a2c 
+0a2d 00				nop			;0a2d 
+0a2e 0f				rrca			;0a2e 
+0a2f 00				nop			;0a2f 
+0a30 00				nop			;0a30 
+0a31 00				nop			;0a31 
+0a32 00				nop			;0a32 
+0a33 00				nop			;0a33 
+0a34 00				nop			;0a34 
+0a35 00				nop			;0a35 
+0a36 00				nop			;0a36 
+0a37 00				nop			;0a37 
+0a38 00				nop			;0a38 
+0a39 00				nop			;0a39 
+0a3a 00				nop			;0a3a 
+0a3b 00				nop			;0a3b 
+0a3c 00				nop			;0a3c 
+0a3d 00				nop			;0a3d 
+0a3e f0				ret p			;0a3e 
+0a3f 00				nop			;0a3f 
+0a40 00				nop			;0a40 
+0a41 00				nop			;0a41 
+0a42 00				nop			;0a42 
+0a43 00				nop			;0a43 
+0a44 00				nop			;0a44 
+0a45 00				nop			;0a45 
+0a46 00				nop			;0a46 
+0a47 00				nop			;0a47 
+0a48 00				nop			;0a48 
+0a49 00				nop			;0a49 
+0a4a 00				nop			;0a4a 
+0a4b 00				nop			;0a4b 
+0a4c 00				nop			;0a4c 
+0a4d 00				nop			;0a4d 
+0a4e 00				nop			;0a4e 
+0a4f 0f				rrca			;0a4f 
+0a50 00				nop			;0a50 
+0a51 00				nop			;0a51 
+0a52 00				nop			;0a52 
+0a53 00				nop			;0a53 
+0a54 00				nop			;0a54 
+0a55 00				nop			;0a55 
+0a56 00				nop			;0a56 
+0a57 00				nop			;0a57 
+0a58 00				nop			;0a58 
+0a59 00				nop			;0a59 
+0a5a 00				nop			;0a5a 
+0a5b 00				nop			;0a5b 
+0a5c 00				nop			;0a5c 
+0a5d 00				nop			;0a5d 
+0a5e 00				nop			;0a5e 
+0a5f f0				ret p			;0a5f 
+0a60 00				nop			;0a60 
+0a61 00				nop			;0a61 
+0a62 00				nop			;0a62 
+0a63 00				nop			;0a63 
+0a64 00				nop			;0a64 
+0a65 00				nop			;0a65 
+0a66 00				nop			;0a66 
+0a67 00				nop			;0a67 
+0a68 00				nop			;0a68 
+0a69 00				nop			;0a69 
+0a6a 00				nop			;0a6a 
+0a6b 00				nop			;0a6b 
+0a6c 00				nop			;0a6c 
+0a6d 00				nop			;0a6d 
+0a6e 00				nop			;0a6e 
+0a6f 00				nop			;0a6f 
+0a70 0f				rrca			;0a70 
+0a71 00				nop			;0a71 
+0a72 00				nop			;0a72 
+0a73 00				nop			;0a73 
+0a74 00				nop			;0a74 
+0a75 00				nop			;0a75 
+0a76 00				nop			;0a76 
+0a77 00				nop			;0a77 
+0a78 00				nop			;0a78 
+0a79 00				nop			;0a79 
+0a7a 00				nop			;0a7a 
+0a7b 00				nop			;0a7b 
+0a7c 00				nop			;0a7c 
+0a7d 00				nop			;0a7d 
+0a7e 00				nop			;0a7e 
+0a7f 00				nop			;0a7f 
+0a80 f0				ret p			;0a80 
+0a81 00				nop			;0a81 
+0a82 00				nop			;0a82 
+0a83 00				nop			;0a83 
+0a84 00				nop			;0a84 
+0a85 00				nop			;0a85 
+0a86 00				nop			;0a86 
+0a87 00				nop			;0a87 
+0a88 00				nop			;0a88 
+0a89 00				nop			;0a89 
+0a8a 00				nop			;0a8a 
+0a8b 00				nop			;0a8b 
+0a8c 00				nop			;0a8c 
+0a8d 00				nop			;0a8d 
+0a8e 00				nop			;0a8e 
+0a8f 00				nop			;0a8f 
+0a90 00				nop			;0a90 
+0a91 0f				rrca			;0a91 
+0a92 00				nop			;0a92 
+0a93 00				nop			;0a93 
+0a94 00				nop			;0a94 
+0a95 00				nop			;0a95 
+0a96 00				nop			;0a96 
+0a97 00				nop			;0a97 
+0a98 00				nop			;0a98 
+0a99 00				nop			;0a99 
+0a9a 00				nop			;0a9a 
+0a9b 00				nop			;0a9b 
+0a9c 00				nop			;0a9c 
+0a9d 00				nop			;0a9d 
+0a9e 00				nop			;0a9e 
+0a9f 00				nop			;0a9f 
+0aa0 00				nop			;0aa0 
+0aa1 f0				ret p			;0aa1 
+0aa2 00				nop			;0aa2 
+0aa3 00				nop			;0aa3 
+0aa4 00				nop			;0aa4 
+0aa5 00				nop			;0aa5 
+0aa6 00				nop			;0aa6 
+0aa7 00				nop			;0aa7 
+0aa8 00				nop			;0aa8 
+0aa9 00				nop			;0aa9 
+0aaa 00				nop			;0aaa 
+0aab 00				nop			;0aab 
+0aac 00				nop			;0aac 
+0aad 00				nop			;0aad 
+0aae 00				nop			;0aae 
+0aaf 00				nop			;0aaf 
+0ab0 00				nop			;0ab0 
+0ab1 00				nop			;0ab1 
+0ab2 0f				rrca			;0ab2 
+0ab3 00				nop			;0ab3 
+0ab4 00				nop			;0ab4 
+0ab5 00				nop			;0ab5 
+0ab6 00				nop			;0ab6 
+0ab7 00				nop			;0ab7 
+0ab8 00				nop			;0ab8 
+0ab9 00				nop			;0ab9 
+0aba 00				nop			;0aba 
+0abb 00				nop			;0abb 
+0abc 00				nop			;0abc 
+0abd 00				nop			;0abd 
+0abe 00				nop			;0abe 
+0abf 00				nop			;0abf 
+0ac0 00				nop			;0ac0 
+0ac1 00				nop			;0ac1 
+0ac2 f0				ret p			;0ac2 
+0ac3 00				nop			;0ac3 
+0ac4 00				nop			;0ac4 
+0ac5 00				nop			;0ac5 
+0ac6 00				nop			;0ac6 
+0ac7 00				nop			;0ac7 
+0ac8 00				nop			;0ac8 
+0ac9 00				nop			;0ac9 
+0aca 00				nop			;0aca 
+0acb 00				nop			;0acb 
+0acc 00				nop			;0acc 
+0acd 00				nop			;0acd 
+0ace 00				nop			;0ace 
+0acf 00				nop			;0acf 
+0ad0 00				nop			;0ad0 
+0ad1 00				nop			;0ad1 
+0ad2 00				nop			;0ad2 
+0ad3 0f				rrca			;0ad3 
+0ad4 00				nop			;0ad4 
+0ad5 00				nop			;0ad5 
+0ad6 00				nop			;0ad6 
+0ad7 00				nop			;0ad7 
+0ad8 00				nop			;0ad8 
+0ad9 00				nop			;0ad9 
+0ada 00				nop			;0ada 
+0adb 00				nop			;0adb 
+0adc 00				nop			;0adc 
+0add 00				nop			;0add 
+0ade 00				nop			;0ade 
+0adf 00				nop			;0adf 
+0ae0 00				nop			;0ae0 
+0ae1 00				nop			;0ae1 
+0ae2 00				nop			;0ae2 
+0ae3 f0				ret p			;0ae3 
+0ae4 00				nop			;0ae4 
+0ae5 00				nop			;0ae5 
+0ae6 00				nop			;0ae6 
+0ae7 00				nop			;0ae7 
+0ae8 00				nop			;0ae8 
+0ae9 00				nop			;0ae9 
+0aea 00				nop			;0aea 
+0aeb 00				nop			;0aeb 
+0aec 00				nop			;0aec 
+0aed 00				nop			;0aed 
+0aee 00				nop			;0aee 
+0aef 00				nop			;0aef 
+0af0 00				nop			;0af0 
+0af1 00				nop			;0af1 
+0af2 00				nop			;0af2 
+0af3 00				nop			;0af3 
+0af4 0f				rrca			;0af4 
+0af5 00				nop			;0af5 
+0af6 00				nop			;0af6 
+0af7 00				nop			;0af7 
+0af8 00				nop			;0af8 
+0af9 00				nop			;0af9 
+0afa 00				nop			;0afa 
+0afb 00				nop			;0afb 
+0afc 00				nop			;0afc 
+0afd 00				nop			;0afd 
+0afe 00				nop			;0afe 
+0aff 00				nop			;0aff 
+0b00 00				nop			;0b00 
+0b01 00				nop			;0b01 
+0b02 00				nop			;0b02 
+0b03 00				nop			;0b03 
+0b04 f0				ret p			;0b04 
+0b05 00				nop			;0b05 
+0b06 00				nop			;0b06 
+0b07 00				nop			;0b07 
+0b08 00				nop			;0b08 
+0b09 00				nop			;0b09 
+0b0a 00				nop			;0b0a 
+0b0b 00				nop			;0b0b 
+0b0c 00				nop			;0b0c 
+0b0d 00				nop			;0b0d 
+0b0e 00				nop			;0b0e 
+0b0f 00				nop			;0b0f 
+0b10 00				nop			;0b10 
+0b11 00				nop			;0b11 
+0b12 00				nop			;0b12 
+0b13 00				nop			;0b13 
+0b14 00				nop			;0b14 
+0b15 0f				rrca			;0b15 
+0b16 00				nop			;0b16 
+0b17 00				nop			;0b17 
+0b18 00				nop			;0b18 
+0b19 00				nop			;0b19 
+0b1a 00				nop			;0b1a 
+0b1b 00				nop			;0b1b 
+0b1c 00				nop			;0b1c 
+0b1d 00				nop			;0b1d 
+0b1e 00				nop			;0b1e 
+0b1f 00				nop			;0b1f 
+0b20 00				nop			;0b20 
+0b21 00				nop			;0b21 
+0b22 00				nop			;0b22 
+0b23 00				nop			;0b23 
+0b24 00				nop			;0b24 
+0b25 f0				ret p			;0b25 
+0b26 00				nop			;0b26 
+0b27 00				nop			;0b27 
+0b28 00				nop			;0b28 
+0b29 00				nop			;0b29 
+0b2a 00				nop			;0b2a 
+0b2b 00				nop			;0b2b 
+0b2c 00				nop			;0b2c 
+0b2d 00				nop			;0b2d 
+0b2e 00				nop			;0b2e 
+0b2f 00				nop			;0b2f 
+0b30 00				nop			;0b30 
+0b31 00				nop			;0b31 
+0b32 00				nop			;0b32 
+0b33 00				nop			;0b33 
+0b34 00				nop			;0b34 
+0b35 00				nop			;0b35 
+0b36 0f				rrca			;0b36 
+0b37 00				nop			;0b37 
+0b38 00				nop			;0b38 
+0b39 00				nop			;0b39 
+0b3a 00				nop			;0b3a 
+0b3b 00				nop			;0b3b 
+0b3c 00				nop			;0b3c 
+0b3d 00				nop			;0b3d 
+0b3e 00				nop			;0b3e 
+0b3f 00				nop			;0b3f 
+0b40 00				nop			;0b40 
+0b41 00				nop			;0b41 
+0b42 00				nop			;0b42 
+0b43 00				nop			;0b43 
+0b44 00				nop			;0b44 
+0b45 00				nop			;0b45 
+0b46 f0				ret p			;0b46 
+0b47 00				nop			;0b47 
+0b48 00				nop			;0b48 
+0b49 00				nop			;0b49 
+0b4a 00				nop			;0b4a 
+0b4b 00				nop			;0b4b 
+0b4c 00				nop			;0b4c 
+0b4d 00				nop			;0b4d 
+0b4e 00				nop			;0b4e 
+0b4f 00				nop			;0b4f 
+0b50 00				nop			;0b50 
+0b51 00				nop			;0b51 
+0b52 00				nop			;0b52 
+0b53 00				nop			;0b53 
+0b54 00				nop			;0b54 
+0b55 00				nop			;0b55 
+0b56 00				nop			;0b56 
+0b57 0f				rrca			;0b57 
+0b58 00				nop			;0b58 
+0b59 00				nop			;0b59 
+0b5a 00				nop			;0b5a 
+0b5b 00				nop			;0b5b 
+0b5c 00				nop			;0b5c 
+0b5d 00				nop			;0b5d 
+0b5e 00				nop			;0b5e 
+0b5f 00				nop			;0b5f 
+0b60 00				nop			;0b60 
+0b61 00				nop			;0b61 
+0b62 00				nop			;0b62 
+0b63 00				nop			;0b63 
+0b64 00				nop			;0b64 
+0b65 00				nop			;0b65 
+0b66 00				nop			;0b66 
+0b67 f0				ret p			;0b67 
+0b68 00				nop			;0b68 
+0b69 00				nop			;0b69 
+0b6a 00				nop			;0b6a 
+0b6b 00				nop			;0b6b 
+0b6c 00				nop			;0b6c 
+0b6d 00				nop			;0b6d 
+0b6e 00				nop			;0b6e 
+0b6f 00				nop			;0b6f 
+0b70 00				nop			;0b70 
+0b71 00				nop			;0b71 
+0b72 00				nop			;0b72 
+0b73 00				nop			;0b73 
+0b74 00				nop			;0b74 
+0b75 00				nop			;0b75 
+0b76 00				nop			;0b76 
+0b77 00				nop			;0b77 
+0b78 0f				rrca			;0b78 
+0b79 00				nop			;0b79 
+0b7a 00				nop			;0b7a 
+0b7b 00				nop			;0b7b 
+0b7c 00				nop			;0b7c 
+0b7d 00				nop			;0b7d 
+0b7e 00				nop			;0b7e 
+0b7f 00				nop			;0b7f 
+0b80 00				nop			;0b80 
+0b81 00				nop			;0b81 
+0b82 00				nop			;0b82 
+0b83 00				nop			;0b83 
+0b84 00				nop			;0b84 
+0b85 00				nop			;0b85 
+0b86 00				nop			;0b86 
+0b87 00				nop			;0b87 
+0b88 f0				ret p			;0b88 
+0b89 00				nop			;0b89 
+0b8a 00				nop			;0b8a 
+0b8b 00				nop			;0b8b 
+0b8c 00				nop			;0b8c 
+0b8d 00				nop			;0b8d 
+0b8e 00				nop			;0b8e 
+0b8f 00				nop			;0b8f 
+0b90 00				nop			;0b90 
+0b91 00				nop			;0b91 
+0b92 00				nop			;0b92 
+0b93 00				nop			;0b93 
+0b94 00				nop			;0b94 
+0b95 00				nop			;0b95 
+0b96 00				nop			;0b96 
+0b97 00				nop			;0b97 
+0b98 00				nop			;0b98 
+0b99 0f				rrca			;0b99 
+0b9a 00				nop			;0b9a 
+0b9b 00				nop			;0b9b 
+0b9c 00				nop			;0b9c 
+0b9d 00				nop			;0b9d 
+0b9e 00				nop			;0b9e 
+0b9f 00				nop			;0b9f 
+0ba0 00				nop			;0ba0 
+0ba1 00				nop			;0ba1 
+0ba2 00				nop			;0ba2 
+0ba3 00				nop			;0ba3 
+0ba4 00				nop			;0ba4 
+0ba5 00				nop			;0ba5 
+0ba6 00				nop			;0ba6 
+0ba7 00				nop			;0ba7 
+0ba8 00				nop			;0ba8 
+0ba9 f0				ret p			;0ba9 
+0baa 00				nop			;0baa 
+0bab 00				nop			;0bab 
+0bac 00				nop			;0bac 
+0bad 00				nop			;0bad 
+0bae 00				nop			;0bae 
+0baf 00				nop			;0baf 
+0bb0 00				nop			;0bb0 
+0bb1 00				nop			;0bb1 
+0bb2 00				nop			;0bb2 
+0bb3 00				nop			;0bb3 
+0bb4 00				nop			;0bb4 
+0bb5 00				nop			;0bb5 
+0bb6 00				nop			;0bb6 
+0bb7 00				nop			;0bb7 
+0bb8 00				nop			;0bb8 
+0bb9 00				nop			;0bb9 
+0bba 0f				rrca			;0bba 
+0bbb 00				nop			;0bbb 
+0bbc 00				nop			;0bbc 
+0bbd 00				nop			;0bbd 
+0bbe 00				nop			;0bbe 
+0bbf 00				nop			;0bbf 
+0bc0 00				nop			;0bc0 
+0bc1 00				nop			;0bc1 
+0bc2 00				nop			;0bc2 
+0bc3 00				nop			;0bc3 
+0bc4 00				nop			;0bc4 
+0bc5 00				nop			;0bc5 
+0bc6 00				nop			;0bc6 
+0bc7 00				nop			;0bc7 
+0bc8 00				nop			;0bc8 
+0bc9 00				nop			;0bc9 
+0bca f0				ret p			;0bca 
+0bcb			init: 
+0bcb				; ZOGGINS 
+0bcb				; Select Page 1 on Dazzler II 
+0bcb 3e 00			ld a,000h		 
+0bcd d3 18			out (018h),a	 
+0bcf				 
+0bcf				; ZOGGINS 
+0bcf				; Set DMA address 
+0bcf 3e 04			ld a,004h		 
+0bd1 d3 0e			out (00eh),a 
+0bd3				 
+0bd3 c3 9c 03			jp l039ch		;0100 
+# End of file X-LIFE.ASM
+0bd6

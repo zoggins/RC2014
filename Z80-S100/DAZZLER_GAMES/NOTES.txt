@@ -1,5 +1,5 @@
 4DTICTAC - Keyboard Input Requried
-AMBUSH - Swaps DMA locations, seems to not redraw correctly
+AMBUSH - Works, rename AMBUSH2 because it will only work on a Dazzler II
 CHASE - Works
 DAZCHESS - Keyboard Input Required, 
 	   Nothing draws the first run, reset G0 it displays
