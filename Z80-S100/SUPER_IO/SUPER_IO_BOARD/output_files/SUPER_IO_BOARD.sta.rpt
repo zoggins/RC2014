@@ -1,5 +1,5 @@
 Timing Analyzer report for SUPER_IO_BOARD
-Sun Nov 19 12:42:47 2023
+Tue Nov 28 17:33:30 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 
 
@@ -238,9 +238,9 @@ https://fpgasoftware.intel.com/eula.
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;   8.6%      ;
-;     Processor 3            ;   6.3%      ;
-;     Processor 4            ;   5.3%      ;
+;     Processor 2            ;   8.8%      ;
+;     Processor 3            ;   6.2%      ;
+;     Processor 4            ;   5.4%      ;
 +----------------------------+-------------+
 
 
@@ -9776,9 +9776,9 @@ Design MTBF is not calculated because the design doesn't meet its timing require
 ; 0.638 ; Microcomputer:inst|T80s:cpu1|T80:u0|A[4] ; Microcomputer:inst|T80s:cpu1|T80:u0|PreserveC_r      ; Microcomputer:inst|cpuClock         ; Microcomputer:inst|cpuClock ; 0.000        ; 0.999      ; 1.721      ;
 ; 0.656 ; Microcomputer:inst|T80s:cpu1|IORQ_n      ; Microcomputer:inst|T80s:cpu1|DI_Reg[4]               ; Microcomputer:inst|T80s:cpu1|IORQ_n ; Microcomputer:inst|cpuClock ; 0.000        ; 1.594      ; 2.459      ;
 ; 0.656 ; Microcomputer:inst|T80s:cpu1|IORQ_n      ; Microcomputer:inst|T80s:cpu1|DI_Reg[3]               ; Microcomputer:inst|T80s:cpu1|IORQ_n ; Microcomputer:inst|cpuClock ; 0.000        ; 1.594      ; 2.459      ;
-; 0.658 ; Microcomputer:inst|T80s:cpu1|T80:u0|A[4] ; Microcomputer:inst|T80s:cpu1|DI_Reg[5]               ; Microcomputer:inst|cpuClock         ; Microcomputer:inst|cpuClock ; 0.000        ; 1.028      ; 1.770      ;
 ; 0.658 ; Microcomputer:inst|T80s:cpu1|T80:u0|A[1] ; Microcomputer:inst|T80s:cpu1|DI_Reg[3]               ; Microcomputer:inst|cpuClock         ; Microcomputer:inst|cpuClock ; 0.000        ; 1.105      ; 1.847      ;
 ; 0.658 ; Microcomputer:inst|T80s:cpu1|T80:u0|A[1] ; Microcomputer:inst|T80s:cpu1|DI_Reg[4]               ; Microcomputer:inst|cpuClock         ; Microcomputer:inst|cpuClock ; 0.000        ; 1.105      ; 1.847      ;
+; 0.658 ; Microcomputer:inst|T80s:cpu1|T80:u0|A[4] ; Microcomputer:inst|T80s:cpu1|DI_Reg[5]               ; Microcomputer:inst|cpuClock         ; Microcomputer:inst|cpuClock ; 0.000        ; 1.028      ; 1.770      ;
 +-------+------------------------------------------+------------------------------------------------------+-------------------------------------+-----------------------------+--------------+------------+------------+
 
 
@@ -10755,7 +10755,7 @@ No non-DPA dedicated SERDES Receiver circuitry present in device or used in desi
 Info: *******************************************************************
 Info: Running Quartus Prime Timing Analyzer
     Info: Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
-    Info: Processing started: Sun Nov 19 12:42:39 2023
+    Info: Processing started: Tue Nov 28 17:33:16 2023
 Info: Command: quartus_sta SUPER_IO_BOARD -c SUPER_IO_BOARD
 Info: qsta_default_script.tcl version: #1
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
@@ -11036,9 +11036,9 @@ Info (332114): Report Metastability: Found 21 synchronizer chains.
 Info (332102): Design is not fully constrained for setup requirements
 Info (332102): Design is not fully constrained for hold requirements
 Info: Quartus Prime Timing Analyzer was successful. 0 errors, 6 warnings
-    Info: Peak virtual memory: 4831 megabytes
-    Info: Processing ended: Sun Nov 19 12:42:47 2023
-    Info: Elapsed time: 00:00:08
-    Info: Total CPU time (on all processors): 00:00:03
+    Info: Peak virtual memory: 4835 megabytes
+    Info: Processing ended: Tue Nov 28 17:33:30 2023
+    Info: Elapsed time: 00:00:14
+    Info: Total CPU time (on all processors): 00:00:02
 
 
