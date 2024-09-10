@@ -96,5 +96,8 @@ l0181h:
 	ld bc,0007eh		;0187
 	ldir		;018a
 	ld a,000h		
+	
+	; ZOGGINS
+	; Select Page 1 on Dazzler II
 	out (018h),a
 	jp 00200h		;018c

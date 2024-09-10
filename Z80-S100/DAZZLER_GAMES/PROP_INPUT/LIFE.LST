@@ -1,0 +1,435 @@
+# File LIFE.ASM
+0000			; z80dasm 1.1.6 
+0000			; command line: z80dasm --labels --origin=0x0100 --address LIFE.COM 
+0000			 
+0000				org	00100h 
+0100			 
+0100			LBLOFF:		equ		00103h 
+0100			 
+0100 c3 98 03			jp l0398h		;0100 
+0103			l0103h: 
+0103 c3 03 00			jp 00003h		;0103 
+0106 31 00 08			ld sp,00800h		;0106 
+0109 cd 6a 01			call sub_016ah		;0109 
+010c cd 92 01			call 00192h		;010c 
+010f cd 27 00			call 00027h		;010f 
+0112 db 01			in a,(001h)		;0112 
+0114 e6 7f			and 07fh		;0114 
+0116 fe 46			cp 046h		;0116 
+0118 ca 0f 00			jp z,0000fh		;0118 
+011b cd 3c 00			call 0003ch		;011b 
+011e db 01			in a,(001h)		;011e 
+0120 e6 7f			and 07fh		;0120 
+0122 fe 18			cp 018h		;0122 
+0124 ca 09 00			jp z,00009h		;0124 
+0127			l0127h: 
+0127 c3 0c 00			jp 0000ch		;0127 
+012a 01 00 00			ld bc,00000h		;012a 
+012d cd 7e 00			call 0007eh		;012d 
+0130 3e 40			ld a,040h		;0130 
+0132 0c				inc c			;0132 
+0133 b9				cp c			;0133 
+0134 c2 2a 00			jp nz,0002ah		;0134 
+0137 0e 00			ld c,000h		;0137 
+0139 04				inc b			;0139 
+013a b8				cp b			;013a 
+013b c2 2a 00			jp nz,0002ah		;013b 
+013e c9				ret			;013e 
+013f			l013fh: 
+013f 01 00 00			ld bc,00000h		;013f 
+0142 cd e3 00			call 000e3h		;0142 
+0145 fe 09			cp 009h		;0145 
+0147 c2 4f 00			jp nz,0004fh		;0147 
+014a 3e 00			ld a,000h		;014a 
+014c cd f4 00			call 000f4h		;014c 
+014f c3 59 00			jp 00059h		;014f 
+0152 fe 0a			cp 00ah		;0152 
+0154 c2 59 00			jp nz,00059h		;0154 
+0157 3e 0c			ld a,00ch		;0157 
+0159 cd f4 00			call 000f4h		;0159 
+015c 3e 40			ld a,040h		;015c 
+015e			l015eh: 
+015e 0c				inc c			;015e 
+015f b9				cp c			;015f 
+0160 c2 3f 00			jp nz,0003fh		;0160 
+0163 0e 00			ld c,000h		;0163 
+0165 04				inc b			;0165 
+0166 b8				cp b			;0166 
+0167 c2 3f 00			jp nz,0003fh		;0167 
+016a			sub_016ah: 
+016a c9				ret			;016a 
+016b 21 00 08			ld hl,00800h		;016b 
+016e 11 00 f8			ld de,0f800h		;016e 
+0171 06 00			ld b,000h		;0171 
+0173 3e 00			ld a,000h		;0173 
+0175 ba				cp d			;0175 
+0176 c2 78 00			jp nz,00078h		;0176 
+0179 bb				cp e			;0179 
+017a c8				ret z			;017a 
+017b 70				ld (hl),b			;017b 
+017c 13				inc de			;017c 
+017d 23				inc hl			;017d 
+017e c3 72 00			jp 00072h		;017e 
+0181 c5				push bc			;0181 
+0182 3e 00			ld a,000h		;0182 
+0184 b9				cp c			;0184 
+0185 c2 96 00			jp nz,00096h		;0185 
+0188 0d				dec c			;0188 
+0189 cd c6 00			call 000c6h		;0189 
+018c 32 72 02			ld (l0272h),a		;018c 
+018f c1				pop bc			;018f 
+0190 c5				push bc			;0190 
+0191 cd c6 00			call 000c6h		;0191 
+0194 32 73 02			ld (l0272h+1),a		;0194 
+0197 c1				pop bc			;0197 
+0198 c5				push bc			;0198 
+0199 0c				inc c			;0199 
+019a cd c6 00			call 000c6h		;019a 
+019d 21 73 02			ld hl,l0272h+1		;019d 
+01a0 46				ld b,(hl)			;01a0 
+01a1 77				ld (hl),a			;01a1 
+01a2 80				add a,b			;01a2 
+01a3 2b				dec hl			;01a3 
+01a4 4e				ld c,(hl)			;01a4 
+01a5 70				ld (hl),b			;01a5 
+01a6 81				add a,c			;01a6 
+01a7 57				ld d,a			;01a7 
+01a8 c1				pop bc			;01a8 
+01a9 c8				ret z			;01a9 
+01aa			l01aah: 
+01aa d5				push de			;01aa 
+01ab cd e3 00			call 000e3h		;01ab 
+01ae d1				pop de			;01ae 
+01af fe 00			cp 000h		;01af 
+01b1 ca bd 00			jp z,000bdh		;01b1 
+01b4 7a				ld a,d			;01b4 
+01b5 fe 03			cp 003h		;01b5 
+01b7 c8				ret z			;01b7 
+01b8 fe 04			cp 004h		;01b8 
+01ba c8				ret z			;01ba 
+01bb 3e 09			ld a,009h		;01bb 
+01bd c3 f4 00			jp 000f4h		;01bd 
+01c0 7a				ld a,d			;01c0 
+01c1 fe 03			cp 003h		;01c1 
+01c3			l01c3h: 
+01c3 c0				ret nz			;01c3 
+01c4 3e 0a			ld a,00ah		;01c4 
+01c6 c3 f4 00			jp 000f4h		;01c6 
+01c9 05				dec b			;01c9 
+01ca 16 00			ld d,000h		;01ca 
+01cc cd d6 00			call 000d6h		;01cc 
+01cf			l01cfh: 
+01cf 04				inc b			;01cf 
+01d0 cd d6 00			call 000d6h		;01d0 
+01d3 04				inc b			;01d3 
+01d4 cd d6 00			call 000d6h		;01d4 
+01d7 7a				ld a,d			;01d7 
+01d8 c9				ret			;01d8 
+01d9 d5				push de			;01d9 
+01da cd e3 00			call 000e3h		;01da 
+01dd d1				pop de			;01dd 
+01de fe 00			cp 000h		;01de 
+01e0 c8				ret z			;01e0 
+01e1 fe 0a			cp 00ah		;01e1 
+01e3 c8				ret z			;01e3 
+01e4 14				inc d			;01e4 
+01e5 c9				ret			;01e5 
+01e6 cd 10 01			call 00110h		;01e6 
+01e9 7e				ld a,(hl)			;01e9 
+01ea da ed 00			jp c,000edh		;01ea 
+01ed e6 0f			and 00fh		;01ed 
+01ef c9				ret			;01ef 
+01f0 e6 f0			and 0f0h		;01f0 
+01f2 07				rlca			;01f2 
+01f3 07				rlca			;01f3 
+01f4 07				rlca			;01f4 
+01f5 07				rlca			;01f5 
+01f6 c9				ret			;01f6 
+01f7 e6 0f			and 00fh		;01f7 
+01f9 f5				push af			;01f9 
+01fa cd 10 01			call 00110h		;01fa 
+01fd d1				pop de			;01fd 
+01fe da 04 01			jp c,l0103h+1		;01fe 
+0201 7e				ld a,(hl)			;0201 
+0202 e6 f0			and 0f0h		;0202 
+0204 82				add a,d			;0204 
+0205 77				ld (hl),a			;0205 
+0206 c9				ret			;0206 
+0207			l0207h: 
+0207 7a				ld a,d			;0207 
+0208 07				rlca			;0208 
+0209 07				rlca			;0209 
+020a 07				rlca			;020a 
+020b 07				rlca			;020b 
+020c 57				ld d,a			;020c 
+020d 7e				ld a,(hl)			;020d 
+020e e6 0f			and 00fh		;020e 
+0210 82				add a,d			;0210 
+0211 77				ld (hl),a			;0211 
+0212 c9				ret			;0212 
+0213 21 00 08			ld hl,00800h		;0213 
+0216 78				ld a,b			;0216 
+0217 e6 20			and 020h		;0217 
+0219			sub_0219h: 
+0219 ca 1d 01			jp z,0011dh		;0219 
+021c 11 00 02			ld de,00200h		;021c 
+021f 19				add hl,de			;021f 
+0220 79				ld a,c			;0220 
+0221 e6 20			and 020h		;0221 
+0223 ca 27 01			jp z,l0127h		;0223 
+0226 11 00 04			ld de,00400h		;0226 
+0229 19				add hl,de			;0229 
+022a 79				ld a,c			;022a 
+022b e6 1f			and 01fh		;022b 
+022d 07				rlca			;022d 
+022e 07				rlca			;022e 
+022f 07				rlca			;022f 
+0230 17				rla			;0230 
+0231			l0231h: 
+0231 5f				ld e,a			;0231 
+0232 3e 00			ld a,000h		;0232 
+0234 17				rla			;0234 
+0235 57				ld d,a			;0235 
+0236 19				add hl,de			;0236 
+0237			l0237h: 
+0237 78				ld a,b			;0237 
+0238 1f				rra			;0238 
+0239 f5				push af			;0239 
+023a e6 0f			and 00fh		;023a 
+023c 5f				ld e,a			;023c 
+023d 16 00			ld d,000h		;023d 
+023f			l023fh: 
+023f 19				add hl,de			;023f 
+0240 f1				pop af			;0240 
+0241			sub_0241h: 
+0241 c9				ret			;0241 
+0242			CI: 
+0242 db 00			in a,(000h)		;0242 
+0244 e6 02			and 002h		;0244 
+0246 00				nop			;0246 
+0247 00				nop			;0247 
+0248 00				nop			;0248 
+0249 00				nop			;0249 
+024a 00				nop			;024a 
+024b 00				nop			;024b 
+024c c0				ret nz			;024c 
+024d 0c				inc c			;024d 
+024e c2 3f 01			jp nz,CI-LBLOFF		;024e 
+0251 04				inc b			;0251 
+0252 c2 3f 01			jp nz,CI-LBLOFF		;0252 
+0255 c9				ret			;0255 
+0256				 
+0256			CO: 
+0256 db 00			in a,(000h)		;0256 
+0258 e6 04			and 004h		;0258 
+025a ca 53 01			jp z,CO-LBLOFF		;025a 
+025d 78				ld a,b			;025d 
+025e d3 01			out (001h),a		;025e 
+0260 c9				ret			;0260 
+0261				 
+0261 46				ld b,(hl)			;0261 
+0262 3e 00			ld a,000h		;0262 
+0264 b8				cp b			;0264 
+0265			l0265h: 
+0265 c8				ret z			;0265 
+0266 cd 53 01			call CO-LBLOFF		;0266 
+0269 23				inc hl			;0269 
+026a c3 5e 01			jp l015eh		;026a 
+026d cd 68 00			call 00068h		;026d 
+0270 3e 84			ld a,084h		;0270 
+0272			l0272h: 
+0272 d3 0e			out (00eh),a		;0272 
+0274			l0274h: 
+0274 3e b0			ld a,0b0h		;0274 
+0276 d3 0f			out (00fh),a		;0276 
+0278 21 74 02			ld hl,l0274h		;0278 
+027b cd 5e 01			call l015eh		;027b 
+027e cd 3f 01			call CI-LBLOFF		;027e 
+0281 c9				ret			;0281 
+0282 00				nop			;0282 
+0283 00				nop			;0283 
+0284 db 01			in a,(001h)		;0284 
+0286 47				ld b,a			;0286 
+0287 cd 53 01			call CO-LBLOFF		;0287 
+028a e6 7f			and 07fh		;028a 
+028c fe 59			cp 059h		;028c 
+028e c0				ret nz			;028e 
+028f 21 99 02			ld hl,00299h		;028f 
+0292 c3 5e 01			jp l015eh		;0292 
+0295			l0295h: 
+0295 cd 68 00			call 00068h		;0295 
+0298 21 31 02			ld hl,l0231h		;0298 
+029b 22 95 02			ld (l0295h),hl		;029b 
+029e 21 3f 02			ld hl,l023fh		;029e 
+02a1 22 97 02			ld (l0295h+2),hl		;02a1 
+02a4 21 85 02			ld hl,00285h		;02a4 
+02a7 cd 5e 01			call l015eh		;02a7 
+02aa 01 00 00			ld bc,00000h		;02aa 
+02ad cd 41 02			call sub_0241h		;02ad 
+02b0 21 cf 01			ld hl,l01cfh		;02b0 
+02b3 e6 7f			and 07fh		;02b3 
+02b5 57				ld d,a			;02b5 
+02b6 97				sub a			;02b6 
+02b7 be				cp (hl)			;02b7 
+02b8 ca aa 01			jp z,l01aah		;02b8 
+02bb 7a				ld a,d			;02bb 
+02bc be				cp (hl)			;02bc 
+02bd ca c3 01			jp z,l01c3h		;02bd 
+02c0 23				inc hl			;02c0 
+02c1 23				inc hl			;02c1 
+02c2 23				inc hl			;02c2 
+02c3 c3 b3 01			jp 001b3h		;02c3 
+02c6 23				inc hl			;02c6 
+02c7 5e				ld e,(hl)			;02c7 
+02c8 23				inc hl			;02c8 
+02c9 56				ld d,(hl)			;02c9 
+02ca eb				ex de,hl			;02ca 
+02cb cd ce 01			call 001ceh		;02cb 
+02ce c3 aa 01			jp l01aah		;02ce 
+02d1 e9				jp (hl)			;02d1 
+02d2 44				ld b,h			;02d2 
+02d3 05				dec b			;02d3 
+02d4 02				ld (bc),a			;02d4 
+02d5 45				ld b,l			;02d5 
+02d6 14				inc d			;02d6 
+02d7 02				ld (bc),a			;02d7 
+02d8 43				ld b,e			;02d8 
+02d9 0a				ld a,(bc)			;02d9 
+02da 02				ld (bc),a			;02da 
+02db 47				ld b,a			;02db 
+02dc fb				ei			;02dc 
+02dd 01 41 37			ld bc,03741h		;02dd 
+02e0 02				ld (bc),a			;02e0 
+02e1 01 37 02			ld bc,l0237h		;02e1 
+02e4 53				ld d,e			;02e4 
+02e5 3c				inc a			;02e5 
+02e6 02				ld (bc),a			;02e6 
+02e7 13				inc de			;02e7 
+02e8 3c				inc a			;02e8 
+02e9 02				ld (bc),a			;02e9 
+02ea 5a				ld e,d			;02ea 
+02eb 32 02 1a			ld (01a02h),a		;02eb 
+02ee 32 02 57			ld (05702h),a		;02ee 
+02f1 2d				dec l			;02f1 
+02f2 02				ld (bc),a			;02f2 
+02f3 17				rla			;02f3 
+02f4 2d				dec l			;02f4 
+02f5 02				ld (bc),a			;02f5 
+02f6 51				ld d,c			;02f6 
+02f7 fd 01 0d			defb 0fdh,001h,00dh	;illegal sequence		;02f7 
+02fa 01 02 00			ld bc,00002h		;02fa 
+02fd 00				nop			;02fd 
+02fe c1				pop bc			;02fe 
+02ff c9				ret			;02ff 
+0300 01 00 00			ld bc,00000h		;0300 
+0303 c9				ret			;0303 
+0304 06 00			ld b,000h		;0304 
+0306 0c				inc c			;0306 
+0307 c9				ret			;0307 
+0308 3e 0f			ld a,00fh		;0308 
+030a cd f4 00			call 000f4h		;030a 
+030d 2a 95 02			ld hl,(l0295h)		;030d 
+0310 cd ce 01			call 001ceh		;0310 
+0313 2a 97 02			ld hl,(l0295h+2)		;0313 
+0316 e9				jp (hl)			;0316 
+0317 3e 00			ld a,000h		;0317 
+0319 c3 07 02			jp l0207h		;0319 
+031c 21 31 02			ld hl,l0231h		;031c 
+031f e6 40			and 040h		;031f 
+0321 c2 24 02			jp nz,00224h		;0321 
+0324 2a 97 02			ld hl,(l0295h+2)		;0324 
+0327 22 95 02			ld (l0295h),hl		;0327 
+032a e1				pop hl			;032a 
+032b 22 97 02			ld (l0295h+2),hl		;032b 
+032e c8				ret z			;032e 
+032f e9				jp (hl)			;032f 
+0330 cd 19 02			call sub_0219h		;0330 
+0333 0d				dec c			;0333 
+0334 c9				ret			;0334 
+0335 cd 19 02			call sub_0219h		;0335 
+0338 0c				inc c			;0338 
+0339 c9				ret			;0339 
+033a cd 19 02			call sub_0219h		;033a 
+033d 05				dec b			;033d 
+033e c9				ret			;033e 
+033f cd 19 02			call sub_0219h		;033f 
+0342 04				inc b			;0342 
+0343 c9				ret			;0343 
+0344 cd e3 00			call 000e3h		;0344 
+0347 f5				push af			;0347 
+0348 c5				push bc			;0348 
+0349 3e 0c			ld a,00ch		;0349 
+034b cd f4 00			call 000f4h		;034b 
+034e 01 00 00			ld bc,00000h		;034e 
+0351 cd 3f 01			call CI-LBLOFF		;0351 
+0354 c2 6e 02			jp nz,0026eh		;0354 
+0357 c1				pop bc			;0357 
+0358 c5				push bc			;0358 
+0359 3e 00			ld a,000h		;0359 
+035b cd f4 00			call 000f4h		;035b 
+035e 01 00 00			ld bc,00000h		;035e 
+0361 cd 3f 01			call CI-LBLOFF		;0361 
+0364 c1				pop bc			;0364 
+0365 ca 45 02			jp z,00245h		;0365 
+0368 f1				pop af			;0368 
+0369 cd f4 00			call 000f4h		;0369 
+036c db 01			in a,(001h)		;036c 
+036e d3 01			out (001h),a		;036e 
+0370 c9				ret			;0370 
+0371 c1				pop bc			;0371 
+0372 c3 65 02			jp l0265h		;0372 
+0375 00				nop			;0375 
+0376 00				nop			;0376 
+0377 0d				dec c			;0377 
+0378 0a				ld a,(bc)			;0378 
+0379 0a				ld a,(bc)			;0379 
+037a 4c				ld c,h			;037a 
+037b 49				ld c,c			;037b 
+037c 46				ld b,(hl)			;037c 
+037d 45				ld b,l			;037d 
+037e 20 20			jr nz,$+34		;037e 
+0380 20 56			jr nz,$+88		;0380 
+0382 2e 20			ld l,020h		;0382 
+0384 32 2e 31			ld (0312eh),a		;0384 
+0387 00				nop			;0387 
+0388 0d				dec c			;0388 
+0389 0a				ld a,(bc)			;0389 
+038a 0a				ld a,(bc)			;038a 
+038b 45				ld b,l			;038b 
+038c 4e				ld c,(hl)			;038c 
+038d 54				ld d,h			;038d 
+038e 45				ld b,l			;038e 
+038f 52				ld d,d			;038f 
+0390 20 44			jr nz,$+70		;0390 
+0392 41				ld b,c			;0392 
+0393 54				ld d,h			;0393 
+0394 41				ld b,c			;0394 
+0395 0d				dec c			;0395 
+0396 0a				ld a,(bc)			;0396 
+0397 00				nop			;0397 
+0398			l0398h: 
+0398 21 03 01			ld hl,l0103h		;0398 
+039b 11 00 00			ld de,00000h		;039b 
+039e 01 95 02			ld bc,l0295h		;039e 
+03a1 ed b0			ldir		;03a1 
+03a3				 
+03a3				; ZOGGINS 
+03a3				; Select Page 1 on Dazzler II 
+03a3 3e 00			ld a,000h		 
+03a5 d3 18			out (018h),a 
+03a7				 
+03a7				; ZOGGINS 
+03a7				; Set DMA address & clear Screen 
+03a7 3e 04			ld a,004h		 
+03a9 d3 0e			out (00eh),a 
+03ab 21 00 08			ld hl,800h 
+03ae 5d			    ld e,l 
+03af 54				ld d,h 
+03b0 13				inc	de 
+03b1 36 00			ld (hl),000h 
+03b3 01 00 08			ld bc,800h 
+03b6 ed b0			ldir 
+03b8				 
+03b8 c3 00 00			jp 00000h		;03a3 
+# End of file LIFE.ASM
+03bb
