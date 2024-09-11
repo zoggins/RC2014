@@ -53,9 +53,10 @@ l0163h:
 	; appear necessary.
 	;xor a	
 	;out (00eh),a
-	nop
-	nop
-	nop
+	call 0c00h 
+;	nop
+;	nop
+;	nop
 	ld bc,l01f3h+1
 	ld hl,l0c00h
 	call sub_0553h
@@ -2191,10 +2192,20 @@ l0cd1h:
 	rst 38h	
 	rst 38h	
 	rst 38h	
+dispoff: 
+	push af
+	ld hl,l0c00h
+	ld a,h
+	scf
+	rra
+	and 07fh
+	out (00eh),a
+	pop af
+	ret
 l0d03h:
 	ld hl,l0103h
 	ld de,00000h
-	ld bc,l0c00h
+	ld bc,00c0ch
 	ldir
 
 	; ZOGGINS

@@ -5,6 +5,13 @@
 
 LBLOFF:		equ		00103h
 
+CONOUT:		equ		001h	; CONSOLE OUT PORT
+CONIN:		equ		001h	; CONSOLE IN PORT
+
+CONSTATUS:	equ		000h	; CONSOLE STATUS PORT
+CONCOST:	equ		004h	; SEND STATUS BIT
+CONCIST:	equ		002h	; RECV STATUS BIT
+
 	jp init		;0100
 l0103h:
 	di			;0103
@@ -867,18 +874,18 @@ l06c7h:
 	jp sub_05bdh		;06c7
 	push af			;06ca
 CO:
-	in a,(000h)		;06cb
-	and 004h		;06cd
+	in a,(CONSTATUS)		;06cb
+	and CONCOST		;06cd
 	jp z,CO-LBLOFF	;06cf
 	pop af			;06d2
-	out (001h),a		;06d3
+	out (CONOUT),a		;06d3
 	ret			;06d5
 	
 CI:
-	in a,(000h)		;06d6
-	and 002h		;06d8
+	in a,(CONSTATUS)		;06d6
+	and CONCIST		;06d8
 	jp z,CI-LBLOFF		;06da
-	in a,(001h)		;06dd
+	in a,(CONIN)		;06dd
 	and 07fh		;06df
 	cp 020h		;06e1
 	ret c			;06e3

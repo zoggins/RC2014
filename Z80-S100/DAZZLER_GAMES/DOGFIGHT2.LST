@@ -2435,7 +2435,6 @@
 0ff6 1f				rra 
 0ff7 e6 01			and 001h 
 0ff9 d3 18			out (018h),a 
-0ffb				;out (c),h	 
 0ffb 0c				inc c 
 0ffc f1				pop af 
 0ffd c9				ret 

@@ -9,8 +9,8 @@ CONOUT:		equ		001h	; CONSOLE OUT PORT
 CONIN:		equ		001h	; CONSOLE IN PORT
 
 CONSTATUS:	equ		000h	; CONSOLE STATUS PORT
-CONCOST:	equ		080h	; SEND STATUS BIT
-CONCIST:	equ		040h	; RECV STATUS BIT
+CONCOST:	equ		004h	; SEND STATUS BIT
+CONCIST:	equ		002h	; RECV STATUS BIT
 
 	jp l0398h		;0100
 l0103h:
@@ -19,12 +19,12 @@ l0103h:
 	call sub_016ah		;0109
 	call 00192h		;010c
 	call 00027h		;010f
-	in a,(001h)		;0112
+	in a,(CONIN)		;0112
 	and 07fh		;0114
 	cp 046h		;0116
 	jp z,0000fh		;0118
 	call 0003ch		;011b
-	in a,(001h)		;011e
+	in a,(CONIN)		;011e
 	and 07fh		;0120
 	cp 018h		;0122
 	jp z,00009h		;0124
@@ -379,8 +379,8 @@ l0295h:
 	jp z,00245h		;0365
 	pop af			;0368
 	call 000f4h		;0369
-	in a,(001h)		;036c
-	out (001h),a		;036e
+	in a,(CONIN)		;036c
+	out (CONOUT),a		;036e
 	ret			;0370
 	pop bc			;0371
 	jp l0265h		;0372

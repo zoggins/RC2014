@@ -6,6 +6,13 @@
 0100			 
 0100			LBLOFF:		equ		00103h 
 0100			 
+0100			CONOUT:		equ		0a3h	; CONSOLE OUT PORT 
+0100			CONIN:		equ		0a3h	; CONSOLE IN PORT 
+0100			 
+0100			CONSTATUS:	equ		0a1h	; CONSOLE STATUS PORT 
+0100			CONCOST:	equ		004h	; SEND STATUS BIT 
+0100			CONCIST:	equ		001h	; RECV STATUS BIT 
+0100			 
 0100 c3 98 03			jp l0398h		;0100 
 0103			l0103h: 
 0103 c3 03 00			jp 00003h		;0103 
@@ -13,12 +20,12 @@
 0109 cd 6a 01			call sub_016ah		;0109 
 010c cd 92 01			call 00192h		;010c 
 010f cd 27 00			call 00027h		;010f 
-0112 db 01			in a,(001h)		;0112 
+0112 db a3			in a,(CONIN)		;0112 
 0114 e6 7f			and 07fh		;0114 
 0116 fe 46			cp 046h		;0116 
 0118 ca 0f 00			jp z,0000fh		;0118 
 011b cd 3c 00			call 0003ch		;011b 
-011e db 01			in a,(001h)		;011e 
+011e db a3			in a,(CONIN)		;011e 
 0120 e6 7f			and 07fh		;0120 
 0122 fe 18			cp 018h		;0122 
 0124 ca 09 00			jp z,00009h		;0124 
@@ -204,8 +211,8 @@
 0241			sub_0241h: 
 0241 c9				ret			;0241 
 0242			CI: 
-0242 db 00			in a,(000h)		;0242 
-0244 e6 02			and 002h		;0244 
+0242 db a1			in a,(CONSTATUS)		;0242 
+0244 e6 01			and CONCIST		;0244 
 0246 00				nop			;0246 
 0247 00				nop			;0247 
 0248 00				nop			;0248 
@@ -220,11 +227,11 @@
 0255 c9				ret			;0255 
 0256				 
 0256			CO: 
-0256 db 00			in a,(000h)		;0256 
-0258 e6 04			and 004h		;0258 
+0256 db a1			in a,(CONSTATUS)		;0256 
+0258 e6 04			and CONCOST		;0258 
 025a ca 53 01			jp z,CO-LBLOFF		;025a 
 025d 78				ld a,b			;025d 
-025e d3 01			out (001h),a		;025e 
+025e d3 a3			out (CONOUT),a		;025e 
 0260 c9				ret			;0260 
 0261				 
 0261 46				ld b,(hl)			;0261 
@@ -248,7 +255,7 @@
 0281 c9				ret			;0281 
 0282 00				nop			;0282 
 0283 00				nop			;0283 
-0284 db 01			in a,(001h)		;0284 
+0284 db a3			in a,(CONIN)		;0284 
 0286 47				ld b,a			;0286 
 0287 cd 53 01			call CO-LBLOFF		;0287 
 028a e6 7f			and 07fh		;028a 
@@ -373,8 +380,8 @@
 0365 ca 45 02			jp z,00245h		;0365 
 0368 f1				pop af			;0368 
 0369 cd f4 00			call 000f4h		;0369 
-036c db 01			in a,(001h)		;036c 
-036e d3 01			out (001h),a		;036e 
+036c db a3			in a,(CONIN)		;036c 
+036e d3 a3			out (CONOUT),a		;036e 
 0370 c9				ret			;0370 
 0371 c1				pop bc			;0371 
 0372 c3 65 02			jp l0265h		;0372 
