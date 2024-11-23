@@ -1,0 +1,39 @@
+# File PGM2708.ASM
+0000			; 
+0000			;               2708 EPROM PROGRAMMER 
+0000			; 
+0000			;       THIS SAMPLE PROGRAM PROGRAMS TWO 2708 PROMS 
+0000			;       IN SOCKETS ROM6 AND ROM7 ON CROMEMVO 
+0000			;       BYTESAVER II MEMORY BOARD.  THE SOURCE CODE 
+0000			;       IN THIS EXAMPLE IS ASSUMED LOCATED AT 200H - 9FFH. 
+0000			; 
+0000			SOURCE:     EQU     200H                        ;SOURCE CODE START ADDR 
+0000			SWATH:      EQU     800H                        ;SOURCE CODE LENGTH 
+0000			EPROM:      EQU     0F800H                      ;2708 PROM START ADDR 
+0000 21 00 02		PGM2708:    LD      HL,SOURCE                   ;LOAD SOURCE ADDR, 
+0003 11 00 f8		            LD      DE,EPROM                    ;2708 START ADDR, 
+0006 01 00 08		            LD      BC,SWATH                    ;AND SWATH FOR BLOCK XFER 
+0009 ed b0		            LDIR                                ;WRITE SOURCE TO 2708 
+000b e5			            PUSH    HL                          ;SAVE LAST SOURCE+1 ADDR 
+000c 2a 2b 00		            LD      HL,(PASSES)                 ;GET PROGRAMMING PASS# 
+000f 2b			            DEC     HL                          ;DECREMENT IT 
+0010 7c			            LD      A,H                         ;TEST FOR PASS#=0000H 
+0011 b5			            OR      L                           ;VALID ZERO FLAG 
+0012 22 2b 00		            LD      (PASSES),HL                 ;RESTORE PASS# 
+0015 e1			            POP     HL                          ;RESTORE LAST SOURCE+1 
+0016 20 e8		            JR      NZ,PGM2708                  ;PASS# NOT 0000H--GO BACK 
+0018 01 00 08		            LD      BC,SWATH                    ;DONE--READY TO VERIFY 
+001b 2b			            DEC     HL                          ;POINT TO LAST SOURCE ADDR 
+001c 1b			VERIFY:     DEC     DE                          ;POINT TO LAST 2708 ADDR 
+001d 1a			            LD      A,(DE)                      ;GET 2708 BYTE AND 
+001e ed a9		            CPD                                 ;COMPARE TO SOURCE BYTE 
+0020 e2 28 00		            JP      PO,EXIT                     ;DONE IF (BC)=0000H 
+0023 28 f7		            JR      Z,VERIFY                    ;BYTES MATCH--NEXT BYTE 
+0025 3e ff		ERROR:      LD      A,0FFH                      ;MISMATCH--LOAD REG. A 
+0027 76			            HALT                                ;WITH FFH AND HALT 
+0028 3e 00		EXIT:       LD      A,00H                       ;SUCCESS--LOAD REG. A 
+002a 76			            HALT                                ;WITH 00H AND HALT 
+002b 68 01		PASSES:     DW      360                         ;INITIAL PASS#=360 
+002d			            END 
+# End of file PGM2708.ASM
+002d
