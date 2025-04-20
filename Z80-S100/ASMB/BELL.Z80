@@ -1,0 +1,32 @@
+; This program rings the console bell at approximately
+;   half-second intervals determined by a timer loop.
+;
+BELL:	EQU		7			; console bell is ASCII 07
+WRITE:	EQU		2			; write character to console
+CDOS:	EQU		5			; use system call to write
+TIMIT:	EQU		2FFH		; 2 is no. of half-seconds;
+;								FF (256) is no. of loops 
+DURAT: 	EQU 	0FFH 		; FF (256) is loop duration
+;
+; Main Program
+;
+START: 	LD 		SP, STACK 	; initialize stack pointer 
+LOOP: 	LD 		BC,TIMIT 	; B is no. of half-sec.;
+;								C is no. of loops 
+TIM2: 	LD 		A, DURAT 	; get duration (256) 
+TIM1: 	DEC 	A 			; decrement and
+		JR 		NZ, TIM1	; loop til zero
+		DEC 	C			; decrement loop counter
+		JR 		NZ,TIM2		; until zero
+		DJNZ 	TIM2		; countdown half-seconds
+		LD 		E, BELL		; set-up to ring bell
+		LD 		C,WRITE		; set-up to write console
+		CALL 	CDOS		; call system
+		JP 		LOOP		; loop and repeat
+;
+; Stack Area
+;
+BOTTOM:	DS 		40H			; allow 64 bytes for stack
+STACK: 	EQU 	$			; current location counter
+;								equals top of stack
+		END 	START

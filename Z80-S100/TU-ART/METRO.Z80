@@ -1,0 +1,50 @@
+;
+;
+;		SEC Metronome
+;
+;
+;
+ABASE:	EQU		20H
+BBASE:	EQU		50H
+;
+;
+		ORG		100H
+;
+TUART:	DI
+		LD		SP,300H
+		LD		A,0		;Select Device A  (see
+		OUT		54H,A	;software ADDR-REVERSE).
+		LD		A,9		;Reset Device A & enable
+		OUT		82H,A	;interrupt ack. response.
+		LD		A,1		;Mask out all interrupts but
+		OUT		83H,A	;those from Timer1, Device A
+		LD		A,0		;Mask out all interrupts
+		OUT 	53H,A	;from Device B.
+		LD		A,2		;Select page 2
+		LD		I,A		;for interrupt vectors.
+		IM2				;Interrupt mode 2 (Z80 mode).
+		CALL	INIT	;Initialize the Timer.
+;
+; What follows is an infinite loop.  It could
+; instead be some useful program entirely
+; unrelated to the Timer program.
+;
+HERE:	JP		HERE
+;
+; Interrupt Service Routine.
+;
+TIMER:	DEC		B		
+		JP		NZ,TM2
+		LD		A,7		;Outputting 7 (^C) to the
+		OUT		1,A		;console will ring the bell.
+INIT:	LD		B,125	;Multiplier factor.
+TM2:	LD		A,125	;Count for Timer1.
+		OUT		85H,A	;(125 * 64 usec = 8 msec)
+		EI				;Enable interrupts before
+		RET				;going to label HERE.
+;
+;
+		ORG		280H
+		DW		TIMER	;Interrupt vector, Timer1
+		END		TUART
+		
