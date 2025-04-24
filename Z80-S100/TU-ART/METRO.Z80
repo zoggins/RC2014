@@ -4,10 +4,6 @@
 ;
 ;
 ;
-ABASE:	EQU		20H
-BBASE:	EQU		50H
-;
-;
 		ORG		100H
 ;
 TUART:	DI
@@ -15,11 +11,11 @@ TUART:	DI
 		LD		A,0		;Select Device A  (see
 		OUT		54H,A	;software ADDR-REVERSE).
 		LD		A,9		;Reset Device A & enable
-		OUT		22H,A	;interrupt ack. response.
+		OUT		82H,A	;interrupt ack. response.
 		LD		A,1		;Mask out all interrupts but
-		OUT		23H,A	;those from Timer1, Device A
+		OUT		83H,A	;those from Timer1, Device A
 		LD		A,0		;Mask out all interrupts
-		OUT 	53H,A	;from Device B.
+		OUT		53H,A	;from Device B.
 		LD		A,2		;Select page 2
 		LD		I,A		;for interrupt vectors.
 		IM2				;Interrupt mode 2 (Z80 mode).
@@ -39,7 +35,7 @@ TIMER:	DEC		B
 		OUT		1,A		;console will ring the bell.
 INIT:	LD		B,125	;Multiplier factor.
 TM2:	LD		A,125	;Count for Timer1.
-		OUT		25H,A	;(125 * 64 usec = 8 msec)
+		OUT		85H,A	;(125 * 64 usec = 8 msec)
 		EI				;Enable interrupts before
 		RET				;going to label HERE.
 ;
